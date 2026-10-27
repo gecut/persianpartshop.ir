@@ -1,0 +1,564 @@
+@import "tailwindcss";
+@import "@heroui/styles";
+
+
+
+
+@supports (corner-shape: superellipse(1.5)) {
+  *,
+  ::before,
+  ::after {
+    corner-shape: superellipse(1.5);
+    -webkit-corner-shape: superellipse(1.5);
+  }
+
+  :root {
+    --radius: 1rem;
+  }
+}
+
+html,
+body,
+#root {
+  background-color: #ffffff;
+  color-scheme: light;
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  max-width: 100vw !important;
+  overflow-x: hidden !important;
+  overscroll-behavior-x: none !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.rounded-full,
+[class*="rounded-full"],
+[class*="rounded-[9999px]"],
+[data-slot="thumb"],
+[data-slot="track"],
+[data-slot="slider-thumb"],
+[data-slot="slider-thumb"]::after,
+[data-slot="slider-track"],
+.slider__thumb,
+.slider__thumb::after,
+.slider__track {
+  corner-shape: round !important;
+  -webkit-corner-shape: round !important;
+}
+
+[data-slot="slider-thumb"],
+.slider__thumb {
+  translate: 0 0 !important;
+}
+
+[data-slot="slider-thumb"]::after,
+.slider__thumb::after {
+  display: none !important;
+}
+
+[dir="rtl"] .slider__fill {
+  left: auto !important;
+  right: 0 !important;
+}
+
+@theme {
+  --font-sans:
+    "Vazirmatn", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-body:
+    "Vazirmatn", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  /* HeroUI Semantic Color Tokens */
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-danger: var(--danger);
+  --color-danger-foreground: var(--danger-foreground);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-foreground: var(--surface-foreground);
+  --color-surface-secondary: var(--surface-secondary);
+  --color-surface-secondary-foreground: var(--surface-secondary-foreground);
+  --color-muted: var(--muted);
+  --color-default: var(--default);
+  --color-default-foreground: var(--default-foreground);
+  --color-border: var(--border);
+  --color-separator: var(--separator);
+  --color-focus: var(--focus);
+}
+
+:root {
+  font-family:
+    "Vazirmatn Variable",
+    "Vazirmatn",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+  --font-sans:
+    "Vazirmatn Variable", "Vazirmatn", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  /* Primary Brand (#1C1696 Persian Deep Indigo) */
+  --primary: #1c1696;
+  --primary-foreground: #ffffff;
+  --accent: #1c1696;
+  --accent-foreground: #ffffff;
+
+  /* Secondary (Derived subtle indigo-tinted surface) */
+  --secondary: #eeeefe;
+  --secondary-foreground: #1c1696;
+  --surface-secondary: #f4f4fd;
+  --surface-secondary-foreground: #0e0c2d;
+
+  /* Status Colors */
+  --success: #059669;
+  --success-foreground: #ffffff;
+
+  --warning: #d97706;
+  --warning-foreground: #0e0c2d;
+
+  --danger: #dc2626;
+  --danger-foreground: #ffffff;
+
+  /* Base & Surface (Pure white background as configured) */
+  --background: #ffffff;
+  --foreground: #0e0c2d;
+  --surface: #ffffff;
+  --surface-foreground: var(--foreground);
+  --muted: #696688;
+  --default: #ebedf7;
+  --default-foreground: #0e0c2d;
+
+  --border: #e0e2f0;
+  --separator: #ebedf5;
+  --focus: #1c1696;
+}
+
+html,
+body,
+button,
+input,
+textarea,
+select {
+  font-family:
+    "Vazirmatn Variable",
+    "Vazirmatn",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  -webkit-touch-callout: none !important;
+  font-feature-settings: "ss01" 1;
+  line-height: 1.6;
+  background-color: #ffffff;
+  color: var(--foreground);
+}
+
+/* Strictly disable text selection globally across all elements and pseudo-elements */
+html,
+body,
+#root,
+*,
+*::before,
+*::after {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+  -webkit-touch-callout: none !important;
+}
+
+/* Allow text selection strictly inside form inputs, textareas, and editable fields */
+input,
+textarea,
+[contenteditable="true"],
+[data-selectable="true"] {
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+  user-select: text !important;
+  cursor: text;
+}
+
+/* Prevent image dragging and ghost selection outlines */
+img,
+svg {
+  -webkit-user-drag: none;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+  pointer-events: auto;
+}
+
+/* Prevent horizontal page wobble and bounce in Safari touch */
+main,
+section,
+[data-slot="main"],
+.scroll-container {
+  overscroll-behavior-x: none !important;
+}
+
+::selection {
+  background: transparent !important;
+  color: inherit !important;
+}
+
+input::selection,
+textarea::selection,
+[contenteditable="true"]::selection,
+[data-selectable="true"]::selection {
+  background: rgba(28, 22, 150, 0.2) !important;
+  color: inherit !important;
+}
+/* Prevent iOS input focus zoom & double-tap delay/zoom */
+html {
+  -webkit-text-size-adjust: 100%;
+  background-color: #ffffff;
+}
+
+html,
+body,
+button,
+a,
+input,
+textarea,
+select {
+  touch-action: manipulation;
+}
+
+@layer base {
+  input,
+  textarea,
+  select {
+    font-size: inherit;
+  }
+}
+
+/* Enforce 16px minimum font-size on mobile inputs to eliminate iOS Safari focus auto-zoom, unless an explicit text-* size is set */
+@media screen and (max-width: 768px) {
+  input:not([class*="text-"]):not([style*="font-size"]),
+  textarea:not([class*="text-"]):not([style*="font-size"]),
+  select:not([class*="text-"]):not([style*="font-size"]),
+  [data-slot="input"]:not([class*="text-"]):not([style*="font-size"]),
+  [data-slot="search-input"]:not([class*="text-"]):not([style*="font-size"]) {
+    font-size: 16px;
+  }
+}
+
+/* Persian typography: ensure cursive continuity and prevent glyph clipping */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  letter-spacing: normal;
+  line-height: 1.4;
+}
+
+/* Factor uniqid codes, order numbers, SKU codes, and LTR elements retain exact Latin numerals */
+[dir="ltr"],
+.font-mono,
+.code-uniqid {
+  font-feature-settings: normal;
+}
+
+/* Custom subtle scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Hide scrollbars utility (Cross-browser: Chrome, Safari, iOS Safari, Firefox, Edge) */
+.scrollbar-none,
+.no-scrollbar,
+[data-scrollbar="none"] {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+.scrollbar-none::-webkit-scrollbar,
+.no-scrollbar::-webkit-scrollbar,
+[data-scrollbar="none"]::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
+
+@utility scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+}
+
+/* Modal & Drawer Keyframe Animations */
+/* Ensure all bottom sheets & drawers are 100% flush with the bottom on every device */
+[data-slot="drawer"][data-placement="bottom"],
+.drawer__content--bottom,
+.drawer__content[data-placement="bottom"] {
+  bottom: 0 !important;
+  margin-bottom: 0 !important;
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+[data-slot="drawer-dialog"],
+.drawer__dialog--bottom,
+.drawer__dialog[data-placement="bottom"] {
+  margin-bottom: 0 !important;
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+@keyframes modalEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes modalBackdropEnter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes drawerSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-modal-enter {
+  animation: modalEnter 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-backdrop-enter {
+  animation: modalBackdropEnter 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-drawer-slide-up {
+  animation: drawerSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes cardFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-card-fade-in {
+  animation: cardFadeIn 300ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: opacity, transform;
+}
+
+/* HeroUI Toast RTL Alignment (Strict Right Align for All Content) */
+.toast-region,
+[data-slot="toast-region"],
+.toast,
+[data-slot="toast"] {
+  direction: rtl !important;
+  text-align: right !important;
+}
+
+.toast,
+[data-slot="toast"] {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+  text-align: right !important;
+}
+
+.toast__content,
+[data-slot="toast-content"] {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+  text-align: right !important;
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+.toast__title,
+[data-slot="toast-title"] {
+  text-align: right !important;
+  width: 100% !important;
+  font-weight: 700 !important;
+  line-height: 1.4 !important;
+}
+
+.toast__description,
+[data-slot="toast-description"] {
+  text-align: right !important;
+  width: 100% !important;
+  font-weight: 500 !important;
+  line-height: 1.5 !important;
+  opacity: 0.85 !important;
+}
+
+/* --------------------------------------------------------------------------
+   LOGIN PATTERNED AMBIENT BACKGROUND (#1C1696)
+   - Central Geometric Grid with Radial Fade to Edges
+   -------------------------------------------------------------------------- */
+@keyframes loginCenterGlow {
+  0% {
+    transform: scale(0.92);
+    opacity: 0.28;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 0.45;
+  }
+  100% {
+    transform: scale(0.92);
+    opacity: 0.28;
+  }
+}
+
+@keyframes loginRingPulse {
+  0% {
+    transform: scale(0.98);
+    opacity: 0.12;
+  }
+  50% {
+    transform: scale(1.03);
+    opacity: 0.24;
+  }
+  100% {
+    transform: scale(0.98);
+    opacity: 0.12;
+  }
+}
+
+@keyframes loginPatternSweep {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.35;
+  }
+  80% {
+    opacity: 0.35;
+  }
+  100% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+.login-center-glow {
+  animation: loginCenterGlow 10s ease-in-out infinite alternate;
+  will-change: transform, opacity;
+}
+
+.login-ring-1 {
+  animation: loginRingPulse 12s ease-in-out infinite alternate;
+  will-change: transform, opacity;
+}
+
+.login-ring-2 {
+  animation: loginRingPulse 16s ease-in-out infinite alternate 2s;
+  will-change: transform, opacity;
+}
+
+.login-ring-3 {
+  animation: loginRingPulse 20s ease-in-out infinite alternate 4s;
+  will-change: transform, opacity;
+}
+
+.login-pattern-sweep {
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(28, 22, 150, 0.08) 45%,
+    rgba(42, 34, 196, 0.16) 50%,
+    rgba(28, 22, 150, 0.08) 55%,
+    transparent 100%
+  );
+  animation: loginPatternSweep 9s ease-in-out infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-center-glow,
+  .login-ring-1,
+  .login-ring-2,
+  .login-ring-3,
+  .login-pattern-sweep {
+    animation: none !important;
+  }
+}
+/* --------------------------------------------------------------------------
+   CORNER-SHAPE SQUIRCLE SPECIFICATION (CSS Backgrounds & Borders Level 4)
+   -------------------------------------------------------------------------- */

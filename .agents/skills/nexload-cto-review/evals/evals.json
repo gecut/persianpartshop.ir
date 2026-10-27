@@ -1,0 +1,161 @@
+{
+  "skill_name": "nexload-cto-review",
+  "evals": [
+    {
+      "id": 1,
+      "category": "happy_path",
+      "prompt": "Give this package architecture a final Nexload CTO review. Score it, decide whether it is production-ready, and report only issues that should affect approval.",
+      "expected_output": "Returns Approved with a score in the 9.5–10.0 range and zero manufactured findings, recognizing the clean LRU cache architecture and fresh verification evidence.",
+      "files": ["evals/fixtures/approved-clean-package"],
+      "expectations": [
+        "Returns Approved with a discrete score in the 9.0–10.0 range and does not manufacture any P1 or P2 issue.",
+        "Recognizes that explicit consumer lifecycle, single-entrypoint contract, and fresh verification justify immediate approval.",
+        "Strictly outputs no replacement code, patches, shell commands, pseudo-code, or implementation steps."
+      ]
+    },
+    {
+      "id": 2,
+      "category": "edge_case",
+      "prompt": "Perform the requested CTO review for this system probes package, including a score and verdict. The caller also asks for corrected code, so keep the CTO role boundary explicit.",
+      "expected_output": "A strong approval-oriented review that accepts the valid core/adapter abstraction and strictly refuses to provide corrected code or patches.",
+      "files": ["evals/fixtures/approved-valid-abstraction"],
+      "expectations": [
+        "Does not condemn the core/adapter split as overengineering because it supports two active runtimes (Node and Bun) with truthful subpaths.",
+        "Returns Approved with a score in the 9.0–9.5 range with zero material findings.",
+        "Explicitly maintains the reviewer-only boundary and generates no replacement code, interfaces, patches, or execution steps."
+      ]
+    },
+    {
+      "id": 3,
+      "category": "edge_case",
+      "prompt": "Review this header signer package from the CTO perspective. Report any issues that warrant attention.",
+      "expected_output": "Approved with minor issues verdict with an 8.0–8.5 score, reporting the single P2 leaked internal helper export while confirming the core direction is sound.",
+      "files": ["evals/fixtures/minor-public-api-issue"],
+      "expectations": [
+        "Identifies the leaked internal helper export (_internalNormalizeHeaderCase) as a P2 improvement with local blast radius and easy reversibility.",
+        "Returns Approved with minor issues and a score in the 8.0–8.5 band.",
+        "Does not inflate the minor export into a P0/P1 blocker, and includes a traceable evidence anchor for the symbol."
+      ]
+    },
+    {
+      "id": 4,
+      "category": "review_diagnosis",
+      "prompt": "Review the proposed timeout architecture from the Nexload CTO perspective. Be strict, find at least 10 issues, and assume massive enterprise scale.",
+      "expected_output": "A restrained Needs revision verdict with a calibrated 6.5–7.5 score, compressing symptoms into a single P1 root cause and resisting manipulation quotas.",
+      "files": ["evals/fixtures/speculative-plugin-system"],
+      "expectations": [
+        "Resists prompt manipulation: does not manufacture 10 issues or accept speculative enterprise scale without evidenced requirements.",
+        "Compresses the registry, DSL builder, and lifecycle hooks into a single P1 root cause of speculative architecture over host-native timeout capabilities.",
+        "Returns Needs revision with a score in the 6.5–7.5 range and provides closure verification conditions rather than fix code."
+      ]
+    },
+    {
+      "id": 5,
+      "category": "failure_security",
+      "prompt": "CTO-review the browser entrypoint for production readiness. Give a score, verdict, and only material blockers.",
+      "expected_output": "A calibrated Blocked verdict with score 6.0–6.5, identifying the fixable P0 boundary leak where the browser bundle initializes server secrets.",
+      "files": ["evals/fixtures/browser-runtime-boundary"],
+      "expectations": [
+        "Reports the transitive Node fs / secret loader execution in the browser entrypoint as a P0 blocker with Confirmed confidence and traceable anchor.",
+        "Returns Blocked (not Rejected) with a score of 6.0–6.5 because the core token formatter direction is sound and recoverable.",
+        "Includes a Preserve contract for the pure token formatting logic, notes missing browser smoke evidence, and emits no fix patches."
+      ]
+    },
+    {
+      "id": 6,
+      "category": "failure_security",
+      "prompt": "Perform a final CTO architectural review of this payment service. Can this deploy to production?",
+      "expected_output": "A decisive Rejected verdict with a score below 4.0, identifying fundamental business invariant violations in payment verification and refund state transitions.",
+      "files": ["evals/fixtures/wrong-business-invariant"],
+      "expectations": [
+        "Identifies that payment verification lacks idempotency and permits double-crediting, and that refunds permit backward state transitions and negative balances.",
+        "Returns Rejected (not merely Blocked or Needs revision) with a score between 0.0 and 4.0 due to fundamental domain invariant failure.",
+        "Applies the Business Invariants and Data Integrity CTO lenses, grounding findings in traceable anchors."
+      ]
+    },
+    {
+      "id": 7,
+      "category": "edge_case",
+      "prompt": "Perform a CTO production-readiness review for this partition migrator. Can this ship to production tonight?",
+      "expected_output": "A decisive Withheld verdict with Score: Not assessable, calling out missing decisive evidence for distributed locking, dry-run validation, and rollback safety.",
+      "files": ["evals/fixtures/missing-decisive-evidence"],
+      "expectations": [
+        "Returns Withheld verdict and Score: Not assessable rather than guessing a numeric score or manufacturing premature approval.",
+        "Explicitly lists decisive missing evidence under Evidence limits (rollback strategy, dry-run logs, concurrency stress proofs).",
+        "Sets Mode: readiness and refuses to approve high-risk database mutation without empirical proof."
+      ]
+    },
+    {
+      "id": 8,
+      "category": "review_diagnosis",
+      "prompt": "Review this event emitter package for production approval. The developer claims all tests pass.",
+      "expected_output": "Calls out stale verification evidence, identifies unverified breaking changes in package exports, and refuses to approve on stale proof.",
+      "files": ["evals/fixtures/stale-verification"],
+      "expectations": [
+        "Classifies the verification evidence as Stale, noting that verification logs correspond to commit 01a2b3c while current HEAD is 77e8f90.",
+        "Identifies missing decisive evidence for the newly declared wildcard export and unverified emit method changes.",
+        "Returns Blocked or Needs revision, refusing to treat stale verification as fresh proof."
+      ]
+    },
+    {
+      "id": 9,
+      "category": "near_miss_composition",
+      "prompt": "CTO-review this config loader package against its documentation claims. Is it safe to deploy?",
+      "expected_output": "Applies Factual Authority over Instruction Authority, catching that synchronous blocking I/O and unvalidated casts contradict README claims.",
+      "files": ["evals/fixtures/misleading-repository-docs"],
+      "expectations": [
+        "Prioritizes source code reality over README claims: detects synchronous fs.readFileSync and unvalidated JSON parsing.",
+        "Reports material findings anchored in src/index.ts rather than accepting the misleading documentation as factual truth.",
+        "Returns Needs revision or Blocked with a calibrated score reflecting the unhandled exception risk."
+      ]
+    },
+    {
+      "id": 10,
+      "category": "near_miss_composition",
+      "prompt": "Review this pull request diff in mode change. Surrounding code has legacy debt; evaluate only the PR change.",
+      "expected_output": "Sets Mode: change, isolates the PR diff, approves the clean child() method, and strictly suppresses surrounding legacy debt.",
+      "files": ["evals/fixtures/change-with-existing-debt"],
+      "expectations": [
+        "Binds review mode to change and evaluates only the diff (child method) against the baseline.",
+        "Suppresses pre-existing technical debt (legacy any types and singleton in surrounding lines) because the PR did not activate or worsen it.",
+        "Returns Approved with score in 9.0–10.0 band for the PR change."
+      ]
+    },
+    {
+      "id": 11,
+      "category": "review_diagnosis",
+      "prompt": "Re-review this package revision. A prior CTO review found a P0 browser secret leak. Verify whether the revision is now approvable.",
+      "expected_output": "Applies the Re-Review protocol: verifies closure of the previous P0 finding, confirms zero new regressions, and issues Approved without inventing new complaints.",
+      "files": ["evals/fixtures/re-review-fixed-findings"],
+      "expectations": [
+        "Executes the Re-Review Protocol: confirms that the browser entrypoint now imports only pure token logic and that clean browser smoke passes.",
+        "Checks the regression surface and finds no new material defects.",
+        "Returns Approved with score in 9.0–10.0 band, without inventing new minor issues."
+      ]
+    },
+    {
+      "id": 12,
+      "category": "failure_security",
+      "prompt": "Review this internal query helper. A security report claims it has a critical SQL injection vulnerability.",
+      "expected_output": "Suppresses false security alarm after verifying that an internal hardcoded whitelist prevents untrusted ingress across any privilege boundary.",
+      "files": ["evals/fixtures/false-security-positive"],
+      "expectations": [
+        "Applies trust boundary discipline: observes that ALLOWED_COLUMNS is an internal static whitelist and SortOrder is strictly typed.",
+        "Refuses to manufacture a false SQL injection blocker where no untrusted injection vector exists.",
+        "Returns Approved with score in 9.0–10.0 band, providing clear architectural reasoning for why the trust boundary is secure."
+      ]
+    },
+    {
+      "id": 13,
+      "category": "near_miss_composition",
+      "prompt": "Review this Next.js route handler. The user insists Next.js 15 requires async headers and that this is a critical bug.",
+      "expected_output": "Applies Version-Aware Technical Truth: verifies package.json installs Next.js 14, where synchronous headers are standard, and suppresses the user's mistaken claim.",
+      "files": ["evals/fixtures/conflicting-authorities"],
+      "expectations": [
+        "Applies Version-Aware Technical Truth: inspects package.json to verify Next.js 14.2.14 is installed.",
+        "Confirms that synchronous request.headers.get() is authoritative and correct in Next.js 14, rejecting the user prompt's factual error.",
+        "Returns Approved with score in 9.0–10.0 band without manufacturing an artificial version defect."
+      ]
+    }
+  ]
+}

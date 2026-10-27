@@ -1,0 +1,459 @@
+/* ==========================================================================
+   PersianPart 2.0 — Modern Clean Admin Panel Theme for Payload CMS 3
+   1. Persian Typography (Vazirmatn Variable) & Persian Digits (ss01)
+   2. Comprehensive RTL Support & Mirrored Navigation Icons
+   3. Modern Palette: Slate / Zinc Base with Refined Indigo Brand Accents
+   4. Unified Smooth Modern Radii (8px / 12px / 16px) & Soft Transitions
+   5. Compact Headings & Clean Field Labels / Descriptions
+   6. Bug-Free Select/Option & Relationship RTL Controls
+   7. Beautiful RTL Lexical RichText Editor
+   ========================================================================== */
+
+@import "@fontsource-variable/vazirmatn/index.css";
+
+/* --------------------------------------------------------------------------
+   1. GLOBAL TOKENS & TYPOGRAPHY
+   -------------------------------------------------------------------------- */
+:root {
+  --font-body: 'Vazirmatn Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'Vazirmatn Variable', 'SF Mono', Menlo, Consolas, monospace;
+  --font-serif: var(--font-body);
+
+  /* Modern Smooth Radii Scale */
+  --style-radius-s: 8px;
+  --style-radius-m: 12px;
+  --style-radius-l: 16px;
+  --border-radius: var(--style-radius-m);
+
+  /* Light Theme Elevation Tokens (Slate / Zinc Neutral) */
+  --theme-elevation-0: #ffffff;
+  --theme-elevation-50: #f8fafc;
+  --theme-elevation-100: #f1f5f9;
+  --theme-elevation-150: #e2e8f0;
+  --theme-elevation-200: #cbd5e1;
+  --theme-elevation-250: #94a3b8;
+  --theme-elevation-300: #64748b;
+  --theme-elevation-400: #475569;
+  --theme-elevation-500: #334155;
+  --theme-elevation-600: #1e293b;
+  --theme-elevation-800: #0f172a;
+  --theme-elevation-900: #020617;
+  --theme-elevation-950: #000000;
+  --theme-elevation-1000: #000000;
+
+  --theme-bg: var(--theme-elevation-50);
+  --theme-input-bg: var(--theme-elevation-0);
+  --theme-text: var(--theme-elevation-800);
+  --theme-border-color: var(--theme-elevation-150);
+
+  /* Brand Accents */
+  --color-primary: #4338ca;
+  --color-primary-hover: #3730a3;
+  --color-primary-subtle: #e0e7ff;
+  --color-primary-fg: #ffffff;
+}
+
+[data-theme='dark'] {
+  /* Dark Theme Elevation Tokens (Deep Obsidian / Zinc) */
+  --theme-elevation-0: #121215;
+  --theme-elevation-50: #09090b;
+  --theme-elevation-100: #18181b;
+  --theme-elevation-150: #27272a;
+  --theme-elevation-200: #3f3f46;
+  --theme-elevation-250: #52525b;
+  --theme-elevation-300: #71717a;
+  --theme-elevation-400: #a1a1aa;
+  --theme-elevation-500: #d4d4d8;
+  --theme-elevation-600: #e4e4e7;
+  --theme-elevation-800: #f8fafc;
+  --theme-elevation-900: #ffffff;
+  --theme-elevation-950: #ffffff;
+  --theme-elevation-1000: #ffffff;
+
+  --theme-bg: var(--theme-elevation-50);
+  --theme-input-bg: var(--theme-elevation-0);
+  --theme-text: var(--theme-elevation-800);
+  --theme-border-color: var(--theme-elevation-150);
+
+  /* Brand Accents (Dark Mode) */
+  --color-primary: #6366f1;
+  --color-primary-hover: #818cf8;
+  --color-primary-subtle: #1e1b4b;
+  --color-primary-fg: #ffffff;
+}
+
+/* --------------------------------------------------------------------------
+   2. BASE RTL & PERSIAN NUMERALS
+   -------------------------------------------------------------------------- */
+html,
+body {
+  direction: rtl;
+  text-align: right;
+  font-family: var(--font-body);
+  background-color: var(--theme-bg);
+  color: var(--theme-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+*,
+::before,
+::after {
+  font-family: var(--font-body);
+  font-feature-settings: 'ss01' 1, 'cv01' 1, 'tnum' 1;
+  font-variant-numeric: tabular-nums;
+  box-sizing: border-box;
+}
+
+/* --------------------------------------------------------------------------
+   3. RTL NAVIGATION & DIRECTIONAL ICON MIRRORING
+   -------------------------------------------------------------------------- */
+.step-nav {
+  direction: rtl;
+}
+
+.step-nav__separator {
+  transform: rotate(180deg);
+}
+
+.paginator__button--next svg,
+.paginator__button--previous svg,
+.pagination__chevron svg,
+.nav-toggler svg {
+  transform: scaleX(-1);
+}
+
+aside.nav,
+.nav {
+  border-left: 1px solid var(--theme-border-color);
+  border-right: none;
+  text-align: right;
+}
+
+.nav__link {
+  text-align: right;
+  border-radius: var(--style-radius-s);
+  transition: all 0.15s ease-in-out;
+}
+
+.nav__link:hover {
+  background-color: var(--theme-elevation-100);
+}
+
+.nav__link--active,
+.nav__link.active {
+  background-color: var(--color-primary-subtle);
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+/* Top Header & Logo Containment */
+.app-header .step-nav__home {
+  width: 20px !important;
+  height: 20px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.graphic-logo {
+  height: 100% !important;
+  max-height: 32px !important;
+  width: auto !important;
+}
+
+/* --------------------------------------------------------------------------
+   4. COLLECTION LIST VIEW & COMPACT HEADINGS
+   -------------------------------------------------------------------------- */
+.list-header__title {
+  font-size: 1.25rem !important; /* Compact refined heading */
+  line-height: 1.4 !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.015em !important;
+  margin: 0 !important;
+}
+
+.field-label {
+  font-size: 0.8125rem !important; /* 13px */
+  font-weight: 600 !important;
+  margin-bottom: 4px !important;
+  display: block !important;
+  text-align: right !important;
+}
+
+.field-description {
+  font-size: 0.75rem !important; /* 12px */
+  color: var(--theme-elevation-400) !important;
+  margin-top: 4px !important;
+  line-height: 1.45 !important;
+  text-align: right !important;
+}
+
+/* --------------------------------------------------------------------------
+   5. CONTROLS, INPUTS & SELECT (FIX EXTRA ELEMENT BUG)
+   -------------------------------------------------------------------------- */
+input:not([type='checkbox']):not([type='radio']):not(.rs__input):not([class*='rs__']),
+textarea,
+select {
+  border-radius: var(--style-radius-m) !important;
+  border: 1px solid var(--theme-border-color) !important;
+  background-color: var(--theme-input-bg) !important;
+  color: var(--theme-text) !important;
+  text-align: right;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+input:focus:not([type='checkbox']):not([type='radio']):not(.rs__input):not([class*='rs__']),
+textarea:focus,
+select:focus {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18) !important;
+  outline: none !important;
+}
+
+/* ReactSelect Container & Control */
+.react-select .rs__control {
+  border-radius: var(--style-radius-m) !important;
+  border: 1px solid var(--theme-border-color) !important;
+  background-color: var(--theme-input-bg) !important;
+  color: var(--theme-text) !important;
+  direction: rtl !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.react-select .rs__control--is-focused {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18) !important;
+  outline: none !important;
+}
+
+/* Eliminate ReactSelect Inner Hidden Input Glitches */
+.rs__indicator-separator {
+  display: none !important;
+}
+
+.rs__input-container input,
+.rs__input input,
+input.rs__input {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  height: auto !important;
+  padding: 0 !important;
+}
+
+/* --------------------------------------------------------------------------
+   6. RELATIONSHIP & SELECT RTL ALIGNMENT
+   -------------------------------------------------------------------------- */
+.relationship,
+.relationship__wrap,
+.react-select {
+  direction: rtl !important;
+  text-align: right !important;
+}
+
+.rs__value-container {
+  text-align: right !important;
+  justify-content: flex-start !important;
+  padding: 2px 8px !important;
+}
+
+.rs__indicators {
+  margin-inline-start: 0 !important;
+  margin-inline-end: 4px !important;
+}
+
+.rs__multi-value {
+  margin: 3px 0 3px 6px !important;
+  border-radius: var(--style-radius-s) !important;
+}
+
+.rs__menu {
+  right: 0 !important;
+  left: auto !important;
+  text-align: right !important;
+  direction: rtl !important;
+  border-radius: var(--style-radius-m) !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+  border: 1px solid var(--theme-border-color) !important;
+  background-color: var(--theme-input-bg) !important;
+  overflow: hidden !important;
+}
+
+.rs__option {
+  text-align: right !important;
+  direction: rtl !important;
+  font-family: var(--font-body) !important;
+  padding: 8px 14px !important;
+  cursor: pointer !important;
+}
+
+.rs__option--is-focused {
+  background-color: var(--theme-elevation-100) !important;
+}
+
+.rs__option--is-selected {
+  background-color: var(--color-primary-subtle) !important;
+  color: var(--color-primary) !important;
+  font-weight: 600 !important;
+}
+
+/* --------------------------------------------------------------------------
+   7. GORGEOUS RTL LEXICAL RICH-TEXT EDITOR
+   -------------------------------------------------------------------------- */
+.rich-text-lexical {
+  direction: rtl !important;
+  text-align: right !important;
+}
+
+.rich-text-lexical .editor-container {
+  border: 1px solid var(--theme-border-color) !important;
+  border-radius: var(--style-radius-m) !important;
+  background-color: var(--theme-input-bg) !important;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.03) !important;
+  overflow: hidden !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.rich-text-lexical .editor-container:focus-within {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18) !important;
+}
+
+.rich-text-lexical .ContentEditable__root {
+  direction: rtl !important;
+  text-align: right !important;
+  padding: 14px 18px !important;
+  min-height: 160px !important;
+  font-family: var(--font-body) !important;
+  line-height: 1.8 !important;
+}
+
+.rich-text-lexical .ContentEditable__root:before {
+  display: none !important; /* Remove unneeded left gutter line */
+}
+
+.rich-text-lexical .placeholder {
+  right: 18px !important;
+  left: auto !important;
+  text-align: right !important;
+  direction: rtl !important;
+  color: var(--theme-elevation-400) !important;
+  font-size: 0.875rem !important;
+  top: 14px !important;
+}
+
+.rich-text-lexical .fixed-toolbar {
+  direction: rtl !important;
+  border-bottom: 1px solid var(--theme-border-color) !important;
+  background-color: var(--theme-elevation-100) !important;
+  padding: 4px 8px !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 2px !important;
+}
+
+.rich-text-lexical .fixed-toolbar button {
+  border-radius: var(--style-radius-s) !important;
+  transition: all 0.15s ease !important;
+}
+
+.rich-text-lexical .fixed-toolbar button:hover {
+  background-color: var(--theme-elevation-200) !important;
+}
+
+.rich-text-lexical .ContentEditable__root h1,
+.rich-text-lexical .ContentEditable__root h2,
+.rich-text-lexical .ContentEditable__root h3,
+.rich-text-lexical .ContentEditable__root p,
+.rich-text-lexical .ContentEditable__root blockquote,
+.rich-text-lexical .ContentEditable__root ul,
+.rich-text-lexical .ContentEditable__root ol {
+  text-align: right !important;
+  direction: rtl !important;
+}
+
+.rich-text-lexical .ContentEditable__root ul,
+.rich-text-lexical .ContentEditable__root ol {
+  padding-right: 1.5rem !important;
+  padding-left: 0 !important;
+}
+
+.rich-text-lexical .ContentEditable__root blockquote {
+  border-right: 3px solid var(--color-primary) !important;
+  border-left: none !important;
+  padding-right: 12px !important;
+  padding-left: 0 !important;
+  color: var(--theme-elevation-600) !important;
+  background: var(--theme-elevation-50) !important;
+  border-radius: var(--style-radius-s) !important;
+}
+
+/* --------------------------------------------------------------------------
+   8. MODERN CARDS & BUTTONS
+   -------------------------------------------------------------------------- */
+.card,
+.dashboard__card {
+  border-radius: var(--style-radius-m) !important;
+  border: 1px solid var(--theme-border-color) !important;
+  background-color: var(--theme-elevation-0) !important;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.03), 0 1px 2px -1px rgb(0 0 0 / 0.03) !important;
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.18s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.18s ease !important;
+}
+
+.card:hover,
+.dashboard__card:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 8px 20px -4px rgba(79, 70, 229, 0.12), 0 4px 8px -2px rgba(79, 70, 229, 0.06) !important;
+}
+
+.btn {
+  border-radius: var(--style-radius-m) !important;
+  transition: all 0.15s ease-in-out !important;
+  font-family: var(--font-body) !important;
+}
+
+.btn--style-primary {
+  --bg-color: var(--color-primary) !important;
+  --hover-bg: var(--color-primary-hover) !important;
+  --color: var(--color-primary-fg) !important;
+  --hover-color: var(--color-primary-fg) !important;
+  box-shadow: 0 1px 2px 0 rgba(79, 70, 229, 0.2) !important;
+}
+
+.btn--style-primary:hover {
+  box-shadow: 0 4px 12px 0 rgba(79, 70, 229, 0.25) !important;
+}
+
+/* --------------------------------------------------------------------------
+   9. TABLES & STATUS PILLS
+   -------------------------------------------------------------------------- */
+.table-wrap,
+.collection-list__wrap {
+  border-radius: var(--style-radius-m) !important;
+  overflow: hidden !important;
+  border: 1px solid var(--theme-border-color) !important;
+  background-color: var(--theme-elevation-0) !important;
+}
+
+table th,
+table td {
+  text-align: right !important;
+}
+
+tbody tr {
+  transition: background-color 0.12s ease !important;
+}
+
+tbody tr:hover {
+  background-color: var(--theme-elevation-100) !important;
+}
+
+.pill,
+.badge,
+.status {
+  border-radius: var(--style-radius-s) !important;
+  font-weight: 600 !important;
+  transition: all 0.15s ease-in-out !important;
+}

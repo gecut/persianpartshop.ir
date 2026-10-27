@@ -1,0 +1,19 @@
+{
+  "name": "persianpart",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter @persianpart/web dev",
+    "dev:cms": "pnpm --filter @persianpart/cms dev",
+    "dev:api": "pnpm --filter @persianpart/api dev",
+    "build": "pnpm --filter @persianpart/cms build && pnpm --filter @persianpart/api build && pnpm --filter @persianpart/web build",
+    "build:web": "pnpm --filter @persianpart/web build",
+    "build:cms": "pnpm --filter @persianpart/cms build",
+    "build:api": "pnpm --filter @persianpart/api build",
+    "check-types": "pnpm -r exec tsc --noEmit",
+    "migrate:cms": "pnpm --filter @persianpart/cms migrate",
+    "migrate:cms:status": "pnpm --filter @persianpart/cms migrate:status",
+    "seed:cms": "pnpm --filter @persianpart/cms seed",
+    "dev:all":"pnpm --filter @persianpart/web dev & pnpm --filter @persianpart/cms dev & pnpm --filter @persianpart/api dev"
+  },
+  "packageManager": "pnpm@11.18.0"
+}

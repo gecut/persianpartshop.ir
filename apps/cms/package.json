@@ -1,0 +1,68 @@
+{
+  "name": "@persianpart/cms",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./payload": {
+      "types": "./src/payload.ts",
+      "import": "./src/payload.ts"
+    },
+    "./sdk": {
+      "types": "./src/sdk.ts",
+      "import": "./src/sdk.ts"
+    },
+    "./types": {
+      "types": "./src/payload-types.ts",
+      "import": "./src/payload-types.ts"
+    },
+    "./config": {
+      "types": "./src/payload.config.ts",
+      "import": "./src/payload.config.ts"
+    }
+  },
+  "scripts": {
+    "dev": "cross-env PORT=5174 next dev -p 5174",
+    "build": "cross-env NODE_OPTIONS=\"--no-deprecation --max-old-space-size=8000\" next build",
+    "start": "cross-env PORT=5174 next start -p 5174",
+    "generate:importmap": "cross-env NODE_OPTIONS=--no-deprecation payload generate:importmap",
+    "generate:types": "cross-env NODE_OPTIONS=--no-deprecation payload generate:types",
+    "migrate": "cross-env NODE_OPTIONS=--no-deprecation payload migrate",
+    "migrate:create": "cross-env NODE_OPTIONS=--no-deprecation payload migrate:create",
+    "migrate:status": "cross-env NODE_OPTIONS=--no-deprecation payload migrate:status",
+    "migrate:down": "cross-env NODE_OPTIONS=--no-deprecation payload migrate:down",
+    "migrate:fresh": "cross-env NODE_OPTIONS=--no-deprecation payload migrate:fresh",
+    "seed": "cross-env NODE_OPTIONS=--no-deprecation node --import tsx src/seed.ts",
+    "test:hardening": "tsx --test src/_sdk.test.ts src/_seed-target.test.ts src/collections/orders/_reservation.test.ts src/collections/products/_products.test.ts src/collections/products/_access.test.ts",
+    "test:hardening:postgres": "tsx --test src/collections/orders/_reservation.integration.test.ts",
+    "test:hardening:migrations": "tsx --test --test-force-exit src/_schema-inspect.test.ts"
+  },
+  "dependencies": {
+    "@fontsource-variable/vazirmatn": "^5.3.0",
+    "@payloadcms/db-postgres": "^3.90.2",
+    "@payloadcms/db-sqlite": "^3.90.2",
+    "@payloadcms/next": "^3.90.2",
+    "@payloadcms/plugin-import-export": "3.90.2",
+    "@payloadcms/richtext-lexical": "^3.90.2",
+    "@payloadcms/sdk": "^3.91.0",
+    "@payloadcms/translations": "^3.90.2",
+    "@payloadcms/ui": "^3.90.2",
+    "@persianpart/contract": "workspace:*",
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.4.7",
+    "next": "16.3.8",
+    "payload": "^3.90.2",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "sharp": "^0.35.4",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@next/env": "^16.4.0",
+    "@types/node": "^24.12.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "tsx": "^4.23.15",
+    "typescript": "^6.0.3"
+  }
+}

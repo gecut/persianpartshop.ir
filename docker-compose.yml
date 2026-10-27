@@ -1,0 +1,77 @@
+services:
+  migration:
+    image: ${CMS_IMAGE:-ghcr.io/ehsanmousavif/cms}:${CMS_TAG:-${TAG:-latest}}
+    restart: "no"
+    command: ["pnpm", "--filter", "@persianpart/cms", "migrate"]
+    environment:
+      DATABASE_URI: ${DATABASE_URI:-${DATABASE_URL:-postgresql://postgres:8228@postgres:5432/persianpart_cms}}
+      PAYLOAD_SECRET: ${PAYLOAD_SECRET:-super-secret-payload-key-must-be-at-least-32-chars-long}
+    networks:
+      - dokploy-network
+
+  api:
+    image: ${API_IMAGE:-ghcr.io/ehsanmousavif/api}:${API_TAG:-${TAG:-latest}}
+    restart: unless-stopped
+    command: ["bun", "run", "apps/api/src/server.ts"]
+    expose:
+      - "5175"
+    depends_on:
+      migration:
+        condition: service_completed_successfully
+    environment:
+      NODE_ENV: production
+      PORT: 5175
+      HOST: 0.0.0.0
+      DATABASE_URI: ${DATABASE_URI:-${DATABASE_URL:-postgresql://postgres:8228@postgres:5432/persianpart_cms}}
+      DATABASE_URL: ${DATABASE_URL:-${DATABASE_URI:-postgresql://postgres:8228@postgres:5432/persianpart_cms}}
+      PAYLOAD_SECRET: ${PAYLOAD_SECRET:-super-secret-payload-key-must-be-at-least-32-chars-long}
+      JWT_SECRET: ${JWT_SECRET:-super-secret-jwt-session-key-must-be-32-chars-long}
+      CMS_URL: ${CMS_URL:-https://${CMS_DOMAIN:-admin.persianpart.shop}}
+      CORS_ORIGINS: ${CORS_ORIGINS:-https://${CMS_DOMAIN:-admin.persianpart.shop},https://${WEB_DOMAIN:-persianpart.shop},https://${API_DOMAIN:-api.persianpart.shop},http://localhost:3000,http://localhost:5173,http://localhost:5174,http://localhost:5175}
+      KAVENEGAR_API_KEY: ${KAVENEGAR_API_KEY:-46437751615871547A59364B75376339706E72384266734A596F3476644B653641356171462F557A5747383D}
+      KAVENEGAR_OTP_TEMPLATE: ${KAVENEGAR_OTP_TEMPLATE:-gcotp}
+      MEDIA_DIR: /app/media
+    volumes:
+      - persianpart_media_data:/app/media
+    networks:
+      - dokploy-network
+
+  cms:
+    image: ${CMS_IMAGE:-ghcr.io/ehsanmousavif/cms}:${CMS_TAG:-${TAG:-latest}}
+    restart: unless-stopped
+    command: ["pnpm", "--filter", "@persianpart/cms", "start"]
+    expose:
+      - "5174"
+    depends_on:
+      migration:
+        condition: service_completed_successfully
+      api:
+        condition: service_started
+    environment:
+      NODE_ENV: production
+      PORT: 5174
+      DATABASE_URI: ${DATABASE_URI:-${DATABASE_URL:-postgresql://postgres:8228@postgres:5432/persianpart_cms}}
+      PAYLOAD_SECRET: ${PAYLOAD_SECRET:-super-secret-payload-key-must-be-at-least-32-chars-long}
+      NEXT_PUBLIC_SERVER_URL: ${CMS_URL:-https://${CMS_DOMAIN:-admin.persianpart.shop}}
+    volumes:
+      - persianpart_media_data:/app/apps/cms/media
+    networks:
+      - dokploy-network
+
+  web:
+    image: ${WEB_IMAGE:-ghcr.io/ehsanmousavif/web}:${WEB_TAG:-${TAG:-latest}}
+    restart: unless-stopped
+    expose:
+      - "80"
+    depends_on:
+      - api
+    networks:
+      - dokploy-network
+
+volumes:
+  persianpart_media_data:
+    name: persianpart_media_data
+
+networks:
+  dokploy-network:
+    external: true
