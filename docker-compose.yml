@@ -3,9 +3,9 @@ services:
   migration:
     image: ghcr.io/gecut/persianpartshop.ir/cms:${CMS_TAG:-${TAG:-latest}}
     restart: "no"
-    command: ["./node_modules/.bin/payload", "migrate"]
+    command: ["node", "./node_modules/payload/bin.js", "migrate"]
     environment:
-      DATABASE_URI: ${DATABASE_URI:-${DATABASE_URL:-postgresql://postgres:8228@postgres:5432/persianpart_cms}}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:8228@postgres:5432/persianpart_cms}
       PAYLOAD_SECRET: ${PAYLOAD_SECRET:-super-secret-payload-key-must-be-at-least-32-chars-long}
     deploy:
       resources:
@@ -31,8 +31,7 @@ services:
       NODE_ENV: production
       PORT: 5175
       HOST: 0.0.0.0
-      DATABASE_URI: ${DATABASE_URI:-${DATABASE_URL:-postgresql://postgres:8228@postgres:5432/persianpart_cms}}
-      DATABASE_URL: ${DATABASE_URL:-${DATABASE_URI:-postgresql://postgres:8228@postgres:5432/persianpart_cms}}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:8228@postgres:5432/persianpart_cms}
       PAYLOAD_SECRET: ${PAYLOAD_SECRET:-super-secret-payload-key-must-be-at-least-32-chars-long}
       JWT_SECRET: ${JWT_SECRET:-super-secret-jwt-session-key-must-be-32-chars-long}
       CMS_URL: ${CMS_URL:-https://${CMS_DOMAIN:-admin.persianpart.shop}}
@@ -62,7 +61,7 @@ services:
   cms:
     image: ghcr.io/gecut/persianpartshop.ir/cms:${CMS_TAG:-${TAG:-latest}}
     restart: unless-stopped
-    command: ["./node_modules/.bin/next", "start", "-p", "5174"]
+    command: ["node", "./node_modules/next/dist/bin/next", "start", "-p", "5174"]
     expose:
       - "5174"
     depends_on:
@@ -73,7 +72,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: 5174
-      DATABASE_URI: ${DATABASE_URI:-${DATABASE_URL:-postgresql://postgres:8228@postgres:5432/persianpart_cms}}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:8228@postgres:5432/persianpart_cms}
       PAYLOAD_SECRET: ${PAYLOAD_SECRET:-super-secret-payload-key-must-be-at-least-32-chars-long}
       NEXT_PUBLIC_SERVER_URL: ${CMS_URL:-https://${CMS_DOMAIN:-admin.persianpart.shop}}
     volumes:

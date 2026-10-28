@@ -28,7 +28,7 @@ import { getStockWriteMode, roundToTwoDecimals } from './collections/products/_i
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
-const databaseUri = process.env.DATABASE_URI || process.env.DATABASE_URL || ''
+const databaseUrl = process.env.DATABASE_URL || process.env.DATABASE_URI || ''
 const isBuildPhase = process.env.NEXT_PHASE === 'phase-production-build' || process.env.npm_lifecycle_event === 'build'
 
 if (process.env.NODE_ENV === 'production' && !isBuildPhase && !process.env.PAYLOAD_SECRET) {
@@ -350,16 +350,16 @@ export default buildConfig({
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
-  db: databaseUri.startsWith('postgres')
+  db: databaseUrl.startsWith('postgres')
     ? postgresAdapter({
         pool: {
-          connectionString: databaseUri,
+          connectionString: databaseUrl,
         },
         push: false,
       })
     : sqliteAdapter({
         client: {
-          url: databaseUri || 'file:./payload.db',
+          url: databaseUrl || 'file:./payload.db',
         },
       }),
   sharp,
