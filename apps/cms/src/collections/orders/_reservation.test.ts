@@ -113,8 +113,17 @@ test('invalid restore quantities fail after order lock but before stock writes',
   }
 })
 
-test('preserves existing pending-only cancellation message', async () => {
-  const { apply, queries } = fixture([[{ status: 'approve' }]])
-  await assert.rejects(apply({ operation: 'update', data: { status: 'cancel' }, originalDoc: { id: 1, status: 'approve', items: [item] } }), /سفارش در وضعیت 'approve' قابل لغو نیست./)
+test('cancelling an approved order restores reserved area', async () => {
+  const { apply, queries } = fixture([[{ status: 'approve' }], [{ id: 1 }]])
+  await apply({ operation: 'update', data: { status: 'cancelled_by_admin' }, originalDoc: { id: 1, status: 'approve', items: [item] } })
+  assert.equal(queries.length, 2)
+})
+
+test('cancelling a closed order is rejected before any stock write', async () => {
+  const { apply, queries } = fixture([[{ status: 'completed' }]])
+  await assert.rejects(
+    apply({ operation: 'update', data: { status: 'cancelled_by_admin' }, originalDoc: { id: 1, status: 'completed', items: [item] } }),
+    /قابل لغو نیست/,
+  )
   assert.equal(queries.length, 1)
 })

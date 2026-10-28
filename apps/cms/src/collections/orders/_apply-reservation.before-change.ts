@@ -102,7 +102,7 @@ export const applyReservationBeforeChange: CollectionBeforeChangeHook = async ({
     isCancelledStatus(data.status) &&
     !isCancelledStatus(originalDoc.status)
   ) {
-    if (originalDoc.status !== 'pending') {
+    if (originalDoc.status !== 'pending' && originalDoc.status !== 'approve') {
       throw new Error(`سفارش در وضعیت '${originalDoc.status}' قابل لغو نیست.`)
     }
 
