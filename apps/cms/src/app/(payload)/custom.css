@@ -1,600 +1,666 @@
 /* ==========================================================================
-   PersianPart 2.0 — Modern Clean Admin Panel Theme for Payload CMS 3
-   1. Persian Typography (Vazirmatn Variable) & Persian Digits (ss01)
-   2. Comprehensive RTL Support & Mirrored Navigation Icons
-   3. Modern Palette: Slate / Zinc Base with Refined Indigo Brand Accents
-   4. Unified Smooth Modern Radii (8px / 12px / 16px) & Soft Transitions
-   5. Compact Headings & Clean Field Labels / Descriptions
-   6. Bug-Free Select/Option & Relationship RTL Controls
-   7. Beautiful RTL Lexical RichText Editor
-   8. Modern Auth & Login Redesign
+   PersianPart 2.0 — Admin Theme (Payload CMS 3.90.x)
+   CSS-only layer on top of @payloadcms/next/css.
+
+   1. Tokens: full Slate elevation ramps, cobalt accent, 6/8/12 radii
+   2. Typography: Vazirmatn Variable + Persian numerals (ss01/cv01)
+   3. Shell: RTL-safe header, nav, breadcrumb (logical properties only)
+   4. Controls: inputs, selects, Lexical — native health states preserved
+   5. Data: tables, pagination, pills, cards
+   6. Auth: clean login card, no decorative gradients
+   7. Motion / reduced-motion / dark-mode parity
    ========================================================================== */
 
 @import "@fontsource-variable/vazirmatn/index.css";
 
 /* --------------------------------------------------------------------------
-   1. GLOBAL TOKENS & TYPOGRAPHY
+   1. TOKENS
    -------------------------------------------------------------------------- */
 :root {
-  --font-body: 'Vazirmatn Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'Vazirmatn Variable', 'SF Mono', Menlo, Consolas, monospace;
+  --font-body: "Vazirmatn Variable", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, sans-serif;
   --font-serif: var(--font-body);
+  --font-mono: "SF Mono", ui-monospace, SFMono-Regular, Menlo, Consolas,
+    "Vazirmatn Variable", monospace;
 
-  /* Modern Smooth Radii Scale */
-  --style-radius-s: 8px;
-  --style-radius-m: 12px;
-  --style-radius-l: 16px;
+  --style-radius-s: 6px;
+  --style-radius-m: 8px;
+  --style-radius-l: 12px;
   --border-radius: var(--style-radius-m);
 
-  /* Light Theme Elevation Tokens (Slate / Zinc Neutral) */
+  /* Slate elevation ramp — light */
   --theme-elevation-0: #ffffff;
   --theme-elevation-50: #f8fafc;
   --theme-elevation-100: #f1f5f9;
   --theme-elevation-150: #e2e8f0;
   --theme-elevation-200: #cbd5e1;
-  --theme-elevation-250: #94a3b8;
-  --theme-elevation-300: #64748b;
-  --theme-elevation-400: #475569;
-  --theme-elevation-500: #334155;
-  --theme-elevation-600: #1e293b;
+  --theme-elevation-250: #b6c2d1;
+  --theme-elevation-300: #94a3b8;
+  --theme-elevation-350: #8494a8;
+  --theme-elevation-400: #64748b;
+  --theme-elevation-450: #566a80;
+  --theme-elevation-500: #475569;
+  --theme-elevation-550: #3d4d61;
+  --theme-elevation-600: #334155;
+  --theme-elevation-650: #293849;
+  --theme-elevation-700: #1e293b;
+  --theme-elevation-750: #172033;
   --theme-elevation-800: #0f172a;
-  --theme-elevation-900: #020617;
-  --theme-elevation-950: #000000;
-  --theme-elevation-1000: #000000;
+  --theme-elevation-850: #0b1220;
+  --theme-elevation-900: #080d18;
+  --theme-elevation-950: #040711;
+  --theme-elevation-1000: #02040a;
 
   --theme-bg: var(--theme-elevation-50);
   --theme-input-bg: var(--theme-elevation-0);
   --theme-text: var(--theme-elevation-800);
   --theme-border-color: var(--theme-elevation-150);
+  --theme-overlay: rgba(2, 6, 23, 0.55);
 
-  /* Brand Accents */
-  --color-primary: #4338ca;
-  --color-primary-hover: #3730a3;
-  --color-primary-subtle: #e0e7ff;
+  /* Cobalt accent */
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-primary-subtle: #eff6ff;
+  --color-primary-text: #1d4ed8;
   --color-primary-fg: #ffffff;
+  --color-primary-ring: rgba(37, 99, 235, 0.16);
+
+  --shadow-sm: 0 1px 2px rgba(2, 6, 23, 0.06);
+  --shadow-md: 0 8px 24px -8px rgba(2, 6, 23, 0.16);
+
+  --accessibility-outline: 2px solid var(--color-primary);
+  --accessibility-outline-offset: 2px;
 }
 
-[data-theme='dark'] {
-  /* Dark Theme Elevation Tokens (Deep Obsidian / Zinc) */
-  --theme-elevation-0: #121215;
-  --theme-elevation-50: #09090b;
-  --theme-elevation-100: #18181b;
-  --theme-elevation-150: #27272a;
-  --theme-elevation-200: #3f3f46;
-  --theme-elevation-250: #52525b;
-  --theme-elevation-300: #71717a;
-  --theme-elevation-400: #a1a1aa;
-  --theme-elevation-500: #d4d4d8;
-  --theme-elevation-600: #e4e4e7;
-  --theme-elevation-800: #f8fafc;
-  --theme-elevation-900: #ffffff;
-  --theme-elevation-950: #ffffff;
-  --theme-elevation-1000: #ffffff;
+[data-theme="dark"] {
+  /* Slate elevation ramp — dark (0 = page, 50 = card/input) */
+  --theme-elevation-0: #0b1220;
+  --theme-elevation-50: #111a29;
+  --theme-elevation-100: #172235;
+  --theme-elevation-150: #223049;
+  --theme-elevation-200: #2f3f58;
+  --theme-elevation-250: #3d4f6b;
+  --theme-elevation-300: #50627f;
+  --theme-elevation-350: #647694;
+  --theme-elevation-400: #7d8fae;
+  --theme-elevation-450: #93a3bd;
+  --theme-elevation-500: #a9b7cd;
+  --theme-elevation-550: #bcc7d9;
+  --theme-elevation-600: #cbd5e1;
+  --theme-elevation-650: #d7dfe9;
+  --theme-elevation-700: #e2e8f0;
+  --theme-elevation-750: #e9eef5;
+  --theme-elevation-800: #eef3f8;
+  --theme-elevation-850: #f2f6fa;
+  --theme-elevation-900: #f5f8fb;
+  --theme-elevation-950: #f8fafc;
+  --theme-elevation-1000: #fbfcfe;
 
-  --theme-bg: var(--theme-elevation-50);
-  --theme-input-bg: var(--theme-elevation-0);
-  --theme-text: var(--theme-elevation-800);
+  --theme-bg: var(--theme-elevation-0);
+  --theme-input-bg: var(--theme-elevation-50);
+  --theme-text: var(--theme-elevation-1000);
   --theme-border-color: var(--theme-elevation-150);
+  --theme-overlay: rgba(2, 6, 23, 0.78);
 
-  /* Brand Accents (Dark Mode) */
-  --color-primary: #6366f1;
-  --color-primary-hover: #818cf8;
-  --color-primary-subtle: #1e1b4b;
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-primary-subtle: rgba(37, 99, 235, 0.16);
+  --color-primary-text: #93c5fd;
   --color-primary-fg: #ffffff;
+  --color-primary-ring: rgba(96, 165, 250, 0.22);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 12px 32px -12px rgba(0, 0, 0, 0.65);
 }
 
 /* --------------------------------------------------------------------------
-   2. BASE RTL & PERSIAN NUMERALS
+   2. BASE & TYPOGRAPHY
    -------------------------------------------------------------------------- */
 html,
 body {
   direction: rtl;
-  text-align: right;
   font-family: var(--font-body);
   background-color: var(--theme-bg);
   color: var(--theme-text);
-  min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-*,
-::before,
-::after {
-  font-family: var(--font-body);
-  font-feature-settings: 'ss01' 1, 'cv01' 1, 'tnum' 1;
+body {
+  min-height: 100vh;
+  text-align: right;
+  font-feature-settings: "ss01" 1, "cv01" 1;
+  line-height: 1.6;
+}
+
+::selection {
+  background: var(--color-primary-subtle);
+  color: var(--theme-text);
+}
+
+/* Data surfaces keep digits aligned; prose keeps natural spacing. */
+table,
+input,
+textarea,
+select {
   font-variant-numeric: tabular-nums;
-  box-sizing: border-box;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--theme-elevation-250) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--theme-elevation-200);
+  background-clip: padding-box;
+  border: 2px solid transparent;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--theme-elevation-300);
+  background-clip: padding-box;
 }
 
 /* --------------------------------------------------------------------------
-   3. RTL NAVIGATION & DIRECTIONAL ICON MIRRORING
+   3. SHELL — HEADER, BREADCRUMB, NAV
    -------------------------------------------------------------------------- */
+.app-header__content {
+  border-block-end: 1px solid var(--theme-border-color);
+}
+
 .step-nav {
   direction: rtl;
 }
 
-.step-nav__separator {
-  transform: rotate(180deg);
+.step-nav > span:not(.step-nav__last) {
+  color: var(--theme-elevation-400);
+  font-size: 0.85em;
+  opacity: 0.7;
 }
 
-.paginator__button--next svg,
-.paginator__button--previous svg,
-.pagination__chevron svg,
-.nav-toggler svg {
-  transform: scaleX(-1);
+.step-nav__last {
+  font-weight: 600;
 }
 
-aside.nav,
 .nav {
-  border-left: 1px solid var(--theme-border-color);
-  border-right: none;
-  text-align: right;
+  border-inline-start: 0;
+  border-inline-end: 1px solid var(--theme-border-color);
+}
+
+.nav__label {
+  color: var(--theme-elevation-400);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
 }
 
 .nav__link {
-  text-align: right;
+  margin-inline-end: -8px;
+  padding-inline-end: 8px;
   border-radius: var(--style-radius-s);
-  transition: all 0.15s ease-in-out;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
-.nav__link:hover {
-  background-color: var(--theme-elevation-100);
+.nav__link:hover,
+.nav__link:focus-visible {
+  background: var(--theme-elevation-100);
+  text-decoration: none;
 }
 
+.nav__link.active,
 .nav__link--active,
-.nav__link.active {
-  background-color: var(--color-primary-subtle);
-  color: var(--color-primary);
-  font-weight: 700;
+.nav__link:has(.nav__link-indicator) {
+  background: var(--color-primary-subtle);
+  color: var(--color-primary-text);
+  font-weight: 600;
+  text-decoration: none;
 }
 
-/* Top Header & Icon Containment */
-.app-header .step-nav__home {
-  width: 20px !important;
-  height: 20px !important;
-  display: flex !important;
-  align-items: center !important;
+.nav__link-indicator {
+  width: 3px;
+  border-radius: 999px;
+  background: var(--color-primary);
 }
 
 /* --------------------------------------------------------------------------
-   4. COLLECTION LIST VIEW & COMPACT HEADINGS
+   4. HEADINGS, LABELS, DESCRIPTIONS
    -------------------------------------------------------------------------- */
-.list-header__title {
-  font-size: 1.25rem !important; /* Compact refined heading */
-  line-height: 1.4 !important;
-  font-weight: 700 !important;
-  letter-spacing: -0.015em !important;
-  margin: 0 !important;
+.list-header__title,
+.doc-header__title {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
 }
 
 .field-label {
-  font-size: 0.8125rem !important; /* 13px */
-  font-weight: 600 !important;
-  margin-bottom: 4px !important;
-  display: block !important;
-  text-align: right !important;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 4px;
 }
 
 .field-description {
-  font-size: 0.75rem !important; /* 12px */
-  color: var(--theme-elevation-400) !important;
-  margin-top: 4px !important;
-  line-height: 1.45 !important;
-  text-align: right !important;
+  font-size: 11.5px;
+  color: var(--theme-elevation-400);
+  line-height: 1.5;
 }
 
 /* --------------------------------------------------------------------------
-   5. CONTROLS, INPUTS & SELECT (FIX EXTRA ELEMENT BUG)
+   5. CONTROLS — INPUTS, SELECTS, LEXICAL
+   Native Payload error/disabled/read-only rules stay untouched.
    -------------------------------------------------------------------------- */
-input:not([type='checkbox']):not([type='radio']):not(.rs__input):not([class*='rs__']),
-textarea,
-select {
-  border-radius: var(--style-radius-m) !important;
-  border: 1px solid var(--theme-border-color) !important;
-  background-color: var(--theme-input-bg) !important;
-  color: var(--theme-text) !important;
-  text-align: right;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+.field-type:not(.error)
+  input:not([type="checkbox"]):not([type="radio"]):not(.rs__input):not(
+    [class*="rs__"]
+  ):not(:disabled):not([readonly]):focus,
+.field-type:not(.error) textarea:not(:disabled):not([readonly]):focus,
+.field-type:not(.error) select:not(:disabled):not([readonly]):focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-ring);
 }
 
-input:focus:not([type='checkbox']):not([type='radio']):not(.rs__input):not([class*='rs__']),
-textarea:focus,
-select:focus {
-  border-color: var(--color-primary) !important;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18) !important;
-  outline: none !important;
+.field-type input,
+.field-type textarea,
+.field-type select {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-/* ReactSelect Container & Control */
+/* Field tabs & doc tabs — brand accent on the active tab */
+.tabs-field__tab-button {
+  transition: color 0.15s ease, opacity 0.15s ease;
+}
+
+.tabs-field__tab-button:hover:not(.tabs-field__tab-button--active) {
+  color: var(--theme-elevation-600);
+}
+
+.tabs-field__tab-button--active:not(.tabs-field__tab-button--has-error) {
+  color: var(--color-primary-text);
+  font-weight: 600;
+}
+
+.tabs-field__tab-button--active:not(.tabs-field__tab-button--has-error):after {
+  height: 2px;
+  opacity: 1;
+  background: var(--color-primary);
+}
+
+.doc-tab--active {
+  --bg-color: var(--color-primary-subtle);
+  --color: var(--color-primary-text);
+  --hover-bg: var(--color-primary-subtle);
+  --hover-color: var(--color-primary-text);
+  --btn-font-weight: 600;
+}
+
+/* List search bar — visible keyboard focus */
+.search-bar {
+  transition: box-shadow 0.15s ease;
+}
+
+.search-bar:focus-within {
+  box-shadow: 0 0 0 3px var(--color-primary-ring);
+}
+
+/* React Select */
 .react-select .rs__control {
-  border-radius: var(--style-radius-m) !important;
-  border: 1px solid var(--theme-border-color) !important;
-  background-color: var(--theme-input-bg) !important;
-  color: var(--theme-text) !important;
-  direction: rtl !important;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+  border-radius: var(--style-radius-s);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.react-select .rs__control--is-focused {
-  border-color: var(--color-primary) !important;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18) !important;
-  outline: none !important;
+.react-select:not(.react-select--error) .rs__control--is-focused {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-ring);
 }
 
-/* Eliminate ReactSelect Inner Hidden Input Glitches */
-.rs__indicator-separator {
-  display: none !important;
+.react-select .rs__menu {
+  overflow: hidden;
+  border: 1px solid var(--theme-border-color);
+  border-radius: var(--style-radius-m);
+  box-shadow: var(--shadow-md);
 }
 
-.rs__input-container input,
-.rs__input input,
-input.rs__input {
-  border: none !important;
-  outline: none !important;
-  box-shadow: none !important;
-  background: transparent !important;
-  height: auto !important;
-  padding: 0 !important;
+.react-select .rs__option {
+  padding: 8px 12px;
 }
 
-/* --------------------------------------------------------------------------
-   6. RELATIONSHIP & SELECT RTL ALIGNMENT
-   -------------------------------------------------------------------------- */
-.relationship,
-.relationship__wrap,
-.react-select {
-  direction: rtl !important;
-  text-align: right !important;
+.react-select .rs__option--is-selected {
+  background: var(--color-primary-subtle);
+  color: var(--color-primary-text);
+  font-weight: 600;
 }
 
-.rs__value-container {
-  text-align: right !important;
-  justify-content: flex-start !important;
-  padding: 2px 8px !important;
+.react-select .rs__multi-value {
+  border-radius: var(--style-radius-s);
 }
 
-.rs__indicators {
-  margin-inline-start: 0 !important;
-  margin-inline-end: 4px !important;
-}
-
-.rs__multi-value {
-  margin: 3px 0 3px 6px !important;
-  border-radius: var(--style-radius-s) !important;
-}
-
-.rs__menu {
-  right: 0 !important;
-  left: auto !important;
-  text-align: right !important;
-  direction: rtl !important;
-  border-radius: var(--style-radius-m) !important;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
-  border: 1px solid var(--theme-border-color) !important;
-  background-color: var(--theme-input-bg) !important;
-  overflow: hidden !important;
-}
-
-.rs__option {
-  text-align: right !important;
-  direction: rtl !important;
-  font-family: var(--font-body) !important;
-  padding: 8px 14px !important;
-  cursor: pointer !important;
-}
-
-.rs__option--is-focused {
-  background-color: var(--theme-elevation-100) !important;
-}
-
-.rs__option--is-selected {
-  background-color: var(--color-primary-subtle) !important;
-  color: var(--color-primary) !important;
-  font-weight: 600 !important;
-}
-
-/* --------------------------------------------------------------------------
-   7. GORGEOUS RTL LEXICAL RICH-TEXT EDITOR
-   -------------------------------------------------------------------------- */
-.rich-text-lexical {
-  direction: rtl !important;
-  text-align: right !important;
-}
-
+/* Lexical rich text */
 .rich-text-lexical .editor-container {
-  border: 1px solid var(--theme-border-color) !important;
-  border-radius: var(--style-radius-m) !important;
-  background-color: var(--theme-input-bg) !important;
-  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.03) !important;
-  overflow: hidden !important;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+  overflow: hidden;
+  border: 1px solid var(--theme-border-color);
+  border-radius: var(--style-radius-s);
+  background: var(--theme-input-bg);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.rich-text-lexical .editor-container:focus-within {
-  border-color: var(--color-primary) !important;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18) !important;
+.rich-text-lexical:not(.error) .editor-container:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-ring);
 }
 
 .rich-text-lexical .ContentEditable__root {
-  direction: rtl !important;
-  text-align: right !important;
-  padding: 14px 18px !important;
-  min-height: 160px !important;
-  font-family: var(--font-body) !important;
-  line-height: 1.8 !important;
-}
-
-.rich-text-lexical .ContentEditable__root:before {
-  display: none !important;
-}
-
-.rich-text-lexical .placeholder {
-  right: 18px !important;
-  left: auto !important;
-  text-align: right !important;
-  direction: rtl !important;
-  color: var(--theme-elevation-400) !important;
-  font-size: 0.875rem !important;
-  top: 14px !important;
-}
-
-.rich-text-lexical .fixed-toolbar {
-  direction: rtl !important;
-  border-bottom: 1px solid var(--theme-border-color) !important;
-  background-color: var(--theme-elevation-100) !important;
-  padding: 4px 8px !important;
-  display: flex !important;
-  flex-wrap: wrap !important;
-  gap: 2px !important;
-}
-
-.rich-text-lexical .fixed-toolbar button {
-  border-radius: var(--style-radius-s) !important;
-  transition: all 0.15s ease !important;
-}
-
-.rich-text-lexical .fixed-toolbar button:hover {
-  background-color: var(--theme-elevation-200) !important;
+  direction: rtl;
+  text-align: right;
+  padding-block: 12px;
+  min-height: 160px;
+  line-height: 1.9;
 }
 
 .rich-text-lexical .ContentEditable__root h1,
 .rich-text-lexical .ContentEditable__root h2,
 .rich-text-lexical .ContentEditable__root h3,
 .rich-text-lexical .ContentEditable__root p,
-.rich-text-lexical .ContentEditable__root blockquote,
-.rich-text-lexical .ContentEditable__root ul,
-.rich-text-lexical .ContentEditable__root ol {
-  text-align: right !important;
-  direction: rtl !important;
+.rich-text-lexical .ContentEditable__root blockquote {
+  text-align: right;
+  direction: rtl;
 }
 
 .rich-text-lexical .ContentEditable__root ul,
 .rich-text-lexical .ContentEditable__root ol {
-  padding-right: 1.5rem !important;
-  padding-left: 0 !important;
+  padding-inline-start: 1.5rem;
+  padding-inline-end: 0;
 }
 
 .rich-text-lexical .ContentEditable__root blockquote {
-  border-right: 3px solid var(--color-primary) !important;
-  border-left: none !important;
-  padding-right: 12px !important;
-  padding-left: 0 !important;
-  color: var(--theme-elevation-600) !important;
-  background: var(--theme-elevation-50) !important;
-  border-radius: var(--style-radius-s) !important;
+  margin-inline: 0;
+  padding-inline-start: 12px;
+  padding-inline-end: 0;
+  border-inline-start: 3px solid var(--color-primary);
+  border-inline-end: 0;
+  border-radius: var(--style-radius-s);
+  background: var(--theme-elevation-50);
+  color: var(--theme-elevation-600);
+}
+
+.rich-text-lexical .fixed-toolbar {
+  border-block-end: 1px solid var(--theme-border-color);
+  background: var(--theme-elevation-50);
+}
+
+.rich-text-lexical .fixed-toolbar button {
+  border-radius: var(--style-radius-s);
+  transition: background-color 0.15s ease;
+}
+
+.rich-text-lexical .fixed-toolbar button:hover {
+  background: var(--theme-elevation-150);
+}
+
+.rich-text-lexical .LexicalEditorTheme__placeholder,
+.rich-text-lexical .placeholder {
+  direction: rtl;
+  text-align: right;
+  color: var(--theme-elevation-400);
 }
 
 /* --------------------------------------------------------------------------
-   8. MODERN CARDS & BUTTONS
+   6. BUTTONS
+   Brand vars scoped to :not(.btn--disabled) so Payload keeps disabled states.
    -------------------------------------------------------------------------- */
+.btn {
+  border-radius: var(--style-radius-s);
+  font-weight: 500;
+}
+
+.btn {
+  transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease,
+    box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.btn:not(.btn--disabled):not(:disabled):active {
+  transform: translateY(1px);
+}
+
+.btn--style-primary:not(.btn--disabled):not(:disabled):not([aria-disabled='true']) {
+  --color: var(--color-primary-fg);
+  --bg-color: var(--color-primary);
+  --hover-bg: var(--color-primary-hover);
+  --hover-color: var(--color-primary-fg);
+}
+
+.btn--style-primary:not(.btn--disabled):not(:disabled):not([aria-disabled='true']):hover {
+  box-shadow: 0 4px 12px -2px rgba(37, 99, 235, 0.35);
+}
+
+.btn--style-primary.btn--disabled,
+.btn--style-primary:disabled,
+.btn--style-primary[aria-disabled='true'] {
+  --bg-color: var(--theme-elevation-150);
+  --color: var(--theme-elevation-400);
+  --hover-bg: var(--bg-color);
+  --hover-color: var(--color);
+  box-shadow: none;
+}
+
+.btn--style-secondary:not(.btn--disabled) {
+  --btn-border: 1px solid var(--theme-elevation-200);
+  --hover-btn-border: 1px solid var(--theme-elevation-300);
+}
+
+/* --------------------------------------------------------------------------
+   7. TABLES, PAGINATION, PILLS, CARDS
+   -------------------------------------------------------------------------- */
+.table-wrap {
+  overflow: hidden;
+  border: 1px solid var(--theme-border-color);
+  border-radius: var(--style-radius-m);
+  background: var(--theme-input-bg);
+}
+
+.table table {
+  border-collapse: collapse;
+}
+
+.table thead th {
+  background: var(--theme-elevation-100);
+  color: var(--theme-elevation-500);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.table th,
+.table td {
+  padding-block: 10px;
+  border-block-end: 1px solid var(--theme-elevation-100);
+}
+
+.table tbody tr:nth-child(odd) {
+  background: transparent;
+}
+
+.table tbody tr:hover {
+  background: var(--theme-elevation-100);
+}
+
+.table tbody tr:last-child td {
+  border-block-end: 0;
+}
+
+.paginator__page {
+  margin-inline-start: 2px;
+  margin-inline-end: 0;
+  border-radius: var(--style-radius-s);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.paginator__page:hover {
+  background: var(--theme-elevation-100);
+}
+
+.paginator__page--is-current {
+  background: var(--color-primary-subtle);
+  color: var(--color-primary-text);
+  font-weight: 600;
+}
+
+.pill {
+  border-radius: var(--style-radius-s);
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .card,
 .dashboard__card {
-  border-radius: var(--style-radius-m) !important;
-  border: 1px solid var(--theme-border-color) !important;
-  background-color: var(--theme-elevation-0) !important;
-  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.03), 0 1px 2px -1px rgb(0 0 0 / 0.03) !important;
-  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.18s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.18s ease !important;
+  border: 1px solid var(--theme-border-color);
+  border-radius: var(--style-radius-m);
+  background: var(--theme-input-bg);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.18s ease, border-color 0.18s ease;
 }
 
 .card:hover,
 .dashboard__card:hover {
-  transform: translateY(-2px);
-  border-color: var(--color-primary) !important;
-  box-shadow: 0 8px 20px -4px rgba(79, 70, 229, 0.12), 0 4px 8px -2px rgba(79, 70, 229, 0.06) !important;
+  transform: translateY(-1px);
+  border-color: var(--theme-elevation-200);
+  box-shadow: var(--shadow-md);
 }
 
-.btn {
-  border-radius: var(--style-radius-m) !important;
-  transition: all 0.15s ease-in-out !important;
-  font-family: var(--font-body) !important;
+.doc-controls:before {
+  opacity: 0.82;
 }
 
-.btn--style-primary {
-  --bg-color: var(--color-primary) !important;
-  --hover-bg: var(--color-primary-hover) !important;
-  --color: var(--color-primary-fg) !important;
-  --hover-color: var(--color-primary-fg) !important;
-  box-shadow: 0 1px 2px 0 rgba(79, 70, 229, 0.2) !important;
-}
-
-.btn--style-primary:hover {
-  box-shadow: 0 4px 12px 0 rgba(79, 70, 229, 0.25) !important;
+.doc-controls__divider {
+  background: var(--theme-border-color);
 }
 
 /* --------------------------------------------------------------------------
-   9. TABLES & STATUS PILLS
-   -------------------------------------------------------------------------- */
-.table-wrap,
-.collection-list__wrap {
-  border-radius: var(--style-radius-m) !important;
-  overflow: hidden !important;
-  border: 1px solid var(--theme-border-color) !important;
-  background-color: var(--theme-elevation-0) !important;
-}
-
-table th,
-table td {
-  text-align: right !important;
-}
-
-tbody tr {
-  transition: background-color 0.12s ease !important;
-}
-
-tbody tr:hover {
-  background-color: var(--theme-elevation-100) !important;
-}
-
-.pill,
-.badge,
-.status {
-  border-radius: var(--style-radius-s) !important;
-  font-weight: 600 !important;
-  transition: all 0.15s ease-in-out !important;
-}
-
-/* --------------------------------------------------------------------------
-   10. AUTH & LOGIN VIEW REDESIGN (FLOATING CARD + LUXURY FINISH)
+   8. AUTH — LOGIN / MINIMAL TEMPLATE
    -------------------------------------------------------------------------- */
 .template-minimal {
-  min-height: 100vh !important;
-  width: 100% !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  padding: 40px 16px !important;
-  margin: 0 !important;
-  background: radial-gradient(ellipse at 50% 15%, rgba(67, 56, 202, 0.08) 0%, transparent 65%), var(--theme-bg) !important;
-}
-
-[data-theme='dark'] .template-minimal {
-  background: radial-gradient(ellipse at 50% 15%, rgba(99, 102, 241, 0.12) 0%, transparent 65%), var(--theme-bg) !important;
+  min-height: 100dvh;
+  padding: 48px 16px;
+  background: var(--theme-bg);
 }
 
 .template-minimal__wrap {
-  width: 100% !important;
-  max-width: 440px !important;
-  margin: 0 auto !important;
-  background-color: var(--theme-elevation-0) !important;
-  border: 1px solid var(--theme-border-color) !important;
-  border-radius: 20px !important;
-  padding: 38px 32px !important;
-  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.06), 0 0 1px 1px rgba(0, 0, 0, 0.02) !important;
-}
-
-[data-theme='dark'] .template-minimal__wrap {
-  background-color: var(--theme-elevation-0) !important;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 1px 1px rgba(255, 255, 255, 0.05) !important;
+  width: 100%;
+  max-width: 420px;
+  margin-inline: auto;
+  padding: 36px 32px;
+  border: 1px solid var(--theme-border-color);
+  border-radius: var(--style-radius-l);
+  background: var(--theme-input-bg);
+  box-shadow: var(--shadow-sm), var(--shadow-md);
 }
 
 .login__brand {
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
-  width: 100% !important;
-  margin-bottom: 24px !important;
+  margin-bottom: 24px;
 }
 
-.login__form {
-  display: flex !important;
-  flex-direction: column !important;
-  width: 100% !important;
+.login__brand img,
+.login__brand svg {
+  max-height: 44px;
+  width: auto;
 }
 
 .login__form__inputWrap {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 16px !important;
-  margin-bottom: 12px !important;
-}
-
-.login__form .field-type {
-  margin-bottom: 0 !important;
-}
-
-.login__form .field-label {
-  font-size: 0.8125rem !important; /* 13px */
-  font-weight: 600 !important;
-  color: var(--theme-elevation-800) !important;
-  margin-bottom: 6px !important;
-  text-align: right !important;
+  gap: 18px;
 }
 
 .login__form input {
-  height: 44px !important;
-  border-radius: var(--style-radius-m) !important;
-  border: 1px solid var(--theme-border-color) !important;
-  background-color: var(--theme-elevation-50) !important;
-  color: var(--theme-elevation-900) !important;
-  padding: 0 14px !important;
-  font-size: 0.9375rem !important;
-  width: 100% !important;
-  transition: all 0.15s ease-in-out !important;
+  height: 44px;
+  padding-inline: 14px;
+  border-radius: var(--style-radius-s);
 }
 
-.login__form input:focus {
-  background-color: var(--theme-elevation-0) !important;
-  border-color: var(--color-primary) !important;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18) !important;
+.login__form input[name="email"],
+.login__form input[name="username"],
+.login__form input[type="password"] {
+  direction: ltr;
+  text-align: left;
 }
 
-.login__form input[type='email'],
-.login__form input[type='password'] {
-  direction: ltr !important;
-  text-align: left !important;
-}
-
-.login__form input[type='email']::placeholder,
-.login__form input[type='password']::placeholder {
-  direction: rtl !important;
-  text-align: right !important;
+.login__form input[name="email"]::placeholder,
+.login__form input[name="username"]::placeholder,
+.login__form input[type="password"]::placeholder {
+  direction: rtl;
+  text-align: right;
 }
 
 .login__form > a {
-  display: inline-block !important;
-  font-size: 0.8125rem !important;
-  color: var(--theme-elevation-500) !important;
-  text-decoration: none !important;
-  margin-bottom: 22px !important;
-  text-align: right !important;
-  transition: color 0.15s ease !important;
+  color: var(--theme-elevation-500);
+  text-decoration: none;
+  transition: color 0.15s ease;
 }
 
 .login__form > a:hover {
-  color: var(--color-primary) !important;
-  text-decoration: underline !important;
+  color: var(--color-primary-text);
+  text-decoration: underline;
 }
 
 .login__form .form-submit {
-  width: 100% !important;
-  margin: 0 !important;
+  width: 100%;
+  margin: 0;
 }
 
 .login__form .form-submit button,
 .login__form .form-submit .btn {
-  width: 100% !important;
-  height: 46px !important;
-  font-size: 0.9375rem !important;
-  font-weight: 700 !important;
-  border-radius: var(--style-radius-m) !important;
-  background-color: var(--color-primary) !important;
-  color: var(--color-primary-fg) !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  box-shadow: 0 4px 12px rgba(67, 56, 202, 0.25) !important;
-  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  width: 100%;
+  height: 46px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: var(--style-radius-s);
 }
 
-.login__form .form-submit button:hover,
-.login__form .form-submit .btn:hover {
-  background-color: var(--color-primary-hover) !important;
-  box-shadow: 0 6px 18px rgba(67, 56, 202, 0.35) !important;
-  transform: translateY(-1px) !important;
+.collection-list {
+  padding-top: calc(var(--gutter-h)/2);
 }
 
-.login__form .form-submit button:active,
-.login__form .form-submit .btn:active {
-  transform: translateY(0) !important;
+/* --------------------------------------------------------------------------
+   9. MOTION & RESPONSIVE
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+
+  .card:hover,
+  .dashboard__card:hover {
+    transform: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .template-minimal {
+    padding: 24px 16px;
+  }
+
+  .template-minimal__wrap {
+    padding: 28px 20px;
+    border-radius: var(--style-radius-m);
+  }
+
+  .list-header__title,
+  .doc-header__title {
+    font-size: 17px;
+  }
+
+  .table th,
+  .table td {
+    min-width: 120px;
+    padding-block: 8px;
+  }
 }
