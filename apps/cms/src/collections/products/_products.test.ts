@@ -3,7 +3,6 @@ import { test } from 'node:test'
 import {
   calculateBasePricePerCarton,
   calculateStockCartons,
-  getStockWriteMode,
   roundToTwoDecimals,
 } from './_inventory-math'
 import { syncSlugAndDimensions } from './_sync-slug-and-dimensions.before-validate'
@@ -39,30 +38,7 @@ test('calculateBasePricePerCarton rounds to nearest integer Toman', () => {
   assert.equal(calculateBasePricePerCarton(500000, 0), 0)
 })
 
-test('getStockWriteMode respects CMS_STOCK_WRITE_MODE env', () => {
-  const orig = process.env.CMS_STOCK_WRITE_MODE
-  try {
-    delete process.env.CMS_STOCK_WRITE_MODE
-    assert.equal(getStockWriteMode(), 'normal')
-
-    process.env.CMS_STOCK_WRITE_MODE = 'manual'
-    assert.equal(getStockWriteMode(), 'manual')
-
-    process.env.CMS_STOCK_WRITE_MODE = 'import'
-    assert.equal(getStockWriteMode(), 'import')
-
-    process.env.CMS_STOCK_WRITE_MODE = 'invalid'
-    assert.equal(getStockWriteMode(), 'normal')
-  } finally {
-    if (orig !== undefined) {
-      process.env.CMS_STOCK_WRITE_MODE = orig
-    } else {
-      delete process.env.CMS_STOCK_WRITE_MODE
-    }
-  }
-})
-
-test('syncSlugAndDimensions enforces slug preservation, bounds and derived stock', async () => {
+test('syncSlugAndDimensions preserves slug, enforces bounds, and only derives stock when its inputs change', async () => {
   const req = {
     payload: {
       find: async () => ({ totalDocs: 0 }),
@@ -70,28 +46,44 @@ test('syncSlugAndDimensions enforces slug preservation, bounds and derived stock
     },
   } as any
 
-  // 1. Create with missing slug generates from SKU
-  const createData: any = { sku: 'PP-101', basePricePerSqm: 400000, sqmPerCarton: 1.44 }
-  await syncSlugAndDimensions({
-    data: createData,
-    operation: 'create',
-    req,
-  } as any)
+  // 1. Create with missing slug generates from SKU and derives cartons
+  const createData: any = { sku: 'PP-101', basePricePerSqm: 400000, sqmPerCarton: 1.44, inventorySqm: 144 }
+  await syncSlugAndDimensions({ data: createData, operation: 'create', req } as any)
   assert.equal(createData.slug, 'pp-101')
-  assert.equal(createData.stockCartons, 0)
+  assert.equal(createData.stockCartons, 100)
 
-  // 2. Update without slug keeps original slug
-  const updateData: any = { sku: 'PP-101-NEW' }
+  // 2. Unrelated edit (no inventory/packaging in payload) must NOT rewrite stockCartons
+  const unrelatedEdit: any = { sku: 'PP-101-NEW' }
   await syncSlugAndDimensions({
-    data: updateData,
+    data: unrelatedEdit,
     originalDoc: { id: 1, slug: 'my-custom-slug', sqmPerCarton: 1.44, inventorySqm: 144 },
     operation: 'update',
     req,
   } as any)
-  assert.equal(updateData.slug, 'my-custom-slug')
-  assert.equal(updateData.stockCartons, 100)
+  assert.equal(unrelatedEdit.slug, 'my-custom-slug')
+  assert.equal(unrelatedEdit.stockCartons, undefined)
 
-  // 3. Packaging change with open orders throws error
+  // 3. Client-provided stockCartons is never trusted; derived from authoritative inventory
+  const stockEdit: any = { inventorySqm: 288, stockCartons: 9999 }
+  await syncSlugAndDimensions({
+    data: stockEdit,
+    originalDoc: { id: 1, sqmPerCarton: 1.44, inventorySqm: 144 },
+    operation: 'update',
+    req,
+  } as any)
+  assert.equal(stockEdit.stockCartons, 200)
+
+  // 4. Invalid inventory values are still rejected
+  await assert.rejects(
+    syncSlugAndDimensions({ data: { inventorySqm: -5 } as any, operation: 'create', req } as any),
+    /موجودی متراژ/,
+  )
+  await assert.rejects(
+    syncSlugAndDimensions({ data: { inventorySqm: 1.234 } as any, operation: 'create', req } as any),
+    /دقت اعشار/,
+  )
+
+  // 5. Packaging change with open orders throws error
   const reqWithOrders = {
     payload: {
       find: async () => ({ totalDocs: 1 }),

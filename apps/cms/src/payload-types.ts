@@ -685,7 +685,7 @@ export interface Export {
   focalY?: number | null;
 }
 /**
- * عملیات بارگذاری و به‌روزرسانی قیمت و موجودی (فقط در حالت CMS_STOCK_WRITE_MODE=import).
+ * عملیات بارگذاری و به‌روزرسانی قیمت و موجودی کاتالوگ.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "imports".

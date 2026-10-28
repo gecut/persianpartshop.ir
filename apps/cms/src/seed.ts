@@ -840,7 +840,6 @@ const PRODUCTS: ProductSeed[] = [
 
 export async function runSeed() {
   validateSeedTarget(process.env)
-  process.env.CMS_STOCK_WRITE_MODE = 'manual'
   console.log('🚀 Starting PersianPart 2.0 Database Seeding...')
   const payload = await getPayloadClient()
 

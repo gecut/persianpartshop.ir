@@ -23,7 +23,7 @@ import { Otps } from './collections/otps'
 import { fa } from '@payloadcms/translations/languages/fa'
 import { en } from '@payloadcms/translations/languages/en'
 import { isImportExportAuthorized } from './collections/products/_product-access'
-import { getStockWriteMode, roundToTwoDecimals } from './collections/products/_inventory-math'
+import { roundToTwoDecimals } from './collections/products/_inventory-math'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -193,12 +193,7 @@ export default buildConfig({
             batchSize: 100,
             limit: 100, // Safe ceiling: max 100 rows per batch
             hooks: {
-              before: ({ data, req }) => {
-                const mode = getStockWriteMode()
-                if (mode !== 'import') {
-                  throw new Error('اجرای ایمپورت فقط در حالت نگهداری (CMS_STOCK_WRITE_MODE=import) مجاز است.')
-                }
-
+              before: async ({ data, req }) => {
                 // Mark request context so product beforeValidate hook recognizes official import operation
                 if (req) {
                   ;(req as any).context = {
@@ -213,7 +208,7 @@ export default buildConfig({
 
                 const seenSkus = new Set<string>()
 
-                return (data as any[]).map((doc, idx) => {
+                const rows = (data as any[]).map((doc, idx) => {
                   const rowNum = idx + 1
                   const rawSku = doc.sku !== undefined && doc.sku !== null ? String(doc.sku).trim() : ''
                   if (!rawSku) {
@@ -251,6 +246,32 @@ export default buildConfig({
                     inventorySqm: roundedInv,
                   }
                 })
+
+                // Update-only invariant: reject the whole batch if any SKU is unknown,
+                // so an import can never silently create partial products.
+                if (rows.length > 0) {
+                  const existing = await req.payload.find({
+                    collection: 'products',
+                    where: { sku: { in: rows.map((row) => row.sku) } },
+                    depth: 0,
+                    pagination: false,
+                    req,
+                  })
+                  const knownSkus = new Set(
+                    existing.docs.map((doc: any) => String(doc.sku ?? '').trim()),
+                  )
+                  const unknownRows = rows
+                    .map((row, idx) => ({ row, rowNum: idx + 1 }))
+                    .filter(({ row }) => !knownSkus.has(row.sku))
+                    .map(({ row, rowNum }) => `ردیف ${rowNum} (${row.sku})`)
+                  if (unknownRows.length > 0) {
+                    throw new Error(
+                      `کد کالای ناشناخته در فایل: ${unknownRows.join('، ')}. ابتدا محصول را ایجاد کنید.`,
+                    )
+                  }
+                }
+
+                return rows
               },
             },
           },
@@ -271,7 +292,7 @@ export default buildConfig({
         admin: {
           ...collection.admin,
           group: 'کاتالوگ و انبارداری',
-          description: 'عملیات بارگذاری و به‌روزرسانی قیمت و موجودی (فقط در حالت CMS_STOCK_WRITE_MODE=import).',
+          description: 'عملیات بارگذاری و به‌روزرسانی قیمت و موجودی کاتالوگ.',
         },
         fields: collection.fields.map((f: any) => {
           if (f.name === 'importMode') {

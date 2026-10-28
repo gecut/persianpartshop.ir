@@ -1,6 +1,5 @@
 import type { Access, FieldAccess } from 'payload'
 import { getAdminUser } from '../../access/roles'
-import { getStockWriteMode } from './_inventory-math'
 
 /**
  * Superadmin, Manager, and Support are authorized operational roles for product pricing/inventory and import/export.
@@ -22,16 +21,11 @@ export const canUpdateOperationalPrice: FieldAccess = ({ req: { user } }) => {
 
 /**
  * Field-level access for inventorySqm:
- * Update is restricted to operational staff and only permitted in maintenance modes.
+ * Update/create is restricted to operational staff. Inventory is an absolute
+ * authoritative value, so no maintenance window gates direct edits.
  */
-export const canUpdateOperationalInventory: FieldAccess = ({ req: { user }, req }) => {
-  if (!isOperationalStaff(user)) return false
-  const mode = getStockWriteMode()
-  if (mode === 'normal') {
-    // In normal mode, inventory cannot be overwritten directly by admin forms
-    return false
-  }
-  return true
+export const canUpdateOperationalInventory: FieldAccess = ({ req: { user } }) => {
+  return isOperationalStaff(user)
 }
 
 /**

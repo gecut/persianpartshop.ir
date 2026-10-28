@@ -1,5 +1,5 @@
 import type { CollectionBeforeValidateHook } from 'payload'
-import { calculateStockCartons, getStockWriteMode, roundToTwoDecimals } from './_inventory-math'
+import { calculateStockCartons, roundToTwoDecimals } from './_inventory-math'
 
 function normalizeSkuToSlug(sku: unknown): string {
   const rawSku = String(sku ?? '').trim()
@@ -59,14 +59,11 @@ export const syncSlugAndDimensions: CollectionBeforeValidateHook = async ({
     data.piecesPerCarton = pieces
   }
 
-  // 3. Maintenance mode enforcement for inventorySqm edits:
-  const stockMode = getStockWriteMode()
-  const isImportContext = (req as any)?.context?.isImportOperation === true
-  const incomingInventory = data.inventorySqm !== undefined && data.inventorySqm !== null
-    ? Number(data.inventorySqm)
-    : undefined
-
-  if (incomingInventory !== undefined) {
+  // 3. Validate and normalize inventorySqm. It is an absolute authoritative value
+  // (already settled against orders by the time it is announced), so it is written
+  // as-is whenever supplied, with no maintenance-window gate.
+  if (data.inventorySqm !== undefined && data.inventorySqm !== null) {
+    const incomingInventory = Number(data.inventorySqm)
     if (!Number.isFinite(incomingInventory) || incomingInventory < 0) {
       throw new Error('موجودی متراژ باید یک عدد نامنفی و متناهی باشد.')
     }
@@ -76,27 +73,6 @@ export const syncSlugAndDimensions: CollectionBeforeValidateHook = async ({
       throw new Error('دقت اعشار موجودی متراژ حداکثر ۲ رقم اعشار است.')
     }
     data.inventorySqm = rounded
-
-    if (operation === 'update' && originalDoc) {
-      const origInv = originalDoc.inventorySqm !== undefined ? roundToTwoDecimals(Number(originalDoc.inventorySqm)) : 0
-      const isInventoryChanged = Math.abs(rounded - origInv) > 0.001
-
-      if (isInventoryChanged) {
-        if (stockMode === 'normal') {
-          throw new Error('ویرایش مستقیم موجودی در حالت عادی غیرفعال است. لطفاً حالت نگهداری (manual یا import) را فعال کنید.')
-        }
-        if (stockMode === 'manual' && isImportContext) {
-          throw new Error('در حالت manual امکان اجرای ایمپورت دسته‌ای وجود ندارد.')
-        }
-        if (stockMode === 'import' && !isImportContext) {
-          throw new Error('در حالت import ویرایش دستی موجودی از طریق فرم مجاز نیست.')
-        }
-      }
-    } else if (operation === 'create') {
-      if (rounded > 0 && stockMode === 'normal') {
-        throw new Error('ثبت محصول جدید با موجودی اولیه در حالت عادی غیرفعال است. ابتدا محصول را با موجودی صفر ایجاد کنید.')
-      }
-    }
   }
 
   // 4. Packaging modification guard: Check if open reservations exist before modifying sqmPerCarton or piecesPerCarton
@@ -128,16 +104,21 @@ export const syncSlugAndDimensions: CollectionBeforeValidateHook = async ({
     }
   }
 
-  // 5. Always derive stockCartons from authoritative inventorySqm and sqmPerCarton
-  const activeSqmPerCarton = data.sqmPerCarton !== undefined
-    ? Number(data.sqmPerCarton)
-    : (originalDoc?.sqmPerCarton !== undefined ? Number(originalDoc.sqmPerCarton) : 1.44)
+  // 5. stockCartons is derived and never trusted from the client. Recompute only when
+  // one of its real inputs is part of this write; otherwise leave it untouched so an
+  // unrelated edit (name, media, ...) cannot revert a concurrent order deduction.
+  delete data.stockCartons
+  if (data.inventorySqm !== undefined || data.sqmPerCarton !== undefined) {
+    const activeSqmPerCarton = data.sqmPerCarton !== undefined
+      ? Number(data.sqmPerCarton)
+      : (originalDoc?.sqmPerCarton !== undefined ? Number(originalDoc.sqmPerCarton) : 1.44)
 
-  const activeInventorySqm = data.inventorySqm !== undefined
-    ? Number(data.inventorySqm)
-    : (originalDoc?.inventorySqm !== undefined ? Number(originalDoc.inventorySqm) : 0)
+    const activeInventorySqm = data.inventorySqm !== undefined
+      ? Number(data.inventorySqm)
+      : (originalDoc?.inventorySqm !== undefined ? Number(originalDoc.inventorySqm) : 0)
 
-  data.stockCartons = calculateStockCartons(activeInventorySqm, activeSqmPerCarton)
+    data.stockCartons = calculateStockCartons(activeInventorySqm, activeSqmPerCarton)
+  }
 
   // 6. Sync width and height from dimension relationship
   if (data.dimension) {

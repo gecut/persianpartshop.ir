@@ -28,7 +28,6 @@ test('clean baseline migration: full schema coverage, CRUD, and clean teardown',
 
   process.env.DATABASE_URI = target.href
   process.env.DATABASE_URL = process.env.DATABASE_URI
-  process.env.CMS_STOCK_WRITE_MODE = 'manual'
   const { default: config } = await import('./payload.config')
   const payload = await getPayload({ config, disableDBConnect: true })
 

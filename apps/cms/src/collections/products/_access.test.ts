@@ -19,24 +19,14 @@ test('canUpdateOperationalPrice allows operational staff and blocks others', () 
   assert.equal(canUpdateOperationalPrice({ req: { user: { collection: 'admins', role: 'editor' } } } as any), false)
 })
 
-test('canUpdateOperationalInventory allows update only in maintenance mode (manual/import)', () => {
-  const orig = process.env.CMS_STOCK_WRITE_MODE
-  try {
-    process.env.CMS_STOCK_WRITE_MODE = 'normal'
-    assert.equal(canUpdateOperationalInventory({ req: { user: { collection: 'admins', role: 'support' } } } as any), false)
+test('canUpdateOperationalInventory allows only operational staff (no maintenance window)', () => {
+  assert.equal(canUpdateOperationalInventory({ req: { user: { collection: 'admins', role: 'support' } } } as any), true)
+  assert.equal(canUpdateOperationalInventory({ req: { user: { collection: 'admins', role: 'manager' } } } as any), true)
+  assert.equal(canUpdateOperationalInventory({ req: { user: { collection: 'admins', role: 'superadmin' } } } as any), true)
 
-    process.env.CMS_STOCK_WRITE_MODE = 'manual'
-    assert.equal(canUpdateOperationalInventory({ req: { user: { collection: 'admins', role: 'support' } } } as any), true)
-
-    process.env.CMS_STOCK_WRITE_MODE = 'import'
-    assert.equal(canUpdateOperationalInventory({ req: { user: { collection: 'admins', role: 'support' } } } as any), true)
-
-    // Unauthorized roles still blocked even in manual/import mode
-    assert.equal(canUpdateOperationalInventory({ req: { user: { collection: 'admins', role: 'editor' } } } as any), false)
-  } finally {
-    if (orig !== undefined) process.env.CMS_STOCK_WRITE_MODE = orig
-    else delete process.env.CMS_STOCK_WRITE_MODE
-  }
+  // Unauthorized roles are always blocked
+  assert.equal(canUpdateOperationalInventory({ req: { user: { collection: 'admins', role: 'editor' } } } as any), false)
+  assert.equal(canUpdateOperationalInventory({ req: { user: null } } as any), false)
 })
 
 test('isImportExportAuthorized allows only operational staff', () => {

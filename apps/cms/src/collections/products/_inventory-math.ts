@@ -20,13 +20,3 @@ export function calculateBasePricePerCarton(basePricePerSqm: number, sqmPerCarto
   }
   return Math.round(basePricePerSqm * sqmPerCarton)
 }
-
-export type StockWriteMode = 'normal' | 'manual' | 'import'
-
-export function getStockWriteMode(): StockWriteMode {
-  const mode = process.env.CMS_STOCK_WRITE_MODE?.trim().toLowerCase()
-  if (mode === 'manual' || mode === 'import') {
-    return mode
-  }
-  return 'normal'
-}
