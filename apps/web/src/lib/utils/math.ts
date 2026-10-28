@@ -49,7 +49,8 @@ export function calculateCartonRequirement(
   // Actual deliverable square meters
   const deliverableArea = Math.round(cartonCount * safePerCarton * 100) / 100
   const extraArea = Math.max(0, Math.round((deliverableArea - safeRequested) * 100) / 100)
-  const totalPrice = Math.round(deliverableArea * pricePerSquareMeter)
+  // Line total = deliverableArea * unitPrice, last digit rounded UP to nearest 10 (round-down prohibited)
+  const totalPrice = Math.ceil((deliverableArea * pricePerSquareMeter) / 10) * 10
   const isExactMultiple = extraArea === 0
 
   // Inventory validation

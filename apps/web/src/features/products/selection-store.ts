@@ -229,3 +229,44 @@ export function useProductSelection() {
     clearSelection: selectionStore.clearSelection,
   }
 }
+
+const EMPTY_IDS: string[] = []
+const EMPTY_QUANTITIES: Record<string, number> = {}
+
+/**
+ * Subscribes only to the selected product IDs. The reference is stable across
+ * quantity mutations, so components that only map over the selection do not
+ * re-render while a slider drags.
+ */
+export function useSelectedIds(): string[] {
+  return useSyncExternalStore(
+    selectionStore.subscribe,
+    () => memoryState.selectedIds,
+    () => EMPTY_IDS,
+  )
+}
+
+/**
+ * Subscribes to a single product's requested area. Returns a primitive so React
+ * bails out of re-rendering every other product card when one changes.
+ */
+export function useProductQuantity(id: unknown): number | undefined {
+  const cleanId = normalizeId(id)
+  return useSyncExternalStore(
+    selectionStore.subscribe,
+    () => memoryState.quantities[cleanId],
+    () => undefined,
+  )
+}
+
+/**
+ * Subscribes to the full quantity map. The reference changes on every mutation
+ * so reserve this for consumers that must aggregate (order summary).
+ */
+export function useAllQuantities(): Record<string, number> {
+  return useSyncExternalStore(
+    selectionStore.subscribe,
+    () => memoryState.quantities,
+    () => EMPTY_QUANTITIES,
+  )
+}
