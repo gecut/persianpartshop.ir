@@ -39,7 +39,7 @@ RUN pnpm --filter @persianpart/cms build
 
 # 4. Runner Stage
 FROM base AS runner
-WORKDIR /app
+WORKDIR /app/apps/cms
 
 ENV NODE_ENV=production
 ENV PORT=5174
@@ -51,12 +51,13 @@ RUN mkdir -p /app/apps/cms/media /app/apps/cms/.next/cache && \
     chown -R node:node /app
 
 # Copy monorepo workspace files, node_modules, and built CMS artifacts
-COPY --from=builder --chown=node:node /app/package.json ./
-COPY --from=builder --chown=node:node /app/pnpm-workspace.yaml ./
-COPY --from=builder --chown=node:node /app/.npmrc* ./
-COPY --from=builder --chown=node:node /app/node_modules ./node_modules
-COPY --from=builder --chown=node:node /app/packages/contract ./packages/contract
-COPY --from=builder --chown=node:node /app/apps/cms ./apps/cms
+COPY --from=builder --chown=node:node /app/package.json /app/
+COPY --from=builder --chown=node:node /app/pnpm-workspace.yaml /app/
+COPY --from=builder --chown=node:node /app/pnpm-lock.yaml /app/
+COPY --from=builder --chown=node:node /app/.npmrc* /app/
+COPY --from=builder --chown=node:node /app/node_modules /app/node_modules
+COPY --from=builder --chown=node:node /app/packages/contract /app/packages/contract
+COPY --from=builder --chown=node:node /app/apps/cms /app/apps/cms
 
 USER node
 
@@ -65,4 +66,4 @@ EXPOSE 5174
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
   CMD node -e "fetch('http://localhost:' + (process.env.PORT || '5174') + '/admin').then((r) => process.exit(r.status < 500 ? 0 : 1)).catch(() => process.exit(1))"
 
-CMD ["pnpm", "--filter", "@persianpart/cms", "start"]
+CMD ["./node_modules/.bin/next", "start", "-p", "5174"]

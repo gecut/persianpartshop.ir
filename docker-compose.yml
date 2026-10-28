@@ -3,7 +3,7 @@ services:
   migration:
     image: ghcr.io/gecut/persianpartshop.ir/cms:${CMS_TAG:-${TAG:-latest}}
     restart: "no"
-    command: ["pnpm", "--filter", "@persianpart/cms", "migrate"]
+    command: ["./node_modules/.bin/payload", "migrate"]
     environment:
       DATABASE_URI: ${DATABASE_URI:-${DATABASE_URL:-postgresql://postgres:8228@postgres:5432/persianpart_cms}}
       PAYLOAD_SECRET: ${PAYLOAD_SECRET:-super-secret-payload-key-must-be-at-least-32-chars-long}
@@ -62,7 +62,7 @@ services:
   cms:
     image: ghcr.io/gecut/persianpartshop.ir/cms:${CMS_TAG:-${TAG:-latest}}
     restart: unless-stopped
-    command: ["pnpm", "--filter", "@persianpart/cms", "start"]
+    command: ["./node_modules/.bin/next", "start", "-p", "5174"]
     expose:
       - "5174"
     depends_on:
