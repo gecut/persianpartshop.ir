@@ -30,6 +30,21 @@ export const Media: CollectionConfig = {
   ],
   upload: {
     staticDir: 'media',
-    mimeTypes: ['image/*'],
+    mimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/avif'],
+    resizeOptions: {
+      width: 1600,
+      height: 1600,
+      fit: 'inside',
+      withoutEnlargement: true,
+    },
+    formatOptions: {
+      format: 'webp',
+      options: {
+        quality: 82,
+        alphaQuality: 100,
+        effort: 4,
+      },
+    },
+    withMetadata: false,
   },
 }
