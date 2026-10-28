@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { Button } from "@heroui/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -126,6 +126,7 @@ export function PreInvoiceModal({
 }: PreInvoiceModalProps) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const idempotencyKeyRef = useRef<string | null>(null);
   const submitOrderMutation = useMutation({
     mutationKey: mutationKeys.orders.submit,
     mutationFn: async (payload: any) => {
@@ -223,6 +224,7 @@ export function PreInvoiceModal({
     }
 
     try {
+      idempotencyKeyRef.current ??= crypto.randomUUID();
       const res: any = await submitOrderMutation.mutateAsync({
         items: invoiceItems.map((item) => ({
           productId: isNaN(Number(item.product.id))
@@ -231,8 +233,10 @@ export function PreInvoiceModal({
           requestedArea: item.requestedArea,
         })),
         notes: "ثبت سفارش از لیست محصولات",
+        idempotencyKey: idempotencyKeyRef.current,
       });
       if (res?.id) {
+        idempotencyKeyRef.current = null;
         createdId = String(res.id);
         createdOrderNumber = res.orderNumber;
       }

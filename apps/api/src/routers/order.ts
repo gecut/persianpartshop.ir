@@ -133,22 +133,27 @@ const submit = authed.order.submit.handler(async ({ input, context, errors }) =>
     throw errors.BAD_REQUEST({ message: 'سبد سفارش نمی‌تواند خالی باشد.' })
   }
 
-  const idempotencyKey = (input as any).idempotencyKey
-  if (idempotencyKey) {
+  const idempotencyKey = input.idempotencyKey?.trim()
+
+  const findExistingOrder = async () => {
+    if (!idempotencyKey) return null
     const existing = await sdk.find({
       collection: 'orders',
       where: {
         and: [
           { user: { equals: Number(context.user.id) } },
-          { idempotencyKey: { equals: String(idempotencyKey) } },
+          { idempotencyKey: { equals: idempotencyKey } },
         ],
       },
       limit: 1,
       depth: 2,
     })
-    if (existing.docs.length > 0) {
-      return sanitizeOrderForCustomer(existing.docs[0]) as Order
-    }
+    return existing.docs[0] ?? null
+  }
+
+  const replay = await findExistingOrder()
+  if (replay) {
+    return sanitizeOrderForCustomer(replay) as Order
   }
 
   const rawItems = input.items.map((item) => {
@@ -175,20 +180,31 @@ const submit = authed.order.submit.handler(async ({ input, context, errors }) =>
 
   const tempOrderNumber = generateTempOrderNumber()
 
-  const orderDoc = (await sdk.create({
-    collection: 'orders',
-    data: {
-      orderNumber: tempOrderNumber,
-      user: Number(context.user.id),
-      status: 'pending',
-      items: rawItems as any,
-      subtotal: 0,
-      finalTotal: 0,
-      notes: input.notes?.trim() || '',
-      deliveryAddress: (deliveryAddress || '').trim(),
-      ...(idempotencyKey ? { idempotencyKey: String(idempotencyKey) } : {}),
-    },
-  })) as Order
+  let orderDoc: Order
+  try {
+    orderDoc = (await sdk.create({
+      collection: 'orders',
+      data: {
+        orderNumber: tempOrderNumber,
+        user: Number(context.user.id),
+        status: 'pending',
+        items: rawItems as any,
+        subtotal: 0,
+        finalTotal: 0,
+        notes: input.notes?.trim() || '',
+        deliveryAddress: (deliveryAddress || '').trim(),
+        ...(idempotencyKey ? { idempotencyKey } : {}),
+      },
+    })) as Order
+  } catch (err) {
+    // Concurrent duplicate submission won the unique constraint race: return that order
+    // instead of surfacing a 500. The failed create (and its stock decrement) is rolled back.
+    const racedOrder = await findExistingOrder()
+    if (racedOrder) {
+      return sanitizeOrderForCustomer(racedOrder) as Order
+    }
+    throw err
+  }
 
   return sanitizeOrderForCustomer(orderDoc) as Order
 })

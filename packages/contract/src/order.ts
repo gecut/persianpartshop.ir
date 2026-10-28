@@ -150,6 +150,7 @@ export const SubmitOrderInputSchema = z.object({
   items: z.array(CartItemInputSchema).min(1, 'سبد خرید جهت ثبت سفارش الزامی است'),
   notes: z.string().trim().max(1000).optional(),
   deliveryAddress: z.string().trim().max(1000).optional(),
+  idempotencyKey: z.string().trim().min(1).max(128).optional(),
 })
 
 export type SubmitOrderInput = z.infer<typeof SubmitOrderInputSchema>

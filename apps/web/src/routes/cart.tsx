@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button } from '@heroui/react'
@@ -43,6 +43,7 @@ function CartPage() {
 
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false)
   const [orderNotes, setOrderNotes] = useState('')
+  const idempotencyKeyRef = useRef<string | null>(null)
   const queryClient = useQueryClient()
 
   const submitOrderMutation = useMutation({
@@ -70,15 +71,18 @@ function CartPage() {
     }
 
     try {
+      idempotencyKeyRef.current ??= crypto.randomUUID()
       const orderPayload = {
         items: items.map((i) => ({
           productId: i.productId,
           requestedArea: i.requestedArea || i.deliverableArea || 1,
         })),
         notes: orderNotes || undefined,
+        idempotencyKey: idempotencyKeyRef.current,
       }
 
       const newOrder = await submitOrderMutation.mutateAsync(orderPayload)
+      idempotencyKeyRef.current = null
 
       clearCart()
       setIsCheckoutModalOpen(false)

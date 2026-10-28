@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api, type Order, type OrderStatus } from '../lib/api-client'
 import { queryKeys, mutationKeys } from '../lib/query-keys'
@@ -42,6 +43,7 @@ export function useOrderDetail(orderId: string | null) {
 
 export function useOrderActions() {
   const queryClient = useQueryClient()
+  const idempotencyKeyRef = useRef<string | null>(null)
 
   const submitMutation = useMutation({
     mutationKey: mutationKeys.orders.submit,
@@ -52,7 +54,14 @@ export function useOrderActions() {
       items: Array<{ productId: string; requestedSqm: number }>
       notes?: string
     }) => {
-      return await api.order.submit({ items, notes })
+      idempotencyKeyRef.current ??= crypto.randomUUID()
+      const order = await api.order.submit({
+        items,
+        notes,
+        idempotencyKey: idempotencyKeyRef.current,
+      })
+      idempotencyKeyRef.current = null
+      return order
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.orders.all })
