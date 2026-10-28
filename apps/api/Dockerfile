@@ -16,7 +16,7 @@ COPY apps/api/package.json ./apps/api/
 COPY apps/cms/package.json ./apps/cms/
 COPY apps/web/package.json ./apps/web/
 
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --store-dir=/pnpm/store
 
 FROM oven/bun:1-alpine@sha256:4cf82f5686b196504fe119db3fcd9185b191f82ece82c40680e597228ec6070a AS runner
 WORKDIR /app
@@ -31,8 +31,12 @@ COPY --chown=bun:bun --from=deps /app/node_modules ./node_modules
 COPY --chown=bun:bun packages/contract ./packages/contract
 COPY --chown=bun:bun apps/cms ./apps/cms
 COPY --chown=bun:bun apps/api ./apps/api
+COPY --chown=bun:bun --from=deps /app/packages/contract/node_modules ./packages/contract/node_modules
+COPY --chown=bun:bun --from=deps /app/apps/cms/node_modules ./apps/cms/node_modules
+COPY --chown=bun:bun --from=deps /app/apps/api/node_modules ./apps/api/node_modules
 
 RUN mkdir -p /app/media && chown -R bun:bun /app/media
+RUN bun -e 'for (const [dir, names] of [["apps/api", ["hono", "@orpc/server", "@persianpart/cms/sdk", "@persianpart/cms/payload", "@persianpart/contract"]], ["apps/cms", ["payload", "@payloadcms/sdk", "@payloadcms/db-postgres"]], ["packages/contract", ["@orpc/contract", "zod"]]]) { for (const name of names) Bun.resolveSync(name, `${process.cwd()}/${dir}`); }'
 
 USER bun
 EXPOSE 5175

@@ -20,7 +20,7 @@ COPY apps/cms/package.json ./apps/cms/
 COPY apps/web/package.json ./apps/web/
 
 # Install workspace dependencies using pnpm cache mount
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --store-dir=/pnpm/store
 
 # 3. Builder Stage
 FROM deps AS builder
@@ -38,7 +38,8 @@ ENV NODE_ENV=production
 RUN pnpm --filter @persianpart/cms build
 
 # 4. Runner Stage
-FROM base AS runner
+FROM node:22-alpine@sha256:fe4f6d74e20370acb04ad889077d14d0f64a9c8ea6a42bc60cddf1e844699914 AS runner
+RUN apk add --no-cache libc6-compat
 WORKDIR /app/apps/cms
 
 ENV NODE_ENV=production
@@ -58,6 +59,10 @@ COPY --from=builder --chown=node:node /app/.npmrc* /app/
 COPY --from=builder --chown=node:node /app/node_modules /app/node_modules
 COPY --from=builder --chown=node:node /app/packages/contract /app/packages/contract
 COPY --from=builder --chown=node:node /app/apps/cms /app/apps/cms
+
+RUN node --input-type=module -e 'import { existsSync } from "node:fs"; import { fileURLToPath } from "node:url"; for (const name of ["payload", "next", "tsx", "@persianpart/contract"]) { if (!existsSync(fileURLToPath(import.meta.resolve(name)))) throw new Error(`Missing runtime dependency: ${name}`); } for (const path of ["./node_modules/payload/bin.js", "./node_modules/next/dist/bin/next"]) { if (!existsSync(path)) throw new Error(`Missing runtime entrypoint: ${path}`); }' \
+    && node ./node_modules/next/dist/bin/next --version \
+    && ! command -v pnpm
 
 USER node
 

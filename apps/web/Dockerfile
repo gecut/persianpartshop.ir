@@ -19,7 +19,7 @@ COPY apps/cms/package.json ./apps/cms/
 COPY apps/web/package.json ./apps/web/
 
 # Install workspace dependencies with cache mount
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --store-dir=/pnpm/store
 
 # Copy source code across dependent workspaces
 COPY packages/contract ./packages/contract
