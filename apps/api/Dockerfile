@@ -5,11 +5,12 @@ WORKDIR /app
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
+ENV CI=true
 
 RUN apk add --no-cache libc6-compat \
     && npm install -g pnpm@11.18.0
 
-COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json .npmrc* ./
 COPY packages/contract/package.json ./packages/contract/
 COPY apps/api/package.json ./apps/api/
 COPY apps/cms/package.json ./apps/cms/

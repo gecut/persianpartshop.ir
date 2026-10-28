@@ -4,6 +4,7 @@
 FROM node:22-alpine AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
+ENV CI=true
 RUN npm install -g pnpm@11.18.0
 
 # 2. Builder Stage
@@ -11,7 +12,7 @@ FROM base AS builder
 WORKDIR /app
 
 # Copy monorepo configurations and manifests for caching
-COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json .npmrc* ./
 COPY packages/contract/package.json ./packages/contract/
 COPY apps/api/package.json ./apps/api/
 COPY apps/cms/package.json ./apps/cms/

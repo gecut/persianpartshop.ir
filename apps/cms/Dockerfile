@@ -4,6 +4,7 @@
 FROM node:22-alpine@sha256:fe4f6d74e20370acb04ad889077d14d0f64a9c8ea6a42bc60cddf1e844699914 AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
+ENV CI=true
 RUN apk add --no-cache libc6-compat
 RUN npm install -g pnpm@11.18.0
 
@@ -11,8 +12,8 @@ RUN npm install -g pnpm@11.18.0
 FROM base AS deps
 WORKDIR /app
 
-# Copy monorepo configurations and manifests for caching
-COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+# Copy monorepo configuration files
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json .npmrc* ./
 COPY packages/contract/package.json ./packages/contract/
 COPY apps/api/package.json ./apps/api/
 COPY apps/cms/package.json ./apps/cms/
@@ -52,6 +53,7 @@ RUN mkdir -p /app/apps/cms/media /app/apps/cms/.next/cache && \
 # Copy monorepo workspace files, node_modules, and built CMS artifacts
 COPY --from=builder --chown=node:node /app/package.json ./
 COPY --from=builder --chown=node:node /app/pnpm-workspace.yaml ./
+COPY --from=builder --chown=node:node /app/.npmrc* ./
 COPY --from=builder --chown=node:node /app/node_modules ./node_modules
 COPY --from=builder --chown=node:node /app/packages/contract ./packages/contract
 COPY --from=builder --chown=node:node /app/apps/cms ./apps/cms
