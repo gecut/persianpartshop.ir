@@ -62,9 +62,12 @@ COPY --from=deps --chown=node:node /app/packages/contract/node_modules ./package
 COPY --from=builder --chown=node:node /app/packages/contract ./packages/contract
 COPY --from=builder --chown=node:node /app/apps/cms ./apps/cms
 
-# Build-time verification gate ensuring pnpm CLI and Payload migrations resolve without network
+# Build-time verification gate ensuring pnpm CLI and Payload migrations resolve without network.
+# Build-only placeholders satisfy Payload config loading; no real credentials enter the image.
 RUN pnpm --version \
-    && pnpm --filter @persianpart/cms migrate --help > /dev/null
+    && PAYLOAD_SECRET=build-only-placeholder-not-for-runtime \
+       DATABASE_URL=postgresql://build:build@127.0.0.1:5432/build \
+       pnpm --filter @persianpart/cms migrate --help > /dev/null
 
 USER node
 
