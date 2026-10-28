@@ -186,7 +186,7 @@ flowchart LR
 1. **Upload & Parse**: Reads CSV data via official `@payloadcms/plugin-import-export` (update-only mode, matching by `sku`); validates UTF-8 encoding and required columns (`sku`, `basePricePerSqm`, `inventorySqm`).
 2. **Pre-flight & Row Validation**: Verifies that prices and stock values are valid non-negative numbers and that the file contains $\le 100$ rows. Duplicate SKUs inside the CSV halt the file before writing.
 3. **SKU Matching & Execution**:
-   - Matched SKUs update base price and net inventory in maintenance window mode.
-   - Unmatched SKUs (in CSV but not in DB) produce native row-level issue reports and do not create new products.
+   - Matched SKUs overwrite base price and net inventory directly (no maintenance window).
+   - Unmatched SKUs (in CSV but not in DB) reject the batch with row-level issue reports and never create new products.
    - Per-row errors do not halt valid sibling rows; native summary reports `updated` and `issues`.
-4. **Maintenance Drain & Apply**: The import operates in a controlled server maintenance window (`CMS_STOCK_WRITE_MODE=import`) preventing concurrent order reservation race conditions. Derived carton counts (`stockCartons`) are recalculated synchronously on the server.
+4. **Derived Apply**: `stockCartons` is recalculated synchronously on the server from the incoming `inventorySqm` and `sqmPerCarton`. Inventory writes are absolute; concurrent customer orders are guarded by an atomic conditional decrement at order creation.

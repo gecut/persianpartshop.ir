@@ -64,20 +64,18 @@ CSV Input File (UTF-8, Max 100 rows)
 
 ### 3.1 Step-by-Step Sync Workflow
 
-1. **Maintenance Window Drain**:
-   - Set server environment `CMS_STOCK_WRITE_MODE=import` and verify all concurrent order submissions are paused.
-2. **File Preparation**:
+1. **File Preparation**:
    - Ensure the CSV is encoded in standard **UTF-8 without BOM**.
    - Ensure header names match exactly: `sku`, `basePricePerSqm`, `inventorySqm`.
    - Ensure numbers do not contain commas or currency symbols, and max file length is $\le 100$ rows.
-3. **Execution**:
+2. **Execution**:
    - Navigate to **کاتالوگ و انبارداری > درون‌ریزی‌ها (Imports)**.
-   - Upload file and trigger import.
-   - The plugin processes rows; existing SKUs are updated with auto-calculated `stockCartons`.
-   - Unknown SKUs or malformed rows are logged as individual row issues without creating new products or halting valid sibling rows.
-4. **Resumption**:
-   - Review import summary (`updated` count and issue details).
-   - Return server environment to `CMS_STOCK_WRITE_MODE=normal` to resume customer order placements.
+   - Upload file and trigger import. The import runs live; no maintenance window is required.
+   - Existing SKUs are overwritten with the incoming `inventorySqm` and an auto-calculated `stockCartons`.
+   - A batch containing any unknown SKU is rejected as a whole, so no partial products are created.
+3. **Review**:
+   - Review the import summary (`updated` count and issue details).
+   - The announced `inventorySqm` is the authoritative balance; items sold outside the site are reflected in the next announcement.
 
 ---
 

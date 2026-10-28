@@ -48,7 +48,7 @@ The system defines three distinct operational roles. Customer identity is logica
 | **Catalog Products** | Read Active Products | Allowed (Self Tier) | Allowed | Allowed | Server API / Scoped Query |
 | | Create / Edit Content | Denied | Allowed | Allowed | Admin Portal Access Control |
 | | Edit `basePricePerSqm` | Denied | Allowed (Operational Staff) | Allowed (Operational Staff) | Field-level protection (`_product-access.ts`) |
-| | Edit `inventorySqm` | Denied | Allowed (Maintenance Window) | Allowed (Maintenance Window) | Field-level & Server Guard (`CMS_STOCK_WRITE_MODE`) |
+| | Edit `inventorySqm` | Denied | Allowed (Operational Staff) | Allowed (Operational Staff) | Field-level protection (`_product-access.ts`) |
 | | Delete Products | Denied | Denied | Allowed | Admin Portal Access Control |
 | **Customer Accounts** | Self Profile Read / Update | Allowed (Self) | Allowed (All) | Allowed (All) | Ownership Check (`id == auth.id`) |
 | | Create Customer | Denied | Allowed | Allowed | Support / Admin Workflow |

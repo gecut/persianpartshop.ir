@@ -185,4 +185,4 @@ CSV batch imports represent the automated bridge to external inventory managemen
 - **Unknown SKU**: SKU present in CSV but absent in database $\rightarrow$ Row produces a row-level issue report and does not create a new product or halt remaining valid rows.
 - **Absent SKU**: Product exists in database but is missing from CSV $\rightarrow$ Untouched (retains existing price and stock).
 - **Duplicate SKU in CSV**: Hard validation error; pre-flight check rejects the import to prevent undefined overrides.
-- **Maintenance Window Rule**: CSV imports require operational maintenance mode (`CMS_STOCK_WRITE_MODE=import`); direct inventory edits require `CMS_STOCK_WRITE_MODE=manual`. Normal ordering operates under `CMS_STOCK_WRITE_MODE=normal`.
+- **Absolute Inventory Rule**: `inventorySqm` is the authoritative sellable balance, announced after outstanding orders are settled. Both CSV imports and direct staff edits overwrite it as-is, with no maintenance window and no reservation reconciliation. Concurrency between customer orders is guarded separately by an atomic conditional decrement (`WHERE inventory_sqm >= deliverableArea`).
