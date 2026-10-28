@@ -21,30 +21,29 @@ class RuntimePackagingTests(unittest.TestCase):
         self.assertIn("Bun.resolveSync", runner)
         self.assertIn('"hono"', runner)
 
-    def test_cms_runner_has_no_package_manager(self):
+    def test_cms_runner_has_standard_pnpm_runtime(self):
         dockerfile = (ROOT / "apps/cms/Dockerfile").read_text()
         runner = dockerfile.split(" AS runner", 1)[1]
-        self.assertNotIn("npm install", runner)
-        self.assertIn("! command -v pnpm", runner)
-        self.assertIn("WORKDIR /app/apps/cms", runner)
+        self.assertIn("WORKDIR /app", runner)
+        self.assertIn("PNPM_CONFIG_VERIFY_DEPS_BEFORE_RUN=false", runner)
         for workspace in ("apps/cms", "packages/contract"):
-            self.assertIn(f"/app/{workspace} /app/{workspace}", runner)
-        self.assertIn("/app/node_modules /app/node_modules", runner)
+            self.assertIn(f"/app/{workspace} ./apps/cms" if workspace == "apps/cms" else f"/app/{workspace} ./{workspace}", runner)
+        self.assertIn("/app/node_modules ./node_modules", runner)
+        self.assertIn("/app/apps/cms/node_modules ./apps/cms/node_modules", runner)
         command = json.loads(re.search(r"^CMD (.+)$", runner, re.M)[1])
-        self.assertEqual(command[:2], ["node", "./node_modules/next/dist/bin/next"])
-        self.assertIn("import.meta.resolve", runner)
+        self.assertEqual(command, ["pnpm", "--filter", "@persianpart/cms", "start"])
+        self.assertIn("pnpm --filter @persianpart/cms migrate --help", runner)
 
-    def test_compose_uses_direct_runtime_commands(self):
+    def test_compose_uses_standard_pnpm_commands(self):
         compose = (ROOT / "docker-compose.yml").read_text()
         services = dict(re.findall(r"^  (\w+):\n(.*?)(?=^  \w+:|^\w|\Z)", compose, re.M | re.S))
-        for service, executable in (
-            ("migration", "./node_modules/payload/bin.js"),
-            ("cms", "./node_modules/next/dist/bin/next"),
+        for service, script in (
+            ("migration", "migrate"),
+            ("cms", "start"),
         ):
             with self.subTest(service=service):
                 command = json.loads(re.search(r"^    command: (.+)$", services[service], re.M)[1])
-                self.assertEqual(command[:2], ["node", executable])
-                self.assertNotIn("entrypoint:", services[service])
+                self.assertEqual(command, ["pnpm", "--filter", "@persianpart/cms", script])
         self.assertIn("service_completed_successfully", services["api"])
 
     def test_installs_use_the_mounted_cache_and_lockfile(self):
