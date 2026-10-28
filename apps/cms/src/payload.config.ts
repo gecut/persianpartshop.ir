@@ -148,6 +148,8 @@ export default buildConfig({
         Logo: '/components/admin/Logo#Logo',
         Icon: '/components/admin/Icon#Icon',
       },
+      beforeLogin: ['/components/admin/LoginHeader#LoginHeader'],
+      afterLogin: ['/components/admin/LoginFooter#LoginFooter'],
     },
   },
   collections: [

@@ -1,16 +1,25 @@
+# ponytail: fixed resource limits configured; upgrade to environment variable overrides when multi-cluster sizing is required.
 services:
   migration:
-    image: ${CMS_IMAGE:-ghcr.io/ehsanmousavif/cms}:${CMS_TAG:-${TAG:-latest}}
+    image: ghcr.io/gecut/persianpartshop.ir/cms:${CMS_TAG:-${TAG:-latest}}
     restart: "no"
     command: ["pnpm", "--filter", "@persianpart/cms", "migrate"]
     environment:
       DATABASE_URI: ${DATABASE_URI:-${DATABASE_URL:-postgresql://postgres:8228@postgres:5432/persianpart_cms}}
       PAYLOAD_SECRET: ${PAYLOAD_SECRET:-super-secret-payload-key-must-be-at-least-32-chars-long}
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1024M
+        reservations:
+          cpus: "0.1"
+          memory: 256M
     networks:
       - dokploy-network
 
   api:
-    image: ${API_IMAGE:-ghcr.io/ehsanmousavif/api}:${API_TAG:-${TAG:-latest}}
+    image: ghcr.io/gecut/persianpartshop.ir/api:${API_TAG:-${TAG:-latest}}
     restart: unless-stopped
     command: ["bun", "run", "apps/api/src/server.ts"]
     expose:
@@ -33,11 +42,25 @@ services:
       MEDIA_DIR: /app/media
     volumes:
       - persianpart_media_data:/app/media
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:5175/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1024M
+        reservations:
+          cpus: "0.1"
+          memory: 256M
     networks:
       - dokploy-network
 
   cms:
-    image: ${CMS_IMAGE:-ghcr.io/ehsanmousavif/cms}:${CMS_TAG:-${TAG:-latest}}
+    image: ghcr.io/gecut/persianpartshop.ir/cms:${CMS_TAG:-${TAG:-latest}}
     restart: unless-stopped
     command: ["pnpm", "--filter", "@persianpart/cms", "start"]
     expose:
@@ -55,16 +78,71 @@ services:
       NEXT_PUBLIC_SERVER_URL: ${CMS_URL:-https://${CMS_DOMAIN:-admin.persianpart.shop}}
     volumes:
       - persianpart_media_data:/app/apps/cms/media
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:5174/admin').then((r) => process.exit(r.status < 500 ? 0 : 1)).catch(() => process.exit(1))\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2048M
+        reservations:
+          cpus: "0.25"
+          memory: 512M
     networks:
       - dokploy-network
 
   web:
-    image: ${WEB_IMAGE:-ghcr.io/ehsanmousavif/web}:${WEB_TAG:-${TAG:-latest}}
+    image: ghcr.io/gecut/persianpartshop.ir/web:${WEB_TAG:-${TAG:-latest}}
     restart: unless-stopped
     expose:
       - "80"
     depends_on:
       - api
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:80/ || exit 1"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+        reservations:
+          cpus: "0.05"
+          memory: 64M
+    networks:
+      - dokploy-network
+
+  cdn:
+    image: ${CDN_IMAGE:-ghcr.io/gecut/nginx/cdn}:${CDN_TAG:-2.0.0}
+    restart: unless-stopped
+    expose:
+      - "80"
+    environment:
+      NGINX_CORS_ENABLE: "on"
+      NGINX_CORS_ORIGIN: "*"
+    volumes:
+      - persianpart_media_data:/data:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:80/server-info || exit 1"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+        reservations:
+          cpus: "0.05"
+          memory: 64M
     networks:
       - dokploy-network
 

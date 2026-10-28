@@ -7,6 +7,7 @@
    5. Compact Headings & Clean Field Labels / Descriptions
    6. Bug-Free Select/Option & Relationship RTL Controls
    7. Beautiful RTL Lexical RichText Editor
+   8. Modern Auth & Login Redesign
    ========================================================================== */
 
 @import "@fontsource-variable/vazirmatn/index.css";
@@ -92,6 +93,7 @@ body {
   font-family: var(--font-body);
   background-color: var(--theme-bg);
   color: var(--theme-text);
+  min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -147,18 +149,12 @@ aside.nav,
   font-weight: 700;
 }
 
-/* Top Header & Logo Containment */
+/* Top Header & Icon Containment */
 .app-header .step-nav__home {
   width: 20px !important;
   height: 20px !important;
   display: flex !important;
   align-items: center !important;
-}
-
-.graphic-logo {
-  height: 100% !important;
-  max-height: 32px !important;
-  width: auto !important;
 }
 
 /* --------------------------------------------------------------------------
@@ -330,7 +326,7 @@ input.rs__input {
 }
 
 .rich-text-lexical .ContentEditable__root:before {
-  display: none !important; /* Remove unneeded left gutter line */
+  display: none !important;
 }
 
 .rich-text-lexical .placeholder {
@@ -456,4 +452,149 @@ tbody tr:hover {
   border-radius: var(--style-radius-s) !important;
   font-weight: 600 !important;
   transition: all 0.15s ease-in-out !important;
+}
+
+/* --------------------------------------------------------------------------
+   10. AUTH & LOGIN VIEW REDESIGN (FLOATING CARD + LUXURY FINISH)
+   -------------------------------------------------------------------------- */
+.template-minimal {
+  min-height: 100vh !important;
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 40px 16px !important;
+  margin: 0 !important;
+  background: radial-gradient(ellipse at 50% 15%, rgba(67, 56, 202, 0.08) 0%, transparent 65%), var(--theme-bg) !important;
+}
+
+[data-theme='dark'] .template-minimal {
+  background: radial-gradient(ellipse at 50% 15%, rgba(99, 102, 241, 0.12) 0%, transparent 65%), var(--theme-bg) !important;
+}
+
+.template-minimal__wrap {
+  width: 100% !important;
+  max-width: 440px !important;
+  margin: 0 auto !important;
+  background-color: var(--theme-elevation-0) !important;
+  border: 1px solid var(--theme-border-color) !important;
+  border-radius: 20px !important;
+  padding: 38px 32px !important;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.06), 0 0 1px 1px rgba(0, 0, 0, 0.02) !important;
+}
+
+[data-theme='dark'] .template-minimal__wrap {
+  background-color: var(--theme-elevation-0) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 1px 1px rgba(255, 255, 255, 0.05) !important;
+}
+
+.login__brand {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 100% !important;
+  margin-bottom: 24px !important;
+}
+
+.login__form {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+}
+
+.login__form__inputWrap {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+  margin-bottom: 12px !important;
+}
+
+.login__form .field-type {
+  margin-bottom: 0 !important;
+}
+
+.login__form .field-label {
+  font-size: 0.8125rem !important; /* 13px */
+  font-weight: 600 !important;
+  color: var(--theme-elevation-800) !important;
+  margin-bottom: 6px !important;
+  text-align: right !important;
+}
+
+.login__form input {
+  height: 44px !important;
+  border-radius: var(--style-radius-m) !important;
+  border: 1px solid var(--theme-border-color) !important;
+  background-color: var(--theme-elevation-50) !important;
+  color: var(--theme-elevation-900) !important;
+  padding: 0 14px !important;
+  font-size: 0.9375rem !important;
+  width: 100% !important;
+  transition: all 0.15s ease-in-out !important;
+}
+
+.login__form input:focus {
+  background-color: var(--theme-elevation-0) !important;
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18) !important;
+}
+
+.login__form input[type='email'],
+.login__form input[type='password'] {
+  direction: ltr !important;
+  text-align: left !important;
+}
+
+.login__form input[type='email']::placeholder,
+.login__form input[type='password']::placeholder {
+  direction: rtl !important;
+  text-align: right !important;
+}
+
+.login__form > a {
+  display: inline-block !important;
+  font-size: 0.8125rem !important;
+  color: var(--theme-elevation-500) !important;
+  text-decoration: none !important;
+  margin-bottom: 22px !important;
+  text-align: right !important;
+  transition: color 0.15s ease !important;
+}
+
+.login__form > a:hover {
+  color: var(--color-primary) !important;
+  text-decoration: underline !important;
+}
+
+.login__form .form-submit {
+  width: 100% !important;
+  margin: 0 !important;
+}
+
+.login__form .form-submit button,
+.login__form .form-submit .btn {
+  width: 100% !important;
+  height: 46px !important;
+  font-size: 0.9375rem !important;
+  font-weight: 700 !important;
+  border-radius: var(--style-radius-m) !important;
+  background-color: var(--color-primary) !important;
+  color: var(--color-primary-fg) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 4px 12px rgba(67, 56, 202, 0.25) !important;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.login__form .form-submit button:hover,
+.login__form .form-submit .btn:hover {
+  background-color: var(--color-primary-hover) !important;
+  box-shadow: 0 6px 18px rgba(67, 56, 202, 0.35) !important;
+  transform: translateY(-1px) !important;
+}
+
+.login__form .form-submit button:active,
+.login__form .form-submit .btn:active {
+  transform: translateY(0) !important;
 }

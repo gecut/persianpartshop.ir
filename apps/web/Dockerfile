@@ -27,7 +27,7 @@ COPY apps/cms ./apps/cms
 COPY apps/web ./apps/web
 
 # Build arguments for frontend API endpoint configuration
-ARG VITE_API_URL
+ARG VITE_API_URL=https://api.persianpart.shop
 ENV VITE_API_URL=$VITE_API_URL
 
 # Build web application

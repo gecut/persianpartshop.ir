@@ -1,12 +1,14 @@
-name: Build and publish container image
+name: CI/CD Pipeline
 
 on:
-  pull_request:
   push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
 
 concurrency:
-  group: container-${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -15,13 +17,11 @@ permissions:
 
 jobs:
   validate:
-    name: Lint, Type Check & Build
+    name: Lint & Type Check
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -44,10 +44,11 @@ jobs:
         run: pnpm build
 
   container:
-    name: Build & publish (${{ matrix.name }})
+    name: Build & Publish (${{ matrix.name }})
     needs: validate
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         include:
           - name: api
@@ -64,10 +65,10 @@ jobs:
       - name: Resolve image name
         id: image
         env:
-          OWNER: ${{ github.repository_owner }}
+          REPOSITORY: ${{ github.repository }}
         run: |
-          owner="$(printf '%s' "$OWNER" | tr '[:upper:]' '[:lower:]')"
-          echo "name=ghcr.io/${owner}/${{ matrix.name }}" >> "$GITHUB_OUTPUT"
+          repo="$(printf '%s' "$REPOSITORY" | tr '[:upper:]' '[:lower:]')"
+          echo "name=ghcr.io/${repo}/${{ matrix.name }}" >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -102,8 +103,21 @@ jobs:
           tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
           build-args: |
-            VITE_API_URL=https://api.persianpart.shop
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+            VITE_API_URL=${{ vars.VITE_API_URL || 'https://api.persianpart.shop' }}
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: ${{ github.event_name != 'pull_request' && format('type=gha,mode=max,scope={0}', matrix.name) || '' }}
           provenance: ${{ github.event_name != 'pull_request' && 'mode=max' || 'false' }}
           sbom: ${{ github.event_name != 'pull_request' }}
+
+  deploy:
+    name: Trigger Dokploy Redeploy
+    needs: container
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && vars.DOKPLOY_REDEPLOY_WEBHOOK != ''
+    steps:
+      - name: Trigger Dokploy redeploy webhook
+        run: |
+          curl -s -f -X POST \
+            -H "Content-Type: application/json" \
+            -d '{"source": "github-actions", "commit": "${{ github.sha }}"}' \
+            "${{ vars.DOKPLOY_REDEPLOY_WEBHOOK }}"
