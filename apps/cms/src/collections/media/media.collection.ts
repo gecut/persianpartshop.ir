@@ -1,21 +1,41 @@
 import type { CollectionConfig } from 'payload'
 import { isCatalogManager } from '../../access/roles'
 
+export function buildCdnUrl(filename: string | null | undefined): string | null {
+  if (!filename) return null
+  const cdnUrl = process.env.CDN_URL
+  if (!cdnUrl) return null
+  return `${cdnUrl.replace(/\/+$/, '')}/${encodeURIComponent(filename)}`
+}
+
 export const Media: CollectionConfig = {
   slug: 'media',
   labels: {
-    singular: 'فایل رسانه‌ای',
-    plural: 'رسانه‌ها و تصاویر',
+    singular: 'فایل رسانه\u200cای',
+    plural: 'رسانه\u200cها و تصاویر',
   },
   admin: {
     group: 'رسانه و محتوا',
-    description: 'مدیریت تصاویر کالاها، لوگوها و فایل‌های سیستم',
+    description: 'مدیریت تصاویر کالاها، لوگوها و فایل\u200cهای سیستم',
   },
   access: {
     read: () => true,
     create: isCatalogManager,
     update: isCatalogManager,
     delete: isCatalogManager,
+  },
+  hooks: {
+    afterRead: [
+      ({ doc }) => {
+        if (doc.filename) {
+          const cdnUrl = buildCdnUrl(doc.filename)
+          if (cdnUrl) {
+            doc.url = cdnUrl
+          }
+        }
+        return doc
+      },
+    ],
   },
   fields: [
     {
@@ -24,7 +44,7 @@ export const Media: CollectionConfig = {
       required: true,
       label: 'متن جایگزین (Alt)',
       admin: {
-        description: 'توضیح کوتاه تصویر جهت سئو و دسترس‌پذیری.',
+        description: 'توضیح کوتاه تصویر جهت سئو و دسترس\u200cپذیری.',
       },
     },
   ],
@@ -46,5 +66,9 @@ export const Media: CollectionConfig = {
       },
     },
     withMetadata: false,
+    adminThumbnail: ({ doc }) => {
+      const filename = (doc as any)?.filename
+      return buildCdnUrl(filename) || ''
+    },
   },
 }

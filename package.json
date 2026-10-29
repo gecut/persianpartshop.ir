@@ -2,7 +2,7 @@
   "name": "persianpart",
   "private": true,
   "scripts": {
-    "dev": "pnpm --filter @persianpart/web dev",
+    "dev": "pnpm dev",
     "dev:cms": "pnpm --filter @persianpart/cms dev",
     "dev:api": "pnpm --filter @persianpart/api dev",
     "build": "pnpm --filter @persianpart/cms build && pnpm --filter @persianpart/api build && pnpm --filter @persianpart/web build",

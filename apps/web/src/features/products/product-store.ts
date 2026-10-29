@@ -17,6 +17,10 @@ export function resolveMediaUrl(media: any): string {
       return media
     }
     if (media.includes('.')) {
+      const cdnUrl = import.meta.env.VITE_CDN_URL
+      if (cdnUrl) {
+        return `${cdnUrl}/${encodeURIComponent(media)}`
+      }
       return `/api/media/file/${media}`
     }
     return ''
@@ -24,7 +28,13 @@ export function resolveMediaUrl(media: any): string {
   if (typeof media === 'object') {
     if (media.url && typeof media.url === 'string') return media.url
     if (media.thumbnailURL && typeof media.thumbnailURL === 'string') return media.thumbnailURL
-    if (media.filename && typeof media.filename === 'string') return `/api/media/file/${media.filename}`
+    if (media.filename && typeof media.filename === 'string') {
+      const cdnUrl = import.meta.env.VITE_CDN_URL
+      if (cdnUrl) {
+        return `${cdnUrl}/${encodeURIComponent(media.filename)}`
+      }
+      return `/api/media/file/${media.filename}`
+    }
     if (media.image) return resolveMediaUrl(media.image)
   }
   return ''

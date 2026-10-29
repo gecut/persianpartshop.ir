@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import sharp, { type Metadata } from 'sharp'
-import { Media } from './media.collection'
+import { Media, buildCdnUrl } from './media.collection'
 
 test('media optimization preserves proportions, transparency and small images', async () => {
   const upload = Media.upload
@@ -31,5 +31,21 @@ test('media optimization preserves proportions, transparency and small images', 
     assert.equal(metadata.hasAlpha, true)
     assert.equal(metadata.exif, undefined)
     assert.ok(output.length < input.length)
+  }
+})
+
+test('buildCdnUrl composes and encodes the public CDN URL', () => {
+  const prev = process.env.CDN_URL
+  try {
+    delete process.env.CDN_URL
+    assert.equal(buildCdnUrl('a.webp'), null)
+    assert.equal(buildCdnUrl(null), null)
+
+    process.env.CDN_URL = 'https://cdn.example.com/'
+    assert.equal(buildCdnUrl('tile-one.webp'), 'https://cdn.example.com/tile-one.webp')
+    assert.equal(buildCdnUrl('عکس سماور.webp'), `https://cdn.example.com/${encodeURIComponent('عکس سماور.webp')}`)
+  } finally {
+    if (prev === undefined) delete process.env.CDN_URL
+    else process.env.CDN_URL = prev
   }
 })

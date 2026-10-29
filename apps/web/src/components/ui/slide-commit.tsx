@@ -168,7 +168,7 @@ export function SlideCommit({
   textColor,
   width = "100%",
   height = 48,
-  radius = 16,
+  radius = 20,
   pad = DEFAULT_PAD,
   speed = 50,
   returnBounce = 0.38,

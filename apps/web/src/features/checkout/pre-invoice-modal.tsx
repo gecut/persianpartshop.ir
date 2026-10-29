@@ -394,7 +394,7 @@ export function PreInvoiceModal({
                   doneLabel="سفارش تایید شد"
                   errorLabel="خطا در ثبت سفارش"
                   height={48}
-                  radius={16}
+                  radius={20}
                   trackColor="rgba(5, 150, 105, 0.12)"
                   handleColor="#059669"
                   successColor="#059669"

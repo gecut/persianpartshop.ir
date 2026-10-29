@@ -15,6 +15,7 @@ import { JWT_SECRET } from './lib/jwt'
 const PORT = Number(process.env.PORT) || 5175
 const HOSTNAME = process.env.HOST || '0.0.0.0'
 const CMS_ORIGIN = process.env.CMS_URL || 'http://localhost:5174'
+const CDN_URL = (process.env.CDN_URL || '').replace(/\/+$/, '')
 
 // Canonical Media Storage Directory (Single Source of Truth for Nginx & API)
 export const MEDIA_DIR = process.env.MEDIA_DIR
@@ -120,7 +121,7 @@ app.post('/api/media/upload', async (c) => {
     return c.json({
       success: true,
       filename: uniqueFilename,
-      url: `/api/media/file/${uniqueFilename}`,
+      url: CDN_URL ? `${CDN_URL}/${encodeURIComponent(uniqueFilename)}` : `/api/media/file/${uniqueFilename}`,
       size: file.size,
       mimeType: file.type,
     }, 201)

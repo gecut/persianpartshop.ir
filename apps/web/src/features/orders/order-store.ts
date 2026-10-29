@@ -198,8 +198,10 @@ export function mapDocToOrder(doc: any): Order {
     const prod = typeof i.product === 'object' && i.product !== null ? i.product : null
     const width = prod?.width || 60
     const height = prod?.height || 120
+    const cdnUrl = import.meta.env.VITE_CDN_URL
     const coverUrl =
       prod?.cover?.url ||
+      (prod?.cover?.filename && cdnUrl ? `${cdnUrl}/${encodeURIComponent(prod.cover.filename)}` : '') ||
       (prod?.cover?.filename ? `/api/media/file/${prod.cover.filename}` : '') ||
       (typeof prod?.cover === 'string' && prod.cover.startsWith('/') ? prod.cover : '') ||
       '/assets/images/placeholder.svg'
