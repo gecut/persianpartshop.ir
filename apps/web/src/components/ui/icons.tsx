@@ -38,6 +38,7 @@ import {
   ClipboardListIcon as SolarClipboardListIcon,
   LockIcon as SolarLockIcon,
   FileTextIcon as SolarFileTextIcon,
+  PrinterMinimalisticIcon as SolarPrinterIcon,
   Pen2Icon,
   StarsIcon,
   TagIcon as SolarTagIcon,
@@ -110,6 +111,7 @@ export const ZoomOutIcon = createSolarIcon(MagnifierZoomOutIcon);
 export const ClipboardListIcon = createSolarIcon(SolarClipboardListIcon);
 export const LockIcon = createSolarIcon(SolarLockIcon);
 export const FileTextIcon = createSolarIcon(SolarFileTextIcon);
+export const PrinterIcon = createSolarIcon(SolarPrinterIcon);
 export const PencilIcon = createSolarIcon(Pen2Icon);
 export const SparklesIcon = createSolarIcon(StarsIcon);
 export const TagIcon = createSolarIcon(SolarTagIcon);

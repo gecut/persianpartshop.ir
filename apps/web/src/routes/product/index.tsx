@@ -15,6 +15,7 @@ import { ProductCard } from "../../features/products/product-card";
 import { ProductBottomSheet } from "../../features/products/product-bottom-sheet";
 import { FilterDrawer } from "../../features/products/filter-drawer";
 import type { Product } from "../../types";
+import { useAuth } from "../../features/auth/auth-store";
 import { useCart } from "../../features/cart/cart-store";
 import { useProductSelection } from "../../features/products/selection-store";
 import { toPersianDigits } from "../../lib/utils/currency";
@@ -55,14 +56,32 @@ function ProductListPage() {
     activeFilterCount,
     isLoading,
   } = productHook;
-  const { isProductInCart } = useCart();
+  const { user } = useAuth();
+  const isOrderingDisabled = Boolean(user?.disableOrdering);
+  const { items: cartItems } = useCart();
   const {
     selectedIds,
     toggleProduct,
-    isProductSelected,
     selectProduct,
     reconcileWithProducts,
+    clearSelection,
   } = useProductSelection();
+
+  const cartIdSet = useMemo(
+    () => new Set(cartItems.map((i) => String(i.productId))),
+    [cartItems],
+  );
+  const selectedIdSet = useMemo(
+    () => new Set(selectedIds.map(String)),
+    [selectedIds],
+  );
+
+  // If ordering is disabled, clear any stale selections from memory
+  useEffect(() => {
+    if (isOrderingDisabled && selectedIds.length > 0) {
+      clearSelection();
+    }
+  }, [isOrderingDisabled, selectedIds.length, clearSelection]);
 
   // Reconcile selected IDs with live products to eliminate any phantom/ghost IDs
   useEffect(() => {
@@ -84,17 +103,6 @@ function ProductListPage() {
     ).length;
   }, [allProducts, selectedIds]);
 
-  const INITIAL_BATCH_SIZE = 12;
-  const BATCH_STEP = 12;
-  const LOAD_MORE_DELAY_MS = 500;
-  const [displayLimit, setDisplayLimit] = useState(INITIAL_BATCH_SIZE);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const observerTargetRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    setDisplayLimit(INITIAL_BATCH_SIZE);
-  }, [filters]);
-
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [activeBottomSheetProduct, setActiveBottomSheetProduct] =
     useState<Product | null>(null);
@@ -109,17 +117,14 @@ function ProductListPage() {
 
   const handleToggleSelect = useCallback(
     (product: Product) => {
+      if (isOrderingDisabled) {
+        handleOpenBottomSheet(product);
+        return;
+      }
       toggleProduct(product.id);
     },
-    [toggleProduct],
+    [isOrderingDisabled, toggleProduct, handleOpenBottomSheet],
   );
-
-  // Normal in-place selection: Products stay in their original order.
-  const displayedProducts = useMemo(() => {
-    return products.slice(0, displayLimit);
-  }, [products, displayLimit]);
-
-  const hasMore = displayLimit < products.length;
 
   const listContainerRef = useRef<HTMLDivElement | null>(null);
   const [scrollMargin, setScrollMargin] = useState(0);
@@ -140,73 +145,21 @@ function ProductListPage() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  const getItemKey = useCallback(
+    (index: number) => products[index]?.id ?? index,
+    [products],
+  );
+
   const virtualizer = useWindowVirtualizer({
-    count: displayedProducts.length,
+    count: products.length,
     estimateSize: () => 104,
-    overscan: 5,
+    overscan: 10,
     scrollMargin,
     gap: 8,
+    getItemKey,
   });
 
   const virtualItems = virtualizer.getVirtualItems();
-
-  // Auto-load next batch when scrolling near the end of the virtual window
-  useEffect(() => {
-    const lastItem = virtualItems[virtualItems.length - 1];
-    if (!lastItem) return;
-
-    if (
-      lastItem.index >= displayedProducts.length - 2 &&
-      hasMore &&
-      !isLoadingMore
-    ) {
-      setIsLoadingMore(true);
-      setTimeout(() => {
-        setDisplayLimit((prev) => Math.min(prev + BATCH_STEP, products.length));
-        setIsLoadingMore(false);
-      }, 200);
-    }
-  }, [
-    virtualItems,
-    displayedProducts.length,
-    hasMore,
-    isLoadingMore,
-    products.length,
-  ]);
-
-  // Fallback IntersectionObserver sentinel
-  useEffect(() => {
-    if (!hasMore || isLoadingMore) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          setIsLoadingMore(true);
-          setTimeout(() => {
-            setDisplayLimit((prev) =>
-              Math.min(prev + BATCH_STEP, products.length),
-            );
-            setIsLoadingMore(false);
-          }, LOAD_MORE_DELAY_MS);
-        }
-      },
-      {
-        rootMargin: "250px",
-        threshold: 0.1,
-      },
-    );
-
-    const currentTarget = observerTargetRef.current;
-    if (currentTarget) {
-      observer.observe(currentTarget);
-    }
-
-    return () => {
-      if (currentTarget) {
-        observer.unobserve(currentTarget);
-      }
-    };
-  }, [hasMore, isLoadingMore, products.length]);
 
   return (
     <div className="w-full px-4 py-3 space-y-3 text-start pb-8 bg-background">
@@ -412,15 +365,15 @@ function ProductListPage() {
             }}
           >
             {virtualItems.map((virtualRow) => {
-              const product = displayedProducts[virtualRow.index];
+              const product = products[virtualRow.index];
               if (!product) return null;
 
-              const inCart = isProductInCart(product.id);
-              const isSelected = isProductSelected(product.id);
+              const inCart = cartIdSet.has(String(product.id));
+              const isSelected = selectedIdSet.has(String(product.id));
 
               return (
                 <div
-                  key={product.id}
+                  key={virtualRow.key}
                   data-index={virtualRow.index}
                   ref={virtualizer.measureElement}
                   style={{
@@ -435,6 +388,7 @@ function ProductListPage() {
                     product={product}
                     isSelected={isSelected}
                     isInCart={inCart}
+                    isOrderingDisabled={isOrderingDisabled}
                     onToggleSelect={handleToggleSelect}
                     onOpenBottomSheet={handleOpenBottomSheet}
                   />
@@ -442,42 +396,11 @@ function ProductListPage() {
               );
             })}
           </div>
-
-          {/* Infinite Scroll Sentinel */}
-          {hasMore && (
-            <div ref={observerTargetRef} className="pt-4 space-y-2">
-              {isLoadingMore ? (
-                <div className="flex flex-col gap-2">
-                  <ProductCardSkeleton viewMode="list" />
-                  <ProductCardSkeleton viewMode="list" />
-                </div>
-              ) : (
-                <div className="pt-2 text-center">
-                  <Button
-                    type="button"
-                    onClick={() => {
-                      setIsLoadingMore(true);
-                      setTimeout(() => {
-                        setDisplayLimit((prev) =>
-                          Math.min(prev + BATCH_STEP, products.length),
-                        );
-                        setIsLoadingMore(false);
-                      }, LOAD_MORE_DELAY_MS);
-                    }}
-                    className="h-10 px-4 rounded-2xl text-xs text-primary hover:text-primary/90 font-bold bg-primary/15 hover:bg-primary/25 transition-all cursor-pointer"
-                  >
-                    نمایش بیشتر (
-                    {toPersianDigits(products.length - displayLimit)} کالا)
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
         </div>
       )}
 
       {/* Floating Action Bar (FAB) */}
-      {selectedCount > 0 && (
+      {!isOrderingDisabled && selectedCount > 0 && (
         <div className="fixed bottom-24 1 left-1/2 -translate-x-1/2 z-50 animate-in fade-in zoom-in-95 duration-200 pointer-events-auto">
           <Link
             to="/product/new"
@@ -499,9 +422,10 @@ function ProductListPage() {
         isOpen={Boolean(activeBottomSheetProduct)}
         isSelected={
           activeBottomSheetProduct
-            ? isProductSelected(activeBottomSheetProduct.id)
+            ? selectedIdSet.has(String(activeBottomSheetProduct.id))
             : false
         }
+        isOrderingDisabled={isOrderingDisabled}
         onClose={handleCloseBottomSheet}
         onToggleSelect={
           activeBottomSheetProduct
@@ -509,6 +433,7 @@ function ProductListPage() {
             : undefined
         }
         onOrderDirect={(product) => {
+          if (isOrderingDisabled) return;
           selectProduct(product.id);
           handleCloseBottomSheet();
           navigate({

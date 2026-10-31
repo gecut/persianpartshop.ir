@@ -79,6 +79,7 @@ export interface Config {
     otps: Otp;
     media: Media;
     admins: Admin;
+    'audit-logs': AuditLog;
     exports: Export;
     imports: Import;
     'payload-kv': PayloadKv;
@@ -101,6 +102,7 @@ export interface Config {
     otps: OtpsSelect<false> | OtpsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     admins: AdminsSelect<false> | AdminsSelect<true>;
+    'audit-logs': AuditLogsSelect<false> | AuditLogsSelect<true>;
     exports: ExportsSelect<false> | ExportsSelect<true>;
     imports: ImportsSelect<false> | ImportsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -162,6 +164,7 @@ export interface Product {
    * در صورت فعال بودن، در کاتالوگ فروشگاه نمایش داده می‌شود.
    */
   isActive?: boolean | null;
+  productType?: ('tile' | 'other') | null;
   /**
    * شناسه یکتا در آدرس صفحه وبسایت (تولید خودکار از روی کد کالا).
    */
@@ -175,7 +178,7 @@ export interface Product {
    */
   brand?: (number | null) | Brand;
   /**
-   * درجه‌بندی استاندارد کیفیت کارخانه‌ای.
+   * درجه‌بندی استاندارد کیفیت کارخانه‌ای (اختیاری برای تمام محصولات).
    */
   grade?: ('grade_1' | 'grade_2' | 'grade_3' | 'grade_4') | null;
   /**
@@ -195,15 +198,15 @@ export interface Product {
    */
   sku: string;
   /**
-   * قیمت هر متر مربع بدون احتساب تخفیف رده مشتری.
+   * قیمت پایه (برای کاشی بر حسب متر مربع، برای اقلام غیره بر حسب هر واحد/بسته).
    */
   basePricePerSqm?: number | null;
   /**
-   * ضریب متراژ فیزیکی در هر کارتن (مثال: ۱.۴۴).
+   * ضریب متراژ فیزیکی در هر کارتن (مخصوص کاشی و سرامیک).
    */
-  sqmPerCarton: number;
+  sqmPerCarton?: number | null;
   /**
-   * موجودی قابل سفارش پس از کسر رزروها (ویرایش در حالت نگهداری).
+   * موجودی قابل سفارش (برای کاشی بر حسب متر مربع، برای اقلام غیره بر حسب تعداد واحد/بسته).
    */
   inventorySqm?: number | null;
   /**
@@ -213,7 +216,7 @@ export interface Product {
   /**
    * انتخاب سایز استاندارد کالا از لیست ابعاد.
    */
-  dimension: number | Dimension;
+  dimension?: (number | null) | Dimension;
   /**
    * عرض همگام‌شده پس از ذخیره.
    */
@@ -226,6 +229,19 @@ export interface Product {
    * تعداد فیزیکی قالب/اسلب کاشی در کارتن (مستقل از متراژ).
    */
   piecesPerCarton?: number | null;
+  unit?: ('bag' | 'bucket' | 'pack' | 'can' | 'branch' | 'piece' | 'box' | 'roll' | 'kg' | 'liter') | null;
+  /**
+   * مثال: ۲۵ برای کیسه ۲۵ کیلو
+   */
+  weight?: number | null;
+  /**
+   * مثال: ۱۰۰ عدد
+   */
+  itemsPerPack?: number | null;
+  /**
+   * مثال: ۴ الی ۵ مترمربع
+   */
+  approxCoverage?: string | null;
   /**
    * تصویر اصلی و کاور محصول در کاتالوگ فروشگاه.
    */
@@ -501,13 +517,36 @@ export interface Order {
 export interface User {
   id: number;
   /**
-   * شناسه ورود مشتری با کد یکبار مصرف (OTP).
+   * تعیین‌کننده درصد تخفیف و رده قیمت کاتالوگ.
    */
-  phone: string;
+  customerType: number | CustomerType;
+  status: 'active' | 'pending' | 'suspended';
+  isBanned?: boolean | null;
+  /**
+   * پیام خطا هنگام ورود
+   */
+  banReason?: string | null;
+  /**
+   * خالی = دسترسی کامل به کاتالوگ
+   */
+  allowedCategories?: (number | Category)[] | null;
+  /**
+   * مخفی‌سازی عدد موجودی
+   */
+  hideExactStock?: boolean | null;
+  disableOrdering?: boolean | null;
+  /**
+   * یادداشت‌های اختصاصی مدیران فروش درباره سابقه مشتری.
+   */
+  notes?: string | null;
   /**
    * نام و نام خانوادگی خریدار یا نماینده خرید.
    */
   fullName: string;
+  /**
+   * شناسه ورود مشتری با کد یکبار مصرف (OTP).
+   */
+  phone: string;
   /**
    * نام فروشگاه، شرکت یا پروژه ساختمانی.
    */
@@ -520,14 +559,6 @@ export interface User {
    * شناسه اقتصادی جهت ثبت در گزارش فصلی.
    */
   economicCode?: string | null;
-  /**
-   * تعیین‌کننده درصد تخفیف و رده قیمت کاتالوگ.
-   */
-  customerType: number | CustomerType;
-  /**
-   * کنترل دسترسی مشتری جهت ثبت سفارش.
-   */
-  status: 'active' | 'pending' | 'suspended';
   /**
    * استان محل فعالیت یا اقامت.
    */
@@ -554,14 +585,47 @@ export interface User {
       }[]
     | null;
   /**
-   * یادداشت‌های اختصاصی مدیران فروش درباره سابقه مشتری.
+   * مدارک هویتی و صنفی بارگذاری‌شده توسط مشتری (مشاهده و بررسی مدیر).
    */
-  notes?: string | null;
+  documents?:
+    | {
+        /**
+         * نوع مدرک انتخاب شده توسط کاربر (فقط‌خواندنی)
+         */
+        documentType:
+          | 'business_license'
+          | 'establishment_license'
+          | 'operating_license'
+          | 'trade_guild_registration'
+          | 'union_membership'
+          | 'competent_authorities_permit'
+          | 'stewardship_card_or_letter'
+          | 'sales_agency_certificate'
+          | 'brand_agency_certificate'
+          | 'standard_certificate'
+          | 'other';
+        /**
+         * عنوان یا توضیحات تکمیلی مدرک
+         */
+        title?: string | null;
+        file: number | Media;
+        /**
+         * وضعیت تأیید مدرک توسط مدیریت پرشین پارت.
+         */
+        status: 'pending' | 'approved' | 'rejected';
+        /**
+         * توضیحات و علت عدم تأیید مدرک جهت اطلاع‌رسانی به مشتری.
+         */
+        rejectionReason?: string | null;
+        uploadedAt?: string | null;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt: string;
   createdAt: string;
 }
 /**
- * طرح‌ها و تخفیف‌های مشتریان.
+ * طرح‌ها، بسته‌ها و پیشنهادات ویژه مشتریان.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "plans".
@@ -569,17 +633,35 @@ export interface User {
 export interface Plan {
   id: number;
   /**
-   * عنوان بسته یا پیشنهاد ویژه (مثال: تخفیف ویژه خرید نقدی).
+   * عنوان طرح یا پیشنهاد ویژه
    */
-  title?: string | null;
+  title: string;
   /**
-   * متن پیام یا توضیحات بسته تخفیفی برای خریدار.
+   * توضیحات و شرایط استفاده از طرح برای خریدار
    */
   content: string;
   /**
-   * خریدارانی که این طرح اختصاصی به آن‌ها تعلق می‌گیرد.
+   * خریدارانی که این طرح به آن‌ها تخصیص داده می‌شود.
    */
   users: (number | User)[];
+  /**
+   * کالاهایی که مشمول تخفیف یا شرایط ویژه این طرح هستند.
+   */
+  products?: (number | Product)[] | null;
+  /**
+   * تاریخ و ساعت آغاز رسمی طرح
+   */
+  startsAt?: string | null;
+  /**
+   * تاریخ و ساعت پایان طرح (پس از پایان موعد، طرح پاک می‌شود)
+   */
+  expiresAt?: string | null;
+  status?: ('active' | 'expired' | 'draft') | null;
+  /**
+   * درصد تخفیف اعمالی روی اقلام این طرح
+   */
+  discountPercent?: number | null;
+  discountAmount?: number | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -610,15 +692,19 @@ export interface Otp {
 export interface Admin {
   id: number;
   /**
-   * نام و نام خانوادگی مدیر سیستم جهت ثبت در لاگ‌ها.
+   * نام و نام خانوادگی جهت ثبت در لاگ‌ها
    */
   name: string;
   /**
-   * نقش اداری و حیطه مجوزهای عملیاتی در سامانه.
+   * جهت ورود به عنوان کاربر عادی در فروشگاه و ثبت سفارش
    */
-  role: 'superadmin' | 'manager' | 'editor' | 'support' | 'service';
+  phone?: string | null;
   /**
-   * امکان ورود این کاربر مدیر به سامانه.
+   * نقش و حیطه دسترسی
+   */
+  role: 'superadmin' | 'manager' | 'service';
+  /**
+   * امکان ورود به سامانه
    */
   isActive?: boolean | null;
   updatedAt: string;
@@ -644,6 +730,33 @@ export interface Admin {
     | null;
   password?: string | null;
   collection: 'admins';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "audit-logs".
+ */
+export interface AuditLog {
+  id: number;
+  action:
+    | 'admin_login'
+    | 'product_create'
+    | 'product_update'
+    | 'product_delete'
+    | 'user_create'
+    | 'user_update'
+    | 'user_ban'
+    | 'user_unban'
+    | 'user_delete'
+    | 'admin_manage'
+    | 'other';
+  entity: 'products' | 'users' | 'admins' | 'auth' | 'orders';
+  adminName?: string | null;
+  admin?: (number | null) | Admin;
+  target: string;
+  details?: string | null;
+  ip?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * خروجی اکسل/CSV قیمت و موجودی کاتالوگ.
@@ -892,6 +1005,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'admins';
         value: number | Admin;
+      } | null)
+    | ({
+        relationTo: 'audit-logs';
+        value: number | AuditLog;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -941,6 +1058,7 @@ export interface PayloadMigration {
  */
 export interface ProductsSelect<T extends boolean = true> {
   isActive?: T;
+  productType?: T;
   slug?: T;
   category?: T;
   brand?: T;
@@ -957,6 +1075,10 @@ export interface ProductsSelect<T extends boolean = true> {
   width?: T;
   height?: T;
   piecesPerCarton?: T;
+  unit?: T;
+  weight?: T;
+  itemsPerPack?: T;
+  approxCoverage?: T;
   cover?: T;
   gallery?:
     | T
@@ -1075,6 +1197,12 @@ export interface PlansSelect<T extends boolean = true> {
   title?: T;
   content?: T;
   users?: T;
+  products?: T;
+  startsAt?: T;
+  expiresAt?: T;
+  status?: T;
+  discountPercent?: T;
+  discountAmount?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1083,13 +1211,19 @@ export interface PlansSelect<T extends boolean = true> {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
-  phone?: T;
+  customerType?: T;
+  status?: T;
+  isBanned?: T;
+  banReason?: T;
+  allowedCategories?: T;
+  hideExactStock?: T;
+  disableOrdering?: T;
+  notes?: T;
   fullName?: T;
+  phone?: T;
   companyName?: T;
   nationalCode?: T;
   economicCode?: T;
-  customerType?: T;
-  status?: T;
   province?: T;
   city?: T;
   address?: T;
@@ -1103,7 +1237,17 @@ export interface UsersSelect<T extends boolean = true> {
         addressDetail?: T;
         id?: T;
       };
-  notes?: T;
+  documents?:
+    | T
+    | {
+        documentType?: T;
+        title?: T;
+        file?: T;
+        status?: T;
+        rejectionReason?: T;
+        uploadedAt?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1145,6 +1289,7 @@ export interface MediaSelect<T extends boolean = true> {
  */
 export interface AdminsSelect<T extends boolean = true> {
   name?: T;
+  phone?: T;
   role?: T;
   isActive?: T;
   updatedAt?: T;
@@ -1168,6 +1313,21 @@ export interface AdminsSelect<T extends boolean = true> {
         createdAt?: T;
         expiresAt?: T;
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "audit-logs_select".
+ */
+export interface AuditLogsSelect<T extends boolean = true> {
+  action?: T;
+  entity?: T;
+  adminName?: T;
+  admin?: T;
+  target?: T;
+  details?: T;
+  ip?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1330,6 +1490,7 @@ export interface TaskCreateCollectionExport {
       | 'otps'
       | 'media'
       | 'admins'
+      | 'audit-logs'
       | 'exports'
       | 'imports';
     drafts?: ('yes' | 'no') | null;

@@ -1,9 +1,12 @@
 import { useEffect } from 'react'
 import { createRootRoute, Outlet, redirect, useNavigate, useRouterState } from '@tanstack/react-router'
+import { useQuery } from '@tanstack/react-query'
 import { AppHeader } from '../components/layout/app-header'
 import { MobileBottomNav } from '../components/layout/mobile-bottom-nav'
-import { ToastContainer } from '../components/feedback/toast'
+import { ToastContainer, toast } from '../components/feedback/toast'
 import { authStore, useAuth } from '../features/auth/auth-store'
+import { api } from '../lib/api-client'
+import { queryKeys } from '../lib/query-keys'
 import { NuqsAdapter } from 'nuqs/adapters/tanstack-router'
 import { cn } from '../lib/utils'
 
@@ -36,6 +39,34 @@ function RootComponent() {
   const navigate = useNavigate()
   const pathname = routerState.location.pathname
   const isLoginPage = pathname === '/login'
+
+  // Periodic background check of session validity and ban status (every 4 seconds and on focus)
+  const { data: sessionData, error: sessionError } = useQuery({
+    queryKey: queryKeys.auth.session(),
+    queryFn: async () => {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('persianpart_token') : null
+      if (!token) return null
+      return api.auth.session()
+    },
+    enabled: isAuthenticated && !isLoginPage,
+    refetchInterval: 4_000,
+    refetchOnWindowFocus: true,
+    retry: false,
+  })
+
+  useEffect(() => {
+    if (!isAuthenticated || isLoginPage) return
+
+    if (sessionError) {
+      const errMsg = (sessionError as any)?.message || ''
+      authStore.logout()
+      if (errMsg.includes('مسدود') || (sessionError as any)?.code === 'FORBIDDEN') {
+        toast.error('مسدود شدن حساب کاربری', errMsg)
+      }
+    } else if (sessionData && !sessionData.user) {
+      authStore.logout()
+    }
+  }, [sessionData, sessionError, isAuthenticated, isLoginPage])
 
   // Dynamic client-side redirect if auth state drops while on a protected page
   useEffect(() => {

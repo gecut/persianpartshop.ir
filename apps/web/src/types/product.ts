@@ -11,24 +11,24 @@ export interface ProductDimensions {
   height: number
 }
 
+export type ProductType = 'tile' | 'other'
+
 export interface Product {
   id: string
   slug: string
   name: string
   sku: string
+  productType?: ProductType
   dimensions: ProductDimensions
   dimension: string
   brand: string
   color: string
-  grade: 'درجه ۱' | 'درجه ۲' | 'درجه ۳' | 'درجه ۴' | 'صادراتی'
-  category:
-    | 'پرسلان کف'
-    | 'اسلب پرسلان'
-    | 'دیوار لوکس'
-    | 'نما و محوطه'
-    | 'کاشی بین کابینتی و دکوراتیو'
-    | 'سرامیک ضد اسید و صنعتی'
-    | 'سرویس و حمام ضد آب'
+  grade?: string
+  category: string
+  unit?: 'bag' | 'bucket' | 'pack' | 'piece' | 'kg' | 'liter' | 'can' | 'branch' | 'box' | 'roll' | 'm2' | string
+  weight?: number
+  itemsPerPack?: number
+  approxCoverage?: string
   finalCustomerPricePerSqm: number
   pricePerM2: number
   previousPricePerM2?: number
@@ -43,6 +43,7 @@ export interface Product {
   inventorySqm: number
   stockCartons: number
   inStock: boolean
+  hideExactStock?: boolean
   stockStatus: 'in_stock' | 'low_stock' | 'out_of_stock'
   description?: string
   richDescription?: string

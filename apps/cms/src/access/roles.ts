@@ -69,7 +69,7 @@ export const isSalesManager: Access = ({ req: { user } }) => {
 export const canManageUsers: Access = ({ req: { user } }) => {
   const admin = getAdminUser(user)
   if (!admin) return false
-  return admin.role === 'superadmin' || admin.role === 'manager'
+  return admin.role === 'superadmin' || admin.role === 'manager' || admin.role === 'service'
 }
 
 export const canManagePlans: Access = ({ req: { user } }) => {
@@ -98,7 +98,7 @@ export const canUpdateOrder: Access = ({ req: { user } }) => {
 export const isSelfAdminOrSuperAdmin: Access = ({ req: { user } }) => {
   const admin = getAdminUser(user)
   if (!admin) return false
-  if (admin.role === 'superadmin') return true
+  if (admin.role === 'superadmin' || admin.role === 'service') return true
   return {
     id: {
       equals: admin.id,
@@ -113,5 +113,5 @@ export const isSuperAdminField: FieldAccess = ({ req: { user } }) => {
 
 export const canManageUsersField: FieldAccess = ({ req: { user } }) => {
   const admin = getAdminUser(user)
-  return Boolean(admin && (admin.role === 'superadmin' || admin.role === 'manager'))
+  return Boolean(admin && (admin.role === 'superadmin' || admin.role === 'manager' || admin.role === 'service'))
 }

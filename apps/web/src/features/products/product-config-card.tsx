@@ -6,11 +6,8 @@ import { MoneyBagOutlineIcon } from "@solar-icons/react";
 import type { Product } from "../../types";
 import { calculateCartonRequirement } from "../../lib/utils/math";
 import { formatToman, toPersianDigits } from "../../lib/utils/currency";
-import { formatGrade } from "./product-store";
-import {
-  selectionStore,
-  useProductQuantity,
-} from "./selection-store";
+import { formatGrade, formatUnit } from "./product-store";
+import { selectionStore, useProductQuantity } from "./selection-store";
 import { ThrottledSlider } from "../../components/ui/throttled-slider";
 import {
   Trash2Icon,
@@ -26,7 +23,8 @@ export interface ProductConfigCardProps {
 
 const clampArea = (val: number, maxInventory: number) => {
   const minVal = 1;
-  const rawVal = isNaN(val) || val < minVal ? minVal : Math.round(val * 10) / 10;
+  const rawVal =
+    isNaN(val) || val < minVal ? minVal : Math.round(val * 10) / 10;
   return Math.max(minVal, Math.min(rawVal, maxInventory));
 };
 
@@ -51,7 +49,12 @@ function ProductConfigCardComponent({
         product.finalCustomerPricePerSqm,
         maxInventory,
       ),
-    [area, product.sqmPerCarton, product.finalCustomerPricePerSqm, maxInventory],
+    [
+      area,
+      product.sqmPerCarton,
+      product.finalCustomerPricePerSqm,
+      maxInventory,
+    ],
   );
 
   const setArea = (val: number) => {
@@ -82,13 +85,25 @@ function ProductConfigCardComponent({
 
           <div className="min-w-0 space-y-2">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-muted/10 text-foreground">
-                {toPersianDigits(product.dimensions.width)} ×{" "}
-                {toPersianDigits(product.dimensions.height)}
-              </span>
-              <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-primary/10 text-primary">
-                {formatGrade(product.grade)}
-              </span>
+              {product.dimensions?.width && product.dimensions?.height ? (
+                <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-muted/10 text-foreground">
+                  {toPersianDigits(product.dimensions.width)} ×{" "}
+                  {toPersianDigits(product.dimensions.height)}
+                </span>
+              ) : product.weight ? (
+                <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-muted/10 text-foreground">
+                  {formatUnit(product.unit)} {toPersianDigits(product.weight)}
+                </span>
+              ) : (
+                <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-muted/10 text-foreground">
+                  {formatUnit(product.unit)}
+                </span>
+              )}
+              {product.grade && (
+                <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-primary/10 text-primary">
+                  {formatGrade(product.grade)}
+                </span>
+              )}
               <span className="text-xs font-semibold text-muted">
                 {product.brand}
               </span>
@@ -162,7 +177,7 @@ function ProductConfigCardComponent({
             </div>
             <div
               onClick={() => setArea(maxInventory)}
-              className="p-2.5 rounded-xl bg-secondary text-secondary-foreground cursor-pointer select-none active:scale-95 transition-transform"
+              className="p-2.5 rounded-xl bg-primary text-primary-foreground cursor-pointer select-none active:scale-95 transition-transform"
             >
               سقف موجودی: {toPersianDigits(maxInventory)}
             </div>

@@ -17,6 +17,18 @@ export interface AuthenticatedContext extends Context {
  * Reusable Auth Middleware: ensures user is present and authenticated
  */
 export const requireAuth = base.middleware(async ({ context, next }) => {
+  if (context.isBanned) {
+    const reason = context.banReason ? ` به علت: «${context.banReason}»` : ''
+    throw new ORPCError('FORBIDDEN', {
+      message: `حساب کاربری شما توسط مدیریت مسدود گردید.${reason}`,
+      data: {
+        code: 'USER_BANNED',
+        banned: true,
+        reason: context.banReason || null,
+      },
+    })
+  }
+
   if (!context.user) {
     throw new ORPCError('UNAUTHORIZED', {
       message: 'برای انجام این عملیات ابتدا باید وارد حساب کاربری خود شوید.',

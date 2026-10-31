@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { api } from '../../lib/api-client'
+import { api, setAuthErrorHandler } from '../../lib/api-client'
+import { toast } from '../../components/feedback/toast'
 
 export interface UserProfile {
   id: string
@@ -10,6 +11,8 @@ export interface UserProfile {
   city: string
   address: string
   economicCode: string
+  hideExactStock?: boolean
+  disableOrdering?: boolean
 }
 
 interface AuthState {
@@ -79,6 +82,8 @@ export const authStore = {
       }
 
       const userData = (res.user || (res as any).customer || {}) as any
+      const hideExactStock = Boolean(userData.hideExactStock)
+      const disableOrdering = Boolean(userData.disableOrdering)
       const userProfile: UserProfile = {
         id: String(userData.id || 'user-1'),
         name: userData.fullName || userData.contactName || 'کاربر گرامی',
@@ -88,6 +93,8 @@ export const authStore = {
         city: userData.city || 'تهران',
         address: userData.address || '',
         economicCode: '',
+        hideExactStock,
+        disableOrdering,
       }
 
       broadcast({
@@ -136,7 +143,65 @@ export const authStore = {
       user: { ...currentState.user, ...updated },
     })
   },
+
+  syncProfile: async () => {
+    if (typeof window === 'undefined') return
+    const token = localStorage.getItem(TOKEN_KEY)
+    if (!token) return
+
+    try {
+      const profile: any = await api.user.profile()
+      if (profile) {
+        const hideExactStock = Boolean(profile.hideExactStock)
+        const disableOrdering = Boolean(profile.disableOrdering)
+        const userProfile: UserProfile = {
+          id: String(profile.id),
+          name: profile.fullName || profile.name || 'کاربر گرامی',
+          storeName: profile.companyName || 'فروشگاه قطعات',
+          phone: profile.phone || '',
+          province: profile.province || 'تهران',
+          city: profile.city || 'تهران',
+          address: profile.address || '',
+          economicCode: profile.economicCode || '',
+          hideExactStock,
+          disableOrdering,
+        }
+        broadcast({
+          isAuthenticated: true,
+          user: userProfile,
+          pendingPhone: null,
+        })
+      }
+    } catch {
+      // Best effort sync
+    }
+  },
 }
+
+setAuthErrorHandler((err) => {
+  const msg = err?.message || err?.error?.message || ''
+  const isBanned =
+    (err?.data?.code === 'USER_BANNED' ||
+      err?.error?.data?.code === 'USER_BANNED' ||
+      msg.includes('توسط مدیریت مسدود') ||
+      msg.includes('مسدود گردید')) &&
+    !msg.includes('کاتالوگ') &&
+    !msg.includes('دسته‌بندی') &&
+    !msg.includes('مدیران سیستم')
+
+  const isUnauthorized =
+    err?.code === 'UNAUTHORIZED' ||
+    err?.error?.code === 'UNAUTHORIZED' ||
+    err?.status === 401 ||
+    msg.includes('وارد حساب کاربری')
+
+  if (isBanned) {
+    authStore.logout()
+    toast.error('مسدود شدن حساب کاربری', msg || 'حساب کاربری شما توسط مدیریت مسدود گردید.')
+  } else if (isUnauthorized) {
+    authStore.logout()
+  }
+})
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { queryKeys, mutationKeys } from '../../lib/query-keys'
@@ -147,6 +212,9 @@ export function useAuth() {
 
   useEffect(() => {
     listeners.add(setState)
+    if (state.isAuthenticated) {
+      authStore.syncProfile()
+    }
     return () => {
       listeners.delete(setState)
     }

@@ -1,3 +1,4 @@
+import { ORPCError } from '@orpc/server'
 import { sdk } from '../payload'
 import { base, authed, adminOnly } from '../rpc/base'
 import { fetchTaxonomy, getUserProfile } from './router.helpers'
@@ -24,6 +25,48 @@ const update = authed.user.update.handler(async ({ input, context }) => {
   if (input.city !== undefined) allowedData.city = input.city
   if (input.address !== undefined) allowedData.address = input.address
   if (input.addresses !== undefined) allowedData.addresses = input.addresses
+  if (input.documents !== undefined) {
+    const currentDoc: any = await sdk.findByID({ collection: 'users', id: context.user.id })
+    const existingApproved = Array.isArray(currentDoc?.documents)
+      ? currentDoc.documents.filter((d: any) => d.status === 'approved')
+      : []
+
+    const incoming = Array.isArray(input.documents) ? input.documents : []
+
+    // Customer CANNOT delete or change an approved document
+    for (const approved of existingApproved) {
+      const match = incoming.find((d: any) => String(d.id) === String(approved.id))
+      if (!match) {
+        throw new ORPCError('FORBIDDEN', {
+          message: `مدرک تأیید شده «${approved.title || 'ثبت شده'}» قابل حذف نیست.`,
+        })
+      }
+      const origFileId =
+        typeof approved.file === 'object' && approved.file !== null ? approved.file.id : approved.file
+      const newFileId =
+        typeof match.file === 'object' && match.file !== null ? match.file.id : match.file
+      if (String(origFileId) !== String(newFileId)) {
+        throw new ORPCError('FORBIDDEN', {
+          message: `فایل مدرک تأیید شده «${approved.title || 'ثبت شده'}» قابل تغییر یا جایگزینی نیست.`,
+        })
+      }
+    }
+
+    // Sanitize incoming docs: non-approved documents must have status 'pending' (customer cannot self-approve)
+    allowedData.documents = incoming.map((doc: any) => {
+      const isOriginallyApproved = existingApproved.some((a: any) => String(a.id) === String(doc.id))
+      const fileId = typeof doc.file === 'object' && doc.file !== null ? doc.file.id : doc.file
+      return {
+        ...(doc.id ? { id: doc.id } : {}),
+        documentType: doc.documentType || 'business_license',
+        title: doc.title?.trim() || '',
+        file: fileId,
+        status: isOriginallyApproved ? 'approved' : 'pending',
+        rejectionReason: isOriginallyApproved ? null : doc.rejectionReason || null,
+        uploadedAt: doc.uploadedAt || new Date().toISOString(),
+      }
+    })
+  }
 
   const updatedDoc: any = await sdk.update({
     collection: 'users',

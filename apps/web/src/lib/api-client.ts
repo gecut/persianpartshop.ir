@@ -8,6 +8,12 @@ const defaultBaseUrl =
     ? window.location.origin
     : 'http://localhost:5175'
 
+let onAuthErrorCallback: ((err: any) => void) | null = null
+
+export function setAuthErrorHandler(fn: (err: any) => void) {
+  onAuthErrorCallback = fn
+}
+
 export const api = createApiClient({
   baseURL: import.meta.env.VITE_API_URL || defaultBaseUrl,
   
@@ -16,6 +22,10 @@ export const api = createApiClient({
       return localStorage.getItem('persianpart_token')
     }
     return null
+  },
+
+  onAuthError: (err) => {
+    onAuthErrorCallback?.(err)
   },
 })
 

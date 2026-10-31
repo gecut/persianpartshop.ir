@@ -9,15 +9,10 @@ const list = base.plan.list.handler(async ({ input, context }) => {
     where.status = { equals: input.status }
   }
 
-  const isAdmin = context.user?.role === 'admin' || context.user?.role === 'superadmin'
-  if (!isAdmin) {
-    if (context.user?.id) {
-      where.users = { contains: context.user.id }
-    } else {
-      return { items: [], total: 0 }
-    }
-  } else if (input?.userId) {
-    where.users = { contains: input.userId }
+  if (context.user?.id) {
+    where.users = { contains: context.user.id }
+  } else {
+    return { items: [], total: 0 }
   }
 
   const result = await sdk.find({
@@ -29,19 +24,29 @@ const list = base.plan.list.handler(async ({ input, context }) => {
     sort: '-createdAt',
   })
 
-  const currentUserName = context.user?.fullName || 'همکار'
-  const items = result.docs.map((doc: any) => {
-    const enriched = enrichPlanWithUserName(doc, currentUserName)
-    if (!isAdmin) {
-      const { users, ...safePlan } = enriched
-      return { ...safePlan, users: [context.user?.id] }
+  const now = Date.now()
+  const validDocs: any[] = []
+  for (const doc of result.docs) {
+    const isStatusExpired = doc.status === 'expired'
+    const isDateExpired = doc.expiresAt && new Date(doc.expiresAt).getTime() <= now
+    if (isStatusExpired || isDateExpired) {
+      // Auto-delete expired plans as requested ("اگر طرح منقضی باشه باید پاک بشه")
+      sdk.delete({ collection: 'plans', id: doc.id }).catch(() => null)
+      continue
     }
-    return enriched
+    validDocs.push(doc)
+  }
+
+  const currentUserName = context.user?.fullName || 'همکار'
+  const items = validDocs.map((doc: any) => {
+    const enriched = enrichPlanWithUserName(doc, currentUserName)
+    const { users, ...safePlan } = enriched
+    return { ...safePlan, users: [context.user?.id] }
   })
 
   return {
     items,
-    total: result.totalDocs,
+    total: validDocs.length,
   }
 })
 
@@ -56,26 +61,28 @@ const getById = base.plan.getById.handler(async ({ input, context, errors }) => 
     throw errors.NOT_FOUND()
   }
 
-  const isAdmin = context.user?.role === 'admin' || context.user?.role === 'superadmin'
-  if (!isAdmin) {
-    if (!context.user?.id) {
-      throw errors.NOT_FOUND()
-    }
-    const userIds = Array.isArray(doc.users)
-      ? doc.users.map((u: any) => (typeof u === 'object' && u !== null ? u.id : u))
-      : []
-    if (!userIds.map(String).includes(String(context.user.id))) {
-      throw errors.NOT_FOUND()
-    }
+  const now = Date.now()
+  const isStatusExpired = doc.status === 'expired'
+  const isDateExpired = doc.expiresAt && new Date(doc.expiresAt).getTime() <= now
+  if (isStatusExpired || isDateExpired) {
+    sdk.delete({ collection: 'plans', id: doc.id }).catch(() => null)
+    throw errors.NOT_FOUND()
+  }
+
+  if (!context.user?.id) {
+    throw errors.NOT_FOUND()
+  }
+  const userIds = Array.isArray(doc.users)
+    ? doc.users.map((u: any) => (typeof u === 'object' && u !== null ? u.id : u))
+    : []
+  if (!userIds.map(String).includes(String(context.user.id))) {
+    throw errors.NOT_FOUND()
   }
 
   const currentUserName = context.user?.fullName || 'همکار'
   const enriched = enrichPlanWithUserName(doc, currentUserName)
-  if (!isAdmin) {
-    const { users, ...safePlan } = enriched
-    return { ...safePlan, users: [context.user?.id] }
-  }
-  return enriched
+  const { users, ...safePlan } = enriched
+  return { ...safePlan, users: [context.user?.id] }
 })
 
 const create = adminOnly.plan.create.handler(async ({ input }) => {
@@ -101,6 +108,12 @@ const create = adminOnly.plan.create.handler(async ({ input }) => {
       title,
       users: input.users.map((u: any) => Number(u)),
       content: input.content,
+      startsAt: input.startsAt || null,
+      expiresAt: input.expiresAt || null,
+      status: input.status || 'active',
+      products: input.products ? input.products.map((p: any) => Number(p)) : [],
+      discountPercent: input.discountPercent ?? null,
+      discountAmount: input.discountAmount ?? null,
     } as any,
     depth: 2,
   })

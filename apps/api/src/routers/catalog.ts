@@ -4,12 +4,14 @@ import type { Product, Category, Brand, Tag, Dimension } from '@persianpart/cms/
 import { calculateCartonMetrics } from './catalog.helpers'
 import {
   fetchTaxonomy,
+  getUserPermissions,
   getUserMarkupPercent,
   applyProductPricing,
 } from './router.helpers'
 
 const list = base.catalog.list.handler(async ({ input, context }) => {
   const isAdmin = context.user?.role === 'admin' || context.user?.role === 'superadmin'
+  const userPerms = await getUserPermissions(context.user?.id)
   const where: Record<string, any> = {}
 
   // Invariant: Non-admins can strictly NEVER see inactive products
@@ -24,7 +26,19 @@ const list = base.catalog.list.handler(async ({ input, context }) => {
     where.name = { contains: search }
   }
 
-  if (input?.categoryId) {
+  // Filter by allowed categories for this customer (if configured by admin)
+  if (!isAdmin && userPerms.allowedCategoryIds.length > 0) {
+    if (input?.categoryId) {
+      const requestedCatId = Number(input.categoryId)
+      if (userPerms.allowedCategoryIds.includes(requestedCatId)) {
+        where.category = { equals: requestedCatId }
+      } else {
+        where.category = { in: [-1] }
+      }
+    } else {
+      where.category = { in: userPerms.allowedCategoryIds }
+    }
+  } else if (input?.categoryId) {
     const categoryId = Number(input.categoryId)
     if (!isNaN(categoryId) && categoryId > 0) {
       where.category = { equals: categoryId }
@@ -60,8 +74,9 @@ const list = base.catalog.list.handler(async ({ input, context }) => {
   })
 
   const products = res.docs as Product[]
-  const markupPercent = await getUserMarkupPercent(context?.user?.id)
-  const items = products.map((prod) => applyProductPricing(prod, markupPercent))
+  const items = products.map((prod) =>
+    applyProductPricing(prod, userPerms.markupPercent, userPerms.hideExactStock)
+  )
 
   return {
     items,
@@ -94,17 +109,35 @@ const getById = base.catalog.getById.handler(async ({ input, context, errors }) 
   }
 
   const isAdmin = context.user?.role === 'admin' || context.user?.role === 'superadmin'
-  if (!isAdmin && prod.isActive === false) {
-    throw errors.NOT_FOUND({ data: { message: 'محصول مورد نظر غیرفعال است یا یافت نشد.' } })
+  const userPerms = await getUserPermissions(context.user?.id)
+
+  if (!isAdmin) {
+    if (prod.isActive === false) {
+      throw errors.NOT_FOUND({ data: { message: 'محصول مورد نظر غیرفعال است یا یافت نشد.' } })
+    }
+    if (userPerms.allowedCategoryIds.length > 0) {
+      const catId =
+        typeof prod.category === 'object' && prod.category !== null
+          ? (prod.category as any).id
+          : prod.category
+      if (catId && !userPerms.allowedCategoryIds.includes(Number(catId))) {
+        throw errors.NOT_FOUND({ data: { message: 'شما دسترسی مشاهده این دسته‌بندی را ندارید.' } })
+      }
+    }
   }
 
-  const markupPercent = await getUserMarkupPercent(context?.user?.id)
-  return applyProductPricing(prod, markupPercent)
+  return applyProductPricing(prod, userPerms.markupPercent, userPerms.hideExactStock)
 })
 
-const categories = base.catalog.categories.handler(async ({ input }) => {
-  const docs = await fetchTaxonomy('categories', { onlyActive: input?.onlyActive, sort: 'ordering' })
-  return docs as Category[]
+const categories = base.catalog.categories.handler(async ({ input, context }) => {
+  const isAdmin = context?.user?.role === 'admin' || context?.user?.role === 'superadmin'
+  const userPerms = await getUserPermissions(context?.user?.id)
+  const docs = (await fetchTaxonomy('categories', { onlyActive: input?.onlyActive, sort: 'ordering' })) as Category[]
+
+  if (!isAdmin && userPerms.allowedCategoryIds.length > 0) {
+    return docs.filter((cat) => userPerms.allowedCategoryIds.includes(Number(cat.id)))
+  }
+  return docs
 })
 
 const brands = base.catalog.brands.handler(async ({ input }) => {

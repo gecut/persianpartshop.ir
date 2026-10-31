@@ -66,14 +66,21 @@ export const CustomerProfileSchema = z.object({
   province: z.string().min(1, 'استان الزامی است'),
   city: z.string().min(1, 'شهر الزامی است'),
   address: z.string().min(1, 'آدرس الزامی است'),
-  customerTypeId: EntityIdSchema,
+  nationalCode: z.string().optional(),
+  economicCode: z.string().optional(),
+  creditLimit: z.number().optional(),
+  customerTypeId: EntityIdSchema.optional(),
   customerType: CustomerTypeSchema.pick({
     id: true,
     name: true,
     slug: true,
   }).optional(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
+  hideExactStock: z.boolean().optional(),
+  disableOrdering: z.boolean().optional(),
+  status: z.string().optional(),
+  banReason: z.string().optional(),
+  createdAt: z.string().optional(),
+  updatedAt: z.string().optional(),
 })
 
 export type CustomerProfile = z.infer<typeof CustomerProfileSchema>
@@ -233,6 +240,7 @@ export const userContract = {
         city: z.string().optional(),
         address: z.string().optional(),
         addresses: z.any().optional(),
+        documents: z.array(z.any()).optional(),
       })
     )
     .output(z.any())

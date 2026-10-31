@@ -2,8 +2,9 @@ import { useState, useMemo, useEffect } from "react";
 import { Drawer, Button } from "@heroui/react";
 import type { Product } from "../../types";
 import { toPersianDigits, formatToman } from "../../lib/utils/currency";
+import { cn } from "../../lib/utils";
 import { ImageViewerModal } from "../../components/ui/image-viewer-modal";
-import { formatGrade } from "./product-store";
+import { formatGrade, formatUnit } from "./product-store";
 import {
   XIcon,
   ZoomInIcon,
@@ -22,6 +23,7 @@ export interface ProductBottomSheetProps {
   product: Product | null;
   isOpen: boolean;
   isSelected?: boolean;
+  isOrderingDisabled?: boolean;
   onClose: () => void;
   onToggleSelect?: () => void;
   onOrderDirect?: (product: Product) => void;
@@ -38,6 +40,7 @@ export function ProductBottomSheet({
   product,
   isOpen,
   isSelected = false,
+  isOrderingDisabled = false,
   onClose,
   onToggleSelect,
   onOrderDirect: _onOrderDirect,
@@ -254,32 +257,38 @@ export function ProductBottomSheet({
                     )}
                   </div>
 
-                  <div className="flex  items-center gap-1.5 shrink-0 whitespace-nowrap">
-                    {onToggleSelect && !isOutOfStock && (
-                      <Button
-                        type="button"
-                        onClick={onToggleSelect}
-                        className={`h-10 w-38 px-4 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 whitespace-nowrap shrink-0 ${
-                          isSelected
-                            ? "bg-success/15 text-success"
-                            : "bg-primary hover:bg-muted/20 text-background"
-                        }`}
-                      >
-                        {isSelected ? (
-                          <>
-                            <CheckIcon
-                              size={14}
-                              className="stroke-3 text-success"
-                            />
-                            <span>انتخاب‌شده</span>
-                          </>
-                        ) : (
-                          <>
-                            <PlusIcon size={14} className="stroke-3" />
-                            <span> افزودن به سبد خرید</span>
-                          </>
-                        )}
-                      </Button>
+                  <div className="flex items-center gap-1.5 shrink-0 whitespace-nowrap">
+                    {isOrderingDisabled ? (
+                      <span className="px-3 py-2 rounded-lg text-xs font-semibold bg-muted/15 text-muted">
+                        فقط مشاهده کاتالوگ
+                      </span>
+                    ) : (
+                      onToggleSelect && !isOutOfStock && (
+                        <Button
+                          type="button"
+                          onClick={onToggleSelect}
+                          className={`h-10 w-38 px-4 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 whitespace-nowrap shrink-0 ${
+                            isSelected
+                              ? "bg-success/15 text-success"
+                              : "bg-primary hover:bg-muted/20 text-background"
+                          }`}
+                        >
+                          {isSelected ? (
+                            <>
+                              <CheckIcon
+                                size={14}
+                                className="stroke-3 text-success"
+                              />
+                              <span>انتخاب‌شده</span>
+                            </>
+                          ) : (
+                            <>
+                              <PlusIcon size={14} className="stroke-3" />
+                              <span> افزودن به سبد خرید</span>
+                            </>
+                          )}
+                        </Button>
+                      )
                     )}
                   </div>
                 </div>
@@ -294,98 +303,275 @@ export function ProductBottomSheet({
                   </h3> */}
 
                   <div className="grid grid-cols-2 gap-2 text-xs">
-                    {/* Dimensions (Solar Ruler) */}
-                    <div className="p-2 bg-muted/5 rounded-2xl flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                        <SolarRulerIcon size={14} />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <span className="text-xs text-muted font-base block leading-tight mb-0.5">
-                          ابعاد
-                        </span>
-                        <span className="font-bold text-foreground text-xs leading-normal truncate block">
-                          {toPersianDigits(activeProduct.dimensions.width)} ×{" "}
-                          {toPersianDigits(activeProduct.dimensions.height)}
-                        </span>
-                      </div>
-                    </div>
+                    {activeProduct.productType === "other" ? (
+                      <>
+                        {/* Unit of measure */}
+                        <div className="p-2 bg-muted/5 rounded-2xl flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                            <SolarBoxIcon size={14} />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <span className="text-xs text-muted font-base block leading-tight mb-0.5">
+                              واحد فروش
+                            </span>
+                            <span className="font-bold text-foreground text-xs leading-normal truncate block">
+                              {formatUnit(activeProduct.unit)}
+                            </span>
+                          </div>
+                        </div>
 
-                    {/* Authoritative sqmPerCarton (Solar Box) */}
-                    <div className="p-2 bg-muted/5 rounded-2xl flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                        <SolarBoxIcon size={14} />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <span className="text-xs text-muted font-base block leading-tight mb-0.5">
-                          متراژ در هر کارتن
-                        </span>
-                        <span className="font-bold text-primary text-xs leading-normal truncate block">
-                          {toPersianDigits(activeProduct.sqmPerCarton)}
-                        </span>
-                      </div>
-                    </div>
+                        {/* Weight */}
+                        {activeProduct.weight != null &&
+                          activeProduct.weight > 0 && (
+                            <div className="p-2 bg-muted/5 rounded-2xl flex items-center gap-2">
+                              <div className="w-7 h-7 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                                <SolarLayersIcon size={14} />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <span className="text-xs text-muted font-base block leading-tight mb-0.5">
+                                  وزن / مقدار
+                                </span>
+                                <span className="font-bold text-foreground text-xs leading-normal truncate block">
+                                  {formatUnit(activeProduct.unit)}{" "}
+                                  {toPersianDigits(activeProduct.weight)}
+                                </span>
+                              </div>
+                            </div>
+                          )}
 
-                    <div className="p-2 bg-muted/5 rounded-2xl flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                        <SolarTagIcon size={14} />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <span className="text-xs text-muted font-base block leading-tight mb-0.5">
-                          موجودی انبار{" "}
-                        </span>
-                        <span
-                          className="text-right flex items-center gap-0.5 justify-end font-bold text-foreground text-xs leading-normal truncate"
-                          dir="ltr"
-                        >
-                          <span>متر</span>
-                          {toPersianDigits(activeProduct.inventorySqm)}
-                        </span>
-                      </div>
-                    </div>
+                        {/* Items per pack if applicable */}
+                        {activeProduct.itemsPerPack != null &&
+                          activeProduct.itemsPerPack > 0 && (
+                            <div className="p-2 bg-muted/5 rounded-2xl flex items-center gap-2">
+                              <div className="w-7 h-7 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                                <SolarLayersIcon size={14} />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <span className="text-xs text-muted font-base block leading-tight mb-0.5">
+                                  تعداد در بسته
+                                </span>
+                                <span className="font-bold text-foreground text-xs leading-normal truncate block">
+                                  {toPersianDigits(activeProduct.itemsPerPack)}
+                                </span>
+                              </div>
+                            </div>
+                          )}
 
-                    <div className="p-2 bg-muted/5 rounded-2xl flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                        <SolarLayersIcon size={14} />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <span className="text-xs text-muted font-base block leading-tight mb-0.5">
-                          تعداد در هر کارتن
-                        </span>
-                        <span className="font-bold text-foreground text-xs leading-normal truncate block">
-                          {toPersianDigits(activeProduct.piecesPerCarton)} برگ
-                        </span>
-                      </div>
-                    </div>
+                        {/* Coverage if applicable */}
+                        {activeProduct.approxCoverage && (
+                          <div className="p-2 bg-muted/5 rounded-2xl flex items-center gap-2">
+                            <div className="w-7 h-7 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                              <SolarRulerIcon size={14} />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <span className="text-xs text-muted font-base block leading-tight mb-0.5">
+                                پوشش تقریبی
+                              </span>
+                              <span className="font-bold text-foreground text-xs leading-normal truncate block">
+                                {activeProduct.approxCoverage}
+                              </span>
+                            </div>
+                          </div>
+                        )}
 
-                    {/* Brand & Factory (Solar Shop) */}
-                    <div className="p-2 bg-muted/5 rounded-2xl flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                        <SolarShopIcon size={14} />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <span className="text-xs text-muted font-base block leading-tight mb-0.5">
-                          برند
-                        </span>
-                        <span className="font-bold text-foreground text-xs leading-normal truncate block">
-                          {activeProduct.brand}
-                        </span>
-                      </div>
-                    </div>
+                        {/* Inventory */}
+                        <div className="p-2 bg-muted/5 rounded-2xl flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                            <SolarTagIcon size={14} />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <span className="text-xs text-muted font-base block leading-tight mb-0.5">
+                              موجودی انبار
+                            </span>
+                            {activeProduct.hideExactStock ? (
+                              <span
+                                className={cn(
+                                  "text-right flex items-center justify-end font-bold text-xs leading-normal truncate",
+                                  activeProduct.inStock
+                                    ? "text-emerald-500"
+                                    : "text-destructive",
+                                )}
+                              >
+                                <span>
+                                  {activeProduct.inStock ? "موجود" : "ناموجود"}
+                                </span>
+                              </span>
+                            ) : (
+                              <span
+                                className="text-right flex items-center gap-0.5 justify-end font-bold text-foreground text-xs leading-normal truncate"
+                                dir="ltr"
+                              >
+                                <span>{formatUnit(activeProduct.unit)}</span>
+                                {toPersianDigits(activeProduct.inventorySqm || 0)}
+                              </span>
+                            )}
+                          </div>
+                        </div>
 
-                    {/* Grade (Solar Shield Check) */}
-                    <div className="p-2 bg-muted/5 rounded-2xl flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                        <SolarShieldCheckIcon size={14} />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <span className="text-xs text-muted font-base block leading-tight mb-0.5">
-                          درجه کیفی
-                        </span>
-                        <span className="font-bold text-foreground text-xs leading-normal truncate block">
-                          {formatGrade(activeProduct.grade)}
-                        </span>
-                      </div>
-                    </div>
+                        {/* Brand */}
+                        <div className="p-2 bg-muted/5 rounded-2xl flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                            <SolarShopIcon size={14} />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <span className="text-xs text-muted font-base block leading-tight mb-0.5">
+                              برند
+                            </span>
+                            <span className="font-bold text-foreground text-xs leading-normal truncate block">
+                              {activeProduct.brand}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Grade if present */}
+                        {activeProduct.grade && (
+                          <div className="p-2 bg-muted/5 rounded-2xl flex items-center gap-2">
+                            <div className="w-7 h-7 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                              <SolarShieldCheckIcon size={14} />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <span className="text-xs text-muted font-base block leading-tight mb-0.5">
+                                درجه کیفی
+                              </span>
+                              <span className="font-bold text-foreground text-xs leading-normal truncate block">
+                                {formatGrade(activeProduct.grade)}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        {/* Dimensions (Solar Ruler) */}
+                        {activeProduct.dimensions?.width &&
+                          activeProduct.dimensions?.height && (
+                            <div className="p-2 bg-muted/5 rounded-2xl flex items-center gap-2">
+                              <div className="w-7 h-7 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                                <SolarRulerIcon size={14} />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <span className="text-xs text-muted font-base block leading-tight mb-0.5">
+                                  ابعاد
+                                </span>
+                                <span className="font-bold text-foreground text-xs leading-normal truncate block">
+                                  {toPersianDigits(
+                                    activeProduct.dimensions.width,
+                                  )}{" "}
+                                  ×{" "}
+                                  {toPersianDigits(
+                                    activeProduct.dimensions.height,
+                                  )}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+
+                        {/* Authoritative sqmPerCarton (Solar Box) */}
+                        {activeProduct.sqmPerCarton != null &&
+                          activeProduct.sqmPerCarton > 0 && (
+                            <div className="p-2 bg-muted/5 rounded-2xl flex items-center gap-2">
+                              <div className="w-7 h-7 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                                <SolarBoxIcon size={14} />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <span className="text-xs text-muted font-base block leading-tight mb-0.5">
+                                  متراژ در هر کارتن
+                                </span>
+                                <span className="font-bold text-primary text-xs leading-normal truncate block">
+                                  {toPersianDigits(activeProduct.sqmPerCarton)}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+
+                        {/* Inventory */}
+                        <div className="p-2 bg-muted/5 rounded-2xl flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                            <SolarTagIcon size={14} />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <span className="text-xs text-muted font-base block leading-tight mb-0.5">
+                              موجودی انبار{" "}
+                            </span>
+                            {activeProduct.hideExactStock ? (
+                              <span
+                                className={cn(
+                                  "text-right flex items-center justify-end font-bold text-xs leading-normal truncate",
+                                  activeProduct.inStock
+                                    ? "text-emerald-500"
+                                    : "text-destructive",
+                                )}
+                              >
+                                <span>
+                                  {activeProduct.inStock ? "موجود" : "ناموجود"}
+                                </span>
+                              </span>
+                            ) : (
+                              <span
+                                className="text-right flex items-center gap-0.5 justify-end font-bold text-foreground text-xs leading-normal truncate"
+                                dir="ltr"
+                              >
+                                <span>متر</span>
+                                {toPersianDigits(activeProduct.inventorySqm || 0)}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Pieces per carton */}
+                        {activeProduct.piecesPerCarton != null &&
+                          activeProduct.piecesPerCarton > 0 && (
+                            <div className="p-2 bg-muted/5 rounded-2xl flex items-center gap-2">
+                              <div className="w-7 h-7 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                                <SolarLayersIcon size={14} />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <span className="text-xs text-muted font-base block leading-tight mb-0.5">
+                                  تعداد در هر کارتن
+                                </span>
+                                <span className="font-bold text-foreground text-xs leading-normal truncate block">
+                                  {toPersianDigits(
+                                    activeProduct.piecesPerCarton,
+                                  )}{" "}
+                                  برگ
+                                </span>
+                              </div>
+                            </div>
+                          )}
+
+                        {/* Brand & Factory (Solar Shop) */}
+                        <div className="p-2 bg-muted/5 rounded-2xl flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                            <SolarShopIcon size={14} />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <span className="text-xs text-muted font-base block leading-tight mb-0.5">
+                              برند
+                            </span>
+                            <span className="font-bold text-foreground text-xs leading-normal truncate block">
+                              {activeProduct.brand}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Grade (Solar Shield Check) */}
+                        {activeProduct.grade && (
+                          <div className="p-2 bg-muted/5 rounded-2xl flex items-center gap-2">
+                            <div className="w-7 h-7 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                              <SolarShieldCheckIcon size={14} />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <span className="text-xs text-muted font-base block leading-tight mb-0.5">
+                                درجه کیفی
+                              </span>
+                              <span className="font-bold text-foreground text-xs leading-normal truncate block">
+                                {formatGrade(activeProduct.grade)}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -403,13 +589,25 @@ export function ProductBottomSheet({
                   </div>
                 )}
 
-                {/* Tags */}
-                {/* {activeProduct.tags.length > 0 && (
+                {/* Tags and Badges */}
+                {((activeProduct.tags && activeProduct.tags.length > 0) ||
+                  activeProduct.approxCoverage ||
+                  activeProduct.grade) && (
                   <div className="pt-2 flex flex-wrap items-center gap-1.5">
                     <span className="text-xs text-muted font-base">
-                      ویژگی‌ها:
+                      ویژگی‌ها و برچسب‌ها:
                     </span>
-                    {activeProduct.tags.map((tag) => (
+                    {activeProduct.grade && (
+                      <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-primary/10 text-primary">
+                        {formatGrade(activeProduct.grade)}
+                      </span>
+                    )}
+                    {activeProduct.approxCoverage && (
+                      <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-primary/15 text-primary">
+                        پوشش: {activeProduct.approxCoverage}
+                      </span>
+                    )}
+                    {activeProduct.tags?.map((tag) => (
                       <span
                         key={tag}
                         className="px-2 py-1 rounded-lg text-xs font-semibold bg-muted/10 text-foreground"
@@ -418,7 +616,7 @@ export function ProductBottomSheet({
                       </span>
                     ))}
                   </div>
-                )} */}
+                )}
               </Drawer.Body>
             </Drawer.Dialog>
           </Drawer.Content>

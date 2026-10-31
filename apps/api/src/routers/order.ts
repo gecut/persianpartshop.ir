@@ -1,9 +1,11 @@
 import { sdk } from '../payload'
 import { base, authed } from '../rpc/base'
+import { ORPCError } from '@orpc/server'
 import type { Order } from '@persianpart/cms/types'
 import {
   finalizeOrderNumber,
   getUserMarkupPercent,
+  getUserPermissions,
   getUserProfile,
   sanitizeOrderForCustomer,
 } from './router.helpers'
@@ -15,12 +17,8 @@ import {
 } from './order.helpers'
 
 const all = authed.order.all.handler(async ({ input, context }) => {
-  const isAdmin = context.user.role === 'admin' || context.user.role === 'superadmin'
-  const where: Record<string, any> = {}
-
-  // Invariant: Non-admins are strictly isolated to their own user ID
-  if (!isAdmin) {
-    where.user = { equals: Number(context.user.id) }
+  const where: Record<string, any> = {
+    user: { equals: Number(context.user.id) },
   }
   if (input?.status) {
     where.status = { equals: input.status }
@@ -42,12 +40,8 @@ const all = authed.order.all.handler(async ({ input, context }) => {
 })
 
 const list = authed.order.list.handler(async ({ input, context }) => {
-  const isAdmin = context.user.role === 'admin' || context.user.role === 'superadmin'
-  const where: Record<string, any> = {}
-
-  // Invariant: Non-admins are strictly isolated to their own user ID
-  if (!isAdmin) {
-    where.user = { equals: Number(context.user.id) }
+  const where: Record<string, any> = {
+    user: { equals: Number(context.user.id) },
   }
   if (input?.status) {
     where.status = { equals: input.status }
@@ -108,7 +102,15 @@ const getById = authed.order.getById.handler(async ({ input, context, errors }) 
 })
 
 const createCustomOrder = authed.order.createCustomOrder.handler(
-  async ({ input, context }) => {
+  async ({ input, context, errors }) => {
+    const userPerms = await getUserPermissions(context.user.id)
+    if (userPerms.disableOrdering) {
+      throw errors.FORBIDDEN({
+        message: 'حساب کاربری شما در وضعیت «فقط مشاهده کاتالوگ» تنظیم شده است و امکان ثبت سفارش را ندارد.',
+        data: { message: 'حساب کاربری شما در وضعیت «فقط مشاهده کاتالوگ» تنظیم شده است و امکان ثبت سفارش را ندارد.' },
+      })
+    }
+
     const tempOrderNumber = generateTempOrderNumber()
     const orderDoc = (await sdk.create({
       collection: 'orders',
@@ -130,7 +132,18 @@ const createCustomOrder = authed.order.createCustomOrder.handler(
 
 const submit = authed.order.submit.handler(async ({ input, context, errors }) => {
   if (!input.items || input.items.length === 0) {
-    throw errors.BAD_REQUEST({ message: 'سبد سفارش نمی‌تواند خالی باشد.' })
+    throw errors.BAD_REQUEST({
+      message: 'سبد سفارش نمی‌تواند خالی باشد.',
+      data: { message: 'سبد سفارش نمی‌تواند خالی باشد.' },
+    })
+  }
+
+  const userPerms = await getUserPermissions(context.user.id)
+  if (userPerms.disableOrdering) {
+    throw errors.FORBIDDEN({
+      message: 'حساب کاربری شما در وضعیت «فقط مشاهده کاتالوگ» تنظیم شده است و امکان ثبت سفارش را ندارد.',
+      data: { message: 'حساب کاربری شما در وضعیت «فقط مشاهده کاتالوگ» تنظیم شده است و امکان ثبت سفارش را ندارد.' },
+    })
   }
 
   const idempotencyKey = input.idempotencyKey?.trim()
@@ -159,7 +172,10 @@ const submit = authed.order.submit.handler(async ({ input, context, errors }) =>
   const rawItems = input.items.map((item) => {
     const pId = Number(item.productId)
     if (isNaN(pId) || pId <= 0) {
-      throw errors.BAD_REQUEST({ message: 'شناسه محصول نامعتبر است.' })
+      throw errors.BAD_REQUEST({
+        message: 'شناسه محصول نامعتبر است.',
+        data: { message: 'شناسه محصول نامعتبر است.' },
+      })
     }
     const requestedArea = Math.max(0.01, Number(item.requestedArea || item.requestedSqm || 1))
     return {
@@ -180,6 +196,58 @@ const submit = authed.order.submit.handler(async ({ input, context, errors }) =>
 
   const tempOrderNumber = generateTempOrderNumber()
 
+  // Pre-validate inventory to return clear, actionable user feedback instead of an internal error
+  for (const item of rawItems) {
+    let prod: any = null
+    try {
+      prod = await sdk.findByID({ collection: 'products', id: item.product, depth: 0 })
+    } catch {
+      prod = null
+    }
+
+    if (!prod) {
+      throw errors.BAD_REQUEST({
+        message: `محصول با شناسه ${item.product} در کاتالوگ یافت نشد.`,
+        data: { message: `محصول با شناسه ${item.product} در کاتالوگ یافت نشد.` },
+      })
+    }
+
+    if (prod.isActive === false) {
+      throw errors.BAD_REQUEST({
+        message: `محصول «${prod.name || item.product}» در حال حاضر غیرفعال است.`,
+        data: { message: `محصول «${prod.name || item.product}» در حال حاضر غیرفعال است.` },
+      })
+    }
+
+    if (userPerms.allowedCategoryIds.length > 0) {
+      const catId =
+        typeof prod.category === 'object' && prod.category !== null
+          ? prod.category.id
+          : prod.category
+      if (!catId || !userPerms.allowedCategoryIds.includes(Number(catId))) {
+        throw errors.FORBIDDEN({
+          message: `ثبت سفارش برای محصول «${prod.name || item.product}» به دلیل محدودیت دسته‌بندی مجاز نیست.`,
+          data: { message: `ثبت سفارش برای محصول «${prod.name || item.product}» به دلیل محدودیت دسته‌بندی مجاز نیست.` },
+        })
+      }
+    }
+
+    const sqmPerCarton = Number(prod.sqmPerCarton) || 1
+    const cartonCount = Math.ceil(item.requestedArea / sqmPerCarton)
+    const deliverableArea = Math.round(cartonCount * sqmPerCarton * 100) / 100
+    const availableInventorySqm = Number(prod.inventorySqm) || 0
+
+    if (availableInventorySqm < deliverableArea) {
+      const availableCartons = Math.floor(availableInventorySqm / sqmPerCarton)
+      throw errors.INSUFFICIENT_STOCK({
+        message: `موجودی ناکافی برای «${prod.name}». موجودی انبار: ${availableCartons} کارتن (${availableInventorySqm} مترمربع)، درخواستی شما: ${cartonCount} کارتن (${deliverableArea} مترمربع)`,
+        data: {
+          message: `موجودی ناکافی برای «${prod.name}». موجودی انبار: ${availableCartons} کارتن (${availableInventorySqm} مترمربع)، درخواستی شما: ${cartonCount} کارتن (${deliverableArea} مترمربع)`,
+        },
+      })
+    }
+  }
+
   let orderDoc: Order
   try {
     orderDoc = (await sdk.create({
@@ -196,14 +264,47 @@ const submit = authed.order.submit.handler(async ({ input, context, errors }) =>
         ...(idempotencyKey ? { idempotencyKey } : {}),
       },
     })) as Order
-  } catch (err) {
+  } catch (err: any) {
+    console.error('[ORDER SUBMIT ERROR DETAIL]:', err?.status, err?.message, JSON.stringify(err?.errors))
     // Concurrent duplicate submission won the unique constraint race: return that order
     // instead of surfacing a 500. The failed create (and its stock decrement) is rolled back.
     const racedOrder = await findExistingOrder()
     if (racedOrder) {
       return sanitizeOrderForCustomer(racedOrder) as Order
     }
-    throw err
+
+    const rawMsg =
+      err?.errors?.[0]?.message ||
+      err?.message ||
+      (typeof err === 'string' ? err : 'خطا در ثبت سفارش')
+
+    let message = String(rawMsg)
+    try {
+      if (message.startsWith('{') && message.endsWith('}')) {
+        const parsed = JSON.parse(message)
+        message = parsed?.errors?.[0]?.message || parsed?.message || message
+      }
+    } catch {}
+
+    if (message.includes('موجودی ناکافی')) {
+      throw errors.INSUFFICIENT_STOCK({ message, data: { message } })
+    }
+
+    if (
+      message.includes('نامعتبر') ||
+      message.includes('یافت نشد') ||
+      message.includes('غیرفعال') ||
+      message.includes('الزامی') ||
+      message.includes('تکرار') ||
+      message.includes('خالی')
+    ) {
+      throw errors.BAD_REQUEST({ message, data: { message } })
+    }
+
+    throw errors.BAD_REQUEST({
+      message: message || 'خطا در ثبت سفارش.',
+      data: { message: message || 'خطا در ثبت سفارش.' },
+    })
   }
 
   return sanitizeOrderForCustomer(orderDoc) as Order
@@ -246,10 +347,10 @@ const cancel = authed.order.cancel.handler(async ({ input, context, errors }) =>
       })
     }
 
-    const deadline = new Date(orderDoc.createdAt).getTime() + 30 * 60 * 1000 // 30-minute domain rule
+    const deadline = new Date(orderDoc.createdAt).getTime() + 60 * 60 * 1000 // 60-minute domain rule
     if (Date.now() > deadline) {
       throw errors.CANCELLATION_DEADLINE_EXPIRED({
-        message: 'مهلت ۳۰ دقیقه‌ای لغو سفارش توسط کاربر منقضی شده است. لطفاً با پشتیبانی تماس بگیرید.',
+        message: 'مهلت ۶۰ دقیقه‌ای لغو سفارش توسط کاربر منقضی شده است. لطفاً با پشتیبانی تماس بگیرید.',
       })
     }
   }

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { usePlans } from "../features/plans/plans-store";
 import type { Plan } from "../types";
@@ -12,24 +12,22 @@ export const Route = createFileRoute("/plans")({
 
 function CustomerPlansPage() {
   const { plans, allProducts, isLoading } = usePlans();
-  const [filterMode] = useState<"all" | "active">("all");
-
-  const filteredPlans = (plans as Plan[]).filter((p: Plan) => {
-    if (filterMode === "active") return p.status === "active" || p.isActive;
-    return true;
+  const now = Date.now();
+  const validPlans = (plans as Plan[]).filter((p: Plan) => {
+    const expireTime = p.expiresAt ? new Date(p.expiresAt).getTime() : null;
+    const isExpired =
+      p.status === "expired" ||
+      (expireTime !== null && !isNaN(expireTime) && expireTime <= now);
+    return !isExpired;
   });
 
   const sortedPlans = useMemo(() => {
-    const getPlanRank = (p: Plan) => {
-      // 3: Active, 2: Completed/Successful, 1: Expired/Draft
-      if (p.status === "active" || (p.status === undefined && p.isActive))
-        return 3;
-      if (p.status === "completed" || p.status === "successful") return 2;
-      return 1;
-    };
-
-    return [...filteredPlans].sort((a, b) => getPlanRank(b) - getPlanRank(a));
-  }, [filteredPlans]);
+    return [...validPlans].sort((a, b) => {
+      const aStart = a.startsAt ? new Date(a.startsAt).getTime() : 0;
+      const bStart = b.startsAt ? new Date(b.startsAt).getTime() : 0;
+      return bStart - aStart;
+    });
+  }, [validPlans]);
 
   return (
     <div className="w-full px-4 py-3 space-y-3.5 text-start">

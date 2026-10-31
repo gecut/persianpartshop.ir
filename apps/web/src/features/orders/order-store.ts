@@ -83,9 +83,7 @@ export function buildFullOrderTimeline(
   }
 
   const createdAtMs = doc.createdAt ? new Date(doc.createdAt).getTime() : Date.now()
-  const deadlineMs = createdAtMs + 10 * 60 * 1000
-
-  const is10MinutesPassed = force10MinutesPassed ?? (Date.now() >= deadlineMs)
+  const is10MinutesPassed = force10MinutesPassed ?? (Date.now() >= createdAtMs + 10 * 60 * 1000)
   const isApproved = status === 'completed' || status === 'approve' || status === 'approved'
 
   // Cancellation Flow
@@ -93,14 +91,14 @@ export function buildFullOrderTimeline(
     const cancelTitle = isCancelledByCustomer ? 'لغو توسط کاربر' : 'لغو توسط ادمین'
 
     const cancelDesc = isCancelledByCustomer
-      ? doc.notes || 'سفارش در مهلت ۱۰ دقیقه توسط کاربر لغو گردید.'
+      ? doc.notes || 'سفارش توسط کاربر لغو گردید.'
       : doc.notes || 'سفارش توسط واحد بازرگانی / ادمین لغو گردید.'
 
     const steps: TimelineStep[] = [
       {
         id: 'step-1',
         title: 'سفارش ثبت شده',
-        description: 'سفارش با موفقیت در سامانه ثبت گردید (مهلت ۱۰ دقیقه جهت لغو توسط کاربر).',
+        description: 'سفارش با موفقیت در سامانه ثبت گردید.',
         timestamp: formatTs(doc.createdAt) || pDate,
         status: 'completed',
       },
@@ -110,7 +108,7 @@ export function buildFullOrderTimeline(
       steps.push({
         id: 'step-2',
         title: 'در حال بررسی واحد بازرگانی',
-        description: 'مهلت ۱۰ دقیقه سپری شده و سفارش در صف بررسی واحد بازرگانی قرار گرفته بود.',
+        description: 'سفارش در صف بررسی واحد بازرگانی قرار گرفته بود.',
         timestamp: formatTs(new Date(createdAtMs + 10 * 60 * 1000).toISOString()),
         status: 'completed',
       })
@@ -128,8 +126,8 @@ export function buildFullOrderTimeline(
   }
 
   // Active / Normal Flow (3 stages)
-  // Stage 1: سفارش ثبت شده (تایمر ۱۰ دقیقه)
-  // Stage 2: در حال بررسی واحد بازرگانی (پس از اتمام ۱۰ دقیقه)
+  // Stage 1: سفارش ثبت شده
+  // Stage 2: در حال بررسی واحد بازرگانی (تایید نمادین ۱۰ دقیقه‌ای بدون ذکر کلمه‌ای از زمان)
   // Stage 3: تکمیل شده (صدور حواله نهایی)
   const step1Status: 'completed' = 'completed'
   const step2Status: 'completed' | 'current' = (isApproved || is10MinutesPassed) ? 'completed' : 'current'
@@ -138,7 +136,7 @@ export function buildFullOrderTimeline(
   const step1Timestamp = formatTs(doc.createdAt) || pDate
   const step2Timestamp = (isApproved || is10MinutesPassed)
     ? formatTs(new Date(createdAtMs + 10 * 60 * 1000).toISOString())
-    : '۱۰ دقیقه پس از ثبت سفارش'
+    : undefined
   const step3Timestamp = isApproved
     ? formatTs(doc.updatedAt || doc.createdAt) || pDate
     : undefined
@@ -147,7 +145,7 @@ export function buildFullOrderTimeline(
     {
       id: 'step-1',
       title: 'سفارش ثبت شده',
-      description: 'سفارش در سامانه ثبت شد و کاربر تا ۱۰ دقیقه امکان لغو آن را دارد.',
+      description: 'سفارش با موفقیت در سامانه ثبت گردید.',
       timestamp: step1Timestamp,
       status: step1Status,
     },
@@ -155,8 +153,8 @@ export function buildFullOrderTimeline(
       id: 'step-2',
       title: 'در حال بررسی واحد بازرگانی',
       description: (isApproved || is10MinutesPassed)
-        ? 'مهلت ۱۰ دقیقه به پایان رسید و سفارش در دست بررسی کارشناسان واحد بازرگانی قرار گرفت.'
-        : 'پس از اتمام مهلت ۱۰ دقیقه‌ای کاربر، سفارش وارد بررسی واحد بازرگانی خواهد شد.',
+        ? 'سفارش در دست بررسی کارشناسان واحد بازرگانی قرار گرفت.'
+        : 'سفارش جهت بررسی نهایی به واحد بازرگانی ارجاع داده خواهد شد.',
       timestamp: step2Timestamp,
       status: step2Status,
     },
@@ -178,8 +176,7 @@ export function mapDocToOrder(doc: any): Order {
   const normalizedStatus = doc.status === 'processing' ? 'pending' : (doc.status || 'pending')
 
   const createdAtMs = new Date(createdAt).getTime()
-  const deadlineMs = createdAtMs + 10 * 60 * 1000
-  const is10MinutesPassed = Date.now() >= deadlineMs
+  const is10MinutesPassed = Date.now() >= createdAtMs + 10 * 60 * 1000
 
   let statusLabel = 'سفارش ثبت شده'
   if (normalizedStatus === 'pending') {
@@ -242,7 +239,7 @@ export function mapDocToOrder(doc: any): Order {
     customerPhone: userObj?.phone || '',
     deliveryAddress: doc.deliveryAddress || userObj?.address || 'انبار مرکزی بازرگانی دهقان',
     notes: doc.notes || '',
-    cancellationDeadline: new Date(createdAtMs + 10 * 60 * 1000).toISOString(),
+    cancellationDeadline: doc.cancellationDeadline || new Date(createdAtMs + 60 * 60 * 1000).toISOString(),
     items,
     subtotal: doc.subtotal || 0,
     discountAmount: doc.discountAmount || 0,
@@ -304,7 +301,7 @@ export const orderStore = {
     const now = new Date()
     const isoString = now.toISOString()
     const persianDate = formatPersianDate(now)
-    const deadlineIso = new Date(now.getTime() + 10 * 60 * 1000).toISOString()
+    const deadlineIso = new Date(now.getTime() + 60 * 60 * 1000).toISOString()
     const timeline = buildFullOrderTimeline(
       {
         status: 'pending',
@@ -393,6 +390,19 @@ export const orderStore = {
       notes?: string
     }
   ): Order | null => {
+    const existing = currentOrders.find((o) => o.id === orderId || o.orderNumber === orderId)
+    if (existing) {
+      const deadline = existing.cancellationDeadline
+        ? new Date(existing.cancellationDeadline).getTime()
+        : existing.createdAt
+        ? new Date(existing.createdAt).getTime() + 60 * 60 * 1000
+        : 0
+      if (Date.now() > deadline) {
+        console.warn('امکان ویرایش سفارش پس از ۶۰ دقیقه وجود ندارد.')
+        return null
+      }
+    }
+
     let updatedOrder: Order | null = null
     const updated = currentOrders.map((order) => {
       if (order.id === orderId || order.orderNumber === orderId) {
@@ -526,6 +536,7 @@ export function useOrders() {
       }
       return orderStore.getOrders()
     },
+    enabled: typeof window !== 'undefined' && Boolean(localStorage.getItem('persianpart_token')),
     staleTime: 30 * 1000,
   })
 

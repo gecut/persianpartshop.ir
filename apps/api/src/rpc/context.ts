@@ -13,6 +13,8 @@ export interface Context {
   user: UserContext | null
   jwtPayload: UserJwtPayload | null
   req: Request
+  isBanned?: boolean
+  banReason?: string | null
 }
 
 export async function createContext(req: Request): Promise<Context> {
@@ -49,7 +51,18 @@ export async function createContext(req: Request): Promise<Context> {
         }
 
         if (userDoc) {
-          const isInactive = userDoc.status === 'suspended' || userDoc.isActive === false
+          const isBanned = userDoc.isBanned === true || userDoc.status === 'suspended'
+          if (isBanned) {
+            return {
+              user: null,
+              jwtPayload: payload,
+              req,
+              isBanned: true,
+              banReason: userDoc.banReason || null,
+            }
+          }
+
+          const isInactive = userDoc.isActive === false
           if (!isInactive) {
             return {
               user: {

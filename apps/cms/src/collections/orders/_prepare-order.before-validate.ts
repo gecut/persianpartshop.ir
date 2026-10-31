@@ -65,6 +65,9 @@ export const prepareOrderBeforeValidate: CollectionBeforeValidateHook = async ({
       if ((userDoc as any).status !== 'active') {
         throw new Error('حساب کاربری مشتری فعال نیست.')
       }
+      if ((userDoc as any).disableOrdering === true) {
+        throw new Error('حساب کاربری شما در وضعیت «فقط مشاهده کاتالوگ» تنظیم شده و امکان ثبت سفارش را ندارد.')
+      }
       if ((userDoc as any).customerType) {
         const ct = (userDoc as any).customerType
         if (typeof ct === 'object' && ct !== null && typeof ct.markupPercent === 'number') {

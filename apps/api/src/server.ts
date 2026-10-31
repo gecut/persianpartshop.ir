@@ -89,7 +89,7 @@ app.get('/api/auth/me', (c) => {
   })
 })
 
-// 3. Media Upload Endpoint (Direct multipart/form-data upload to MEDIA_DIR)
+// 3. Media Upload Endpoint (Uploads to Payload CMS media collection)
 app.post('/api/media/upload', async (c) => {
   try {
     const formData = await c.req.parseBody()
@@ -105,25 +105,43 @@ app.post('/api/media/upload', async (c) => {
 
     // Sanitize extension and filename
     const ext = path.extname(file.name).toLowerCase()
-    const safeExts = ['.jpg', '.jpeg', '.png', '.webp', '.svg', '.gif', '.avif']
+    const safeExts = ['.jpg', '.jpeg', '.png', '.webp', '.svg', '.gif', '.avif', '.pdf']
     if (!safeExts.includes(ext)) {
       return c.json({ error: `فرمت فایل مجاز نیست. فرمت‌های مجاز: ${safeExts.join(', ')}` }, 400)
     }
 
-    const baseName = path.basename(file.name, ext).replace(/[^a-zA-Z0-9_\-\u0600-\u06FF]/g, '_')
-    const uniqueFilename = `${baseName}-${Date.now()}${ext}`
-    const targetFilePath = path.join(MEDIA_DIR, uniqueFilename)
+    const cmsUrl = process.env.CMS_URL || 'http://localhost:5174'
+    const cmsApiKey = process.env.CMS_API_KEY || 'persianpart_dev_api_key_2026'
 
-    // Save directly to the canonical media directory
-    const arrayBuffer = await file.arrayBuffer()
-    await Bun.write(targetFilePath, arrayBuffer)
+    const cmsFormData = new FormData()
+    const alt = (formData['alt'] as string) || file.name || 'document'
+    cmsFormData.append('_payload', JSON.stringify({ alt }))
+    cmsFormData.append('file', file)
+
+    const cmsResponse = await fetch(`${cmsUrl}/api/media`, {
+      method: 'POST',
+      headers: {
+        Authorization: `admins API-Key ${cmsApiKey}`,
+      },
+      body: cmsFormData,
+    })
+
+    if (!cmsResponse.ok) {
+      const errText = await cmsResponse.text()
+      console.error('[CMS Media Upload Error]:', cmsResponse.status, errText)
+      return c.json({ error: 'خطا در بارگذاری فایل در سامانه رسانه‌ها' }, 500)
+    }
+
+    const result: any = await cmsResponse.json()
+    const doc = result.doc || result
 
     return c.json({
       success: true,
-      filename: uniqueFilename,
-      url: CDN_URL ? `${CDN_URL}/${encodeURIComponent(uniqueFilename)}` : `/api/media/file/${uniqueFilename}`,
-      size: file.size,
-      mimeType: file.type,
+      id: doc.id,
+      filename: doc.filename,
+      url: doc.url,
+      size: doc.filesize || file.size,
+      mimeType: doc.mimeType || file.type,
     }, 201)
   } catch (err) {
     console.error('[Media Upload Error]:', err)

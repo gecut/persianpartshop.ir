@@ -1,19 +1,30 @@
-import type { CollectionConfig } from 'payload'
-import { syncSlugAndDimensions } from './_sync-slug-and-dimensions.before-validate'
-import { isCatalogManager } from '../../access/roles'
-import { canUpdateOperationalPrice, canUpdateOperationalInventory } from './_product-access'
+import type { CollectionConfig } from "payload";
+import { syncSlugAndDimensions } from "./_sync-slug-and-dimensions.before-validate";
+import { isCatalogManager } from "../../access/roles";
+import { logAction } from "../audit-logs/log-action";
+import {
+  canUpdateOperationalPrice,
+  canUpdateOperationalInventory,
+} from "./_product-access";
 
 export const Products: CollectionConfig = {
-  slug: 'products',
+  slug: "products",
   labels: {
-    singular: 'محصول',
-    plural: 'محصولات',
+    singular: "محصول",
+    plural: "محصولات",
   },
   admin: {
-    useAsTitle: 'name',
-    defaultColumns: ['name', 'sku', 'sqmPerCarton', 'stockCartons', 'isActive', 'updatedAt'],
-    group: 'کاتالوگ و انبارداری',
-    description: 'کاتالوگ و موجودی محصولات.',
+    useAsTitle: "name",
+    defaultColumns: [
+      "name",
+      "sku",
+      "sqmPerCarton",
+      "stockCartons",
+      "isActive",
+      "updatedAt",
+    ],
+    group: "کاتالوگ و انبارداری",
+    description: "کاتالوگ و موجودی محصولات.",
   },
   access: {
     read: () => true,
@@ -23,130 +34,204 @@ export const Products: CollectionConfig = {
   },
   hooks: {
     beforeValidate: [syncSlugAndDimensions],
+    afterChange: [
+      async ({ doc, previousDoc, operation, req, context }) => {
+        if (context?.skipLogging) return;
+        const isCreate = operation === "create";
+        let details = "";
+        if (isCreate) {
+          details = `ایجاد کالا با کد ${doc.sku || doc.id}`;
+        } else {
+          const changes: string[] = [];
+          if (previousDoc?.basePricePerSqm !== doc.basePricePerSqm) {
+            changes.push(
+              `قیمت پایه: ${previousDoc?.basePricePerSqm?.toLocaleString?.("fa-IR") ?? "-"} -> ${doc.basePricePerSqm?.toLocaleString?.("fa-IR") ?? "-"}`,
+            );
+          }
+          if (previousDoc?.stockCartons !== doc.stockCartons) {
+            changes.push(
+              `موجودی کارتن: ${previousDoc?.stockCartons ?? "-"} -> ${doc.stockCartons ?? "-"}`,
+            );
+          }
+          if (previousDoc?.inventorySqm !== doc.inventorySqm) {
+            changes.push(
+              `موجودی متراژ: ${previousDoc?.inventorySqm ?? "-"} -> ${doc.inventorySqm ?? "-"}`,
+            );
+          }
+          if (previousDoc?.isActive !== doc.isActive) {
+            changes.push(
+              `وضعیت انتشار: ${previousDoc?.isActive ? "فعال" : "غیرفعال"} -> ${doc.isActive ? "فعال" : "غیرفعال"}`,
+            );
+          }
+          if (previousDoc?.name !== doc.name) {
+            changes.push(`عنوان: «${previousDoc?.name}» -> «${doc.name}»`);
+          }
+          details = changes.length > 0 ? changes.join(" | ") : "ویرایش مشخصات کالا";
+        }
+
+        await logAction({
+          payload: req.payload,
+          req,
+          action: isCreate ? "product_create" : "product_update",
+          entity: "products",
+          target: `${doc.name || "محصول"} (کد: ${doc.sku || doc.id})`,
+          details,
+        });
+      },
+    ],
+    afterDelete: [
+      async ({ doc, id, req, context }) => {
+        if (context?.skipLogging) return;
+        await logAction({
+          payload: req.payload,
+          req,
+          action: "product_delete",
+          entity: "products",
+          target: `${doc?.name || "محصول"} (شناسه: ${id})`,
+          details: `حذف کالا با کد ${doc?.sku || id}`,
+        });
+      },
+    ],
   },
   fields: [
     // --- فیلدهای سایدبار (مدیریت وضعیت و متادیتا) ---
     {
-      name: 'isActive',
-      type: 'checkbox',
+      name: "isActive",
+      type: "checkbox",
       defaultValue: true,
-      label: 'وضعیت انتشار',
+      label: "وضعیت انتشار",
       admin: {
-        position: 'sidebar',
-        description: 'در صورت فعال بودن، در کاتالوگ فروشگاه نمایش داده می‌شود.',
+        position: "sidebar",
+        description: "در صورت فعال بودن، در کاتالوگ فروشگاه نمایش داده می‌شود.",
       },
     },
     {
-      name: 'slug',
-      type: 'text',
-      required: true,
-      unique: true,
-      label: 'اسلاگ URL',
+      name: "productType",
+      type: "select",
+      defaultValue: "tile",
+      label: "نوع محصول",
       admin: {
-        position: 'sidebar',
-        description: 'شناسه یکتا در آدرس صفحه وبسایت (تولید خودکار از روی کد کالا).',
-      },
-    },
-    {
-      name: 'category',
-      type: 'relationship',
-      relationTo: 'categories',
-      label: 'دسته‌بندی',
-      admin: {
-        position: 'sidebar',
-        description: 'گروه کالایی تخصصی در کاتالوگ فروشگاه.',
-      },
-    },
-    {
-      name: 'brand',
-      type: 'relationship',
-      relationTo: 'brands',
-      label: 'برند / کارخانه',
-      admin: {
-        position: 'sidebar',
-        description: 'کارخانه یا برند سازنده کالا.',
-      },
-    },
-    {
-      name: 'grade',
-      type: 'select',
-      label: 'درجه کیفی',
-      admin: {
-        position: 'sidebar',
-        description: 'درجه‌بندی استاندارد کیفیت کارخانه‌ای.',
+        position: "sidebar",
       },
       options: [
-        { label: 'درجه ۱', value: 'grade_1' },
-        { label: 'درجه ۲', value: 'grade_2' },
-        { label: 'درجه ۳', value: 'grade_3' },
-        { label: 'درجه ۴', value: 'grade_4' },
+        { label: "کاشی و سرامیک", value: "tile" },
+        { label: "سایر اقلام (چسب و ملزومات)", value: "other" },
       ],
     },
     {
-      name: 'color',
-      type: 'text',
-      label: 'رنگ غالب',
+      name: "slug",
+      type: "text",
+      required: true,
+      unique: true,
+      label: "اسلاگ URL",
       admin: {
-        position: 'sidebar',
-        description: 'طیف رنگی اصلی کالا (مثال: سفید، طوسی، کرم).',
+        position: "sidebar",
+        description:
+          "شناسه یکتا در آدرس صفحه وبسایت (تولید خودکار از روی کد کالا).",
       },
     },
     {
-      name: 'tags',
-      type: 'relationship',
-      relationTo: 'tags',
-      hasMany: true,
-      label: 'برچسب‌ها',
+      name: "category",
+      type: "relationship",
+      relationTo: "categories",
+      label: "دسته‌بندی",
       admin: {
-        position: 'sidebar',
-        description: 'ویژگی‌های کاربردی و فنی کالا.',
+        position: "sidebar",
+        description: "گروه کالایی تخصصی در کاتالوگ فروشگاه.",
+      },
+    },
+    {
+      name: "brand",
+      type: "relationship",
+      relationTo: "brands",
+      label: "برند / کارخانه",
+      admin: {
+        position: "sidebar",
+        description: "کارخانه یا برند سازنده کالا.",
+      },
+    },
+    {
+      name: "grade",
+      type: "select",
+      label: "درجه کیفی (اختیاری)",
+      admin: {
+        position: "sidebar",
+        description:
+          "درجه‌بندی استاندارد کیفیت کارخانه‌ای (اختیاری برای تمام محصولات).",
+      },
+      options: [
+        { label: "درجه ۱", value: "grade_1" },
+        { label: "درجه ۲", value: "grade_2" },
+        { label: "درجه ۳", value: "grade_3" },
+        { label: "درجه ۴", value: "grade_4" },
+      ],
+    },
+    {
+      name: "color",
+      type: "text",
+      label: "رنگ غالب",
+      admin: {
+        position: "sidebar",
+        description: "طیف رنگی اصلی کالا (مثال: سفید، طوسی، کرم).",
+      },
+    },
+    {
+      name: "tags",
+      type: "relationship",
+      relationTo: "tags",
+      hasMany: true,
+      label: "برچسب‌ها",
+      admin: {
+        position: "sidebar",
+        description: "ویژگی‌های کاربردی و فنی کالا.",
       },
     },
 
     // --- فیلدهای محتوای اصلی (تب‌بندی شده) ---
     {
-      type: 'tabs',
+      type: "tabs",
       tabs: [
         {
-          label: 'اطلاعات و انبارداری',
+          label: "اطلاعات و انبارداری",
           fields: [
             {
-              type: 'row',
+              type: "row",
               fields: [
                 {
-                  name: 'name',
-                  type: 'text',
+                  name: "name",
+                  type: "text",
                   required: true,
-                  label: 'نام کالا',
+                  label: "نام کالا",
                   admin: {
-                    width: '60%',
-                    description: 'عنوان تجاری و رسمی کالا در فروشگاه و فاکتور.',
+                    width: "60%",
+                    description: "عنوان تجاری و رسمی کالا در فروشگاه و فاکتور.",
                   },
                 },
                 {
-                  name: 'sku',
-                  type: 'text',
+                  name: "sku",
+                  type: "text",
                   required: true,
                   unique: true,
-                  label: 'کد کالا (SKU)',
+                  label: "کد کالا (SKU)",
                   admin: {
-                    width: '40%',
-                    description: 'شناسه یکتای انبارداری کالا جهت تطبیق موجودی.',
+                    width: "40%",
+                    description: "شناسه یکتای انبارداری کالا جهت تطبیق موجودی.",
                   },
                 },
               ],
             },
             {
-              type: 'row',
+              type: "row",
               fields: [
                 {
-                  name: 'basePricePerSqm',
-                  type: 'number',
+                  name: "basePricePerSqm",
+                  type: "number",
                   defaultValue: 0,
-                  label: 'قیمت پایه (تومان)',
+                  label: "قیمت پایه (تومان)",
                   admin: {
-                    width: '33.3%',
-                    description: 'قیمت هر متر مربع بدون احتساب تخفیف رده مشتری.',
+                    width: "33.3%",
+                    description:
+                      "قیمت پایه (برای کاشی بر حسب متر مربع، برای اقلام غیره بر حسب هر واحد/بسته).",
                   },
                   access: {
                     update: canUpdateOperationalPrice,
@@ -154,24 +239,29 @@ export const Products: CollectionConfig = {
                   },
                 },
                 {
-                  name: 'sqmPerCarton',
-                  type: 'number',
-                  required: true,
+                  name: "sqmPerCarton",
+                  type: "number",
+                  required: false,
                   defaultValue: 1.44,
-                  label: 'متراژ کارتن (م²)',
+                  label: "متراژ کارتن (م²)",
                   admin: {
-                    width: '33.3%',
-                    description: 'ضریب متراژ فیزیکی در هر کارتن (مثال: ۱.۴۴).',
+                    width: "33.3%",
+                    description:
+                      "ضریب متراژ فیزیکی در هر کارتن (مخصوص کاشی و سرامیک).",
+                    condition: (data) =>
+                      !data?.productType || data?.productType === "tile",
                   },
                 },
                 {
-                  name: 'inventorySqm',
-                  type: 'number',
+                  name: "inventorySqm",
+                  type: "number",
+                  required: false,
                   defaultValue: 0,
-                  label: 'موجودی متراژ (م²)',
+                  label: "موجودی (م² یا تعداد)",
                   admin: {
-                    width: '33.3%',
-                    description: 'موجودی قابل سفارش پس از کسر رزروها (ویرایش در حالت نگهداری).',
+                    width: "33.3%",
+                    description:
+                      "موجودی قابل سفارش (برای کاشی بر حسب متر مربع، برای اقلام غیره بر حسب تعداد واحد/بسته).",
                   },
                   access: {
                     update: canUpdateOperationalInventory,
@@ -181,115 +271,194 @@ export const Products: CollectionConfig = {
               ],
             },
             {
-              name: 'stockCartons',
-              type: 'number',
-              label: 'تعداد کارتن (محاسبه خودکار)',
+              name: "stockCartons",
+              type: "number",
+              label: "تعداد کارتن (محاسبه خودکار)",
               defaultValue: 0,
               admin: {
                 readOnly: true,
-                description: 'محاسبه سیستمی در سرور: حاصل تقسیم موجودی بر متراژ کارتن.',
+                description:
+                  "محاسبه سیستمی در سرور: حاصل تقسیم موجودی بر متراژ کارتن.",
+                condition: (data) =>
+                  !data?.productType || data?.productType === "tile",
               },
             },
             {
-              name: 'productPreviewUi',
-              type: 'ui',
+              name: "productPreviewUi",
+              type: "ui",
               admin: {
                 components: {
-                  Field: '/collections/products/components/ProductPreview#ProductPreview',
+                  Field:
+                    "/collections/products/components/ProductPreview#ProductPreview",
                 },
               },
             },
+            // --- مشخصات و ابعاد فیزیکی مخصوص کاشی و سرامیک ---
             {
-              type: 'collapsible',
-              label: 'ابعاد و بسته‌بندی فیزیکی',
+              type: "collapsible",
+              label: "ابعاد و بسته‌بندی فیزیکی کاشی",
+              admin: {
+                condition: (data) =>
+                  !data?.productType || data?.productType === "tile",
+              },
               fields: [
                 {
-                  name: 'dimension',
-                  type: 'relationship',
-                  relationTo: 'dimensions',
-                  required: true,
-                  label: 'سایز / ابعاد',
+                  name: "dimension",
+                  type: "relationship",
+                  relationTo: "dimensions",
+                  required: false,
+                  label: "سایز / ابعاد (اختیاری)",
                   admin: {
-                    description: 'انتخاب سایز استاندارد کالا از لیست ابعاد.',
+                    description: "انتخاب سایز استاندارد کالا از لیست ابعاد.",
                   },
                 },
                 {
-                  type: 'row',
+                  type: "row",
                   fields: [
                     {
-                      name: 'width',
-                      type: 'number',
-                      label: 'عرض (cm)',
+                      name: "width",
+                      type: "number",
+                      label: "عرض (cm)",
                       admin: {
                         readOnly: true,
-                        width: '50%',
-                        description: 'عرض همگام‌شده پس از ذخیره.',
+                        width: "50%",
+                        description: "عرض همگام‌شده پس از ذخیره.",
                       },
                     },
                     {
-                      name: 'height',
-                      type: 'number',
-                      label: 'طول (cm)',
+                      name: "height",
+                      type: "number",
+                      label: "طول (cm)",
                       admin: {
                         readOnly: true,
-                        width: '50%',
-                        description: 'طول همگام‌شده پس از ذخیره.',
+                        width: "50%",
+                        description: "طول همگام‌شده پس از ذخیره.",
                       },
                     },
                   ],
                 },
                 {
-                  name: 'piecesPerCarton',
-                  type: 'number',
+                  name: "piecesPerCarton",
+                  type: "number",
                   defaultValue: 4,
-                  label: 'تعداد قطعه در کارتن',
+                  label: "تعداد قطعه در کارتن (اختیاری)",
                   admin: {
-                    description: 'تعداد فیزیکی قالب/اسلب کاشی در کارتن (مستقل از متراژ).',
+                    description:
+                      "تعداد فیزیکی قالب/اسلب کاشی در کارتن (مستقل از متراژ).",
                   },
+                },
+              ],
+            },
+            // --- مشخصات فنی اقلام غیر کاشی (چسب، پودر، ملزومات) ---
+            {
+              type: "collapsible",
+              label: "مشخصات اقلام غیرکاشی (چسب و ملزومات)",
+              admin: {
+                condition: (data) => data?.productType === "other",
+              },
+              fields: [
+                {
+                  type: "row",
+                  fields: [
+                    {
+                      name: "unit",
+                      type: "select",
+                      defaultValue: "bag",
+                      label: "واحد فروش",
+                      admin: {
+                        width: "50%",
+                      },
+                      options: [
+                        { label: "کیسه", value: "bag" },
+                        { label: "سطل", value: "bucket" },
+                        { label: "بسته", value: "pack" },
+                        { label: "قوطی", value: "can" },
+                        { label: "شاخه", value: "branch" },
+                        { label: "عدد", value: "piece" },
+                        { label: "کارتن", value: "box" },
+                        { label: "رول", value: "roll" },
+                        { label: "کیلوگرم", value: "kg" },
+                        { label: "لیتر", value: "liter" },
+                      ],
+                    },
+                    {
+                      name: "weight",
+                      type: "number",
+                      label: "وزن یا مقدار هر واحد (اختیاری)",
+                      admin: {
+                        width: "50%",
+                        description: "مثال: ۲۵ برای کیسه ۲۵ کیلو",
+                      },
+                    },
+                  ],
+                },
+                {
+                  type: "row",
+                  fields: [
+                    {
+                      name: "itemsPerPack",
+                      type: "number",
+                      label: "تعداد در بسته (اختیاری)",
+                      admin: {
+                        width: "50%",
+                        description: "مثال: ۱۰۰ عدد",
+                      },
+                    },
+                    {
+                      name: "approxCoverage",
+                      type: "text",
+                      label: "پوشش تقریبی (اختیاری)",
+                      admin: {
+                        width: "50%",
+                        description: "مثال: ۴ الی ۵ مترمربع",
+                      },
+                    },
+                  ],
                 },
               ],
             },
           ],
         },
         {
-          label: 'تصاویر و محتوا',
+          label: "تصاویر و محتوا",
           fields: [
             {
-              name: 'cover',
-              type: 'upload',
-              relationTo: 'media',
-              label: 'تصویر شاخص',
+              name: "cover",
+              type: "upload",
+              relationTo: "media",
+              label: "تصویر شاخص",
               admin: {
-                description: 'تصویر اصلی و کاور محصول در کاتالوگ فروشگاه.',
+                description: "تصویر اصلی و کاور محصول در کاتالوگ فروشگاه.",
               },
             },
             {
-              name: 'gallery',
-              type: 'array',
-              label: 'گالری تصاویر',
+              name: "gallery",
+              type: "array",
+              label: "گالری تصاویر",
               labels: {
-                singular: 'تصویر',
-                plural: 'تصاویر',
+                singular: "تصویر",
+                plural: "تصاویر",
               },
               admin: {
-                description: 'تصاویر تکمیلی و محیطی محصول.',
+                description: "تصاویر تکمیلی و محیطی محصول.",
               },
               fields: [
                 {
-                  name: 'image',
-                  type: 'upload',
-                  relationTo: 'media',
+                  name: "image",
+                  type: "upload",
+                  relationTo: "media",
                   required: true,
-                  label: 'تصویر گالری',
+                  label: "تصویر گالری",
                 },
               ],
             },
             {
-              name: 'richDescription',
-              type: 'richText',
-              label: 'توضیحات تکمیلی',
+              name: "richDescription",
+              type: "richText",
+              label: "توضیحات تکمیلی",
               admin: {
-                description: 'مشخصات فنی، ویژگی‌های لعاب و راهنمای نصب و نگهداری.',
+                description:
+                  "مشخصات فنی، ویژگی‌های لعاب و راهنمای نصب و نگهداری.",
               },
             },
           ],
@@ -297,4 +466,4 @@ export const Products: CollectionConfig = {
       ],
     },
   ],
-}
+};

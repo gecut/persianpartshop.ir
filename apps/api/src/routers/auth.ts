@@ -31,9 +31,10 @@ async function processRequestOtp(rawPhone: string) {
     })
   }
 
-  if (userDoc.status === 'suspended') {
+  if (userDoc.isBanned || userDoc.status === 'suspended') {
+    const reason = userDoc.banReason ? ` به علت: «${userDoc.banReason}»` : ''
     throw new ORPCError('FORBIDDEN', {
-      message: 'حساب کاربری شما توسط مدیریت معلق شده است. لطفاً با پشتیبانی تماس بگیرید.',
+      message: `حساب کاربری شما توسط مدیریت مسدود شده است.${reason} جهت رفع مسدودی یا اطلاعات بیشتر لطفاً با پشتیبانی تماس بگیرید.`,
     })
   }
 
@@ -105,9 +106,16 @@ async function processVerifyOtp(rawPhone: string, rawCode: string) {
     })
   }
 
+  if (userDoc.isBanned || userDoc.status === 'suspended') {
+    const reason = userDoc.banReason ? ` به علت: «${userDoc.banReason}»` : ''
+    throw new ORPCError('FORBIDDEN', {
+      message: `حساب کاربری شما توسط مدیریت مسدود شده است.${reason} جهت رفع مسدودی یا اطلاعات بیشتر لطفاً با پشتیبانی تماس بگیرید.`,
+    })
+  }
+
   if (userDoc.status !== 'active') {
     throw new ORPCError('FORBIDDEN', {
-      message: 'حساب کاربری شما غیرفعال یا مسدود است. لطفاً با پشتیبانی تماس بگیرید.',
+      message: 'حساب کاربری شما غیرفعال است. لطفاً با پشتیبانی تماس بگیرید.',
     })
   }
 
@@ -150,13 +158,25 @@ export const auth = base.auth.router({
   requestOtp: base.auth.requestOtp.handler(handleRequestOtp),
   verifyOtp: base.auth.verifyOtp.handler(handleVerifyOtp),
   session: base.auth.session.handler(async ({ context }) => {
+    if (context.isBanned) {
+      const reason = context.banReason ? ` به علت: «${context.banReason}»` : ''
+      throw new ORPCError('FORBIDDEN', {
+        message: `حساب کاربری شما توسط مدیریت مسدود شده است.${reason}`,
+      })
+    }
     if (!context.user) return { user: null }
     try {
       const userDoc: any = await getUserProfile(context.user.id)
-      if (!userDoc) return { user: null }
+      if (!userDoc || userDoc.status === 'suspended' || userDoc.isBanned) {
+        const reason = userDoc?.banReason ? ` به علت: «${userDoc.banReason}»` : ''
+        throw new ORPCError('FORBIDDEN', {
+          message: `حساب کاربری شما توسط مدیریت مسدود شده است.${reason}`,
+        })
+      }
       const { notes, ...safeUser } = userDoc
       return { user: safeUser }
-    } catch {
+    } catch (err) {
+      if (err instanceof ORPCError) throw err
       return { user: null }
     }
   }),
@@ -165,11 +185,24 @@ export const auth = base.auth.router({
     requestOtp: base.auth.customer.requestOtp.handler(handleRequestOtp),
     verifyOtp: base.auth.customer.verifyOtp.handler(handleVerifyOtp),
     me: base.auth.customer.me.handler(async ({ context }) => {
+      if (context.isBanned) {
+        const reason = context.banReason ? ` به علت: «${context.banReason}»` : ''
+        throw new ORPCError('FORBIDDEN', {
+          message: `حساب کاربری شما توسط مدیریت مسدود شده است.${reason}`,
+        })
+      }
       if (!context.user) return null
       try {
-        const userDoc = await getUserProfile(context.user.id)
+        const userDoc: any = await getUserProfile(context.user.id)
+        if (!userDoc || userDoc.status === 'suspended' || userDoc.isBanned) {
+          const reason = userDoc?.banReason ? ` به علت: «${userDoc.banReason}»` : ''
+          throw new ORPCError('FORBIDDEN', {
+            message: `حساب کاربری شما توسط مدیریت مسدود شده است.${reason}`,
+          })
+        }
         return formatCustomerProfile(userDoc)
-      } catch {
+      } catch (err) {
+        if (err instanceof ORPCError) throw err
         return null
       }
     }),

@@ -30,8 +30,10 @@ import {
   PencilIcon,
   ChevronDownIcon,
   CheckIcon,
+  FileTextIcon,
 } from "../../components/ui/icons";
 import { PreInvoiceModal } from "../../features/checkout/pre-invoice-modal";
+import { OrderInvoiceModal } from "../../features/orders/order-invoice-modal";
 import { useProducts } from "../../features/products/product-store";
 import { selectionStore } from "../../features/products/selection-store";
 import { Counter } from "../../components/ui/counter";
@@ -43,7 +45,9 @@ export const Route = createFileRoute("/orders/$id")({
   component: OrderDetailPage,
 });
 
-function formatInvoiceNumber(order: { id: string | number; orderNumber?: string } | string | number): string {
+function formatInvoiceNumber(
+  order: { id: string | number; orderNumber?: string } | string | number,
+): string {
   if (typeof order === "object" && order !== null) {
     if (order.orderNumber && /^ptp\s+/i.test(order.orderNumber)) {
       return order.orderNumber.toLowerCase();
@@ -77,6 +81,7 @@ function OrderDetailPage() {
   );
   const [isCancelReasonOpen, setIsCancelReasonOpen] = useState(false);
   const [isReorderModalOpen, setIsReorderModalOpen] = useState(false);
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [order, setOrder] = useState<Order | null>(
     () => getOrderById(orderId) || null,
   );
@@ -93,14 +98,25 @@ function OrderDetailPage() {
     order?.status === "approved" ||
     order?.status === "approve";
 
-  // 10-Minute Countdown Timer calculation (starts at 10 minutes for pending orders)
-  const [timeLeftSeconds, setTimeLeftSeconds] = useState<number>(600);
+  // 60-Minute Countdown Timer calculation (calculated from database timestamp)
+  const calculateRemainingSeconds = (orderDoc: any) => {
+    if (!orderDoc) return 0;
+    const deadlineMs = orderDoc.cancellationDeadline
+      ? new Date(orderDoc.cancellationDeadline).getTime()
+      : orderDoc.createdAt
+        ? new Date(orderDoc.createdAt).getTime() + 60 * 60 * 1000
+        : 0;
+    return Math.max(0, Math.floor((deadlineMs - Date.now()) / 1000));
+  };
+
+  const [timeLeftSeconds, setTimeLeftSeconds] = useState<number>(0);
 
   useEffect(() => {
     let isMounted = true;
     const cached = getOrderById(orderId);
     if (cached) {
       setOrder(cached);
+      setTimeLeftSeconds(calculateRemainingSeconds(cached));
       setIsLoading(false);
       return;
     }
@@ -109,6 +125,7 @@ function OrderDetailPage() {
     fetchOrderById(orderId).then((res) => {
       if (isMounted) {
         setOrder(res);
+        setTimeLeftSeconds(calculateRemainingSeconds(res));
         setIsLoading(false);
       }
     });
@@ -119,30 +136,43 @@ function OrderDetailPage() {
   }, [orderId, orders]);
 
   useEffect(() => {
-    if (!order || isCancelled || isCompleted) return;
+    if (!order || isCancelled || isCompleted) {
+      setTimeLeftSeconds(0);
+      return;
+    }
 
-    // Set to 10 minutes (600s) as requested
-    const initialTime = 600;
-    const startTime = Date.now();
+    const updateTimer = () => {
+      const remaining = calculateRemainingSeconds(order);
+      setTimeLeftSeconds(remaining);
+      return remaining;
+    };
 
-    setTimeLeftSeconds(initialTime);
+    updateTimer();
 
     const timer = setInterval(() => {
-      const elapsed = Math.floor((Date.now() - startTime) / 1000);
-      const remaining = Math.max(0, initialTime - elapsed);
-      setTimeLeftSeconds(remaining);
-      if (remaining <= 0) {
+      const rem = updateTimer();
+      if (rem <= 0) {
         clearInterval(timer);
       }
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [order?.id, isCancelled, isCompleted, order?.updatedAt, order?.status]);
+  }, [
+    order?.id,
+    order?.createdAt,
+    order?.cancellationDeadline,
+    isCancelled,
+    isCompleted,
+    order?.updatedAt,
+    order?.status,
+  ]);
 
-  const isWithin10Minutes = timeLeftSeconds > 0;
-  const is10MinutesPassed = timeLeftSeconds <= 0;
+  const isWithin60Minutes = timeLeftSeconds > 0;
   const isCancellableByCustomer =
-    !isCancelled && !isCompleted && isWithin10Minutes;
+    !isCancelled && !isCompleted && isWithin60Minutes;
+
+  const createdAtMs = order?.createdAt ? new Date(order.createdAt).getTime() : Date.now();
+  const is10MinutesPassed = Date.now() >= createdAtMs + 10 * 60 * 1000;
 
   const timeline = useMemo(() => {
     if (!order) return [];
@@ -316,7 +346,10 @@ function OrderDetailPage() {
       <div className="bg-muted/5 rounded-2xl p-5 sm:p-6 space-y-4">
         <div>
           <div className="flex items-center gap-2.5 mb-2 flex-wrap">
-            <span className="px-2.5 py-1 rounded-lg bg-primary/10 text-xs font-bold text-primary flex items-center gap-1.5" dir="ltr">
+            <span
+              className="px-2.5 py-1 rounded-lg bg-primary/10 text-xs font-bold text-primary flex items-center gap-1.5"
+              dir="ltr"
+            >
               <span className="text-primary text-xs font-semibold">فاکتور</span>
               <span>{formatInvoiceNumber(order)}</span>
             </span>
@@ -324,12 +357,12 @@ function OrderDetailPage() {
               {displayStatusLabel}
             </Badge>
 
-            {/* 10-Minute Customer Countdown Badge */}
+            {/* 60-Minute Customer Countdown Badge */}
             {!isCancelled && !isCompleted && (
               <span
                 className={cn(
                   "px-2.5 py-1 rounded-xl text-xs font-bold flex items-center gap-1.5 border-none shadow-none",
-                  isWithin10Minutes
+                  isWithin60Minutes
                     ? "bg-warning/15 text-warning"
                     : "bg-muted/10 text-muted",
                 )}
@@ -337,14 +370,14 @@ function OrderDetailPage() {
                 <ClockIcon
                   size={20}
                   className={cn(
-                    isWithin10Minutes ? "text-warning" : "text-muted",
+                    isWithin60Minutes ? "text-warning" : "text-muted",
                   )}
                 />
                 <span className="inline-flex items-center gap-1.5">
                   <span>
-                    به مدت ۱۰ دقیقه وقت دارید سفارش خود را ویرایش یا لغو کنید
+                    به مدت ۶۰ دقیقه وقت دارید سفارش خود را ویرایش یا لغو کنید
                   </span>
-                  {isWithin10Minutes ? (
+                  {isWithin60Minutes ? (
                     <span
                       className="inline-flex items-center gap-0.5 font-bold tracking-wider"
                       dir="ltr"
@@ -398,7 +431,9 @@ function OrderDetailPage() {
             <div className="w-full py-3 px-4 rounded-2xl bg-danger/10 border border-danger/20 text-danger text-xs font-bold flex items-center justify-between gap-2 flex-wrap">
               <div className="flex items-center gap-2">
                 <XIcon size={16} className="shrink-0 text-danger" />
-                <span>این سفارش لغو شده است و امکان سفارش مجدد آن وجود ندارد.</span>
+                <span>
+                  این سفارش لغو شده است و امکان سفارش مجدد آن وجود ندارد.
+                </span>
               </div>
               {((order as any).cancellationReason || order.notes) && (
                 <span className="text-[11px] font-semibold text-danger/80">
@@ -409,6 +444,15 @@ function OrderDetailPage() {
           </div>
         ) : (
           <div className="pt-3 flex items-center gap-2 flex-wrap sm:flex-nowrap">
+            <Button
+              type="button"
+              onPress={() => setShowInvoiceModal(true)}
+              className="flex-1 h-10 px-4 rounded-2xl bg-muted/10 hover:bg-muted/15 text-foreground text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
+            >
+              <FileTextIcon size={16} />
+              <span>دریافت پیش‌فاکتور</span>
+            </Button>
+
             {isCancellableByCustomer && (
               <>
                 <Button
@@ -612,10 +656,8 @@ function OrderDetailPage() {
                 </HeroUIModal.Heading>
                 <p className="text-xs text-muted mt-1 leading-relaxed">
                   آیا از لغو سفارش{" "}
-                  <strong dir="ltr">
-                    {formatInvoiceNumber(order)}
-                  </strong>{" "}
-                  در مهلت ۱۰ دقیقه‌ای اطمینان دارید؟
+                  <strong dir="ltr">{formatInvoiceNumber(order)}</strong> در
+                  مهلت ۶۰ دقیقه‌ای اطمینان دارید؟
                 </p>
                 <div className="mt-2.5 p-2 bg-success/15 rounded-xl text-[11px] text-success text-start">
                   اقلام سفارش به موجودی انبار بازگردانده می‌شوند.
@@ -696,18 +738,18 @@ function OrderDetailPage() {
                 </Dropdown>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 pt-2">
+              <div className="w-full flex items-center gap-3 pt-2">
                 <Button
                   type="button"
                   onPress={() => setShowCancelModal(false)}
-                  className="h-10 px-4 rounded-2xl bg-muted/5 text-foreground text-xs font-bold hover:bg-muted/15 cursor-pointer transition-all"
+                  className="h-10 w-full px-4 rounded-2xl bg-muted/5 text-foreground text-xs font-bold hover:bg-muted/15 cursor-pointer transition-all"
                 >
                   انصراف
                 </Button>
                 <Button
                   type="button"
                   onPress={handleCancel}
-                  className="h-10 px-4 rounded-2xl bg-danger hover:bg-danger/90 text-danger-foreground text-xs font-bold cursor-pointer transition-all"
+                  className="h-10 w-full px-4 rounded-2xl bg-danger hover:bg-danger/90 text-danger-foreground text-xs font-bold cursor-pointer transition-all"
                 >
                   تأیید لغو سفارش
                 </Button>
@@ -716,6 +758,15 @@ function OrderDetailPage() {
           </HeroUIModal.Container>
         </HeroUIModal.Backdrop>
       </HeroUIModal.Root>
+
+      {/* Official Printable Pre-Invoice Modal (Not available for cancelled orders) */}
+      {!isCancelled && (
+        <OrderInvoiceModal
+          order={order}
+          isOpen={showInvoiceModal}
+          onClose={() => setShowInvoiceModal(false)}
+        />
+      )}
 
       {/* Pre-Invoice Modal for Reordering */}
       <PreInvoiceModal

@@ -1,6 +1,8 @@
 import type { CollectionConfig } from 'payload'
 import { personalizePlanAfterRead } from './_personalize-plan.after-read'
 import { isSalesManager, canManagePlans } from '../../access/roles'
+import { logAction } from '../audit-logs/log-action'
+import { sendSmsNotification } from '../../lib/sms'
 
 export const Plans: CollectionConfig = {
   slug: 'plans',
@@ -10,9 +12,9 @@ export const Plans: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'title',
-    defaultColumns: ['title', 'users', 'createdAt'],
+    defaultColumns: ['title', 'startsAt', 'expiresAt', 'createdAt'],
     group: 'فروش و مشتریان',
-    description: 'طرح‌ها و تخفیف‌های مشتریان.',
+    description: 'طرح‌ها، بسته‌ها و پیشنهادات ویژه مشتریان.',
   },
   access: {
     read: isSalesManager,
@@ -22,23 +24,75 @@ export const Plans: CollectionConfig = {
   },
   hooks: {
     afterRead: [personalizePlanAfterRead],
+    afterChange: [
+      async ({ doc, previousDoc, operation, req, context }) => {
+        if (context?.skipLogging) return
+
+        // 1. Audit Log
+        const isCreate = operation === 'create'
+        await logAction({
+          payload: req.payload,
+          req,
+          action: 'other',
+          entity: 'admins',
+          target: `طرح: ${doc.title || doc.id}`,
+          details: isCreate ? 'ایجاد طرح فروش اختصاصی' : 'ویرایش مشخصات طرح فروش اختصاصی',
+        })
+
+        // 2. Send SMS to newly assigned users
+        try {
+          const currentUsers: number[] = Array.isArray(doc.users)
+            ? doc.users.map((u: any) => (typeof u === 'object' && u !== null ? u.id : Number(u)))
+            : []
+
+          const prevUsers: number[] = Array.isArray(previousDoc?.users)
+            ? previousDoc.users.map((u: any) => (typeof u === 'object' && u !== null ? u.id : Number(u)))
+            : []
+
+          const newRecipientIds = currentUsers.filter((id) => isCreate || !prevUsers.includes(id))
+
+          if (newRecipientIds.length > 0) {
+            for (const userId of newRecipientIds) {
+              const userDoc: any = await req.payload.findByID({
+                collection: 'users',
+                id: userId,
+                depth: 0,
+              })
+
+              if (userDoc?.phone) {
+                const planTitle = doc.title || 'پیشنهاد ویژه'
+                const smsMessage = `همکار گرامی ${userDoc.fullName || ''}\nطرح اختصاصی «${planTitle}» برای شما فعال شد.\nمشاهده جزئیات: persianpartshop.ir/plans`
+
+                await sendSmsNotification({
+                  receptor: userDoc.phone,
+                  message: smsMessage,
+                })
+              }
+            }
+          }
+        } catch (smsErr) {
+          console.error('Plan SMS dispatch error:', smsErr)
+        }
+      },
+    ],
   },
   fields: [
     {
       name: 'title',
       type: 'text',
+      required: true,
       label: 'عنوان طرح',
       admin: {
-        description: 'عنوان بسته یا پیشنهاد ویژه (مثال: تخفیف ویژه خرید نقدی).',
+        description: 'عنوان طرح یا پیشنهاد ویژه',
       },
     },
     {
       name: 'content',
       type: 'textarea',
       required: true,
-      label: 'متن طرح و شرایط',
+      label: 'متن و شرایط کامل طرح',
       admin: {
-        description: 'متن پیام یا توضیحات بسته تخفیفی برای خریدار.',
+        description: 'توضیحات و شرایط استفاده از طرح برای خریدار',
       },
     },
     {
@@ -50,7 +104,72 @@ export const Plans: CollectionConfig = {
       label: 'مشتریان هدف',
       admin: {
         position: 'sidebar',
-        description: 'خریدارانی که این طرح اختصاصی به آن‌ها تعلق می‌گیرد.',
+        description: 'خریدارانی که این طرح به آن‌ها تخصیص داده می‌شود.',
+      },
+    },
+    {
+      name: 'products',
+      type: 'relationship',
+      relationTo: 'products',
+      hasMany: true,
+      required: false,
+      label: 'محصولات مرتبط (اختیاری)',
+      admin: {
+        description: 'کالاهایی که مشمول تخفیف یا شرایط ویژه این طرح هستند.',
+      },
+    },
+    {
+      type: 'row',
+      fields: [
+        {
+          name: 'startsAt',
+          type: 'date',
+          label: 'تاریخ شروع طرح',
+          admin: {
+            width: '50%',
+            description: 'تاریخ و ساعت آغاز رسمی طرح',
+          },
+        },
+        {
+          name: 'expiresAt',
+          type: 'date',
+          label: 'تاریخ پایان طرح',
+          admin: {
+            width: '50%',
+            description: 'تاریخ و ساعت پایان طرح (پس از پایان موعد، طرح پاک می‌شود)',
+          },
+        },
+      ],
+    },
+    {
+      name: 'status',
+      type: 'select',
+      defaultValue: 'active',
+      label: 'وضعیت طرح',
+      admin: {
+        position: 'sidebar',
+      },
+      options: [
+        { label: 'فعال', value: 'active' },
+        { label: 'منقضی', value: 'expired' },
+        { label: 'پیش‌نویس', value: 'draft' },
+      ],
+    },
+    {
+      name: 'discountPercent',
+      type: 'number',
+      label: 'درصد تخفیف (اختیاری)',
+      admin: {
+        position: 'sidebar',
+        description: 'درصد تخفیف اعمالی روی اقلام این طرح',
+      },
+    },
+    {
+      name: 'discountAmount',
+      type: 'number',
+      label: 'مبلغ تخفیف به تومان (اختیاری)',
+      admin: {
+        position: 'sidebar',
       },
     },
   ],

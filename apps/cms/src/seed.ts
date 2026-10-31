@@ -367,9 +367,12 @@ const CATEGORIES: CategorySeed[] = [
   { name: 'کاشی بین کابینتی و دکوراتیو', slug: 'decorative-kitchen', ordering: 5 },
   { name: 'سرامیک ضد اسید و صنعتی', slug: 'industrial-anti-acid', ordering: 6 },
   { name: 'سرویس و حمام ضد آب', slug: 'bathroom-waterproof', ordering: 7 },
+  { name: 'غیره', slug: 'other', ordering: 8 },
 ]
 
 const BRANDS: BrandSeed[] = [
+  { name: 'پرشین پارت', slug: 'persianpart' },
+  { name: 'متفرقه', slug: 'miscellaneous' },
   { name: 'کاشی و سرامیک پرسپولیس', slug: 'persepolis-tile' },
   { name: 'کاشی مرجان', slug: 'marjan-tile' },
   { name: 'صنایع کاشی تبریز', slug: 'tabriz-tile' },
@@ -1202,12 +1205,16 @@ export async function runSeed() {
     })
 
     if (existing.docs.length > 0) {
-      // Do not overwrite stockCartons and inventorySqm on re-seed to preserve live order reservations
-      const { stockCartons, inventorySqm, ...safeProductData } = productData
+      // Do not overwrite stockCartons and inventorySqm on re-seed unless currently zero
+      const currentSqm = Number((existing.docs[0] as any).inventorySqm || 0)
+      const dataToUpdate = currentSqm <= 0
+        ? productData
+        : (({ stockCartons, inventorySqm, ...safe }) => safe)(productData)
+
       await payload.update({
         collection: 'products',
         id: existing.docs[0].id,
-        data: safeProductData,
+        data: dataToUpdate,
       })
       updatedCount++
     } else {

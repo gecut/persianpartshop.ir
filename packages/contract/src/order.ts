@@ -5,6 +5,7 @@ import {
   EntityIdSchema,
   PaginationInputSchema,
   createPaginatedResponseSchema,
+  StandardErrorDataSchema,
 } from './common'
 
 // ============================================================================
@@ -298,16 +299,20 @@ export const orderContract = {
         id: z.union([EntityIdSchema, z.number()]),
         message: z.string(),
       })
-    ),
+    )
+    .errors({
+      FORBIDDEN: { data: StandardErrorDataSchema },
+    }),
 
   submit: oc
     .meta(openapi({ method: 'POST', path: '/orders', summary: 'ثبت سفارش قطعی تراکنشی توسط مشتری' }))
     .input(SubmitOrderInputSchema)
     .output(OrderSchema.or(z.any()))
     .errors({
-      UNAUTHORIZED: {},
-      INSUFFICIENT_STOCK: {},
-      BAD_REQUEST: {},
+      UNAUTHORIZED: { data: StandardErrorDataSchema },
+      FORBIDDEN: { data: StandardErrorDataSchema },
+      INSUFFICIENT_STOCK: { data: StandardErrorDataSchema },
+      BAD_REQUEST: { data: StandardErrorDataSchema },
     }),
 
   cancel: oc

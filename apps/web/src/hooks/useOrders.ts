@@ -10,6 +10,7 @@ export function useCustomerOrders(status?: OrderStatus) {
       const res = await api.order.list({ status })
       return res
     },
+    enabled: typeof window !== 'undefined' && Boolean(localStorage.getItem('persianpart_token')),
     staleTime: 30 * 1000,
   })
 

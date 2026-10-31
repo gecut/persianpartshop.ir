@@ -130,13 +130,8 @@ export function LoginCard() {
       const msg =
         err instanceof Error ? err.message : "کد وارد شده اشتباه است.";
 
-      if (msg.includes("بیش از حد مجاز") || msg.includes("باطل شد")) {
-        setErrorMessage(msg);
-        toast.error("خطا", msg);
-      } else {
-        setErrorMessage(null);
-        toast.error("کد وارد شده اشتباه است");
-      }
+      setErrorMessage(msg);
+      toast.error("خطای ورود", msg);
     } finally {
       setIsLoading(false);
     }

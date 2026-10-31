@@ -13,8 +13,14 @@ function getInitialPlans(): Plan[] {
     if (saved) {
       const parsed = JSON.parse(saved)
       if (Array.isArray(parsed) && parsed.length > 0) {
+        const now = Date.now()
         const mapped = parsed
-          .filter((p) => !p.id?.startsWith('demo-'))
+          .filter((p) => {
+            if (p.id?.startsWith('demo-')) return false
+            if (p.status === 'expired') return false
+            if (p.expiresAt && new Date(p.expiresAt).getTime() <= now) return false
+            return true
+          })
           .map((p) => {
             const mapped = { ...p }
             if (mapped.createdAt && (mapped.createdAt.includes('2026') || mapped.createdAt.includes('2025') || mapped.createdAt.includes('2024') || mapped.createdAt.startsWith('20'))) {
@@ -22,11 +28,6 @@ function getInitialPlans(): Plan[] {
             }
             if (mapped.hasTimer === undefined) {
               mapped.hasTimer = true
-            }
-            if (!mapped.expiresAt) {
-              const seed = (mapped.id || mapped.title || '1').split('').reduce((acc: number, c: string) => acc + c.charCodeAt(0), 0)
-              const hours = ((seed * 19) % 65) + 14
-              mapped.expiresAt = new Date(Date.now() + hours * 3600 * 1000).toISOString()
             }
             return mapped
           })
@@ -87,7 +88,9 @@ function mapApiPlanToPlan(p: any): Plan {
     productIds,
     notes: content,
     hasTimer: Boolean(p.hasTimer),
+    startsAt: p.startsAt || p.starts_at || undefined,
     expiresAt: p.expiresAt || p.expires_at || undefined,
+    products: p.products || [],
     createdAt: p.createdAt ? formatPersianDate(p.createdAt) : formatPersianDate(new Date()),
   }
 }
@@ -112,31 +115,24 @@ async function fetchFromBackend() {
   try {
     isLoadingPlans = true
     broadcast()
-    const [plansRes, usersRes] = await Promise.allSettled([
-      api.plan.list({}),
-      api.user.list({ limit: 100 }),
-    ])
+    const plansRes = await api.plan.list({}).catch(() => null)
 
-    if (plansRes.status === 'fulfilled' && plansRes.value?.items) {
-      const mapped = plansRes.value.items.map(mapApiPlanToPlan)
-      if (mapped.length > 0) {
-        currentPlans = mapped
-      }
-    }
-
-    if (usersRes.status === 'fulfilled' && Array.isArray(usersRes.value)) {
-      currentCustomers = usersRes.value.map((u: any) => ({
-        id: String(u.id),
-        name: u.fullName || u.phone || `کاربر #${u.id}`,
-        company: u.companyName || 'فروشگاه / همکار',
-        phone: u.phone || '',
-        tier: 'تجاری ممتاز' as const,
-      }))
+    if (plansRes?.items) {
+      const now = Date.now()
+      const mapped = plansRes.items
+        .map(mapApiPlanToPlan)
+        .filter((p) => {
+          if (p.status === 'expired') return false
+          const expireTime = p.expiresAt ? new Date(p.expiresAt).getTime() : null
+          if (expireTime && !isNaN(expireTime) && expireTime <= now) return false
+          return true
+        })
+      currentPlans = mapped
     }
 
     broadcast()
   } catch (err) {
-    console.error('Error fetching plans/users:', err)
+    console.error('Error fetching plans:', err)
   } finally {
     isLoadingPlans = false
     broadcast()
@@ -144,7 +140,15 @@ async function fetchFromBackend() {
 }
 
 export const plansStore = {
-  getPlans: () => currentPlans,
+  getPlans: () => {
+    const now = Date.now()
+    return currentPlans.filter((p) => {
+      if (p.status === 'expired') return false
+      const expireTime = p.expiresAt ? new Date(p.expiresAt).getTime() : null
+      if (expireTime && !isNaN(expireTime) && expireTime <= now) return false
+      return true
+    })
+  },
   getCustomers: () => currentCustomers,
   getProducts: () => [] as Product[],
   isLoading: () => isLoadingPlans,
@@ -285,25 +289,7 @@ export function usePlans() {
     staleTime: 60 * 1000,
   })
 
-  const { data: customers = plansStore.getCustomers() } = useQuery<B2BCustomer[]>({
-    queryKey: queryKeys.plans.customers(),
-    queryFn: async () => {
-      const res = await api.user.list({ limit: 100 })
-      if (Array.isArray(res)) {
-        const mapped: B2BCustomer[] = res.map((u: any) => ({
-          id: String(u.id),
-          name: u.fullName || u.phone || `کاربر #${u.id}`,
-          company: u.companyName || 'فروشگاه / همکار',
-          phone: u.phone || '',
-          tier: 'تجاری ممتاز' as const,
-        }))
-        currentCustomers = mapped
-        return mapped
-      }
-      return plansStore.getCustomers()
-    },
-    staleTime: 5 * 60 * 1000,
-  })
+  const customers = plansStore.getCustomers()
 
   const toggleMutation = useMutation({
     mutationKey: mutationKeys.plans.update,

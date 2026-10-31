@@ -562,3 +562,83 @@ h6 {
 /* --------------------------------------------------------------------------
    CORNER-SHAPE SQUIRCLE SPECIFICATION (CSS Backgrounds & Borders Level 4)
    -------------------------------------------------------------------------- */
+
+/* --------------------------------------------------------------------------
+   PRINT STYLES FOR OFFICIAL PRE-INVOICE (A5 FORMAT ONLY)
+   -------------------------------------------------------------------------- */
+@media print {
+  #printable-invoice,
+  #printable-invoice * {
+    corner-shape: auto !important;
+    -webkit-corner-shape: auto !important;
+    border-radius: 0 !important;
+  }
+
+  @page {
+    size: A5 portrait;
+    margin: 5mm 6mm;
+  }
+
+  html,
+  body {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #111827 !important;
+    overflow: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* 1. Completely hide the SPA root and all other background pages */
+  #root {
+    display: none !important;
+  }
+
+  /* 2. Hide everything in body EXCEPT the invoice portal */
+  body > *:not(#order-invoice-portal) {
+    display: none !important;
+  }
+
+  /* 3. Reset invoice portal container */
+  #order-invoice-portal {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    overflow: visible !important;
+  }
+
+  /* 4. Hide all non-printable action elements */
+  .no-print,
+  #order-invoice-portal .no-print,
+  nav,
+  header,
+  footer,
+  aside,
+  [data-slot="navbar"],
+  [data-slot="bottom-navigation"] {
+    display: none !important;
+  }
+
+  /* 5. Printable invoice sheet container reset for A5 */
+  #printable-invoice {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #ffffff !important;
+  }
+}
+
+

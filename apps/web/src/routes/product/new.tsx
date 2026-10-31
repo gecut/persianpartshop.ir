@@ -23,6 +23,7 @@ import {
   BoxIcon,
 } from "../../components/ui/icons";
 import { useOrders, orderStore } from "../../features/orders/order-store";
+import { useAuth } from "../../features/auth/auth-store";
 
 export const Route = createFileRoute("/product/new")({
   component: ProductNewConfigurationPage,
@@ -30,6 +31,17 @@ export const Route = createFileRoute("/product/new")({
 
 function ProductNewConfigurationPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user?.disableOrdering) {
+      toast.warning(
+        "محدودیت دسترسی",
+        "حساب کاربری شما در وضعیت «فقط مشاهده کاتالوگ» تنظیم شده است و امکان ثبت سفارش را ندارد.",
+      );
+      navigate({ to: "/product" });
+    }
+  }, [user?.disableOrdering, navigate]);
   const location = useLocation();
   const searchObj = (location.search || {}) as Record<string, any>;
   const editOrderId: string | undefined =
@@ -128,6 +140,16 @@ function ProductNewConfigurationPage() {
     const existingOrder = getOrderById(editOrderId);
     if (!existingOrder) return;
 
+    const deadline = existingOrder.cancellationDeadline
+      ? new Date(existingOrder.cancellationDeadline).getTime()
+      : existingOrder.createdAt
+      ? new Date(existingOrder.createdAt).getTime() + 60 * 60 * 1000
+      : 0;
+    if (Date.now() > deadline) {
+      toast.error("خطا در ویرایش", "مهلت ۶۰ دقیقه‌ای ویرایش سفارش به پایان رسیده است.");
+      return;
+    }
+
     const { quantities } = selectionStore.getSnapshot();
     const totals = computeCartTotals(selectedProducts, quantities);
     if (!totals.hasValidQuantities) return;
@@ -145,7 +167,10 @@ function ProductNewConfigurationPage() {
         productName: p.name,
         productSlug: p.slug || p.id,
         productSku: p.sku,
-        dimension: `${p.dimensions.width}×${p.dimensions.height}`,
+        dimension:
+          p.dimensions?.width && p.dimensions?.height
+            ? `${p.dimensions.width}×${p.dimensions.height}`
+            : p.dimension || "",
         unitPrice: p.finalCustomerPricePerSqm,
         requestedArea: area,
         deliverableArea: calc.deliverableArea,

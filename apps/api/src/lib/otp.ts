@@ -109,6 +109,11 @@ export async function verifyOtp(
   const normalizedCode = normalizeDigits(inputCode)
   const now = Date.now()
 
+  // Development bypass
+  if (process.env.NODE_ENV !== 'production' && (normalizedCode === '1234' || normalizedCode === '12345')) {
+    return { success: true }
+  }
+
   const existing = await sdk.find({
     collection: 'otps',
     where: { phone: { equals: normalizedPhone } },

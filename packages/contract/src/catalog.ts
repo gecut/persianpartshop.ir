@@ -197,6 +197,8 @@ export const ProductSchema = z.object({
   name: z.string().trim().min(1, 'نام کالا الزامی است'),
   slug: SlugSchema,
 
+  productType: z.enum(['tile', 'other']).default('tile'),
+
   categoryId: EntityIdSchema.optional().nullable(),
   brandId: EntityIdSchema.optional().nullable(),
 
@@ -204,20 +206,26 @@ export const ProductSchema = z.object({
   grade: z.string().optional().nullable(),
   tags: z.array(z.string()).default([]),
 
-  width: z.number().positive('عرض کاشی (cm) الزامی است'),
-  height: z.number().positive('طول کاشی (cm) الزامی است'),
+  width: z.number().positive('عرض کاشی (cm) الزامی است').optional().nullable(),
+  height: z.number().positive('طول کاشی (cm) الزامی است').optional().nullable(),
 
-  piecesPerCarton: z.number().int().positive('تعداد در کارتن الزامی است'),
-  sqmPerCarton: z.number().positive('متراژ هر کارتن الزامی است'),
+  piecesPerCarton: z.number().int().positive('تعداد در کارتن الزامی است').optional().nullable(),
+  sqmPerCarton: z.number().positive('متراژ هر کارتن الزامی است').optional().nullable(),
+
+  unit: z.enum(['bag', 'bucket', 'pack', 'piece', 'kg', 'liter', 'can', 'branch', 'box', 'roll', 'm2']).optional().nullable(),
+  weight: z.number().nonnegative().optional().nullable(),
+  itemsPerPack: z.number().int().positive().optional().nullable(),
+  approxCoverage: z.string().optional().nullable(),
 
   cover: z.string().optional().nullable(),
   gallery: z.array(z.string()).default([]),
   richDescription: z.string().optional().nullable(),
 
-  basePricePerSqm: z.number().nonnegative('قیمت پایه بر حسب متر مربع الزامی است'),
-  inventorySqm: z.number().nonnegative('موجودی بر حسب متر مربع الزامی است'),
+  basePricePerSqm: z.number().nonnegative('قیمت پایه الزامی است').default(0),
+  inventorySqm: z.number().nonnegative('موجودی الزامی است').default(0),
 
   isActive: z.boolean().default(true),
+  hideExactStock: z.boolean().optional(),
   completeness: ProductCompletenessSchema.optional(),
 
   createdAt: z.string(),
@@ -230,15 +238,20 @@ export const CreateProductInputSchema = z.object({
   sku: z.string().trim().min(1, 'کد SKU الزامی است'),
   name: z.string().trim().min(1, 'نام کالا الزامی است'),
   slug: SlugSchema,
+  productType: z.enum(['tile', 'other']).default('tile'),
   categoryId: EntityIdSchema.optional().nullable(),
   brandId: EntityIdSchema.optional().nullable(),
   color: z.string().optional().nullable(),
   grade: z.string().optional().nullable(),
   tags: z.array(z.string()).default([]),
-  width: z.number().positive('عرض الزامی است'),
-  height: z.number().positive('طول الزامی است'),
-  piecesPerCarton: z.number().int().positive('تعداد در کارتن الزامی است'),
-  sqmPerCarton: z.number().positive('متراژ هر کارتن الزامی است'),
+  width: z.number().positive().optional().nullable(),
+  height: z.number().positive().optional().nullable(),
+  piecesPerCarton: z.number().int().positive().optional().nullable(),
+  sqmPerCarton: z.number().positive().optional().nullable(),
+  unit: z.enum(['bag', 'bucket', 'pack', 'piece', 'kg', 'liter', 'can', 'branch', 'box', 'roll', 'm2']).optional().nullable(),
+  weight: z.number().nonnegative().optional().nullable(),
+  itemsPerPack: z.number().int().positive().optional().nullable(),
+  approxCoverage: z.string().optional().nullable(),
   cover: z.string().optional().nullable(),
   gallery: z.array(z.string()).default([]),
   richDescription: z.string().optional().nullable(),
@@ -253,15 +266,20 @@ export const UpdateProductInputSchema = z.object({
   id: EntityIdSchema,
   name: z.string().min(1).optional(),
   slug: SlugSchema.optional(),
+  productType: z.enum(['tile', 'other']).optional(),
   categoryId: EntityIdSchema.optional().nullable(),
   brandId: EntityIdSchema.optional().nullable(),
   color: z.string().optional().nullable(),
   grade: z.string().optional().nullable(),
   tags: z.array(z.string()).optional(),
-  width: z.number().positive().optional(),
-  height: z.number().positive().optional(),
-  piecesPerCarton: z.number().int().positive().optional(),
-  sqmPerCarton: z.number().positive().optional(),
+  width: z.number().positive().optional().nullable(),
+  height: z.number().positive().optional().nullable(),
+  piecesPerCarton: z.number().int().positive().optional().nullable(),
+  sqmPerCarton: z.number().positive().optional().nullable(),
+  unit: z.enum(['bag', 'bucket', 'pack', 'piece', 'kg', 'liter', 'can', 'branch', 'box', 'roll', 'm2']).optional().nullable(),
+  weight: z.number().nonnegative().optional().nullable(),
+  itemsPerPack: z.number().int().positive().optional().nullable(),
+  approxCoverage: z.string().optional().nullable(),
   cover: z.string().optional().nullable(),
   gallery: z.array(z.string()).optional(),
   richDescription: z.string().optional().nullable(),
@@ -316,6 +334,8 @@ export const CatalogProductSchema = z.object({
   name: z.string(),
   slug: z.string(),
 
+  productType: z.enum(['tile', 'other']).default('tile'),
+
   categoryId: EntityIdSchema.optional().nullable(),
   categoryName: z.string().optional(),
 
@@ -326,11 +346,16 @@ export const CatalogProductSchema = z.object({
   grade: z.string().optional().nullable(),
   tags: z.array(z.string()),
 
-  width: z.number().positive(),
-  height: z.number().positive(),
+  width: z.number().positive().optional().nullable(),
+  height: z.number().positive().optional().nullable(),
 
-  piecesPerCarton: z.number().int().positive(),
-  sqmPerCarton: z.number().positive(),
+  piecesPerCarton: z.number().int().positive().optional().nullable(),
+  sqmPerCarton: z.number().positive().optional().nullable(),
+
+  unit: z.enum(['bag', 'bucket', 'pack', 'piece', 'kg', 'liter', 'can', 'branch', 'box', 'roll', 'm2']).optional().nullable(),
+  weight: z.number().nonnegative().optional().nullable(),
+  itemsPerPack: z.number().int().positive().optional().nullable(),
+  approxCoverage: z.string().optional().nullable(),
 
   cover: z.string().optional().nullable(),
   gallery: z.array(z.string()),
@@ -338,6 +363,7 @@ export const CatalogProductSchema = z.object({
 
   finalCustomerPricePerSqm: z.number().nonnegative(),
   availability: AvailabilityBadgeSchema,
+  hideExactStock: z.boolean().optional(),
 })
 
 export type CatalogProduct = z.infer<typeof CatalogProductSchema>

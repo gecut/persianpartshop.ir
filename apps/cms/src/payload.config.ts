@@ -19,6 +19,7 @@ import { Plans } from './collections/plans'
 import { Dimensions } from './collections/dimensions'
 import { CustomerTypes } from './collections/customer-types'
 import { Otps } from './collections/otps'
+import { AuditLogs } from './collections/audit-logs'
 
 import { fa } from '@payloadcms/translations/languages/fa'
 import { en } from '@payloadcms/translations/languages/en'
@@ -168,6 +169,7 @@ export default buildConfig({
     // رسانه و مدیریت
     Media,
     Admins,
+    AuditLogs,
   ],
   plugins: [
     importExportPlugin({

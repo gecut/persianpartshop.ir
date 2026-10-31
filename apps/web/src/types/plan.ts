@@ -26,7 +26,9 @@ export interface Plan {
   productIds: string[]
   notes?: string
   hasTimer?: boolean
+  startsAt?: string
   expiresAt?: string
+  products?: any[]
   createdAt: string
 }
 

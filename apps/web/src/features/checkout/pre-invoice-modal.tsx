@@ -9,7 +9,8 @@ import { formatToman, toPersianDigits } from "../../lib/utils/currency";
 import { SlideCommit } from "../../components/ui/slide-commit";
 import { orderStore } from "../orders/order-store";
 import { selectionStore } from "../products/selection-store";
-import { formatGrade } from "../products/product-store";
+import { formatGrade, formatUnit } from "../products/product-store";
+import { toast } from "../../components/feedback/toast";
 import { api } from "../../lib/api-client";
 import { queryKeys, mutationKeys } from "../../lib/query-keys";
 import {
@@ -63,10 +64,20 @@ function PreInvoiceItemCard({ item }: PreInvoiceItemCardProps) {
               {item.product.name}
             </h4>
             <div className="flex items-center gap-1.5 text-xs text-muted mt-1 flex-wrap">
-              <span className="px-2 py-0.5 rounded-lg bg-muted/10 text-foreground font-semibold text-xs">
-                ابعاد: {toPersianDigits(item.product.dimensions.width)} ×{" "}
-                {toPersianDigits(item.product.dimensions.height)}
-              </span>
+              {item.product.dimensions?.width && item.product.dimensions?.height ? (
+                <span className="px-2 py-0.5 rounded-lg bg-muted/10 text-foreground font-semibold text-xs">
+                  ابعاد: {toPersianDigits(item.product.dimensions.width)} ×{" "}
+                  {toPersianDigits(item.product.dimensions.height)}
+                </span>
+              ) : item.product.weight ? (
+                <span className="px-2 py-0.5 rounded-lg bg-muted/10 text-foreground font-semibold text-xs">
+                  {formatUnit(item.product.unit)} {toPersianDigits(item.product.weight)}
+                </span>
+              ) : item.product.unit ? (
+                <span className="px-2 py-0.5 rounded-lg bg-muted/10 text-foreground font-semibold text-xs">
+                  {formatUnit(item.product.unit)}
+                </span>
+              ) : null}
               <span className="text-muted">•</span>
               <span className="text-muted font-medium text-[11px]">
                 {item.product.brand}
@@ -207,6 +218,14 @@ export function PreInvoiceModal({
     let createdId = "";
     let createdOrderNumber = "";
 
+    const token = typeof window !== "undefined" ? localStorage.getItem("persianpart_token") : null;
+    if (!token && !editOrderId) {
+      toast.warning("نیاز به ورود", "جهت ثبت و نهایی‌سازی سفارش، ابتدا وارد حساب کاربری خود شوید.");
+      onClose();
+      navigate({ to: "/login" as any });
+      return;
+    }
+
     if (editOrderId) {
       orderStore.updateOrder(editOrderId, {
         items: orderItems,
@@ -240,8 +259,9 @@ export function PreInvoiceModal({
         createdId = String(res.id);
         createdOrderNumber = res.orderNumber;
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Backend order submission failed:", err);
+      toast.error("خطا در ثبت سفارش", err?.message || "مشکلی در ثبت سفارش رخ داد.");
       return;
     }
 

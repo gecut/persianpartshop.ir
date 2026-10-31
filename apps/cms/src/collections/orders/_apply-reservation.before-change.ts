@@ -1,4 +1,4 @@
-import type { CollectionBeforeChangeHook } from 'payload'
+import { APIError, type CollectionBeforeChangeHook } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getOrderTransaction } from './_transaction'
 
@@ -86,8 +86,9 @@ export const applyReservationBeforeChange: CollectionBeforeChangeHook = async ({
         })
         const cCartons = current?.stockCartons ?? 0
         const cSqm = current?.inventorySqm ?? 0
-        throw new Error(
-          `موجودی ناکافی برای محصول ${current?.name || productId}. موجودی: ${cCartons} کارتن (${cSqm} م²)، درخواستی: ${cartonCount} کارتن (${deliverableArea} م²)`
+        throw new APIError(
+          `موجودی ناکافی برای محصول ${current?.name || productId}. موجودی: ${cCartons} کارتن (${cSqm} م²)، درخواستی: ${cartonCount} کارتن (${deliverableArea} م²)`,
+          400,
         )
       }
     }
