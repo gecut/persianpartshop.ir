@@ -42,11 +42,23 @@ export const DOCUMENT_TYPE_OPTIONS = [
   { value: "operating_license", label: "پروانه بهره‌برداری" },
   { value: "trade_guild_registration", label: "گواهی ثبت‌نام در نظام صنفی" },
   { value: "union_membership", label: "گواهی عضویت در اتحادیه صنفی" },
-  { value: "competent_authorities_permit", label: "مجوز فعالیت از مراجع ذیصلاح" },
-  { value: "stewardship_card_or_letter", label: "کارت مباشرت یا معرفی‌نامه نماینده کسب‌وکار" },
-  { value: "sales_agency_certificate", label: "گواهی نمایندگی فروش یا عاملیت رسمی" },
+  {
+    value: "competent_authorities_permit",
+    label: "مجوز فعالیت از مراجع ذیصلاح",
+  },
+  {
+    value: "stewardship_card_or_letter",
+    label: "کارت مباشرت یا معرفی‌نامه نماینده کسب‌وکار",
+  },
+  {
+    value: "sales_agency_certificate",
+    label: "گواهی نمایندگی فروش یا عاملیت رسمی",
+  },
   { value: "brand_agency_certificate", label: "گواهی نمایندگی برند" },
-  { value: "standard_certificate", label: "گواهی استاندارد یا مجوز تخصصی، در صورت نیاز" },
+  {
+    value: "standard_certificate",
+    label: "گواهی استاندارد یا مجوز تخصصی، در صورت نیاز",
+  },
   { value: "other", label: "غیره" },
 ] as const;
 
@@ -61,12 +73,15 @@ interface CustomerDocument {
   id?: string;
   documentType?: string;
   title?: string;
-  file?: {
-    id: number;
-    url?: string;
-    filename?: string;
-    mimeType?: string;
-  } | number | string;
+  file?:
+    | {
+        id: number;
+        url?: string;
+        filename?: string;
+        mimeType?: string;
+      }
+    | number
+    | string;
   status?: "pending" | "approved" | "rejected";
   rejectionReason?: string | null;
   uploadedAt?: string;
@@ -78,7 +93,9 @@ function getDocFileUrl(file: any): string | null {
     return file.url;
   }
   if (typeof file === "string") {
-    return file.startsWith("http") || file.startsWith("/") ? file : `/api/media/file/${file}`;
+    return file.startsWith("http") || file.startsWith("/")
+      ? file
+      : `/api/media/file/${file}`;
   }
   return null;
 }
@@ -92,17 +109,23 @@ export function ProfileView() {
   const [isEditing, setIsEditing] = useState(false);
 
   // Profile Query from API to get documents and real-time status
-  const { data: profileDoc, isLoading: isProfileLoading, refetch: refetchProfile } = useQuery({
+  const {
+    data: profileDoc,
+    isLoading: isProfileLoading,
+    refetch: refetchProfile,
+  } = useQuery({
     queryKey: queryKeys.auth.profile(),
     queryFn: () => api.user.profile(),
     enabled: !!user,
   });
 
-  const documents = ((profileDoc as any)?.documents as CustomerDocument[]) || [];
+  const documents =
+    ((profileDoc as any)?.documents as CustomerDocument[]) || [];
 
   // State for uploading new document
   const [showUploadModal, setShowUploadModal] = useState(false);
-  const [uploadDocType, setUploadDocType] = useState<DocumentTypeValue>("business_license");
+  const [uploadDocType, setUploadDocType] =
+    useState<DocumentTypeValue>("business_license");
   const [uploadTitle, setUploadTitle] = useState("");
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadPreviewUrl, setUploadPreviewUrl] = useState<string | null>(null);
@@ -235,12 +258,17 @@ export function ProfileView() {
 
     setIsUploading(true);
     try {
-      const token = typeof window !== "undefined" ? localStorage.getItem("persianpart_token") : null;
+      const token =
+        typeof window !== "undefined"
+          ? localStorage.getItem("persianpart_token")
+          : null;
       const formDataUpload = new FormData();
       formDataUpload.append("file", uploadFile);
       formDataUpload.append(
         "alt",
-        uploadTitle.trim() || getDocumentTypeLabel(uploadDocType) || "مدرک مشتری"
+        uploadTitle.trim() ||
+          getDocumentTypeLabel(uploadDocType) ||
+          "مدرک مشتری",
       );
 
       const uploadRes = await fetch("/api/media/upload", {
@@ -265,7 +293,8 @@ export function ProfileView() {
           id: d.id,
           documentType: d.documentType,
           title: d.title,
-          file: typeof d.file === "object" && d.file ? (d.file as any).id : d.file,
+          file:
+            typeof d.file === "object" && d.file ? (d.file as any).id : d.file,
           status: d.status,
           rejectionReason: d.rejectionReason,
           uploadedAt: d.uploadedAt,
@@ -287,11 +316,14 @@ export function ProfileView() {
       queryClient.invalidateQueries({ queryKey: queryKeys.auth.profile() });
       toast.success(
         "مدرک با موفقیت بارگذاری شد",
-        "مدرک شما ثبت شد و در انتظار بررسی و تأیید مدیریت قرار گرفت."
+        "مدرک شما ثبت شد و در انتظار بررسی و تأیید مدیریت قرار گرفت.",
       );
       handleCloseUploadModal();
     } catch (err: any) {
-      toast.error("خطا در بارگذاری مدرک", err.message || "لطفاً مجدداً تلاش فرمایید.");
+      toast.error(
+        "خطا در بارگذاری مدرک",
+        err.message || "لطفاً مجدداً تلاش فرمایید.",
+      );
     } finally {
       setIsUploading(false);
     }
@@ -313,7 +345,8 @@ export function ProfileView() {
           id: d.id,
           documentType: d.documentType,
           title: d.title,
-          file: typeof d.file === "object" && d.file ? (d.file as any).id : d.file,
+          file:
+            typeof d.file === "object" && d.file ? (d.file as any).id : d.file,
           status: d.status,
           rejectionReason: d.rejectionReason,
           uploadedAt: d.uploadedAt,
@@ -327,7 +360,10 @@ export function ProfileView() {
       queryClient.invalidateQueries({ queryKey: queryKeys.auth.profile() });
       toast.success("مدرک حذف شد", "فایل مورد نظر از لیست مدارک حذف گردید.");
     } catch (err: any) {
-      toast.error("خطا در حذف مدرک", err.message || "امکان حذف این مدرک وجود ندارد.");
+      toast.error(
+        "خطا در حذف مدرک",
+        err.message || "امکان حذف این مدرک وجود ندارد.",
+      );
     } finally {
       setIsDeletingDocId(null);
     }
@@ -431,9 +467,9 @@ export function ProfileView() {
               <h3 className="text-xs sm:text-sm font-bold text-foreground">
                 آپلود مدارک
               </h3>
-              <p className="text-[11px] text-muted">
+              {/* <p className="text-[11px] text-muted">
                 بارگذاری مدارک هویتی و پروانه کسب جهت تأیید حساب
-              </p>
+              </p> */}
             </div>
           </div>
 
@@ -461,7 +497,8 @@ export function ProfileView() {
               هنوز مدرکی بارگذاری نشده است
             </p>
             <p className="text-[11px] text-muted mt-1 max-w-xs mx-auto leading-relaxed">
-              جهت فعال‌سازی اعتبارسنجی و پیش‌فاکتور رسمی، مدارک شناسایی یا پروانه کسب خود را ارسال نمایید.
+              جهت فعال‌سازی اعتبارسنجی و پیش‌فاکتور رسمی، مدارک شناسایی یا
+              پروانه کسب خود را ارسال نمایید.
             </p>
             <Button
               type="button"
@@ -473,7 +510,6 @@ export function ProfileView() {
             </Button>
           </div>
         ) : (
-          /* Documents list */
           <div className="space-y-2">
             {documents.map((doc, idx) => {
               const fileUrl = getDocFileUrl(doc.file);
@@ -488,6 +524,7 @@ export function ProfileView() {
                 >
                   <div className="flex items-center gap-3">
                     {/* Thumbnail */}
+
                     {fileUrl ? (
                       <button
                         type="button"
@@ -512,14 +549,30 @@ export function ProfileView() {
 
                     {/* Info */}
                     <div className="flex-1 min-w-0 text-start">
-                      <div className="flex items-center justify-between gap-1">
+                      {/* Subtitle if custom title differs */}
+                      <div className="flex w-full items-center justify-between gap-1">
                         <h4 className="text-xs sm:text-sm font-bold text-foreground truncate">
-                          {getDocumentTypeLabel(doc.documentType) || doc.title || "مدرک بارگذاری شده"}
+                          {getDocumentTypeLabel(doc.documentType) ||
+                            doc.title ||
+                            "مدرک بارگذاری شده"}
                         </h4>
 
                         {/* Status Badge */}
+                      </div>
+
+                      {doc.title &&
+                        doc.title !==
+                          getDocumentTypeLabel(doc.documentType) && (
+                          <p className="text-[11px] text-muted truncate mt-0.5">
+                            {doc.title}
+                          </p>
+                        )}
+
+                      {/* Date & Lock status */}
+                      <div className="flex items-center gap-2 mt-1 text-[11px] text-muted">
+                        <span>{formatPersianDate(doc.uploadedAt)}</span>
                         {isApproved && (
-                          <span className="shrink-0 px-2 py-0.5 rounded-full text-[11px] font-bold bg-success/15 text-success flex items-center gap-1">
+                          <span className="shrink-0   px-2 py-0.5 rounded-full text-[11px] font-bold bg-success/15 text-success flex items-center gap-1">
                             <CheckCircle2Icon size={12} />
                             <span>تایید شده</span>
                           </span>
@@ -534,24 +587,6 @@ export function ProfileView() {
                           <span className="shrink-0 px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center gap-1">
                             <ClockIcon size={12} />
                             <span>منتظر تایید ادمین</span>
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Subtitle if custom title differs */}
-                      {doc.title && doc.title !== getDocumentTypeLabel(doc.documentType) && (
-                        <p className="text-[11px] text-muted truncate mt-0.5">
-                          {doc.title}
-                        </p>
-                      )}
-
-                      {/* Date & Lock status */}
-                      <div className="flex items-center gap-2 mt-1 text-[11px] text-muted">
-                        <span>{formatPersianDate(doc.uploadedAt)}</span>
-                        {isApproved && (
-                          <span className="flex items-center gap-0.5 text-success/90 font-medium">
-                            <LockIcon size={11} />
-                            <span>غیرقابل تغییر و حذف</span>
                           </span>
                         )}
                       </div>
@@ -771,7 +806,8 @@ export function ProfileView() {
                   <Select
                     selectedKey={uploadDocType}
                     onSelectionChange={(key) => {
-                      if (key) setUploadDocType(String(key) as DocumentTypeValue);
+                      if (key)
+                        setUploadDocType(String(key) as DocumentTypeValue);
                     }}
                     fullWidth
                     className="w-full text-start"
@@ -779,7 +815,9 @@ export function ProfileView() {
                   >
                     <Label className="text-xs font-semibold text-foreground flex items-center justify-between mb-1">
                       <span>نوع مدرک</span>
-                      <span className="text-danger text-[11px] font-bold">الزامی</span>
+                      <span className="text-danger text-[11px] font-bold">
+                        الزامی
+                      </span>
                     </Label>
                     <Select.Trigger className="w-full h-11 px-3.5 rounded-xl bg-muted/10 border border-border/20 text-foreground font-bold text-xs flex items-center justify-between cursor-pointer hover:bg-muted/15 transition-colors">
                       <Select.Value />
@@ -807,7 +845,10 @@ export function ProfileView() {
                 </div>
 
                 {/* Optional Custom Description */}
-                <TextField name="documentTitle" className="space-y-1 text-start">
+                <TextField
+                  name="documentTitle"
+                  className="space-y-1 text-start"
+                >
                   <Label className="text-xs font-semibold text-foreground flex items-center gap-1">
                     <span>توضیحات تکمیلی مدرک</span>
                     <span className="text-muted font-normal">(اختیاری)</span>
@@ -847,7 +888,8 @@ export function ProfileView() {
                           {uploadFile?.name}
                         </p>
                         <p className="text-[11px] text-muted mt-0.5">
-                          {((uploadFile?.size || 0) / (1024 * 1024)).toFixed(2)} مگابایت
+                          {((uploadFile?.size || 0) / (1024 * 1024)).toFixed(2)}{" "}
+                          مگابایت
                         </p>
                       </div>
                       <Button
@@ -858,7 +900,8 @@ export function ProfileView() {
                             URL.revokeObjectURL(uploadPreviewUrl);
                             setUploadPreviewUrl(null);
                           }
-                          if (fileInputRef.current) fileInputRef.current.value = "";
+                          if (fileInputRef.current)
+                            fileInputRef.current.value = "";
                         }}
                         className="size-7 rounded-lg bg-danger/10 text-danger hover:bg-danger/20 flex items-center justify-center cursor-pointer"
                       >
@@ -868,7 +911,10 @@ export function ProfileView() {
                   ) : uploadFile ? (
                     <div className="rounded-xl border border-border/20 bg-muted/5 p-3 flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2 truncate">
-                        <FileTextIcon size={20} className="text-muted shrink-0" />
+                        <FileTextIcon
+                          size={20}
+                          className="text-muted shrink-0"
+                        />
                         <span className="text-xs font-bold text-foreground truncate">
                           {uploadFile.name}
                         </span>
@@ -877,7 +923,8 @@ export function ProfileView() {
                         type="button"
                         onPress={() => {
                           setUploadFile(null);
-                          if (fileInputRef.current) fileInputRef.current.value = "";
+                          if (fileInputRef.current)
+                            fileInputRef.current.value = "";
                         }}
                         className="size-7 rounded-lg bg-danger/10 text-danger hover:bg-danger/20 flex items-center justify-center cursor-pointer"
                       >
@@ -973,7 +1020,9 @@ export function ProfileView() {
               )}
 
               <div className="flex items-center justify-between text-[11px] text-muted pt-1">
-                <span>تاریخ بارگذاری: {formatPersianDate(previewDoc?.uploadedAt)}</span>
+                <span>
+                  تاریخ بارگذاری: {formatPersianDate(previewDoc?.uploadedAt)}
+                </span>
                 {previewDoc?.status === "approved" && (
                   <span className="text-success font-bold flex items-center gap-1">
                     <CheckCircle2Icon size={12} />

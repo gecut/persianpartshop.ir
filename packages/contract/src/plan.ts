@@ -3,9 +3,6 @@ import { openapi } from '@orpc/openapi'
 import { z } from 'zod'
 import { EntityIdSchema } from './common'
 
-export const PlanStatusSchema = z.enum(['active', 'expired', 'draft'])
-export type PlanStatus = z.infer<typeof PlanStatusSchema>
-
 export const PlanTypeSchema = z.enum(['credit_terms', 'product_discount', 'informational'])
 export type PlanType = z.infer<typeof PlanTypeSchema>
 
@@ -17,9 +14,9 @@ export const PlanSchema = z.object({
   content: z.string().optional(),
   notes: z.string().optional(),
   type: PlanTypeSchema.optional(),
-  discountPercent: z.number().optional(),
-  discountAmount: z.number().optional(),
-  status: PlanStatusSchema.default('active'),
+  isActive: z.boolean().default(true).optional(),
+  isExpired: z.boolean().optional(),
+  status: z.enum(['active', 'expired', 'upcoming']).optional(),
   products: z.array(z.union([z.number(), z.string(), z.record(z.unknown())])).optional(),
   hasTimer: z.boolean().default(false).optional(),
   startsAt: z.string().optional(),
@@ -32,7 +29,6 @@ export type PlanDto = z.infer<typeof PlanSchema>
 
 export const ListPlansInputSchema = z
   .object({
-    status: PlanStatusSchema.optional(),
     userId: z.union([z.number(), z.string()]).optional(),
     page: z.number().optional(),
     limit: z.number().optional(),
@@ -53,9 +49,7 @@ export const CreatePlanInputSchema = z.object({
   users: z.array(z.union([z.number(), z.string()])).min(1, 'حداقل یک کاربر باید انتخاب شود'),
   content: z.string().min(1, 'متن پیام الزامی است'),
   type: PlanTypeSchema.default('credit_terms').optional(),
-  discountPercent: z.number().optional(),
-  discountAmount: z.number().optional(),
-  status: PlanStatusSchema.default('active'),
+  isActive: z.boolean().default(true).optional(),
   products: z.array(z.union([z.number(), z.string()])).optional(),
   hasTimer: z.boolean().default(false).optional(),
   startsAt: z.string().optional(),
@@ -70,9 +64,7 @@ export const UpdatePlanInputSchema = z.object({
   users: z.array(z.union([z.number(), z.string()])).optional(),
   content: z.string().optional(),
   type: PlanTypeSchema.optional(),
-  discountPercent: z.number().optional(),
-  discountAmount: z.number().optional(),
-  status: PlanStatusSchema.optional(),
+  isActive: z.boolean().optional(),
   products: z.array(z.union([z.number(), z.string()])).optional(),
   hasTimer: z.boolean().optional(),
   startsAt: z.string().optional(),

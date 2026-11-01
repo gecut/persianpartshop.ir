@@ -13,12 +13,10 @@ function getInitialPlans(): Plan[] {
     if (saved) {
       const parsed = JSON.parse(saved)
       if (Array.isArray(parsed) && parsed.length > 0) {
-        const now = Date.now()
         const mapped = parsed
           .filter((p) => {
             if (p.id?.startsWith('demo-')) return false
-            if (p.status === 'expired') return false
-            if (p.expiresAt && new Date(p.expiresAt).getTime() <= now) return false
+            if (p.isActive === false) return false
             return true
           })
           .map((p) => {
@@ -46,7 +44,10 @@ function mapApiPlanToPlan(p: any): Plan {
     ? (firstUser.fullName || firstUser.companyName || firstUser.phone || 'کاربر')
     : 'عمومی'
   const customerId = firstUser ? String(firstUser.id) : ''
-  const isActive = p.status === 'active'
+  const now = Date.now()
+  const isExpired = Boolean(p.isExpired || p.status === 'expired' || (p.expiresAt && new Date(p.expiresAt).getTime() <= now))
+  const isActive = p.isActive !== false
+  const status = isExpired ? 'expired' : (p.status || (isActive ? 'active' : 'expired'))
 
   const productIds = Array.isArray(p.products)
     ? p.products.map((prod: any) =>
@@ -80,10 +81,9 @@ function mapApiPlanToPlan(p: any): Plan {
     customerId,
     customerName,
     type: p.type || 'credit_terms',
-    discountPercent: p.discountPercent != null ? Number(p.discountPercent) : undefined,
-    discountAmount: p.discountAmount != null ? Number(p.discountAmount) : undefined,
     isActive,
-    status: p.status || (isActive ? 'active' : 'expired'),
+    isExpired,
+    status,
     content,
     productIds,
     notes: content,
@@ -117,16 +117,10 @@ async function fetchFromBackend() {
     broadcast()
     const plansRes = await api.plan.list({}).catch(() => null)
 
-    if (plansRes?.items) {
-      const now = Date.now()
+    if (plansRes && Array.isArray(plansRes.items)) {
       const mapped = plansRes.items
         .map(mapApiPlanToPlan)
-        .filter((p) => {
-          if (p.status === 'expired') return false
-          const expireTime = p.expiresAt ? new Date(p.expiresAt).getTime() : null
-          if (expireTime && !isNaN(expireTime) && expireTime <= now) return false
-          return true
-        })
+        .filter((p) => p.isActive !== false)
       currentPlans = mapped
     }
 
@@ -141,13 +135,7 @@ async function fetchFromBackend() {
 
 export const plansStore = {
   getPlans: () => {
-    const now = Date.now()
-    return currentPlans.filter((p) => {
-      if (p.status === 'expired') return false
-      const expireTime = p.expiresAt ? new Date(p.expiresAt).getTime() : null
-      if (expireTime && !isNaN(expireTime) && expireTime <= now) return false
-      return true
-    })
+    return currentPlans.filter((p) => p.isActive !== false)
   },
   getCustomers: () => currentCustomers,
   getProducts: () => [] as Product[],
@@ -160,10 +148,14 @@ export const plansStore = {
     if (!plan) return
 
     const nextActive = !plan.isActive
-    const nextStatus = nextActive ? 'active' : 'expired'
+    const now = Date.now()
+    const isExpired = Boolean(
+      plan.isExpired || (plan.expiresAt && new Date(plan.expiresAt).getTime() <= now)
+    )
+    const nextStatus = isExpired ? 'expired' : (nextActive ? 'active' : 'expired')
 
     currentPlans = currentPlans.map((p) =>
-      p.id === planId ? { ...p, isActive: nextActive, status: nextStatus } : p
+      p.id === planId ? { ...p, isActive: nextActive, isExpired, status: nextStatus } : p
     )
     broadcast()
 
@@ -171,7 +163,7 @@ export const plansStore = {
       try {
         await api.plan.update({
           id: Number(planId) || planId,
-          status: nextStatus,
+          isActive: nextActive,
         })
       } catch (err) {
         console.error('Failed to sync toggle with API:', err)
@@ -184,6 +176,7 @@ export const plansStore = {
     const customerName = customer ? `${customer.name} (${customer.company})` : data.customerName
 
     let backendId = data.id
+    const isActive = data.isActive !== false
 
     try {
       if (data.id && !data.id.startsWith('plan-')) {
@@ -193,9 +186,7 @@ export const plansStore = {
           users: data.customerId ? [Number(data.customerId) || data.customerId] : undefined,
           content: data.content || data.notes || '',
           type: data.type || 'credit_terms',
-          discountPercent: data.discountPercent,
-          discountAmount: data.discountAmount,
-          status: (data.status as any) || (data.isActive ? 'active' : 'expired'),
+          isActive,
           products: data.productIds?.map(Number).filter(Boolean),
           hasTimer: Boolean(data.hasTimer),
           expiresAt: data.expiresAt,
@@ -206,9 +197,7 @@ export const plansStore = {
           users: data.customerId ? [Number(data.customerId) || data.customerId] : [2],
           content: data.content || data.notes || 'طرح ویژه',
           type: data.type || 'credit_terms',
-          discountPercent: data.discountPercent,
-          discountAmount: data.discountAmount,
-          status: (data.status as any) || (data.isActive ? 'active' : 'expired'),
+          isActive,
           products: data.productIds?.map(Number).filter(Boolean),
           hasTimer: Boolean(data.hasTimer),
           expiresAt: data.expiresAt,
@@ -221,6 +210,12 @@ export const plansStore = {
       console.error('Failed to persist plan via API:', err)
     }
 
+    const now = Date.now()
+    const isExpired = Boolean(
+      data.expiresAt && new Date(data.expiresAt).getTime() <= now
+    )
+    const status = isExpired ? 'expired' : (isActive ? 'active' : 'expired')
+
     if (data.id) {
       currentPlans = currentPlans.map((p) =>
         p.id === data.id
@@ -228,7 +223,9 @@ export const plansStore = {
               ...p,
               ...data,
               customerName,
-              status: data.status || (data.isActive ? 'active' : 'expired'),
+              isActive,
+              isExpired,
+              status,
             }
           : p
       )
@@ -240,10 +237,9 @@ export const plansStore = {
         customerId: data.customerId,
         customerName,
         type: data.type || 'credit_terms',
-        discountPercent: data.discountPercent,
-        discountAmount: data.discountAmount,
-        isActive: data.isActive,
-        status: data.status || (data.isActive ? 'active' : 'expired'),
+        isActive,
+        isExpired,
+        status,
         content: data.content || '',
         productIds: data.productIds,
         notes: data.notes,
@@ -278,7 +274,7 @@ export function usePlans() {
     queryKey: queryKeys.plans.list(),
     queryFn: async () => {
       const res = await api.plan.list({})
-      if (res?.items && res.items.length > 0) {
+      if (res && Array.isArray(res.items)) {
         const mapped = res.items.map(mapApiPlanToPlan)
         currentPlans = mapped
         broadcast()

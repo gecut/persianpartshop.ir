@@ -104,7 +104,7 @@ const getById = authed.order.getById.handler(async ({ input, context, errors }) 
 const createCustomOrder = authed.order.createCustomOrder.handler(
   async ({ input, context, errors }) => {
     const userPerms = await getUserPermissions(context.user.id)
-    if (userPerms.disableOrdering) {
+    if (userPerms.disableOrdering || userPerms.hideExactStock) {
       throw errors.FORBIDDEN({
         message: 'حساب کاربری شما در وضعیت «فقط مشاهده کاتالوگ» تنظیم شده است و امکان ثبت سفارش را ندارد.',
         data: { message: 'حساب کاربری شما در وضعیت «فقط مشاهده کاتالوگ» تنظیم شده است و امکان ثبت سفارش را ندارد.' },
@@ -139,7 +139,7 @@ const submit = authed.order.submit.handler(async ({ input, context, errors }) =>
   }
 
   const userPerms = await getUserPermissions(context.user.id)
-  if (userPerms.disableOrdering) {
+  if (userPerms.disableOrdering || userPerms.hideExactStock) {
     throw errors.FORBIDDEN({
       message: 'حساب کاربری شما در وضعیت «فقط مشاهده کاتالوگ» تنظیم شده است و امکان ثبت سفارش را ندارد.',
       data: { message: 'حساب کاربری شما در وضعیت «فقط مشاهده کاتالوگ» تنظیم شده است و امکان ثبت سفارش را ندارد.' },

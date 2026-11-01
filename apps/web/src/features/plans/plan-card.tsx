@@ -55,7 +55,8 @@ export function PlanCard({ plan, products }: PlanCardProps) {
     useState<Product | null>(null);
   const navigate = useNavigate();
   const { user } = useAuth();
-  const isOrderingDisabled = Boolean(user?.disableOrdering);
+  const isOrderingDisabled =
+    Boolean(user?.disableOrdering) || Boolean(user?.hideExactStock);
 
   const selectedIds = useSyncExternalStore(
     selectionStore.subscribe,
@@ -85,20 +86,13 @@ export function PlanCard({ plan, products }: PlanCardProps) {
 
   const expireTime = plan.expiresAt ? new Date(plan.expiresAt).getTime() : null;
   const isExpired =
+    Boolean(plan.isExpired) ||
     plan.status === "expired" ||
     (expireTime !== null && !isNaN(expireTime) && expireTime <= now);
 
-  // Expired plans are completely deleted / hidden ("طرح منقضی نداریم اگر طرح منقضی باشه باید پاک بشه")
-  if (isExpired) {
-    return null;
-  }
-
-  const isCompleted =
-    plan.status === "completed" || plan.status === "successful";
-
   const isActive =
+    !isExpired &&
     !isUpcoming &&
-    !isCompleted &&
     (plan.status === "active" || (plan.status === undefined && plan.isActive));
 
   // Product resolution from relation or list
@@ -141,6 +135,25 @@ export function PlanCard({ plan, products }: PlanCardProps) {
           height = Number(p.dimensions.height);
         }
 
+        const resolvedPrice = Number(
+          p.finalCustomerPricePerSqm ||
+            p.basePricePerSqm ||
+            p.basePrice ||
+            p.pricePerM2 ||
+            p.base_price_per_sqm ||
+            p.price ||
+            p.originalPricePerSqm ||
+            0,
+        );
+
+        const inv = Number(p.inventorySqm ?? p.inventory_sqm ?? 0);
+        const inStock = p.inStock ?? inv > 0;
+        const stockStatus =
+          p.stockStatus ??
+          (inStock && inv > 0
+            ? ("in_stock" as const)
+            : ("out_of_stock" as const));
+
         return {
           id: String(p.id),
           slug: p.slug || String(p.id),
@@ -152,21 +165,21 @@ export function PlanCard({ plan, products }: PlanCardProps) {
           color: p.color || "",
           category:
             typeof p.category === "object"
-              ? p.category?.title
+              ? p.category?.title || p.category?.name
               : p.category || "",
-          finalCustomerPricePerSqm: Number(
-            p.basePrice || p.finalCustomerPricePerSqm || 0,
-          ),
-          pricePerM2: Number(p.basePrice || p.pricePerM2 || 0),
+          finalCustomerPricePerSqm: resolvedPrice,
+          pricePerM2: resolvedPrice,
+          basePricePerSqm: resolvedPrice,
+          originalPricePerSqm: resolvedPrice,
           sqmPerCarton: Number(p.sqmPerCarton || 1),
           areaPerCarton: Number(p.sqmPerCarton || 1),
           piecesPerCarton: Number(p.piecesPerCarton || 1),
           tilesPerCarton: Number(p.piecesPerCarton || 1),
           cartonWeightKg: Number(p.cartonWeightKg || 0),
-          inventorySqm: Number(p.inventorySqm || 0),
+          inventorySqm: inv,
           stockCartons: Number(p.stockCartons || 0),
-          inStock: true,
-          stockStatus: "in_stock" as const,
+          inStock,
+          stockStatus,
           applications: [],
           tags: [],
           gallery: [],
@@ -192,7 +205,8 @@ export function PlanCard({ plan, products }: PlanCardProps) {
       <div
         className={cn(
           "p-5 flex flex-col bg-muted/5 gap-3.5 text-start transition-all h-fit rounded-3xl text-foreground relative overflow-hidden border border-border/40",
-          !isActive && !isUpcoming && "opacity-85",
+          isExpired && "opacity-80 border-danger/25",
+          !isActive && !isUpcoming && !isExpired && "opacity-85",
         )}
       >
         {/* Upcoming Alert Banner */}
@@ -211,9 +225,6 @@ export function PlanCard({ plan, products }: PlanCardProps) {
             </h3>
             {/* 3 Date Fields: ۱- تاریخ ایجاد (خودکار) ۲- تاریخ شروع ۳- تاریخ پایان */}
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted">
-              {plan.createdAt && (
-                <span>تاریخ ایجاد: {formatPersianDate(plan.createdAt)}</span>
-              )}
               {plan.startsAt && (
                 <span>تاریخ شروع: {formatPersianDate(plan.startsAt)}</span>
               )}
@@ -225,7 +236,11 @@ export function PlanCard({ plan, products }: PlanCardProps) {
 
           {/* Status Badge */}
           <div>
-            {isUpcoming ? (
+            {isExpired ? (
+              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-danger/15 text-danger">
+                منقضی شده
+              </span>
+            ) : isUpcoming ? (
               <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400">
                 در انتظار شروع
               </span>
@@ -252,21 +267,21 @@ export function PlanCard({ plan, products }: PlanCardProps) {
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-foreground">شرایط طرح</span>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsDetailsOpen(true);
-              }}
-              className="text-[11px] font-semibold text-primary hover:underline cursor-pointer"
-            >
-              مشاهده جزئیات
-            </button>
           </div>
           <p className="text-xs text-muted leading-relaxed line-clamp-3">
             {rawDescription}
           </p>
         </div>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsDetailsOpen(true);
+          }}
+          className="text-xs font-semibold text-primary-foreground p-3 rounded-2xl bg-primary transition-color duration-200 hover:bg-primary/80"
+        >
+          مشاهده جزئیات طرح
+        </button>
       </div>
 
       {/* Plan Details HeroUI Bottom Sheet (Drawer) */}
@@ -293,6 +308,11 @@ export function PlanCard({ plan, products }: PlanCardProps) {
                   <Drawer.Heading className="text-sm font-extrabold text-foreground truncate">
                     {plan.title}
                   </Drawer.Heading>
+                  {isExpired && (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-danger/15 text-danger shrink-0">
+                      منقضی شده
+                    </span>
+                  )}
                 </div>
                 <Button
                   type="button"
@@ -317,7 +337,7 @@ export function PlanCard({ plan, products }: PlanCardProps) {
                 {/* 3 Date Fields: ۱- تاریخ ایجاد (خودکار) ۲- تاریخ شروع ۳- تاریخ پایان */}
                 <div className="rounded-2xl p-3.5 bg-muted/10 border border-border/30 space-y-2">
                   <span className="text-xs font-bold text-foreground block">
-                    بازه زمانی و مشخصات طرح
+                    مشخصات طرح{" "}
                   </span>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs text-muted">
                     {plan.startsAt && plan.expiresAt && (
@@ -331,14 +351,7 @@ export function PlanCard({ plan, products }: PlanCardProps) {
                         </span>
                       </div>
                     )}
-                    {plan.createdAt && (
-                      <div>
-                        <span>تاریخ ایجاد: </span>
-                        <span className="font-semibold text-foreground">
-                          {formatPersianDate(plan.createdAt)}
-                        </span>
-                      </div>
-                    )}
+
                     {plan.startsAt && (
                       <div>
                         <span>تاریخ شروع: </span>
@@ -383,37 +396,61 @@ export function PlanCard({ plan, products }: PlanCardProps) {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                       {planProducts.map((prod) => {
-                        const originalPrice = prod.finalCustomerPricePerSqm;
-                        const discountedPrice = plan.discountPercent
-                          ? Math.round(
-                              originalPrice * (1 - plan.discountPercent / 100),
-                            )
-                          : originalPrice;
+                        const price =
+                          prod.finalCustomerPricePerSqm &&
+                          prod.finalCustomerPricePerSqm > 0
+                            ? prod.finalCustomerPricePerSqm
+                            : Number((prod as any).basePricePerSqm) > 0
+                              ? Number((prod as any).basePricePerSqm)
+                              : Number(prod.pricePerM2) || 0;
 
                         const dimText = formatProdDimension(prod);
-                        const isSelected = selectedIds.includes(
-                          String(prod.id),
-                        );
+                        const isProdOutOfStock =
+                          prod.stockStatus === "out_of_stock" ||
+                          prod.inStock === false ||
+                          (Number.isFinite(Number(prod.inventorySqm)) &&
+                            Number(prod.inventorySqm) <= 0);
+                        const isSelected =
+                          !isProdOutOfStock &&
+                          selectedIds.includes(String(prod.id));
 
                         return (
                           <div
                             key={prod.id}
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => setSelectedProductForDetail(prod)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter" || e.key === " ") {
-                                e.preventDefault();
-                                setSelectedProductForDetail(prod);
-                              }
-                            }}
+                            role={isExpired ? undefined : "button"}
+                            tabIndex={isExpired ? -1 : 0}
+                            onClick={
+                              isExpired
+                                ? undefined
+                                : () => setSelectedProductForDetail(prod)
+                            }
+                            onKeyDown={
+                              isExpired
+                                ? undefined
+                                : (e) => {
+                                    if (e.key === "Enter" || e.key === " ") {
+                                      e.preventDefault();
+                                      setSelectedProductForDetail(prod);
+                                    }
+                                  }
+                            }
                             className={cn(
-                              "flex items-center justify-between gap-3 p-2.5 rounded-2xl border transition-all cursor-pointer select-none text-start",
-                              isSelected
-                                ? "bg-primary/8 ring-1 ring-primary border-primary/30"
-                                : "bg-muted/10 hover:bg-muted/15 border-border/20",
+                              "flex items-center justify-between gap-3 p-2.5 rounded-2xl border transition-all text-start",
+                              isExpired
+                                ? "opacity-40 blur-[1.5px] pointer-events-none cursor-not-allowed select-none bg-muted/5 border-border/20 grayscale-[0.2]"
+                                : cn(
+                                    "cursor-pointer select-none",
+                                    isSelected
+                                      ? "bg-primary/8 ring-1 ring-primary border-primary/30"
+                                      : "bg-muted/10 hover:bg-muted/15 border-border/20",
+                                    isProdOutOfStock && "opacity-80",
+                                  ),
                             )}
-                            title="مشاهده مشخصات کامل کالا"
+                            title={
+                              isExpired
+                                ? "این طرح منقضی شده است"
+                                : "مشاهده مشخصات کامل کالا"
+                            }
                           >
                             <div className="flex items-center gap-2.5 min-w-0 flex-1">
                               <img
@@ -444,59 +481,47 @@ export function PlanCard({ plan, products }: PlanCardProps) {
                                     ابعاد: {dimText}
                                   </span>
                                 )}
-                                {plan.discountPercent && originalPrice > 0 ? (
-                                  <div className="flex items-center gap-2 mt-1">
-                                    <span className="text-[10px] text-muted line-through inline-flex items-center gap-0.5">
-                                      <span>{formatToman(originalPrice)}</span>
-                                      <TomanIcon className="size-2.5" />
-                                    </span>
-                                    <span className="text-xs font-bold text-danger inline-flex items-center gap-0.5">
-                                      <span>
-                                        {formatToman(discountedPrice)}
-                                      </span>
-                                      <TomanIcon className="size-3" />
-                                    </span>
-                                  </div>
-                                ) : (
-                                  <span className="text-xs font-bold text-foreground inline-flex items-center gap-0.5 mt-0.5">
-                                    <span>
-                                      {originalPrice > 0
-                                        ? formatToman(originalPrice)
-                                        : "قیمت مصوب"}
-                                    </span>
-                                    {originalPrice > 0 && (
-                                      <TomanIcon className="size-2.5" />
-                                    )}
+                                <span className="text-xs font-bold text-foreground inline-flex items-center gap-0.5 mt-1">
+                                  <span>
+                                    {price > 0
+                                      ? formatToman(price)
+                                      : "استعلام قیمت"}
                                   </span>
-                                )}
+                                  {price > 0 && (
+                                    <TomanIcon className="size-2.5" />
+                                  )}
+                                </span>
                               </div>
                             </div>
 
-                            {isUpcoming ? (
+                            {isExpired ? (
+                              <span className="h-8 px-2.5 rounded-xl bg-danger/10 text-danger text-[11px] font-bold shrink-0 flex items-center justify-center">
+                                منقضی شده
+                              </span>
+                            ) : isUpcoming ? (
                               <span className="h-8 px-2.5 rounded-xl bg-muted/20 text-muted text-[11px] font-semibold shrink-0 flex items-center justify-center">
                                 به‌زودی
                               </span>
-                            ) : isSelected ? (
+                            ) : isProdOutOfStock ? (
+                              <span className="h-8 px-2.5 rounded-xl bg-danger/15 text-danger text-[11px] font-bold shrink-0 flex items-center justify-center">
+                                ناموجود
+                              </span>
+                            ) : isSelected && !isOrderingDisabled ? (
                               <button
                                 type="button"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  if (isOrderingDisabled) return;
                                   selectionStore.unselectProduct(prod.id);
                                 }}
                                 className="h-8 px-3 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold shrink-0 flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition-all"
                               >
                                 <CheckIcon size={13} className="stroke-3" />
                               </button>
-                            ) : isActive ? (
+                            ) : isActive && !isOrderingDisabled ? (
                               <button
                                 type="button"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  if (isOrderingDisabled) {
-                                    setSelectedProductForDetail(prod);
-                                    return;
-                                  }
                                   selectionStore.selectProduct(prod.id);
                                 }}
                                 className="h-8 px-3 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold shrink-0 flex items-center justify-center gap-1 cursor-pointer active:scale-95 transition-all"
@@ -523,23 +548,44 @@ export function PlanCard({ plan, products }: PlanCardProps) {
                   بستن
                 </Button>
 
-                {isActive ? (
-                  <Button
-                    type="button"
-                    onPress={() => {
-                      if (isOrderingDisabled) return;
-                      // Add all plan products to selection
-                      planProducts.forEach((p) => {
-                        selectionStore.selectProduct(p.id);
-                      });
-                      setIsDetailsOpen(false);
-                      navigate({ to: "/product/new" });
-                    }}
-                    className="h-9 px-4 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
-                  >
-                    <span>ثبت سفارش کالاها</span>
-                    <ArrowLeftIcon size={13} />
-                  </Button>
+                {isExpired ? (
+                  <span className="text-xs font-bold text-danger">
+                    این طرح منقضی شده است
+                  </span>
+                ) : isActive ? (
+                  isOrderingDisabled ? (
+                    <span className="px-3 py-2 rounded-lg text-xs font-semibold bg-muted/15 text-muted">
+                      فقط مشاهده کاتالوگ
+                    </span>
+                  ) : (
+                    <Button
+                      type="button"
+                      onPress={() => {
+                        const availablePlanProducts = planProducts.filter(
+                          (p) =>
+                            p.stockStatus !== "out_of_stock" &&
+                            p.inStock !== false &&
+                            !(
+                              Number.isFinite(Number(p.inventorySqm)) &&
+                              Number(p.inventorySqm) <= 0
+                            ),
+                        );
+                        if (availablePlanProducts.length === 0) {
+                          return;
+                        }
+                        // Add only available plan products to selection
+                        availablePlanProducts.forEach((p) => {
+                          selectionStore.selectProduct(p.id);
+                        });
+                        setIsDetailsOpen(false);
+                        navigate({ to: "/product/new" });
+                      }}
+                      className="h-9 px-4 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+                    >
+                      <span>ثبت سفارش کالاها</span>
+                      <ArrowLeftIcon size={13} />
+                    </Button>
+                  )
                 ) : (
                   <span className="text-xs font-bold text-amber-600 dark:text-amber-400">
                     طرح به‌زودی آغاز می‌شود

@@ -45,14 +45,6 @@ export function OrderInvoiceModal({
     );
   }, [order.items]);
 
-  const totalDeliverableArea = useMemo(() => {
-    const sum = (order.items || []).reduce(
-      (acc, i) => acc + (i.deliverableArea || i.requestedArea || 0),
-      0,
-    );
-    return Math.round(sum * 100) / 100;
-  }, [order.items]);
-
   const formattedInvoiceNumber = useMemo(() => {
     if (order.orderNumber && /^ptp\s+/i.test(order.orderNumber)) {
       return order.orderNumber.toLowerCase();
@@ -103,7 +95,7 @@ export function OrderInvoiceModal({
                   <span className="text-xs font-extrabold text-foreground">
                     پیش‌فاکتور رسمی سفارش
                   </span>
-                  <span className="text-[11px] text-muted dir-ltr font-mono">
+                  <span className="text-[11px] text-muted dir-ltr ">
                     {formattedInvoiceNumber}
                   </span>
                 </div>
@@ -148,7 +140,8 @@ export function OrderInvoiceModal({
                         بازرگانی کاشی و سرامیک پرشین‌پارت
                       </h1>
                       <p className="text-[11px] sm:text-xs text-neutral-500 font-medium mt-0.5 leading-normal print:text-[8.5px]">
-                        سامانه تخصصی تأمین، فروش و صادرات انواع اسلب و سرامیک‌های پرسلان
+                        سامانه تخصصی تأمین، فروش و صادرات انواع اسلب و
+                        سرامیک‌های پرسلان
                       </p>
                     </div>
                   </div>
@@ -166,7 +159,7 @@ export function OrderInvoiceModal({
                       <span className="text-neutral-500 font-semibold">
                         شماره فاکتور:
                       </span>
-                      <span className="font-bold text-neutral-900 dir-ltr font-mono">
+                      <span className="font-bold text-neutral-900 dir-ltr ">
                         {formattedInvoiceNumber}
                       </span>
                     </div>
@@ -195,7 +188,10 @@ export function OrderInvoiceModal({
                 {/* مشخصات فروشنده */}
                 <div className="p-3.5 sm:p-4 bg-neutral-100/50 rounded-2xl space-y-2.5 text-xs print:p-2.5 print:space-y-1 print:text-[8.5px] print:rounded-none">
                   <div className="flex items-center gap-1.5 pb-1 font-extrabold text-neutral-900 text-xs sm:text-sm print:text-[9px]">
-                    <StoreIcon size={15} className="print:size-3 text-neutral-600" />
+                    <StoreIcon
+                      size={15}
+                      className="print:size-3 text-neutral-600"
+                    />
                     <span>مشخصات فروشنده (تأمین‌کننده)</span>
                   </div>
                   <div className="space-y-1.5 text-neutral-700 leading-normal print:space-y-0.5">
@@ -206,14 +202,16 @@ export function OrderInvoiceModal({
                       </strong>
                     </div>
                     <div className="flex items-center justify-between gap-2 whitespace-nowrap">
-                      <span className="text-neutral-500">شناسه ملی / کد اقتصادی:</span>
-                      <span className="font-mono text-neutral-900">
+                      <span className="text-neutral-500">
+                        شناسه ملی / کد اقتصادی:
+                      </span>
+                      <span className=" text-neutral-900">
                         ۱۰۱۰۳۴۵۶۷۸۹ / ۴۱۱۵۶۷۸۹۱۲۳۴
                       </span>
                     </div>
                     <div className="flex items-center justify-between gap-2 whitespace-nowrap">
                       <span className="text-neutral-500">تلفن پشتیبانی:</span>
-                      <span className="font-mono text-neutral-900" dir="ltr">
+                      <span className=" text-neutral-900" dir="ltr">
                         ۰۲۱-۸۸۸۸۶۶۵۵
                       </span>
                     </div>
@@ -231,19 +229,24 @@ export function OrderInvoiceModal({
                 {/* مشخصات خریدار */}
                 <div className="p-3.5 sm:p-4 bg-neutral-100/50 rounded-2xl space-y-2.5 text-xs print:p-2.5 print:space-y-1 print:text-[8.5px] print:rounded-none">
                   <div className="flex items-center gap-1.5 pb-1 font-extrabold text-neutral-900 text-xs sm:text-sm print:text-[9px]">
-                    <FileTextIcon size={15} className="print:size-3 text-neutral-600" />
+                    <FileTextIcon
+                      size={15}
+                      className="print:size-3 text-neutral-600"
+                    />
                     <span>مشخصات خریدار (مشتری)</span>
                   </div>
                   <div className="space-y-1.5 text-neutral-700 leading-normal print:space-y-0.5">
                     <div className="flex items-center justify-between gap-2 whitespace-nowrap">
-                      <span className="text-neutral-500">خریدار / نماینده:</span>
+                      <span className="text-neutral-500">
+                        خریدار / نماینده:
+                      </span>
                       <strong className="text-neutral-900 font-bold">
                         {order.customerName || "خریدار محترم"}
                       </strong>
                     </div>
                     <div className="flex items-center justify-between gap-2 whitespace-nowrap">
                       <span className="text-neutral-500">شماره همراه:</span>
-                      <span className="font-mono text-neutral-900" dir="ltr">
+                      <span className=" text-neutral-900" dir="ltr">
                         {order.customerPhone || "—"}
                       </span>
                     </div>
@@ -277,7 +280,10 @@ export function OrderInvoiceModal({
                     className="w-full table-fixed border-none"
                   >
                     <Table.Header>
-                      <Table.Column isRowHeader className="w-[6%] text-center px-0.5 py-1 text-[9px] sm:text-xs print:text-[8.5px]">
+                      <Table.Column
+                        isRowHeader
+                        className="w-[6%] h-12  text-center px-4 text-[9px] sm:text-xs print:text-[8.5px]"
+                      >
                         ردیف
                       </Table.Column>
                       <Table.Column className="w-[27%] text-right px-1 py-1 text-[9.5px] sm:text-xs print:text-[8.5px]">
@@ -290,22 +296,32 @@ export function OrderInvoiceModal({
                         ابعاد
                       </Table.Column>
                       <Table.Column className="w-[7%] text-center px-0.5 py-1 text-[8.5px] sm:text-xs leading-tight print:text-[8px]">
-                        تعداد<br className="sm:hidden" />کارتن
+                        تعداد
+                        <br className="sm:hidden" />
+                        کارتن
                       </Table.Column>
                       <Table.Column className="w-[9%] text-center px-0.5 py-1 text-[8.5px] sm:text-xs leading-tight print:text-[8px]">
-                        متراژ<br className="sm:hidden" />(م²)
+                        متراژ
+                        <br className="sm:hidden" />
+                        (م²)
                       </Table.Column>
                       <Table.Column className="w-[14%] text-left px-0.5 py-1 text-[9px] sm:text-xs leading-tight print:text-[8px]">
-                        فی<br className="sm:hidden" />(تومان)
+                        فی
+                        <br className="sm:hidden" />
                       </Table.Column>
-                      <Table.Column className="w-[15%] text-left px-0.5 py-1 text-[9px] sm:text-xs leading-tight print:text-[8px]">
-                        کل<br className="sm:hidden" />(تومان)
+                      <Table.Column className="w-[15%] text-left px-4 py-1 text-[9px] sm:text-xs leading-tight print:text-[8px]">
+                        کل
+                        <br className="sm:hidden" />
                       </Table.Column>
                     </Table.Header>
                     <Table.Body>
                       {order.items.map((item, idx) => (
-                        <Table.Row key={item.productId || idx} id={item.productId || idx} className="border-none">
-                          <Table.Cell className="text-center font-bold text-neutral-500 px-0.5 py-1 text-[9.5px] sm:text-xs print:text-[8.5px]">
+                        <Table.Row
+                          key={item.productId || idx}
+                          id={item.productId || idx}
+                          className="border-none bg-background! hover:bg-background!"
+                        >
+                          <Table.Cell className="text-center font-bold text-neutral-500 px-0.5 py-4 text-xs sm:text-xs print:text-[8.5px]">
                             {toPersianDigits(idx + 1)}
                           </Table.Cell>
                           <Table.Cell className="font-bold text-neutral-900 px-1 py-1 text-[9.5px] sm:text-xs print:text-[8.5px]">
@@ -313,7 +329,7 @@ export function OrderInvoiceModal({
                               {item.productName}
                             </span>
                           </Table.Cell>
-                          <Table.Cell className="text-center font-mono text-[8.5px] sm:text-[11px] text-neutral-600 px-0.5 py-1 print:text-[7.5px]">
+                          <Table.Cell className="text-center  text-[8.5px] sm:text-[11px] text-neutral-600 px-0.5 py-1 print:text-[7.5px]">
                             <span className="line-clamp-2 break-all leading-tight">
                               {item.productSku || "—"}
                             </span>
@@ -340,13 +356,8 @@ export function OrderInvoiceModal({
                     </Table.Body>
                   </Table.Content>
                   <Table.Footer className="border-none p-0">
-                    <div className="flex items-center justify-between p-2.5 sm:p-3 bg-neutral-100/80 font-extrabold text-neutral-900 text-[11px] sm:text-xs whitespace-nowrap print:p-1.5 print:text-[8.5px]">
-                      <div>
-                        جمع کل: {toPersianDigits(totalCartons)} کارتن ({toPersianDigits(totalDeliverableArea)} م²)
-                      </div>
-                      <div className="font-black">
-                        {formatToman(subtotal)} تومان
-                      </div>
+                    <div className="flex items-center justify-between p-2.5 sm:p-3 font-extrabold text-neutral-900 text-[11px] sm:text-xs whitespace-nowrap print:p-1.5 print:text-[8.5px]">
+                      <div>جمع کل: {toPersianDigits(totalCartons)} کارتن </div>
                     </div>
                   </Table.Footer>
                 </Table>
@@ -385,10 +396,12 @@ export function OrderInvoiceModal({
                       شرایط و ضوابط رسمی:
                     </span>
                     <p>
-                      • بارگیری و تحویل کالا از انبار مرکزی با ارائه تاییدیه مالی حواله رسمی معتبر خواهد بود.
+                      • بارگیری و تحویل کالا از انبار مرکزی با ارائه تاییدیه
+                      مالی حواله رسمی معتبر خواهد بود.
                     </p>
                     <p>
-                      • تغییرات احتمالی متراژ و هزینه حمل تا مقصد به عهده خریدار محترم می‌باشد.
+                      • تغییرات احتمالی متراژ و هزینه حمل تا مقصد به عهده خریدار
+                      محترم می‌باشد.
                     </p>
                     {order.notes && (
                       <p className="pt-0.5 text-neutral-800">
@@ -443,9 +456,9 @@ export function OrderInvoiceModal({
                     </div>
 
                     {/* مبلغ نهایی قابل پرداخت با اپلیکیشن */}
-                    <div className="flex items-center justify-between text-neutral-950 bg-neutral-900 text-white p-3 rounded-xl font-black text-xs sm:text-sm pt-2 whitespace-nowrap print:p-2 print:rounded-none print:text-[9px]">
+                    <div className="flex items-center justify-between bg-neutral-900 text-background p-3 rounded-xl font-bold text-xs sm:text-sm py-3 whitespace-nowrap print:p-2 print:rounded-none print:text-[9px]">
                       <span>مبلغ نهایی با اپلیکیشن:</span>
-                      <span className="text-xs sm:text-sm font-mono">
+                      <span className="text-xs sm:text-sm">
                         {formatToman(finalWithAppDiscount)} تومان
                       </span>
                     </div>
@@ -460,7 +473,7 @@ export function OrderInvoiceModal({
                     <span className="font-extrabold text-neutral-800 block">
                       مهر و امضای امور مالی و فروش پرشین‌پارت
                     </span>
-                    <div className="text-[10px] text-neutral-400 font-mono print:text-[7.5px]">
+                    <div className="text-[10px] text-neutral-400  print:text-[7.5px]">
                       PersianPart Financial Dep. Stamp
                     </div>
                   </div>
@@ -469,7 +482,7 @@ export function OrderInvoiceModal({
                     <span className="font-extrabold text-neutral-800 block">
                       امضا و تایید تحویل‌گیرنده / خریدار
                     </span>
-                    <div className="text-[10px] text-neutral-400 font-mono print:text-[7.5px]">
+                    <div className="text-[10px] text-neutral-400  print:text-[7.5px]">
                       Customer Signature & Date
                     </div>
                   </div>
@@ -478,7 +491,8 @@ export function OrderInvoiceModal({
 
               {/* Print Footer */}
               <div className="text-center text-[10px] text-neutral-400 mt-6 pt-3 print:block print:mt-2 print:pt-1 print:text-[7.5px]">
-                این پیش‌فاکتور توسط سامانه مکانیزه پرشین‌پارت صادر شده و ارزش قانونی جهت بارگیری کالا دارد.
+                این پیش‌فاکتور توسط سامانه مکانیزه پرشین‌پارت صادر شده و ارزش
+                قانونی جهت بارگیری کالا دارد.
               </div>
             </div>
           </div>

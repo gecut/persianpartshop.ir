@@ -65,7 +65,7 @@ export const prepareOrderBeforeValidate: CollectionBeforeValidateHook = async ({
       if ((userDoc as any).status !== 'active') {
         throw new Error('حساب کاربری مشتری فعال نیست.')
       }
-      if ((userDoc as any).disableOrdering === true) {
+      if ((userDoc as any).disableOrdering === true || (userDoc as any).hideExactStock === true) {
         throw new Error('حساب کاربری شما در وضعیت «فقط مشاهده کاتالوگ» تنظیم شده و امکان ثبت سفارش را ندارد.')
       }
       if ((userDoc as any).customerType) {
@@ -136,10 +136,8 @@ export const prepareOrderBeforeValidate: CollectionBeforeValidateHook = async ({
       throw new Error(`محصول ${(productDoc as any).name || productId} غیرفعال است.`)
     }
 
-    const sqmPerCarton = Number((productDoc as any).sqmPerCarton)
-    if (!Number.isFinite(sqmPerCarton) || sqmPerCarton <= 0) {
-      throw new Error(`ضریب متراژ هر کارتن برای محصول ${productId} نامعتبر است.`)
-    }
+    const rawSqm = Number((productDoc as any).sqmPerCarton)
+    const sqmPerCarton = Number.isFinite(rawSqm) && rawSqm > 0 ? rawSqm : 1
 
     const basePrice = Number((productDoc as any).basePricePerSqm)
     if (!Number.isFinite(basePrice) || basePrice < 0) {

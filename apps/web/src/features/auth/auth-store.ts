@@ -33,6 +33,9 @@ function getInitialState(): AuthState {
     const saved = localStorage.getItem(STORAGE_KEY)
     if (token && saved) {
       const parsed = JSON.parse(saved)
+      if (parsed.user && parsed.user.hideExactStock) {
+        parsed.user.disableOrdering = true
+      }
       return { isAuthenticated: true, user: parsed.user || null, pendingPhone: null }
     }
   } catch {
@@ -59,11 +62,11 @@ function broadcast(nextState: AuthState) {
 export const authStore = {
   getState: () => currentState,
 
-  sendOtp: async (phone: string): Promise<boolean> => {
+  sendOtp: async (phone: string): Promise<string | boolean> => {
     try {
-      await api.auth.requestOtp({ phone })
+      const res = await api.auth.requestOtp({ phone })
       broadcast({ ...currentState, pendingPhone: phone })
-      return true
+      return res.message || true
     } catch (err: any) {
       throw new Error(err.message || 'خطا در ارسال کد اعتبارسنجی')
     }
@@ -83,7 +86,7 @@ export const authStore = {
 
       const userData = (res.user || (res as any).customer || {}) as any
       const hideExactStock = Boolean(userData.hideExactStock)
-      const disableOrdering = Boolean(userData.disableOrdering)
+      const disableOrdering = Boolean(userData.disableOrdering) || hideExactStock
       const userProfile: UserProfile = {
         id: String(userData.id || 'user-1'),
         name: userData.fullName || userData.contactName || 'کاربر گرامی',
@@ -153,7 +156,7 @@ export const authStore = {
       const profile: any = await api.user.profile()
       if (profile) {
         const hideExactStock = Boolean(profile.hideExactStock)
-        const disableOrdering = Boolean(profile.disableOrdering)
+        const disableOrdering = Boolean(profile.disableOrdering) || hideExactStock
         const userProfile: UserProfile = {
           id: String(profile.id),
           name: profile.fullName || profile.name || 'کاربر گرامی',

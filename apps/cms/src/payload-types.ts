@@ -531,7 +531,7 @@ export interface User {
    */
   allowedCategories?: (number | Category)[] | null;
   /**
-   * مخفی‌سازی عدد موجودی
+   * مخفی‌سازی عدد موجودی (با فعال‌سازی، ثبت سفارش برای مشتری غیرفعال می‌شود)
    */
   hideExactStock?: boolean | null;
   disableOrdering?: boolean | null;
@@ -653,15 +653,13 @@ export interface Plan {
    */
   startsAt?: string | null;
   /**
-   * تاریخ و ساعت پایان طرح (پس از پایان موعد، طرح پاک می‌شود)
+   * تاریخ و ساعت پایان طرح (پس از پایان موعد، طرح منقضی اعلام می‌شود)
    */
   expiresAt?: string | null;
-  status?: ('active' | 'expired' | 'draft') | null;
   /**
-   * درصد تخفیف اعمالی روی اقلام این طرح
+   * در صورت غیرفعال بودن، این طرح تحت هیچ شرایطی به مشتری نمایش داده نخواهد شد.
    */
-  discountPercent?: number | null;
-  discountAmount?: number | null;
+  isActive?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1200,9 +1198,7 @@ export interface PlansSelect<T extends boolean = true> {
   products?: T;
   startsAt?: T;
   expiresAt?: T;
-  status?: T;
-  discountPercent?: T;
-  discountAmount?: T;
+  isActive?: T;
   updatedAt?: T;
   createdAt?: T;
 }

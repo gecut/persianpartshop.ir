@@ -26,8 +26,7 @@ export function PlanModal({
   const [content, setContent] = useState('')
   const [customerId, setCustomerId] = useState(customers[0]?.id || '')
   const [planType, setPlanType] = useState<'credit_terms' | 'product_discount' | 'informational'>('credit_terms')
-  const [discountPercent, setDiscountPercent] = useState<number>(10)
-  const [status, setStatus] = useState<'active' | 'expired' | 'draft' | 'completed' | 'successful'>('active')
+  const [isActive, setIsActive] = useState(true)
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([])
   const [notes, setNotes] = useState('')
   const [hasTimer, setHasTimer] = useState(false)
@@ -39,8 +38,7 @@ export function PlanModal({
       setContent(editingPlan.content || editingPlan.notes || '')
       setCustomerId(editingPlan.customerId)
       setPlanType(editingPlan.type || 'credit_terms')
-      setDiscountPercent(editingPlan.discountPercent ?? 10)
-      setStatus(editingPlan.status || (editingPlan.isActive ? 'active' : 'expired'))
+      setIsActive(editingPlan.isActive !== false)
       setSelectedProductIds(editingPlan.productIds)
       setNotes(editingPlan.notes || '')
       setHasTimer(Boolean(editingPlan.hasTimer))
@@ -50,8 +48,7 @@ export function PlanModal({
       setContent('')
       setCustomerId(customers[0]?.id || '')
       setPlanType('credit_terms')
-      setDiscountPercent(10)
-      setStatus('active')
+      setIsActive(true)
       setSelectedProductIds(['prod-9', 'prod-1'])
       setNotes('')
       setHasTimer(false)
@@ -86,9 +83,7 @@ export function PlanModal({
       customerId,
       customerName: cust ? `${cust.name} (${cust.company})` : '',
       type: planType,
-      discountPercent: planType === 'product_discount' ? Number(discountPercent) || 10 : undefined,
-      isActive: status === 'active',
-      status,
+      isActive,
       content: content.trim(),
       productIds: selectedProductIds,
       notes: notes.trim(),
@@ -209,44 +204,6 @@ export function PlanModal({
           </div>
         </div>
 
-        {/* If product_discount mode: Show Discount Percent setting */}
-        {planType === 'product_discount' && (
-          <div className="p-3 bg-success/10 rounded-2xl space-y-2 animate-fade-in">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-success">
-                درصد تخفیف اعمالی روی کالاها:
-              </label>
-              <span className="text-xs font-black text-success bg-success/15 px-2 py-0.5 rounded-lg">
-                {toPersianDigits(discountPercent)}٪ تخفیف
-              </span>
-            </div>
-            <div className="flex items-center gap-3">
-              <input
-                type="range"
-                min={1}
-                max={50}
-                value={discountPercent}
-                onChange={(e) => setDiscountPercent(Number(e.target.value))}
-                className="flex-1 h-2 bg-success/20 rounded-lg appearance-none cursor-pointer accent-success"
-              />
-              <div className="flex items-center gap-1 shrink-0">
-                <Input
-                  type="number"
-                  min={1}
-                  max={100}
-                  value={discountPercent}
-                  onChange={(e) => setDiscountPercent(Number(e.target.value))}
-                  className="w-16 h-8 text-center text-xs font-bold rounded-lg bg-surface focus:outline-primary"
-                />
-                <span className="text-xs font-bold text-success">٪</span>
-              </div>
-            </div>
-            <p className="text-[11px] text-success leading-tight">
-              این تخفیف در لیست محصولات و سبد خرید خریدار منتخب اعمال شده و قیمت‌های کالا با نشان تخفیف ویژه به روز می‌شوند.
-            </p>
-          </div>
-        )}
-
         {/* Content (Textarea) */}
         <div>
           <label className="block text-xs font-bold text-foreground mb-1">
@@ -269,31 +226,22 @@ export function PlanModal({
           </span>
         </div>
 
-        {/* Status: Active / Expired / Draft */}
-        <div>
-          <label className="block text-xs font-bold text-foreground mb-1.5">
-            وضعیت طرح (Status): <span className="text-danger">*</span>
+        {/* Active / Inactive Checkbox */}
+        <div className="p-3 bg-muted/5 border border-border/40 rounded-2xl space-y-1">
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={isActive}
+              onChange={(e) => setIsActive(e.target.checked)}
+              className="size-4 rounded accent-primary cursor-pointer"
+            />
+            <span className="text-xs font-bold text-foreground">
+              طرح فعال (نمایش به مشتری)
+            </span>
           </label>
-          <div className="grid grid-cols-3 gap-2">
-            {[
-              { val: 'active', label: 'در حال اجرا', color: 'bg-success/15 text-success ring-1 ring-success' },
-              { val: 'expired', label: 'منقضی شده', color: 'bg-warning/15 text-warning ring-1 ring-warning' },
-              { val: 'draft', label: 'پیش‌نویس', color: 'bg-muted/10 text-foreground ring-1 ring-muted' },
-            ].map((st) => (
-              <Button
-                key={st.val}
-                type="button"
-                onClick={() => setStatus(st.val as any)}
-                className={`py-2 px-2 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
-                  status === st.val
-                    ? `${st.color} font-bold`
-                    : 'bg-muted/5 text-muted hover:bg-muted/10'
-                }`}
-              >
-                {st.label}
-              </Button>
-            ))}
-          </div>
+          <p className="text-[11px] text-muted leading-tight">
+            در صورت غیرفعال بودن، این طرح تحت هیچ شرایطی به مشتری نمایش داده نخواهد شد.
+          </p>
         </div>
 
         {/* Timer Configuration (Optional Boolean + Expiry Date) */}
@@ -349,10 +297,6 @@ export function PlanModal({
             {allProducts.map((product) => {
               const isChecked = selectedProductIds.includes(product.id)
               const originalPrice = product.finalCustomerPricePerSqm
-              const discountedPrice =
-                planType === 'product_discount'
-                  ? Math.round(originalPrice * (1 - (discountPercent || 10) / 100))
-                  : originalPrice
 
               return (
                 <label
@@ -386,23 +330,10 @@ export function PlanModal({
                     </span>
                   </div>
                   <div className="text-end shrink-0">
-                    {planType === 'product_discount' && isChecked ? (
-                      <div className="flex flex-col items-end">
-                        <span className="text-[10px] text-muted line-through inline-flex items-center gap-0.5">
-                          <span>{formatToman(originalPrice)}</span>
-                          <TomanIcon className="size-2.5" />
-                        </span>
-                        <span className="text-xs font-bold text-success inline-flex items-center gap-0.5">
-                          <span>{formatToman(discountedPrice)}</span>
-                          <TomanIcon className="size-3" />
-                        </span>
-                      </div>
-                    ) : (
-                      <span className="text-xs font-bold text-foreground inline-flex items-center gap-0.5">
-                        <span>{formatToman(originalPrice)}</span>
-                        <TomanIcon className="size-3" />
-                      </span>
-                    )}
+                    <span className="text-xs font-bold text-foreground inline-flex items-center gap-0.5">
+                      <span>{formatToman(originalPrice)}</span>
+                      <TomanIcon className="size-3" />
+                    </span>
                   </div>
                 </label>
               )

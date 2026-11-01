@@ -109,7 +109,11 @@ export function ProductBottomSheet({
 
   if (!activeProduct) return null;
 
-  const isOutOfStock = activeProduct.stockStatus === "out_of_stock";
+  const isOutOfStock =
+    activeProduct.stockStatus === "out_of_stock" ||
+    activeProduct.inStock === false ||
+    (Number.isFinite(Number(activeProduct.inventorySqm)) &&
+      Number(activeProduct.inventorySqm) <= 0);
   const currentHeroUrl = activeImageUrl || activeProduct.images[0] || "";
 
   return (
@@ -262,8 +266,12 @@ export function ProductBottomSheet({
                       <span className="px-3 py-2 rounded-lg text-xs font-semibold bg-muted/15 text-muted">
                         فقط مشاهده کاتالوگ
                       </span>
+                    ) : isOutOfStock ? (
+                      <span className="px-3.5 py-2 rounded-lg text-xs font-bold bg-danger/15 text-danger">
+                        ناموجود
+                      </span>
                     ) : (
-                      onToggleSelect && !isOutOfStock && (
+                      onToggleSelect && (
                         <Button
                           type="button"
                           onClick={onToggleSelect}
@@ -392,7 +400,7 @@ export function ProductBottomSheet({
                                     : "text-destructive",
                                 )}
                               >
-                                <span>
+                                <span className="text-right">
                                   {activeProduct.inStock ? "موجود" : "ناموجود"}
                                 </span>
                               </span>
@@ -402,7 +410,9 @@ export function ProductBottomSheet({
                                 dir="ltr"
                               >
                                 <span>{formatUnit(activeProduct.unit)}</span>
-                                {toPersianDigits(activeProduct.inventorySqm || 0)}
+                                {toPersianDigits(
+                                  activeProduct.inventorySqm || 0,
+                                )}
                               </span>
                             )}
                           </div>
@@ -502,7 +512,7 @@ export function ProductBottomSheet({
                                     : "text-destructive",
                                 )}
                               >
-                                <span>
+                                <span className="text-right">
                                   {activeProduct.inStock ? "موجود" : "ناموجود"}
                                 </span>
                               </span>
@@ -512,7 +522,9 @@ export function ProductBottomSheet({
                                 dir="ltr"
                               >
                                 <span>متر</span>
-                                {toPersianDigits(activeProduct.inventorySqm || 0)}
+                                {toPersianDigits(
+                                  activeProduct.inventorySqm || 0,
+                                )}
                               </span>
                             )}
                           </div>

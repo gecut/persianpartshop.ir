@@ -75,7 +75,14 @@ export const ProductCard = React.memo(function ProductCard({
   onToggleSelect,
   onOpenBottomSheet,
 }: ProductCardProps) {
-  const effectiveSelected = !isOrderingDisabled && isSelected;
+  const isOutOfStock =
+    product.stockStatus === "out_of_stock" ||
+    product.inStock === false ||
+    (Number.isFinite(Number(product.inventorySqm)) &&
+      Number(product.inventorySqm) <= 0);
+
+  const effectiveSelected =
+    !isOrderingDisabled && !isOutOfStock && isSelected;
 
   const handleCardClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
@@ -83,7 +90,7 @@ export const ProductCard = React.memo(function ProductCard({
     if (target.closest("button") || target.closest("[data-no-select]")) {
       return;
     }
-    if (isOrderingDisabled) {
+    if (isOrderingDisabled || isOutOfStock) {
       onOpenBottomSheet?.(product);
       return;
     }
@@ -101,7 +108,7 @@ export const ProductCard = React.memo(function ProductCard({
       onKeyDown={(e) => {
         if (e.key === " " || e.key === "Enter") {
           e.preventDefault();
-          if (isOrderingDisabled) {
+          if (isOrderingDisabled || isOutOfStock) {
             onOpenBottomSheet?.(product);
             return;
           }
@@ -113,6 +120,7 @@ export const ProductCard = React.memo(function ProductCard({
         effectiveSelected
           ? "bg-primary/8 ring-1 ring-primary scale-[0.98]"
           : "bg-muted/5",
+        isOutOfStock && "opacity-80",
       )}
     >
       <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
@@ -196,18 +204,15 @@ export const ProductCard = React.memo(function ProductCard({
           </span>
         </div>
 
-        {/* Bottom: Inventory Badge - Adapts unit between tile (متر) and other (کیسه/بسته/...) */}
+        {/* Bottom: Inventory Badge - Shows red "ناموجود" if out of stock, otherwise exact stock or presence badge */}
         <div className="mt-auto">
-          {product.hideExactStock ? (
-            <span
-              className={cn(
-                "px-2 py-1 rounded-lg flex text-xs font-semibold",
-                product.inStock
-                  ? "bg-emerald-600/20 text-emerald-400"
-                  : "bg-destructive/20 text-destructive",
-              )}
-            >
-              <span>{product.inStock ? "موجود" : "ناموجود"}</span>
+          {isOutOfStock ? (
+            <span className="px-2 py-1 rounded-lg flex text-xs font-semibold bg-danger/15 text-danger">
+              <span>ناموجود</span>
+            </span>
+          ) : product.hideExactStock ? (
+            <span className="px-2 py-1 rounded-lg flex text-xs font-semibold bg-emerald-600/20 text-emerald-400">
+              <span>موجود</span>
             </span>
           ) : (
             <span className="px-2 py-1 rounded-lg flex text-xs font-semibold bg-[#252745] text-background">

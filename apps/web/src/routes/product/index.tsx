@@ -57,7 +57,7 @@ function ProductListPage() {
     isLoading,
   } = productHook;
   const { user } = useAuth();
-  const isOrderingDisabled = Boolean(user?.disableOrdering);
+  const isOrderingDisabled = Boolean(user?.disableOrdering) || Boolean(user?.hideExactStock);
   const { items: cartItems } = useCart();
   const {
     selectedIds,

@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { usePlans } from "../features/plans/plans-store";
+import { useProducts } from "../features/products/product-store";
 import type { Plan } from "../types";
 import { PlanCard } from "../features/plans/plan-card";
 import { PlanCardSkeleton } from "../components/ui/skeleton";
@@ -11,18 +12,19 @@ export const Route = createFileRoute("/plans")({
 });
 
 function CustomerPlansPage() {
-  const { plans, allProducts, isLoading } = usePlans();
-  const now = Date.now();
+  const { plans, isLoading: isPlansLoading } = usePlans();
+  const { allProducts } = useProducts();
+  const isLoading = isPlansLoading && plans.length === 0;
   const validPlans = (plans as Plan[]).filter((p: Plan) => {
-    const expireTime = p.expiresAt ? new Date(p.expiresAt).getTime() : null;
-    const isExpired =
-      p.status === "expired" ||
-      (expireTime !== null && !isNaN(expireTime) && expireTime <= now);
-    return !isExpired;
+    return p.isActive !== false;
   });
 
   const sortedPlans = useMemo(() => {
     return [...validPlans].sort((a, b) => {
+      const aExpired = a.isExpired || a.status === "expired";
+      const bExpired = b.isExpired || b.status === "expired";
+      if (aExpired !== bExpired) return aExpired ? 1 : -1;
+
       const aStart = a.startsAt ? new Date(a.startsAt).getTime() : 0;
       const bStart = b.startsAt ? new Date(b.startsAt).getTime() : 0;
       return bStart - aStart;

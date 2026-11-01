@@ -52,6 +52,11 @@ export const Users: CollectionConfig = {
           data.status = "suspended";
         }
 
+        // Invariant: If customer cannot see exact stock, they cannot place orders
+        if (data?.hideExactStock === true) {
+          data.disableOrdering = true;
+        }
+
         // 2. Lock approved documents against customer modification or deletion
         const isAdmin =
           (req as any).user?.collection === "admins" ||
@@ -268,7 +273,7 @@ export const Users: CollectionConfig = {
       },
       admin: {
         position: "sidebar",
-        description: "مخفی‌سازی عدد موجودی",
+        description: "مخفی‌سازی عدد موجودی (با فعال‌سازی، ثبت سفارش برای مشتری غیرفعال می‌شود)",
       },
     },
     {

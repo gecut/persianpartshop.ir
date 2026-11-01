@@ -87,7 +87,7 @@ export async function getUserProfile(userId: string | number) {
 export function formatCustomerProfile(userDoc: any) {
   if (!userDoc) return null
   const hideExactStock = Boolean(userDoc.hideExactStock)
-  const disableOrdering = Boolean(userDoc.disableOrdering)
+  const disableOrdering = Boolean(userDoc.disableOrdering) || hideExactStock
   return {
     id: String(userDoc.id),
     contactName: userDoc.fullName || userDoc.name || '',
@@ -172,7 +172,7 @@ export async function getUserPermissions(userId?: string | number): Promise<User
     }
 
     const hideExactStock = Boolean(userDoc.hideExactStock)
-    const disableOrdering = Boolean(userDoc.disableOrdering)
+    const disableOrdering = Boolean(userDoc.disableOrdering) || hideExactStock
 
     return {
       markupPercent,

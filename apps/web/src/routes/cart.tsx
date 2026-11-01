@@ -40,6 +40,7 @@ function CartPage() {
   } = useCart()
 
   const { user, isAuthenticated } = useAuth()
+  const isOrderingDisabled = Boolean(user?.disableOrdering) || Boolean(user?.hideExactStock)
 
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false)
   const [orderNotes, setOrderNotes] = useState('')
@@ -211,7 +212,7 @@ function CartPage() {
               </div>
             )}
 
-            {user?.disableOrdering && (
+            {isOrderingDisabled && (
               <div className="p-2.5 rounded-2xl bg-warning/15 text-warning text-xs flex items-center gap-1.5">
                 <AlertTriangleIcon size={15} className="text-warning shrink-0" />
                 <span>حساب کاربری شما در وضعیت «فقط مشاهده کاتالوگ» تنظیم شده است و امکان ثبت سفارش را ندارد.</span>
@@ -221,11 +222,11 @@ function CartPage() {
             <Button
               type="button"
               onPress={() => setIsCheckoutModalOpen(true)}
-              isDisabled={hasBlockingIssues || items.length === 0 || Boolean(user?.disableOrdering)}
+              isDisabled={hasBlockingIssues || items.length === 0 || isOrderingDisabled}
               className="w-full h-11 rounded-2xl bg-primary hover:bg-primary/90 active:scale-98 text-primary-foreground font-bold text-sm flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <span>{user?.disableOrdering ? 'ثبت سفارش غیرفعال است (فقط مشاهده)' : 'ادامه ثبت سفارش'}</span>
-              {!user?.disableOrdering && <ArrowRightIcon size={15} />}
+              <span>{isOrderingDisabled ? 'ثبت سفارش غیرفعال است (فقط مشاهده)' : 'ادامه ثبت سفارش'}</span>
+              {!isOrderingDisabled && <ArrowRightIcon size={15} />}
             </Button>
           </div>
         </div>

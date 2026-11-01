@@ -18,10 +18,9 @@ export interface Plan {
   customerId: string
   customerName: string
   type?: 'credit_terms' | 'product_discount' | 'informational'
-  discountPercent?: number
-  discountAmount?: number
   isActive: boolean
-  status?: 'active' | 'expired' | 'draft' | 'completed' | 'successful'
+  isExpired?: boolean
+  status?: 'active' | 'expired' | 'upcoming'
   content?: string
   productIds: string[]
   notes?: string

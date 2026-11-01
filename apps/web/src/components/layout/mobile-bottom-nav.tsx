@@ -12,14 +12,6 @@ export function MobileBottomNav() {
   const routerState = useRouterState();
   const pathname = routerState.location.pathname;
 
-  // Do not show bottom nav on product quantity configuration page
-  if (
-    pathname.startsWith("/product/new") ||
-    pathname.startsWith("/products/new")
-  ) {
-    return null;
-  }
-
   const activeHref = useMemo(() => {
     if (pathname.startsWith("/plans")) return "/plans";
     if (pathname.startsWith("/orders")) return "/orders";
@@ -52,6 +44,14 @@ export function MobileBottomNav() {
     ],
     [],
   );
+
+  // Do not show bottom nav on product quantity configuration page
+  if (
+    pathname.startsWith("/product/new") ||
+    pathname.startsWith("/products/new")
+  ) {
+    return null;
+  }
 
   return (
     <>

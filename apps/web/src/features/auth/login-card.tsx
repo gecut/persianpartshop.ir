@@ -58,7 +58,7 @@ export function LoginCard() {
     setIsLoading(true);
 
     try {
-      await sendOtp(cleaned);
+      const resultMessage = await sendOtp(cleaned);
 
       setStep("otp");
       setCountdown(120);
@@ -67,7 +67,9 @@ export function LoginCard() {
 
       toast.info(
         "کد تأیید ارسال شد",
-        `پیامک حاوی کد تأیید ۴ رقمی برای شماره ${toPersianDigits(cleaned)} ارسال گردید.`,
+        typeof resultMessage === "string"
+          ? resultMessage
+          : `پیامک حاوی کد تأیید ۴ رقمی برای شماره ${toPersianDigits(cleaned)} ارسال گردید.`,
       );
     } catch (err: unknown) {
       const msg =

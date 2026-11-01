@@ -33,15 +33,17 @@ function ProductNewConfigurationPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  const isOrderingDisabled = Boolean(user?.disableOrdering) || Boolean(user?.hideExactStock);
+
   useEffect(() => {
-    if (user?.disableOrdering) {
+    if (isOrderingDisabled) {
       toast.warning(
         "محدودیت دسترسی",
         "حساب کاربری شما در وضعیت «فقط مشاهده کاتالوگ» تنظیم شده است و امکان ثبت سفارش را ندارد.",
       );
       navigate({ to: "/product" });
     }
-  }, [user?.disableOrdering, navigate]);
+  }, [isOrderingDisabled, navigate]);
   const location = useLocation();
   const searchObj = (location.search || {}) as Record<string, any>;
   const editOrderId: string | undefined =
@@ -81,14 +83,24 @@ function ProductNewConfigurationPage() {
     }
   }, [editOrderId, getOrderById]);
 
-  // Reconcile selected IDs with live products
+  // Reconcile selected IDs with live products and prune out-of-stock items
   useEffect(() => {
     if (allProducts && allProducts.length > 0) {
       selectionStore.reconcileWithProducts(allProducts.map((p) => p.id));
+      allProducts.forEach((p) => {
+        const isOutOfStock =
+          p.stockStatus === "out_of_stock" ||
+          p.inStock === false ||
+          (Number.isFinite(Number(p.inventorySqm)) &&
+            Number(p.inventorySqm) <= 0);
+        if (isOutOfStock && selectedIds.includes(String(p.id))) {
+          selectionStore.unselectProduct(p.id);
+        }
+      });
     }
-  }, [allProducts]);
+  }, [allProducts, selectedIds]);
 
-  // Selected products resolved from live products database
+  // Selected products resolved from live products database (excluding out-of-stock)
   const selectedProducts = useMemo(() => {
     return selectedIds
       .map((id) => {
@@ -98,7 +110,15 @@ function ProductNewConfigurationPage() {
             String(p.id) === cleanId || p.sku === cleanId || p.slug === cleanId,
         );
       })
-      .filter((p): p is Product => p !== undefined);
+      .filter((p): p is Product => {
+        if (!p) return false;
+        const isOutOfStock =
+          p.stockStatus === "out_of_stock" ||
+          p.inStock === false ||
+          (Number.isFinite(Number(p.inventorySqm)) &&
+            Number(p.inventorySqm) <= 0);
+        return !isOutOfStock;
+      });
   }, [selectedIds, allProducts]);
 
   // Initialize quantities for newly selected products without subscribing to the
@@ -160,7 +180,7 @@ function ProductNewConfigurationPage() {
         area,
         p.sqmPerCarton,
         p.finalCustomerPricePerSqm,
-        p.inventorySqm > 0 ? p.inventorySqm : 500,
+        Number(p.inventorySqm) || 0,
       );
       return {
         productId: p.id,

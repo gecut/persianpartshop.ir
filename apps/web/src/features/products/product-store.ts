@@ -2,7 +2,6 @@ import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { Product } from "../../types";
 import { api } from "../../lib/api-client";
-import { plansStore } from "../plans/plans-store";
 import { toPersianDigits } from "../../lib/utils/currency";
 import { useQueryStates } from "nuqs";
 import { productFilterParsers, type SortOption } from "./product-filters";
@@ -215,33 +214,10 @@ export function useProducts() {
         ...galleryUrls.filter((u: string) => u !== primaryImage),
       ];
 
-      // Check if any active product_discount plan covers this product
-      const activeDiscountPlans = plansStore
-        .getPlans()
-        .filter(
-          (p) =>
-            (p.status === "active" || p.isActive) &&
-            p.type === "product_discount",
-        );
-
-      const matchedPlan = activeDiscountPlans.find(
-        (p) =>
-          p.productIds.includes(String(item.id)) ||
-          p.productIds.includes(`prod-${item.id}`) ||
-          p.productIds.includes(item.slug),
-      );
-
-      let finalPrice = basePrice;
-      let discountPercent: number | undefined = undefined;
-      let originalPricePerSqm: number | undefined = undefined;
-      let discountPlanTitle: string | undefined = undefined;
-
-      if (matchedPlan) {
-        discountPercent = matchedPlan.discountPercent || 10;
-        originalPricePerSqm = basePrice;
-        finalPrice = Math.round(basePrice * (1 - discountPercent / 100));
-        discountPlanTitle = matchedPlan.title;
-      }
+      const finalPrice = basePrice;
+      const discountPercent: number | undefined = undefined;
+      const originalPricePerSqm: number | undefined = undefined;
+      const discountPlanTitle: string | undefined = undefined;
 
       return {
         id: String(item.id),

@@ -22,6 +22,7 @@ export interface ProductConfigCardProps {
 }
 
 const clampArea = (val: number, maxInventory: number) => {
+  if (maxInventory <= 0) return 0;
   const minVal = 1;
   const rawVal =
     isNaN(val) || val < minVal ? minVal : Math.round(val * 10) / 10;
@@ -34,12 +35,19 @@ function ProductConfigCardComponent({
 }: ProductConfigCardProps) {
   const storedQuantity = useProductQuantity(product.id);
 
-  const maxInventory = product.inventorySqm > 0 ? product.inventorySqm : 500;
-  const defaultArea = Math.min(
-    maxInventory,
-    Math.max(product.sqmPerCarton || 1, 1),
-  );
-  const area = Math.max(1, storedQuantity ?? defaultArea);
+  const maxInventory =
+    Number.isFinite(Number(product.inventorySqm)) &&
+    Number(product.inventorySqm) > 0
+      ? Number(product.inventorySqm)
+      : 0;
+  const defaultArea =
+    maxInventory > 0
+      ? Math.min(maxInventory, Math.max(product.sqmPerCarton || 1, 1))
+      : 0;
+  const area =
+    maxInventory > 0
+      ? Math.min(maxInventory, Math.max(1, storedQuantity ?? defaultArea))
+      : 0;
 
   const calc = useMemo(
     () =>

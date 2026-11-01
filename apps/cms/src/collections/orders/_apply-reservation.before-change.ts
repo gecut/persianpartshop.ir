@@ -69,11 +69,11 @@ export const applyReservationBeforeChange: CollectionBeforeChangeHook = async ({
         UPDATE "products"
         SET
           "inventory_sqm" = ROUND(("inventory_sqm" - ${deliverableArea})::numeric, 2),
-          "stock_cartons" = FLOOR(ROUND(("inventory_sqm" - ${deliverableArea})::numeric, 2) / "sqm_per_carton"),
+          "stock_cartons" = FLOOR(ROUND(("inventory_sqm" - ${deliverableArea})::numeric, 2) / COALESCE(NULLIF("sqm_per_carton", 0), 1)),
           "updated_at" = NOW()
         WHERE "id" = ${productId}
           AND "inventory_sqm" >= ${deliverableArea}
-          AND FLOOR(ROUND(("inventory_sqm" - ${deliverableArea})::numeric, 2) / "sqm_per_carton") >= 0
+          AND FLOOR(ROUND(("inventory_sqm" - ${deliverableArea})::numeric, 2) / COALESCE(NULLIF("sqm_per_carton", 0), 1)) >= 0
         RETURNING "id", "name", "stock_cartons", "inventory_sqm"
       `)
 
@@ -113,7 +113,7 @@ export const applyReservationBeforeChange: CollectionBeforeChangeHook = async ({
         UPDATE "products"
         SET
           "inventory_sqm" = ROUND(("inventory_sqm" + ${deliverableArea})::numeric, 2),
-          "stock_cartons" = FLOOR(ROUND(("inventory_sqm" + ${deliverableArea})::numeric, 2) / "sqm_per_carton"),
+          "stock_cartons" = FLOOR(ROUND(("inventory_sqm" + ${deliverableArea})::numeric, 2) / COALESCE(NULLIF("sqm_per_carton", 0), 1)),
           "updated_at" = NOW()
         WHERE "id" = ${productId}
         RETURNING "id"
