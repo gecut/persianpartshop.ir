@@ -59,11 +59,6 @@ async function processRequestOtp(rawPhone: string) {
     })
   }
 
-  // Print OTP clearly in terminal/logs for demo and testing
-  console.log(`\n======================================================`)
-  console.log(`🔑 [DEMO OTP] شماره: ${phone} | کد تایید یکبار مصرف: ${otpData.code}`)
-  console.log(`======================================================\n`)
-
   try {
     await sendKavenegarOtp({
       receptor: phone,
@@ -71,14 +66,20 @@ async function processRequestOtp(rawPhone: string) {
       template: 'gcotp',
     })
   } catch (smsErr) {
-    console.warn(`[SMS Warning] ارسال پیامک کاوه‌نگار انجام نشد اما کد ${otpData.code} جهت ورود فعال است.`)
+    // Invalidate the issued code if SMS sending fails
+    await invalidateOtp(phone, otpData.code)
+    if (process.env.NODE_ENV === 'production') {
+      throw new ORPCError('INTERNAL_SERVER_ERROR', {
+        message: 'خطا در ارسال پیامک کد تایید از طریق وب‌سرویس. لطفاً لحظاتی بعد مجدداً تلاش کنید.',
+      })
+    }
   }
 
   return {
     success: true,
     cooldownSeconds: otpData.cooldownSeconds,
     expiresInSeconds: otpData.expiresInSeconds,
-    message: `کد تایید ارسال گردید. (کد ورود دمو: ${otpData.code})`,
+    message: `کد تایید برای شماره ${toPersianDigits(phone)} ارسال گردید.`,
   }
 }
 

@@ -64,14 +64,16 @@ function PreInvoiceItemCard({ item }: PreInvoiceItemCardProps) {
               {item.product.name}
             </h4>
             <div className="flex items-center gap-1.5 text-xs text-muted mt-1 flex-wrap">
-              {item.product.dimensions?.width && item.product.dimensions?.height ? (
+              {item.product.dimensions?.width &&
+              item.product.dimensions?.height ? (
                 <span className="px-2 py-0.5 rounded-lg bg-muted/10 text-foreground font-semibold text-xs">
                   ابعاد: {toPersianDigits(item.product.dimensions.width)} ×{" "}
                   {toPersianDigits(item.product.dimensions.height)}
                 </span>
               ) : item.product.weight ? (
                 <span className="px-2 py-0.5 rounded-lg bg-muted/10 text-foreground font-semibold text-xs">
-                  {formatUnit(item.product.unit)} {toPersianDigits(item.product.weight)}
+                  {formatUnit(item.product.unit)}{" "}
+                  {toPersianDigits(item.product.weight)}
                 </span>
               ) : item.product.unit ? (
                 <span className="px-2 py-0.5 rounded-lg bg-muted/10 text-foreground font-semibold text-xs">
@@ -116,7 +118,11 @@ function PreInvoiceItemCard({ item }: PreInvoiceItemCardProps) {
         </div>
 
         <div className="text-end">
-          <span className="text-[11px] text-muted block mb-0.5">درجه کیفی</span>
+          {item.product.grade ? (
+            <span className="text-xs text-muted block mb-0.5">درجه کیفی</span>
+          ) : (
+            ""
+          )}
           <span className="px-2 py-0.5 rounded-lg text-xs font-semibold bg-primary/10 text-primary inline-block">
             {formatGrade(item.product.grade)}
           </span>
@@ -218,9 +224,15 @@ export function PreInvoiceModal({
     let createdId = "";
     let createdOrderNumber = "";
 
-    const token = typeof window !== "undefined" ? localStorage.getItem("persianpart_token") : null;
+    const token =
+      typeof window !== "undefined"
+        ? localStorage.getItem("persianpart_token")
+        : null;
     if (!token && !editOrderId) {
-      toast.warning("نیاز به ورود", "جهت ثبت و نهایی‌سازی سفارش، ابتدا وارد حساب کاربری خود شوید.");
+      toast.warning(
+        "نیاز به ورود",
+        "جهت ثبت و نهایی‌سازی سفارش، ابتدا وارد حساب کاربری خود شوید.",
+      );
       onClose();
       navigate({ to: "/login" as any });
       return;
@@ -261,7 +273,10 @@ export function PreInvoiceModal({
       }
     } catch (err: any) {
       console.error("Backend order submission failed:", err);
-      toast.error("خطا در ثبت سفارش", err?.message || "مشکلی در ثبت سفارش رخ داد.");
+      toast.error(
+        "خطا در ثبت سفارش",
+        err?.message || "مشکلی در ثبت سفارش رخ داد.",
+      );
       return;
     }
 
