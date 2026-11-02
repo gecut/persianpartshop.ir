@@ -1,17 +1,17 @@
-import { useState, useEffect } from 'react'
-import { Button, Input } from '@heroui/react'
-import type { Plan, B2BCustomer, Product } from '../../types'
-import { toPersianDigits, formatToman } from '../../lib/utils/currency'
-import { Modal } from '../../components/ui/modal'
-import { CheckIcon, TomanIcon } from '../../components/ui/icons'
+import { useState, useEffect } from "react";
+import { Button, Input } from "@heroui/react";
+import type { Plan, B2BCustomer, Product } from "../../types";
+import { toPersianDigits, formatToman } from "../../lib/utils/currency";
+import { Modal } from "../../components/ui/modal";
+import { CheckIcon, TomanIcon } from "../../components/ui/icons";
 
 export interface PlanModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onSave: (planData: Omit<Plan, 'id' | 'createdAt'> & { id?: string }) => void
-  editingPlan?: Plan | null
-  customers: B2BCustomer[]
-  allProducts: Product[]
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (planData: Omit<Plan, "id" | "createdAt"> & { id?: string }) => void;
+  editingPlan?: Plan | null;
+  customers: B2BCustomer[];
+  allProducts: Product[];
 }
 
 export function PlanModal({
@@ -22,66 +22,68 @@ export function PlanModal({
   customers,
   allProducts,
 }: PlanModalProps) {
-  const [title, setTitle] = useState('')
-  const [content, setContent] = useState('')
-  const [customerId, setCustomerId] = useState(customers[0]?.id || '')
-  const [planType, setPlanType] = useState<'credit_terms' | 'product_discount' | 'informational'>('credit_terms')
-  const [isActive, setIsActive] = useState(true)
-  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([])
-  const [notes, setNotes] = useState('')
-  const [hasTimer, setHasTimer] = useState(false)
-  const [expiresAt, setExpiresAt] = useState('')
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [customerId, setCustomerId] = useState(customers[0]?.id || "");
+  const [planType, setPlanType] = useState<
+    "credit_terms" | "product_discount" | "informational"
+  >("credit_terms");
+  const [isActive, setIsActive] = useState(true);
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+  const [notes, setNotes] = useState("");
+  const [hasTimer, setHasTimer] = useState(false);
+  const [expiresAt, setExpiresAt] = useState("");
 
   useEffect(() => {
     if (editingPlan) {
-      setTitle(editingPlan.title)
-      setContent(editingPlan.content || editingPlan.notes || '')
-      setCustomerId(editingPlan.customerId)
-      setPlanType(editingPlan.type || 'credit_terms')
-      setIsActive(editingPlan.isActive !== false)
-      setSelectedProductIds(editingPlan.productIds)
-      setNotes(editingPlan.notes || '')
-      setHasTimer(Boolean(editingPlan.hasTimer))
-      setExpiresAt(editingPlan.expiresAt || '')
+      setTitle(editingPlan.title);
+      setContent(editingPlan.content || editingPlan.notes || "");
+      setCustomerId(editingPlan.customerId);
+      setPlanType(editingPlan.type || "credit_terms");
+      setIsActive(editingPlan.isActive !== false);
+      setSelectedProductIds(editingPlan.productIds);
+      setNotes(editingPlan.notes || "");
+      setHasTimer(Boolean(editingPlan.hasTimer));
+      setExpiresAt(editingPlan.expiresAt || "");
     } else {
-      setTitle('')
-      setContent('')
-      setCustomerId(customers[0]?.id || '')
-      setPlanType('credit_terms')
-      setIsActive(true)
-      setSelectedProductIds(['prod-9', 'prod-1'])
-      setNotes('')
-      setHasTimer(false)
-      setExpiresAt('')
+      setTitle("");
+      setContent("");
+      setCustomerId(customers[0]?.id || "");
+      setPlanType("credit_terms");
+      setIsActive(true);
+      setSelectedProductIds(["prod-9", "prod-1"]);
+      setNotes("");
+      setHasTimer(false);
+      setExpiresAt("");
     }
-  }, [editingPlan, customers, isOpen])
+  }, [editingPlan, customers, isOpen]);
 
   const toggleProduct = (productId: string) => {
     setSelectedProductIds((prev) =>
       prev.includes(productId)
         ? prev.filter((id) => id !== productId)
-        : [...prev, productId]
-    )
-  }
+        : [...prev, productId],
+    );
+  };
 
-  const selectedCustomer = customers.find((c) => c.id === customerId)
+  const selectedCustomer = customers.find((c) => c.id === customerId);
   const defaultDynamicTitle = selectedCustomer
     ? `${selectedCustomer.name} عزیز، این طرح برای شماست`
-    : 'همکار عزیز، این طرح برای شماست'
+    : "همکار عزیز، این طرح برای شماست";
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!content.trim() || !customerId) return
+    e.preventDefault();
+    if (!content.trim() || !customerId) return;
 
-    const cust = customers.find((c) => c.id === customerId)
-    const finalTitle = title.trim() || defaultDynamicTitle
+    const cust = customers.find((c) => c.id === customerId);
+    const finalTitle = title.trim() || defaultDynamicTitle;
 
     onSave({
       id: editingPlan?.id,
       title: finalTitle,
       customerGreeting: defaultDynamicTitle,
       customerId,
-      customerName: cust ? `${cust.name} (${cust.company})` : '',
+      customerName: cust ? `${cust.name} (${cust.company})` : "",
       type: planType,
       isActive,
       content: content.trim(),
@@ -89,15 +91,15 @@ export function PlanModal({
       notes: notes.trim(),
       hasTimer,
       expiresAt: hasTimer && expiresAt ? expiresAt : undefined,
-    })
-    onClose()
-  }
+    });
+    onClose();
+  };
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={editingPlan ? 'ویرایش طرح' : 'ایجاد طرح جدید'}
+      title={editingPlan ? "ویرایش طرح" : "ایجاد طرح جدید"}
       isBottomSheetOnMobile={true}
     >
       <form onSubmit={handleSubmit} className="space-y-4 text-start">
@@ -153,16 +155,14 @@ export function PlanModal({
           <div className="grid grid-cols-3 gap-2">
             <Button
               type="button"
-              onClick={() => setPlanType('credit_terms')}
+              onClick={() => setPlanType("credit_terms")}
               className={`p-2.5 rounded-2xl text-xs font-bold transition-all text-start flex flex-col gap-1 cursor-pointer ${
-                planType === 'credit_terms'
-                  ? 'bg-primary/10 text-primary ring-1 ring-primary'
-                  : 'bg-muted/5 text-muted hover:bg-muted/10'
+                planType === "credit_terms"
+                  ? "bg-primary/10 text-primary ring-1 ring-primary"
+                  : "bg-muted/5 text-muted hover:bg-muted/10"
               }`}
             >
-              <span className="font-bold text-xs">
-                خرید اعتباری
-              </span>
+              <span className="font-bold text-xs">خرید اعتباری</span>
               <span className="text-[10px] font-normal text-muted leading-tight">
                 مهلت مدت‌دار
               </span>
@@ -170,16 +170,14 @@ export function PlanModal({
 
             <Button
               type="button"
-              onClick={() => setPlanType('product_discount')}
+              onClick={() => setPlanType("product_discount")}
               className={`p-2.5 rounded-2xl text-xs font-bold transition-all text-start flex flex-col gap-1 cursor-pointer ${
-                planType === 'product_discount'
-                  ? 'bg-success/15 text-success ring-1 ring-success'
-                  : 'bg-muted/5 text-muted hover:bg-muted/10'
+                planType === "product_discount"
+                  ? "bg-success/15 text-success ring-1 ring-success"
+                  : "bg-muted/5 text-muted hover:bg-muted/10"
               }`}
             >
-              <span className="font-bold text-xs">
-                تخفیف کالا
-              </span>
+              <span className="font-bold text-xs">تخفیف کالا</span>
               <span className="text-[10px] font-normal text-muted leading-tight">
                 درصد مازاد
               </span>
@@ -187,16 +185,14 @@ export function PlanModal({
 
             <Button
               type="button"
-              onClick={() => setPlanType('informational')}
+              onClick={() => setPlanType("informational")}
               className={`p-2.5 rounded-2xl text-xs font-bold transition-all text-start flex flex-col gap-1 cursor-pointer ${
-                planType === 'informational'
-                  ? 'bg-amber-500/15 text-amber-600 ring-1 ring-amber-500'
-                  : 'bg-muted/5 text-muted hover:bg-muted/10'
+                planType === "informational"
+                  ? "bg-amber-500/15 text-amber-600 ring-1 ring-amber-500"
+                  : "bg-muted/5 text-muted hover:bg-muted/10"
               }`}
             >
-              <span className="font-bold text-xs">
-                اطلاع‌رسانی
-              </span>
+              <span className="font-bold text-xs">اطلاع‌رسانی</span>
               <span className="text-[10px] font-normal text-muted leading-tight">
                 اعلامیه و زنگ
               </span>
@@ -215,9 +211,9 @@ export function PlanModal({
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder={
-              planType === 'credit_terms'
-                ? 'مثال: امکان خرید اعتباری با بازپرداخت ۳ ماهه و ارائه چک صیادی...'
-                : 'مثال: به پاس همکاری‌های مستمر، ۱۰٪ تخفیف مازاد برای این اقلام به مدت محدود فعال شد...'
+              planType === "credit_terms"
+                ? "مثال: امکان خرید اعتباری با بازپرداخت ۳ ماهه و ارائه چک صیادی..."
+                : "مثال: به پاس همکاری‌های مستمر، ۱۰٪ تخفیف مازاد برای این اقلام به مدت محدود فعال شد..."
             }
             className="w-full p-2.5 rounded-2xl bg-muted/5 focus:bg-muted/10 text-xs text-foreground transition-all outline-hidden"
           />
@@ -240,7 +236,8 @@ export function PlanModal({
             </span>
           </label>
           <p className="text-[11px] text-muted leading-tight">
-            در صورت غیرفعال بودن، این طرح تحت هیچ شرایطی به مشتری نمایش داده نخواهد شد.
+            در صورت غیرفعال بودن، این طرح تحت هیچ شرایطی به مشتری نمایش داده
+            نخواهد شد.
           </p>
         </div>
 
@@ -258,7 +255,8 @@ export function PlanModal({
             </span>
           </label>
           <p className="text-[11px] text-muted leading-tight">
-            در صورت فعال بودن، زمان معکوس باقی‌مانده بالای آیکون طرح نمایش داده می‌شود.
+            در صورت فعال بودن، زمان معکوس باقی‌مانده بالای آیکون طرح نمایش داده
+            می‌شود.
           </p>
 
           {hasTimer && (
@@ -269,9 +267,13 @@ export function PlanModal({
               <Input
                 fullWidth
                 type="datetime-local"
-                value={expiresAt ? expiresAt.substring(0, 16) : ''}
+                value={expiresAt ? expiresAt.substring(0, 16) : ""}
                 onChange={(e) =>
-                  setExpiresAt(e.target.value ? new Date(e.target.value).toISOString() : '')
+                  setExpiresAt(
+                    e.target.value
+                      ? new Date(e.target.value).toISOString()
+                      : "",
+                  )
                 }
                 className="w-full h-10 px-3 rounded-2xl bg-muted/10 text-xs font-bold text-foreground transition-all outline-hidden"
               />
@@ -290,19 +292,20 @@ export function PlanModal({
             </span>
           </div>
           <span className="text-xs text-muted block pb-1">
-            این رابطه مستقلاً برای هر طرح تنظیم می‌شود و ارتباطی با تگ‌های عمومی محصول ندارد.
+            این رابطه مستقلاً برای هر طرح تنظیم می‌شود و ارتباطی با تگ‌های عمومی
+            محصول ندارد.
           </span>
 
           <div className="max-h-48 overflow-y-auto rounded-2xl divide-y divide-separator/50 p-1 bg-muted/5">
             {allProducts.map((product) => {
-              const isChecked = selectedProductIds.includes(product.id)
-              const originalPrice = product.finalCustomerPricePerSqm
+              const isChecked = selectedProductIds.includes(product.id);
+              const originalPrice = product.finalCustomerPricePerSqm;
 
               return (
                 <label
                   key={product.id}
                   className={`flex items-center gap-2.5 p-2 rounded-xl transition-colors cursor-pointer select-none ${
-                    isChecked ? 'bg-primary/10' : 'hover:bg-muted/10'
+                    isChecked ? "bg-primary/10" : "hover:bg-muted/10"
                   }`}
                 >
                   <input
@@ -312,12 +315,16 @@ export function PlanModal({
                     className="w-4 h-4 rounded text-primary focus:ring-primary cursor-pointer shrink-0"
                   />
                   <img
-                    src={product.images[0] || '/assets/images/placeholder.svg'}
+                    src={product.images[0] || "/assets/images/placeholder.svg"}
                     alt={product.name}
                     className="w-8 h-8 rounded-xl object-cover shrink-0"
                     onError={(e) => {
-                      if (!e.currentTarget.src.endsWith('/assets/images/placeholder.svg')) {
-                        e.currentTarget.src = '/assets/images/placeholder.svg'
+                      if (
+                        !e.currentTarget.src.endsWith(
+                          "/assets/images/placeholder.svg",
+                        )
+                      ) {
+                        e.currentTarget.src = "/assets/images/placeholder.svg";
                       }
                     }}
                   />
@@ -336,7 +343,7 @@ export function PlanModal({
                     </span>
                   </div>
                 </label>
-              )
+              );
             })}
           </div>
         </div>
@@ -369,10 +376,10 @@ export function PlanModal({
             className="h-10 px-4 rounded-2xl bg-primary hover:bg-primary/90 active:scale-98 text-primary-foreground text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
           >
             <CheckIcon size={16} />
-            <span>{editingPlan ? 'ذخیره تغییرات' : 'ثبت طرح'}</span>
+            <span>{editingPlan ? "ذخیره تغییرات" : "ثبت طرح"}</span>
           </Button>
         </div>
       </form>
     </Modal>
-  )
+  );
 }

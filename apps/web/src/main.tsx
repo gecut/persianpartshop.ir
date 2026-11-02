@@ -1,10 +1,11 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { routeTree } from './routeTree.gen'
 import { authStore } from './features/auth/auth-store'
 import { toast } from './components/feedback/toast'
+import { queryClient, setQueryAuthErrorHandler } from './lib/query-client'
 import './styles/globals.css'
 
 // Globally disable text selection except in inputs and editable areas
@@ -47,14 +48,7 @@ const handleQueryAuthError = (error: unknown) => {
   }
 }
 
-const queryClient = new QueryClient({
-  queryCache: new QueryCache({
-    onError: handleQueryAuthError,
-  }),
-  mutationCache: new MutationCache({
-    onError: handleQueryAuthError,
-  }),
-})
+setQueryAuthErrorHandler(handleQueryAuthError)
 
 const router = createRouter({
   routeTree,

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api, type CustomerProfile } from '../lib/api-client'
 import { queryKeys, mutationKeys } from '../lib/query-keys'
+import { clearTanStackCache } from '../lib/query-client'
 
 export function useAuth() {
   const queryClient = useQueryClient()
@@ -61,7 +62,7 @@ export function useAuth() {
       localStorage.removeItem('persianpart_token')
     }
     setToken(null)
-    queryClient.invalidateQueries({ queryKey: queryKeys.auth.all })
+    clearTanStackCache()
   }
 
   return {

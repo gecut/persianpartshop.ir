@@ -73,13 +73,13 @@ app.use(
   })
 )
 
-app.use(
-  '/api/media/upload',
-  jwt({
-    secret: JWT_SECRET,
-    alg: 'HS256',
-  })
-)
+const mediaAuthMiddleware = jwt({
+  secret: JWT_SECRET,
+  alg: 'HS256',
+})
+
+app.use('/api/media/upload', mediaAuthMiddleware)
+app.use('/api/upload', mediaAuthMiddleware)
 
 app.get('/api/auth/me', (c) => {
   const payload = c.get('jwtPayload')
@@ -89,14 +89,15 @@ app.get('/api/auth/me', (c) => {
   })
 })
 
-// 3. Media Upload Endpoint (Uploads to Payload CMS media collection)
-app.post('/api/media/upload', async (c) => {
+// 3. Media Upload Endpoint Handler (Uploads to Payload CMS media collection)
+const handleMediaUpload = async (c: Context) => {
   try {
     const formData = await c.req.parseBody()
-    const file = formData['file']
-    if (!file || !(file instanceof File)) {
+    const rawFile = formData['file'] || formData['image'] || formData['media']
+    if (!rawFile || !(rawFile instanceof File)) {
       return c.json({ error: 'فایل معتبری برای آپلود ارسال نشده است (پارامتر file).' }, 400)
     }
+    const file = rawFile
 
     const MAX_FILE_SIZE = 15 * 1024 * 1024 // 15MB
     if (file.size > MAX_FILE_SIZE) {
@@ -114,9 +115,10 @@ app.post('/api/media/upload', async (c) => {
     const cmsApiKey = process.env.CMS_API_KEY || 'persianpart_dev_api_key_2026'
 
     const cmsFormData = new FormData()
-    const alt = (formData['alt'] as string) || file.name || 'document'
-    cmsFormData.append('_payload', JSON.stringify({ alt }))
+    const alt = (formData['alt'] as string) || (formData['title'] as string) || file.name || 'document'
     cmsFormData.append('file', file)
+    cmsFormData.append('alt', alt)
+    cmsFormData.append('_payload', JSON.stringify({ alt }))
 
     const cmsResponse = await fetch(`${cmsUrl}/api/media`, {
       method: 'POST',
@@ -147,7 +149,11 @@ app.post('/api/media/upload', async (c) => {
     console.error('[Media Upload Error]:', err)
     return c.json({ error: 'خطا در ذخیره‌سازی فایل روی سرور' }, 500)
   }
-})
+}
+
+app.post('/api/media/upload', handleMediaUpload)
+app.post('/api/media', mediaAuthMiddleware, handleMediaUpload)
+app.post('/api/upload', handleMediaUpload)
 
 // 4. Media Server (Fallback when Nginx is bypassed in local dev)
 app.get('/api/media/*', async (c) => {

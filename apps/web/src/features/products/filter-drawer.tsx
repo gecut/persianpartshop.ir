@@ -162,7 +162,7 @@ export function FilterDrawer({
                     dir="rtl"
                     placement="bottom"
                     shouldFlip={false}
-                    className="w-[var(--trigger-width)] text-right rounded-2xl p-1.5 bg-surface z-60 shadow-xl border border-border/20"
+                    className="w-[var(--trigger-width)] text-right rounded-2xl p-1.5 bg-surface z-60  border border-border/20"
                   >
                     <Dropdown.Menu
                       dir="rtl"
@@ -227,7 +227,7 @@ export function FilterDrawer({
                     dir="rtl"
                     placement="bottom"
                     shouldFlip={false}
-                    className="w-[var(--trigger-width)] text-right max-h-56 overflow-y-auto scrollbar-none rounded-2xl p-1.5 bg-surface z-60 shadow-xl border border-border/20"
+                    className="w-[var(--trigger-width)] text-right max-h-56 overflow-y-auto scrollbar-none rounded-2xl p-1.5 bg-surface z-60  border border-border/20"
                   >
                     <Dropdown.Menu
                       dir="rtl"

@@ -100,6 +100,60 @@ function getDocFileUrl(file: any): string | null {
   return null;
 }
 
+async function compressImageFile(file: File, maxDimension = 1920, quality = 0.82): Promise<File> {
+  if (typeof window === "undefined" || !file.type.startsWith("image/") || file.type.includes("svg")) {
+    return file;
+  }
+
+  return new Promise((resolve) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+
+      if (width <= maxDimension && height <= maxDimension && file.size < 800 * 1024) {
+        return resolve(file);
+      }
+
+      if (width > height) {
+        if (width > maxDimension) {
+          height = Math.round((height * maxDimension) / width);
+          width = maxDimension;
+        }
+      } else {
+        if (height > maxDimension) {
+          width = Math.round((width * maxDimension) / height);
+          height = maxDimension;
+        }
+      }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return resolve(file);
+
+      ctx.drawImage(img, 0, 0, width, height);
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) return resolve(file);
+          const newName = file.name.replace(/\.[^/.]+$/, ".webp");
+          const compressedFile = new File([blob], newName, { type: "image/webp" });
+          resolve(compressedFile);
+        },
+        "image/webp",
+        quality,
+      );
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(file);
+    };
+    img.src = url;
+  });
+}
+
 export function ProfileView() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -262,8 +316,9 @@ export function ProfileView() {
         typeof window !== "undefined"
           ? localStorage.getItem("persianpart_token")
           : null;
+      const fileToUpload = await compressImageFile(uploadFile);
       const formDataUpload = new FormData();
-      formDataUpload.append("file", uploadFile);
+      formDataUpload.append("file", fileToUpload);
       formDataUpload.append(
         "alt",
         uploadTitle.trim() ||
@@ -271,7 +326,8 @@ export function ProfileView() {
           "مدرک مشتری",
       );
 
-      const uploadRes = await fetch("/api/media/upload", {
+      const apiBase = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
+      const uploadRes = await fetch(`${apiBase}/api/media/upload`, {
         method: "POST",
         headers: {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -280,6 +336,9 @@ export function ProfileView() {
       });
 
       if (!uploadRes.ok) {
+        if (uploadRes.status === 413) {
+          throw new Error("حجم فایل انتخابی بیش از سقف مجاز وب‌سرور است (خطای ۴۱۳).");
+        }
         const errJson = await uploadRes.json().catch(() => null);
         throw new Error(errJson?.error || "خطا در بارگذاری فایل در سرور");
       }
@@ -643,7 +702,7 @@ export function ProfileView() {
         >
           <Drawer.Content
             placement="bottom"
-            className="w-full max-w-lg mx-auto fixed z-50 bottom-0! mb-0! inset-x-0 top-auto h-auto! max-h-[92dvh] rounded-t-3xl rounded-b-none! flex flex-col overflow-hidden border-b-0! shadow-2xl"
+            className="w-full max-w-lg mx-auto fixed z-50 bottom-0! mb-0! inset-x-0 top-auto h-auto! max-h-[92dvh] rounded-t-3xl rounded-b-none! flex flex-col overflow-hidden border-b-0!"
           >
             <Drawer.Dialog className="flex flex-col bg-background h-auto! max-h-[92dvh] min-h-0 outline-none text-start overscroll-contain m-0! mb-0! p-0! rounded-b-none!">
               {/* Drag Handle UI */}

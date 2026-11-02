@@ -171,7 +171,9 @@ function OrderDetailPage() {
   const isCancellableByCustomer =
     !isCancelled && !isCompleted && isWithin60Minutes;
 
-  const createdAtMs = order?.createdAt ? new Date(order.createdAt).getTime() : Date.now();
+  const createdAtMs = order?.createdAt
+    ? new Date(order.createdAt).getTime()
+    : Date.now();
   const is10MinutesPassed = Date.now() >= createdAtMs + 10 * 60 * 1000;
 
   const timeline = useMemo(() => {
@@ -374,9 +376,7 @@ function OrderDetailPage() {
                   )}
                 />
                 <span className="inline-flex items-center gap-1.5">
-                  <span>
-                    به مدت ۶۰ دقیقه وقت دارید سفارش خود را ویرایش یا لغو کنید
-                  </span>
+                  <span>مهلت ویرایش یا حذف سفارش به پایان رسید </span>
                   {isWithin60Minutes ? (
                     <span
                       className="inline-flex items-center gap-0.5 font-bold tracking-wider"
@@ -411,7 +411,7 @@ function OrderDetailPage() {
                       />
                     </span>
                   ) : (
-                    <span>پایان یافت</span>
+                    ""
                   )}
                 </span>
               </span>

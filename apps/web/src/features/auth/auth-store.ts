@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { api, setAuthErrorHandler } from '../../lib/api-client'
 import { toast } from '../../components/feedback/toast'
+import { clearTanStackCache } from '../../lib/query-client'
 
 export interface UserProfile {
   id: string
@@ -122,6 +123,7 @@ export const authStore = {
       localStorage.removeItem(STORAGE_KEY)
       localStorage.removeItem('persianpart_orders_v2')
     }
+    clearTanStackCache()
     broadcast({
       isAuthenticated: false,
       user: null,
@@ -250,7 +252,7 @@ export function useAuth() {
     verifyOtp: (code: string) => verifyOtpMutation.mutateAsync(code),
     logout: () => {
       authStore.logout()
-      queryClient.invalidateQueries({ queryKey: queryKeys.auth.all })
+      clearTanStackCache()
     },
     updateProfile: (updated: Partial<UserProfile>) => updateProfileMutation.mutateAsync(updated),
   }

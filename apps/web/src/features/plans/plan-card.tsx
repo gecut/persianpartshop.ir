@@ -293,7 +293,7 @@ export function PlanCard({ plan, products }: PlanCardProps) {
         >
           <Drawer.Content
             placement="bottom"
-            className="w-full max-w-xl sm:max-w-2xl mx-auto fixed z-40 bottom-0! mb-0! inset-x-0 top-auto h-auto! max-h-[92dvh] sm:max-h-[94dvh] rounded-t-3xl rounded-b-none! flex flex-col overflow-hidden border-b-0! shadow-2xl"
+            className="w-full max-w-xl  mx-auto fixed z-40 bottom-0! mb-0! inset-x-0 top-auto h-auto! max-h-[92dvh] sm:max-h-[94dvh] rounded-t-3xl rounded-b-none! flex flex-col overflow-hidden border-b-0!"
           >
             <Drawer.Dialog className="flex flex-col bg-background h-auto! max-h-[92dvh] sm:max-h-[94dvh] min-h-0 outline-none text-start overscroll-contain m-0! mb-0! p-0! rounded-b-none!">
               {/* Drag Handle UI */}
@@ -435,9 +435,9 @@ export function PlanCard({ plan, products }: PlanCardProps) {
                                   }
                             }
                             className={cn(
-                              "flex items-center justify-between gap-3 p-2.5 rounded-2xl border transition-all text-start",
+                              "flex items-center  justify-between gap-3 p-2.5 rounded-2xl border transition-all text-start",
                               isExpired
-                                ? "opacity-40 blur-[1.5px] pointer-events-none cursor-not-allowed select-none bg-muted/5 border-border/20 grayscale-[0.2]"
+                                ? "opacity-40  pointer-events-none cursor-not-allowed select-none bg-muted/5 border-border/20 grayscale-[0.2]"
                                 : cn(
                                     "cursor-pointer select-none",
                                     isSelected
