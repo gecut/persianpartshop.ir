@@ -211,7 +211,7 @@ export function PlanCard({ plan, products }: PlanCardProps) {
       >
         {/* Upcoming Alert Banner */}
         {isUpcoming && (
-          <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-xs font-bold animate-pulse">
+          <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-warning/15 text-warning border border-warning/30 text-xs font-bold animate-pulse">
             <ClockIcon className="size-4 shrink-0" />
             <span>{upcomingDaysText}</span>
           </div>
@@ -241,7 +241,7 @@ export function PlanCard({ plan, products }: PlanCardProps) {
                 منقضی شده
               </span>
             ) : isUpcoming ? (
-              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400">
+              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-warning/15 text-warning">
                 در انتظار شروع
               </span>
             ) : (
@@ -328,7 +328,7 @@ export function PlanCard({ plan, products }: PlanCardProps) {
               <Drawer.Body className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 py-3.5 space-y-3.5 scrollbar-none pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] text-start">
                 {/* Upcoming Notice in Bottom Sheet */}
                 {isUpcoming && (
-                  <div className="flex items-center gap-2 p-3 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-xs font-bold">
+                  <div className="flex items-center gap-2 p-3 rounded-2xl bg-warning/15 text-warning border border-warning/30 text-xs font-bold">
                     <ClockIcon className="size-4 shrink-0" />
                     <span>{upcomingDaysText}</span>
                   </div>
@@ -588,7 +588,7 @@ export function PlanCard({ plan, products }: PlanCardProps) {
                     </Button>
                   )
                 ) : (
-                  <span className="text-xs font-bold text-amber-600 dark:text-amber-400">
+                  <span className="text-xs font-bold text-warning">
                     طرح به‌زودی آغاز می‌شود
                   </span>
                 )}

@@ -564,18 +564,12 @@ h6 {
    -------------------------------------------------------------------------- */
 
 /* --------------------------------------------------------------------------
-   PRINT STYLES FOR OFFICIAL PRE-INVOICE (A5 FORMAT ONLY)
+   PRINT STYLES FOR OFFICIAL PRE-INVOICE
    -------------------------------------------------------------------------- */
 @media print {
-  #printable-invoice {
-    corner-shape: auto !important;
-    -webkit-corner-shape: auto !important;
-    border-radius: 0 !important;
-  }
-
   @page {
-    size: A5 portrait;
-    margin: 5mm 6mm;
+    size: auto;
+    margin: 8mm 10mm;
   }
 
   html,
@@ -586,7 +580,7 @@ h6 {
     margin: 0 !important;
     padding: 0 !important;
     background: #ffffff !important;
-    color: #111827 !important;
+    color: #0e0c2d !important;
     overflow: visible !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
@@ -603,12 +597,13 @@ h6 {
   }
 
   /* 3. Reset invoice portal container */
-  #order-invoice-portal {
+  #order-invoice-portal,
+  #order-invoice-portal > div {
     display: block !important;
     position: static !important;
     width: 100% !important;
     max-width: 100% !important;
-    margin: 0 !important;
+    margin: 0 auto !important;
     padding: 0 !important;
     background: #ffffff !important;
     overflow: visible !important;
@@ -626,17 +621,30 @@ h6 {
     display: none !important;
   }
 
-  /* 5. Printable invoice sheet container reset for A5 */
+  /* 5. Printable invoice sheet container reset */
   #printable-invoice {
     display: block !important;
     position: static !important;
     width: 100% !important;
     max-width: 100% !important;
+    margin: 0 auto !important;
     padding: 0 !important;
-    margin: 0 !important;
     box-shadow: none !important;
     border: none !important;
     background: #ffffff !important;
+    border-radius: 0 !important;
+  }
+
+  /* Table Header in Print: Solid Black with White Text */
+  #printable-invoice table thead,
+  #printable-invoice table thead tr,
+  #printable-invoice table th,
+  #printable-invoice [data-slot="th"],
+  #printable-invoice [role="columnheader"] {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 }
 

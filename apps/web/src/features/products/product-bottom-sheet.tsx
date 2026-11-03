@@ -396,8 +396,8 @@ export function ProductBottomSheet({
                                 className={cn(
                                   "text-right flex items-center justify-end font-bold text-xs leading-normal truncate",
                                   activeProduct.inStock
-                                    ? "text-emerald-500"
-                                    : "text-destructive",
+                                    ? "text-success"
+                                    : "text-danger",
                                 )}
                               >
                                 <span className="text-right">
@@ -508,8 +508,8 @@ export function ProductBottomSheet({
                                 className={cn(
                                   "text-right flex items-center justify-end font-bold text-xs leading-normal truncate",
                                   activeProduct.inStock
-                                    ? "text-emerald-500"
-                                    : "text-destructive",
+                                    ? "text-success"
+                                    : "text-danger",
                                 )}
                               >
                                 <span className="text-right">

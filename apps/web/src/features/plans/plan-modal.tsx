@@ -188,7 +188,7 @@ export function PlanModal({
               onClick={() => setPlanType("informational")}
               className={`p-2.5 rounded-2xl text-xs font-bold transition-all text-start flex flex-col gap-1 cursor-pointer ${
                 planType === "informational"
-                  ? "bg-amber-500/15 text-amber-600 ring-1 ring-amber-500"
+                  ? "bg-warning/15 text-warning ring-1 ring-warning"
                   : "bg-muted/5 text-muted hover:bg-muted/10"
               }`}
             >

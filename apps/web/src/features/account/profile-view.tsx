@@ -643,7 +643,7 @@ export function ProfileView() {
                           </span>
                         )}
                         {isPending && (
-                          <span className="shrink-0 px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                          <span className="shrink-0 px-2 py-0.5 rounded-full text-[11px] font-bold bg-warning/15 text-warning flex items-center gap-1">
                             <ClockIcon size={12} />
                             <span>منتظر تایید ادمین</span>
                           </span>

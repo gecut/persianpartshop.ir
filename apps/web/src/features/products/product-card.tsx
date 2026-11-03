@@ -211,11 +211,11 @@ export const ProductCard = React.memo(function ProductCard({
               <span>ناموجود</span>
             </span>
           ) : product.hideExactStock ? (
-            <span className="px-2 py-1 rounded-lg flex text-xs font-semibold bg-emerald-600/20 text-emerald-400">
+            <span className="px-2 py-1 rounded-lg flex text-xs font-semibold bg-success/20 text-success">
               <span>موجود</span>
             </span>
           ) : (
-            <span className="px-2 py-1 rounded-lg flex text-xs font-semibold bg-[#252745] text-background">
+            <span className="px-2 py-1 rounded-lg flex text-xs font-semibold bg-foreground text-background">
               <span className="flex items-center gap-0.5">
                 موجودی:{" "}
                 {Math.floor(
