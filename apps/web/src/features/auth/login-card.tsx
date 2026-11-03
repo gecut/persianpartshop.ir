@@ -161,8 +161,8 @@ export function LoginCard() {
         <div className="mb-8 flex flex-col items-center text-center">
           <div className="mb-4 flex size-14 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 p-2.5 overflow-hidden">
             <img
-              src="https://cdn.persianpartshop.ir/assets/images/logo/persianpartshop-logo.png"
-              alt="لوگو"
+              src="/assets/images/persian-part-logo.png"
+              alt="پرشین‌پارت"
               className="size-full object-contain"
             />
           </div>

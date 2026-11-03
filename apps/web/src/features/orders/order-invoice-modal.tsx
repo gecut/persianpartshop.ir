@@ -85,15 +85,15 @@ export function OrderInvoiceModal({
           transition={{ duration: 0.2 }}
           className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs overflow-y-auto overscroll-contain print:static print:p-0 print:bg-white print:overflow-visible print:z-auto print:block print:w-full print:m-0"
         >
-          <div className="min-h-full w-full flex flex-col items-center justify-start p-2 sm:p-4 md:p-6 pb-12 sm:pb-16 print:p-0 print:block print:w-full print:m-0">
+          <div className="min-h-full w-full flex flex-col items-center justify-start p-1.5 sm:p-4 md:p-6 pb-12 sm:pb-16 print:p-0 print:block print:w-full print:m-0">
             {/* Action Bar (Squircle on screen, hidden in print) */}
-            <div className="w-full max-w-4xl bg-surface rounded-2xl p-3 mb-4 shadow-xl flex items-center justify-between gap-3 no-print sticky top-2 z-10 box-border">
-              <div className="flex items-center gap-2 min-w-0">
+            <div className="w-full max-w-4xl bg-surface rounded-2xl p-2.5 sm:p-3 mb-3 sm:mb-4 shadow-xl flex items-center justify-between gap-2 sm:gap-3 no-print sticky top-2 z-10 box-border">
+              <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
                 <Button
                   type="button"
                   onPress={onClose}
                   aria-label="بازگشت"
-                  className="h-10 px-3.5 rounded-xl bg-muted/10 hover:bg-muted/15 text-foreground text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
+                  className="h-9 sm:h-10 px-2.5 sm:px-3.5 rounded-xl bg-muted/10 hover:bg-muted/15 text-foreground text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
                 >
                   <ArrowRightIcon size={16} />
                   <span>بازگشت</span>
@@ -108,13 +108,13 @@ export function OrderInvoiceModal({
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 <Button
                   type="button"
                   onPress={handlePrint}
-                  className="h-10 px-4 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95"
+                  className="h-9 sm:h-10 px-3 sm:px-4 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95"
                 >
-                  <PrinterIcon size={18} />
+                  <PrinterIcon size={16} />
                   <span>چاپ / ذخیره PDF</span>
                 </Button>
 
@@ -122,9 +122,9 @@ export function OrderInvoiceModal({
                   type="button"
                   onPress={onClose}
                   aria-label="بستن"
-                  className="size-10 rounded-xl bg-muted/10 hover:bg-muted/20 text-muted hover:text-foreground flex items-center justify-center cursor-pointer transition-colors"
+                  className="size-9 sm:size-10 rounded-xl bg-muted/10 hover:bg-muted/20 text-muted hover:text-foreground flex items-center justify-center cursor-pointer transition-colors"
                 >
-                  <XIcon size={18} />
+                  <XIcon size={16} />
                 </Button>
               </div>
             </div>
@@ -132,27 +132,27 @@ export function OrderInvoiceModal({
             {/* Printable Invoice Sheet (Squircle rounded-3xl on screen, crisp rectangular on print) */}
             <div
               id="printable-invoice"
-              className="w-full max-w-4xl bg-surface text-foreground rounded-3xl shadow-2xl p-4 sm:p-8 md:p-10 border-none print:rounded-none print:shadow-none print:p-0 print:m-0 print:w-full print:max-w-none text-right font-sans select-text box-border mx-auto"
+              className="w-full max-w-4xl bg-surface text-foreground rounded-2xl sm:rounded-3xl shadow-2xl p-3 sm:p-8 md:p-10 border-none print:rounded-none print:shadow-none print:p-0 print:m-0 print:w-full print:max-w-none text-right font-sans select-text box-border mx-auto"
               dir="rtl"
             >
               <div className="print:pb-3 print:mb-3">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 print:flex-row print:items-center print:gap-3">
-                  <div className="flex items-center gap-3 print:gap-2.5">
-                    <div className="size-11 rounded-2xl overflow-hidden flex items-center justify-center shrink-0 print:size-8 print:rounded-xl">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 print:flex-row print:items-center print:gap-3">
+                  <div className="flex items-center gap-2.5 sm:gap-3 print:gap-2.5">
+                    <div className="size-10 sm:size-11 rounded-xl sm:rounded-2xl overflow-hidden flex items-center justify-center shrink-0 print:size-8 print:rounded-xl">
                       <img
-                        src="https://cdn.persianpartshop.ir/assets/images/logo/persianpartshop-logo.png"
-                        alt="لوگو"
-                        className="size-full object-contain rounded-2xl print:rounded-xl"
+                        src="/assets/images/persian-part-logo.png"
+                        alt="پرشین‌پارت"
+                        className="size-full object-contain rounded-xl sm:rounded-2xl print:rounded-xl"
                       />
                     </div>
                     <div>
-                      <h1 className="text-base sm:text-lg font-black text-foreground tracking-tight whitespace-nowrap print:text-sm">
+                      <h1 className="text-sm sm:text-lg font-black text-foreground tracking-tight whitespace-nowrap print:text-sm">
                         بازرگانی کاشی و سرامیک پرشین‌پارت
                       </h1>
                     </div>
                   </div>
 
-                  <div className="w-full sm:w-auto bg-default-100 rounded-2xl p-3 min-w-52 text-xs space-y-1.5 print:p-2 print:space-y-1 print:text-[9px] print:min-w-0 print:rounded-xl">
+                  <div className="w-full sm:w-auto bg-default-100 rounded-xl sm:rounded-2xl p-2.5 sm:p-3 min-w-0 sm:min-w-52 text-[11px] sm:text-xs space-y-1 sm:space-y-1.5 print:p-2 print:space-y-1 print:text-[9px] print:rounded-xl">
                     <div className="flex items-center justify-between gap-3 whitespace-nowrap print:gap-2">
                       <span className="text-muted font-semibold">
                         نوع سند:
@@ -189,16 +189,16 @@ export function OrderInvoiceModal({
                 </div>
               </div>
 
-              <div className="flex w-full">
-                <div className="p-3.5 sm:p-4 w-full bg-default-100 rounded-2xl space-y-2.5 text-xs print:p-2.5 print:space-y-1 print:text-[8.5px] print:rounded-xl">
-                  <div className="flex items-center gap-1.5 pb-1 font-extrabold text-foreground text-xs sm:text-sm print:text-[9px]">
+              <div className="flex w-full mb-3 sm:mb-4">
+                <div className="p-3 sm:p-4 w-full bg-default-100 rounded-xl sm:rounded-2xl space-y-2 sm:space-y-2.5 text-[11px] sm:text-xs print:p-2.5 print:space-y-1 print:text-[8.5px] print:rounded-xl">
+                  <div className="flex items-center gap-1.5 pb-0.5 sm:pb-1 font-extrabold text-foreground text-xs sm:text-sm print:text-[9px]">
                     <FileTextIcon
-                      size={15}
+                      size={14}
                       className="print:size-3 text-muted"
                     />
                     <span>مشخصات خریدار (مشتری)</span>
                   </div>
-                  <div className="space-y-1.5 text-foreground/80 leading-normal print:space-y-0.5">
+                  <div className="space-y-1 sm:space-y-1.5 text-foreground/80 leading-normal print:space-y-0.5">
                     <div className="flex items-center justify-between gap-2 whitespace-nowrap">
                       <span className="text-muted">
                         خریدار / نماینده:
@@ -209,7 +209,7 @@ export function OrderInvoiceModal({
                     </div>
                     <div className="flex items-center justify-between gap-2 whitespace-nowrap">
                       <span className="text-muted">شماره همراه:</span>
-                      <span className=" text-foreground" dir="ltr">
+                      <span className=" text-foreground font-semibold" dir="ltr">
                         {order.customerPhone || "—"}
                       </span>
                     </div>
@@ -231,10 +231,11 @@ export function OrderInvoiceModal({
                 </div>
               </div>
 
-              <div className="w-full max-w-full overflow-hidden mb-5 print:mb-3">
+              {/* Table with horizontal scroll on mobile */}
+              <div className="w-full max-w-full overflow-x-auto -mx-1 px-1 mb-4 sm:mb-5 print:overflow-visible print:mx-0 print:px-0 print:mb-3">
                 <Table
                   aria-label="جدول اقلام پیش‌فاکتور پرشین‌پارت"
-                  className="w-full max-w-full table-fixed border-none shadow-none p-0 overflow-hidden"
+                  className="w-full min-w-[520px] sm:min-w-full table-fixed border-none shadow-none p-0 print:min-w-0"
                 >
                   <Table.Content
                     aria-label="اقلام سفارش"
@@ -243,11 +244,11 @@ export function OrderInvoiceModal({
                     <Table.Header className="bg-black text-white rounded-xl overflow-hidden">
                       <Table.Column
                         isRowHeader
-                        className="w-[8%] h-11 text-center px-1 text-[9px] sm:text-xs font-bold text-white! bg-black! print:text-[8.5px]"
+                        className="w-[8%] h-10 sm:h-11 text-center px-1 text-[9px] sm:text-xs font-bold text-white! bg-black! print:text-[8.5px]"
                       >
                         ردیف
                       </Table.Column>
-                      <Table.Column className="w-[42%] text-right px-2 py-2 text-[9.5px] sm:text-xs font-bold text-white! bg-black! print:text-[8.5px]">
+                      <Table.Column className="w-[42%] text-right px-2 py-2 text-[9px] sm:text-xs font-bold text-white! bg-black! print:text-[8.5px]">
                         شرح کالا / ابعاد / درجه
                       </Table.Column>
                       <Table.Column className="w-[12%] text-center px-1 py-2 text-[9px] sm:text-xs font-bold text-white! bg-black! print:text-[8.5px]">
@@ -257,10 +258,10 @@ export function OrderInvoiceModal({
                         مقدار جزء
                       </Table.Column>
                       <Table.Column className="w-[13%] text-left px-1 py-2 text-[9px] sm:text-xs font-bold text-white! bg-black! print:text-[8.5px]">
-                        فی (تومان)
+                        فی
                       </Table.Column>
                       <Table.Column className="w-[13%] text-left px-2 py-2 text-[9px] sm:text-xs font-bold text-white! bg-black! print:text-[8.5px]">
-                        مبلغ کل (تومان)
+                        مبلغ کل
                       </Table.Column>
                     </Table.Header>
                     <Table.Body>
@@ -281,10 +282,10 @@ export function OrderInvoiceModal({
                             id={item.productId || idx}
                             className="border-none bg-background! hover:bg-background!"
                           >
-                            <Table.Cell className="text-center font-bold text-muted px-0.5 py-3 text-xs sm:text-xs print:text-[8.5px]">
+                            <Table.Cell className="text-center font-bold text-muted px-0.5 py-2.5 sm:py-3 text-xs print:text-[8.5px]">
                               {toPersianDigits(idx + 1)}
                             </Table.Cell>
-                            <Table.Cell className="font-bold text-foreground px-2 py-3 text-[9.5px] sm:text-xs print:text-[8.5px]">
+                            <Table.Cell className="font-bold text-foreground px-2 py-2.5 sm:py-3 text-[9.5px] sm:text-xs print:text-[8.5px]">
                               <div className="flex flex-col gap-0.5 leading-snug">
                                 <span>
                                   {item.productName}
@@ -297,19 +298,19 @@ export function OrderInvoiceModal({
                                 )}
                               </div>
                             </Table.Cell>
-                            <Table.Cell className="text-center font-bold text-foreground px-1 py-3 text-[9.5px] sm:text-xs print:text-[8.5px] whitespace-nowrap">
+                            <Table.Cell className="text-center font-bold text-foreground px-1 py-2.5 sm:py-3 text-[9.5px] sm:text-xs print:text-[8.5px] whitespace-nowrap">
                               {toPersianDigits(item.cartonCount || 1)} کارتن
                             </Table.Cell>
-                            <Table.Cell className="text-center font-bold text-foreground px-1 py-3 text-[9.5px] sm:text-xs print:text-[8.5px] whitespace-nowrap">
+                            <Table.Cell className="text-center font-bold text-foreground px-1 py-2.5 sm:py-3 text-[9.5px] sm:text-xs print:text-[8.5px] whitespace-nowrap">
                               {toPersianDigits(
                                 item.deliverableArea || item.requestedArea || 1,
                               )}{" "}
                               متر
                             </Table.Cell>
-                            <Table.Cell className="text-left font-semibold text-foreground/80 px-1 py-3 text-[9px] sm:text-[11px] print:text-[8px] whitespace-nowrap leading-tight">
+                            <Table.Cell className="text-left font-semibold text-foreground/80 px-1 py-2.5 sm:py-3 text-[9px] sm:text-[11px] print:text-[8px] whitespace-nowrap leading-tight">
                               {formatToman(item.unitPrice)}
                             </Table.Cell>
-                            <Table.Cell className="text-left font-extrabold text-foreground px-2 py-3 text-[9.5px] sm:text-xs print:text-[8.5px] whitespace-nowrap leading-tight">
+                            <Table.Cell className="text-left font-extrabold text-foreground px-2 py-2.5 sm:py-3 text-[9.5px] sm:text-xs print:text-[8.5px] whitespace-nowrap leading-tight">
                               {formatToman(item.totalPrice)}
                             </Table.Cell>
                           </Table.Row>
@@ -329,28 +330,13 @@ export function OrderInvoiceModal({
                 </Table>
               </div>
 
-              {/* 4. Financial Totals & 1% Application Discount Notice */}
-              <div className="w-full flex flex-col gap-4">
-                <div className="w-full flex items-center">
-                  <div className="md:col-span-7 space-y-3.5 print:col-span-7 print:space-y-2">
-                    {/* بخش ویژه تخفیف اپلیکیشن - کنتراست بالا طبق درخواست کاربر */}
-                    <div className="rounded-2xl p-3.5 sm:p-4 bg-emerald-100/90 dark:bg-emerald-950/60 border-2 border-emerald-500 text-emerald-950 dark:text-emerald-100 space-y-1.5 print:p-2 print:space-y-1 print:rounded-xl print:bg-emerald-200 print:border-emerald-500">
-                      <div className="flex items-center gap-1.5 font-black text-xs sm:text-sm text-emerald-950 dark:text-emerald-100 print:text-[9.5px]">
-                        <span>📱</span>
-                        <span>
-                          تخفیف ویژه ۱٪ در صورت استفاده از اپلیکیشن پرشین‌پارت
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Left Side: Summary Table */}
-                <div className="md:col-span-5 bg-default-100 rounded-2xl text-xs overflow-hidden print:col-span-5 print:text-[9px] print:rounded-xl">
-                  <div className="p-3 bg-default-200 font-extrabold text-foreground text-xs sm:text-sm print:p-2 print:text-[9px]">
+              {/* 4. Financial Totals (بدون باکس خالی اضافی) */}
+              <div className="w-full flex flex-col gap-3 sm:gap-4 mb-4 sm:mb-5">
+                <div className="w-full bg-default-100 rounded-xl sm:rounded-2xl text-xs overflow-hidden print:text-[9px] print:rounded-xl">
+                  <div className="p-2.5 sm:p-3 bg-default-200 font-extrabold text-foreground text-xs sm:text-sm print:p-2 print:text-[9px]">
                     خلاصه صورت‌حساب مالی
                   </div>
-                  <div className="p-3 sm:p-3.5 space-y-2.5 print:p-2 print:space-y-1.5">
+                  <div className="p-3 sm:p-3.5 space-y-2 sm:space-y-2.5 print:p-2 print:space-y-1.5">
                     <div className="flex items-center justify-between text-foreground/80 whitespace-nowrap">
                       <span>جمع ناخالص کالاها:</span>
                       <span className="font-bold">
@@ -381,8 +367,8 @@ export function OrderInvoiceModal({
                       <span>{formatToman(finalTotal)} تومان</span>
                     </div>
 
-                    {/* ردیف تخفیف ۱٪ اپلیکیشن با کنتراست بالا */}
-                    <div className="flex items-center justify-between bg-emerald-100/90 dark:bg-emerald-950/60 border border-emerald-400 text-emerald-950 dark:text-emerald-100 p-2.5 rounded-xl font-bold pt-2 whitespace-nowrap print:rounded-lg print:bg-emerald-200 print:border-emerald-400">
+                    {/* ردیف تخفیف ۱٪ اپلیکیشن */}
+                    <div className="flex items-center justify-between bg-emerald-100/90 dark:bg-emerald-950/60 border border-emerald-400 text-emerald-950 dark:text-emerald-100 p-2 sm:p-2.5 rounded-lg sm:rounded-xl font-bold pt-2 whitespace-nowrap print:rounded-lg print:bg-emerald-200 print:border-emerald-400">
                       <span>تخفیف ویژه اپلیکیشن (۱٪):</span>
                       <span className="font-black dir-ltr text-emerald-950 dark:text-emerald-100">
                         - {formatToman(appDiscount)} تومان
@@ -390,7 +376,7 @@ export function OrderInvoiceModal({
                     </div>
 
                     {/* مبلغ نهایی قابل پرداخت با اپلیکیشن */}
-                    <div className="flex items-center justify-between bg-foreground text-background p-3 rounded-xl font-bold text-xs sm:text-sm py-3 whitespace-nowrap print:p-2 print:rounded-lg print:text-[9px]">
+                    <div className="flex items-center justify-between bg-foreground text-background p-2.5 sm:p-3 rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm py-2.5 sm:py-3 whitespace-nowrap print:p-2 print:rounded-lg print:text-[9px]">
                       <span>مبلغ نهایی با اپلیکیشن:</span>
                       <span className="text-xs sm:text-sm">
                         {formatToman(finalWithAppDiscount)} تومان
@@ -399,6 +385,8 @@ export function OrderInvoiceModal({
                   </div>
                 </div>
               </div>
+
+              {/* شرایط و ضوابط رسمی */}
               <div className="p-3 bg-default-100 rounded-2xl text-[11px] sm:text-xs text-foreground/80 space-y-1 leading-normal print:p-2 print:text-[8px] print:space-y-0.5 print:rounded-xl">
                 <span className="font-bold text-foreground block">
                   شرایط و ضوابط رسمی:

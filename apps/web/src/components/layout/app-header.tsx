@@ -45,8 +45,8 @@ export function AppHeader() {
         >
           <div className="flex items-center gap-1.5 size-8 rounded-xl overflow-hidden">
             <img
-              src="https://cdn.persianpartshop.ir/assets/images/logo/persianpartshop-logo.png"
-              alt="لوگو"
+              src="/assets/images/persian-part-logo.png"
+              alt="پرشین‌پارت"
               className="size-full object-contain"
             />
           </div>
