@@ -335,13 +335,14 @@ export function PlanCard({ plan, products }: PlanCardProps) {
                 )}
 
                 {/* 3 Date Fields: ۱- تاریخ ایجاد (خودکار) ۲- تاریخ شروع ۳- تاریخ پایان */}
-                <div className="rounded-2xl p-3.5 bg-muted/10 border border-border/30 space-y-2">
+                <div className="rounded-2xl p-3.5 bg-muted/10 border border-border/30 space-y-3">
                   <span className="text-xs font-bold text-foreground block">
-                    مشخصات طرح{" "}
+                    مشخصات طرح
                   </span>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs text-muted">
+
+                  <div className="grid grid-cols-2 gap-3 text-xs text-muted">
                     {plan.startsAt && plan.expiresAt && (
-                      <div className="sm:col-span-2">
+                      <div className="col-span-2">
                         <span className="font-semibold text-foreground">
                           بازه زمانی طرح:{" "}
                         </span>
@@ -360,6 +361,7 @@ export function PlanCard({ plan, products }: PlanCardProps) {
                         </span>
                       </div>
                     )}
+
                     {plan.expiresAt && (
                       <div>
                         <span>تاریخ پایان: </span>
@@ -370,7 +372,6 @@ export function PlanCard({ plan, products }: PlanCardProps) {
                     )}
                   </div>
                 </div>
-
                 {/* Complete Unabridged Conditions */}
                 <div className="space-y-1.5">
                   <span className="text-xs font-bold text-foreground block">

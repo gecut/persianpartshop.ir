@@ -132,17 +132,17 @@ export function OrderInvoiceModal({
               <div className="pb-5 mb-5 print:pb-3 print:mb-3">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 print:flex-row print:items-center print:gap-3">
                   <div className="flex items-center gap-3 print:gap-2.5">
-                    <div className="size-11 rounded-2xl bg-neutral-900 text-white flex items-center justify-center font-black text-xl shrink-0 print:size-8 print:text-sm print:rounded-none">
-                      P
+                    <div className="size-11 rounded-2xl overflow-hidden flex items-center justify-center shrink-0 print:size-8 print:rounded-none">
+                      <img
+                        src="https://cdn.persianpartshop.ir/assets/images/logo/persianpartshop-logo.png"
+                        alt="لوگو"
+                        className="size-full object-contain"
+                      />
                     </div>
                     <div>
                       <h1 className="text-base sm:text-lg font-black text-neutral-900 tracking-tight whitespace-nowrap print:text-sm">
                         بازرگانی کاشی و سرامیک پرشین‌پارت
                       </h1>
-                      <p className="text-[11px] sm:text-xs text-neutral-500 font-medium mt-0.5 leading-normal print:text-[8.5px]">
-                        سامانه تخصصی تأمین، فروش و صادرات انواع اسلب و
-                        سرامیک‌های پرسلان
-                      </p>
                     </div>
                   </div>
 
@@ -268,7 +268,6 @@ export function OrderInvoiceModal({
                 </div>
               </div>
 
-              {/* 3. HeroUI Table Component (بدون اسکرول افقی - فیت ۱۰۰٪ با حداکثر ۲ خط) */}
               <div className="w-full max-w-full overflow-hidden mb-5 print:mb-3">
                 <Table
                   variant="secondary"
@@ -364,53 +363,34 @@ export function OrderInvoiceModal({
               </div>
 
               {/* 4. Financial Totals & 1% Application Discount Notice (بدون بوردر) */}
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start mb-5 print:grid-cols-12 print:gap-3 print:mb-3">
-                {/* Right Side: Conditions and App Discount Banner (۷ ستون) */}
-                <div className="md:col-span-7 space-y-3.5 print:col-span-7 print:space-y-2">
-                  {/* بخش ویژه تخفیف اپلیکیشن طبق درخواست کاربر */}
-                  <div className="bg-emerald-50/80 rounded-2xl p-3.5 sm:p-4 text-emerald-950 space-y-1.5 print:p-2 print:space-y-1 print:rounded-none">
-                    <div className="flex items-center gap-1.5 font-black text-xs sm:text-sm text-emerald-950 print:text-[9px]">
-                      <span className="text-sm print:text-[10px]">📱</span>
-                      <span>
-                        تخفیف ویژه ۱٪ در صورت استفاده از اپلیکیشن پرشین‌پارت
-                      </span>
+              <div className="w-full flex flex-col gap-4">
+                <div className="w-full flex items-center">
+                  <div className="md:col-span-7 space-y-3.5 print:col-span-7 print:space-y-2">
+                    {/* بخش ویژه تخفیف اپلیکیشن طبق درخواست کاربر */}
+                    <div className=" rounded-2xl p-3.5 sm:p-4 text-emerald-950 space-y-1.5 print:p-2 print:space-y-1 print:rounded-none">
+                      <div className="flex items-center gap-1.5 font-black text-xs sm:text-sm text-emerald-950 print:text-[9px]">
+                        <span>
+                          تخفیف ویژه ۱٪ در صورت استفاده از اپلیکیشن پرشین‌پارت
+                        </span>
+                      </div>
+                      {/* <p className="text-xs sm:text-xs leading-relaxed text-emerald-900 font-medium print:text-[8px] print:leading-normal">
+                        مشتری گرامی، در صورت ثبت و پرداخت سفارش از طریق{" "}
+                        <strong>اپلیکیشن موبایل پرشین‌پارت</strong>،{" "}
+                        <strong className="text-emerald-800 underline underline-offset-2 font-bold">
+                          یک درصد (۱٪) تخفیف مازاد
+                        </strong>{" "}
+                        بر روی مبلغ فاکتور نهایی شما اعمال خواهد شد. مبلغ تخفیف
+                        اپلیکیشن برابر با{" "}
+                        <strong className="whitespace-nowrap font-bold">
+                          {formatToman(appDiscount)} تومان
+                        </strong>{" "}
+                        می‌باشد که در ردیف تسویه نهایی لحاظ گردیده است.
+                      </p> */}
                     </div>
-                    <p className="text-[11px] sm:text-xs leading-relaxed text-emerald-900 font-medium print:text-[8px] print:leading-normal">
-                      مشتری گرامی، در صورت ثبت و پرداخت سفارش از طریق{" "}
-                      <strong>اپلیکیشن موبایل پرشین‌پارت</strong>،{" "}
-                      <strong className="text-emerald-800 underline underline-offset-2 font-bold">
-                        یک درصد (۱٪) تخفیف مازاد
-                      </strong>{" "}
-                      بر روی مبلغ فاکتور نهایی شما اعمال خواهد شد. مبلغ تخفیف
-                      اپلیکیشن برابر با{" "}
-                      <strong className="whitespace-nowrap font-bold">
-                        {formatToman(appDiscount)} تومان
-                      </strong>{" "}
-                      می‌باشد که در ردیف تسویه نهایی لحاظ گردیده است.
-                    </p>
-                  </div>
 
-                  {/* شرایط عمومی پیش‌فاکتور */}
-                  <div className="p-3 bg-neutral-100/50 rounded-2xl text-[11px] sm:text-xs text-neutral-600 space-y-1 leading-normal print:p-2 print:text-[8px] print:space-y-0.5 print:rounded-none">
-                    <span className="font-bold text-neutral-800 block">
-                      شرایط و ضوابط رسمی:
-                    </span>
-                    <p>
-                      • بارگیری و تحویل کالا از انبار مرکزی با ارائه تاییدیه
-                      مالی حواله رسمی معتبر خواهد بود.
-                    </p>
-                    <p>
-                      • تغییرات احتمالی متراژ و هزینه حمل تا مقصد به عهده خریدار
-                      محترم می‌باشد.
-                    </p>
-                    {order.notes && (
-                      <p className="pt-0.5 text-neutral-800">
-                        <strong>توضیحات سفارش:</strong> {order.notes}
-                      </p>
-                    )}
+                    {/* شرایط عمومی پیش‌فاکتور */}
                   </div>
                 </div>
-
                 {/* Left Side: Summary Table (۵ ستون - بدون بوردر) */}
                 <div className="md:col-span-5 bg-neutral-100/50 rounded-2xl text-xs overflow-hidden print:col-span-5 print:text-[9px] print:rounded-none">
                   <div className="p-3 bg-neutral-200/60 font-extrabold text-neutral-900 text-xs sm:text-sm print:p-2 print:text-[9px]">
@@ -464,6 +444,24 @@ export function OrderInvoiceModal({
                     </div>
                   </div>
                 </div>
+              </div>
+              <div className="p-3  rounded-2xl text-[11px] sm:text-xs text-neutral-600 space-y-1 leading-normal print:p-2 print:text-[8px] print:space-y-0.5 print:rounded-none">
+                <span className="font-bold text-neutral-800 block">
+                  شرایط و ضوابط رسمی:
+                </span>
+                <p>
+                  • بارگیری و تحویل کالا از انبار مرکزی با ارائه تاییدیه مالی
+                  حواله رسمی معتبر خواهد بود.
+                </p>
+                <p>
+                  • تغییرات احتمالی متراژ و هزینه حمل تا مقصد به عهده خریدار
+                  محترم می‌باشد.
+                </p>
+                {order.notes && (
+                  <p className="pt-0.5 text-neutral-800">
+                    <strong>توضیحات سفارش:</strong> {order.notes}
+                  </p>
+                )}
               </div>
 
               {/* 5. Signatures and Seals (مهر و امضا رسمی - بدون بوردر) */}

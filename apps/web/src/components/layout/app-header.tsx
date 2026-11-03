@@ -43,11 +43,11 @@ export function AppHeader() {
           to="/product"
           className="flex items-center gap-2 group cursor-pointer shrink-0 active:scale-98 transition-transform"
         >
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 size-8 rounded-xl overflow-hidden">
             <img
-              src="/assets/images/persian-part-logo.png"
-              alt="پرشین‌پارت"
-              className="w-8 h-8"
+              src="https://cdn.persianpartshop.ir/assets/images/logo/persianpartshop-logo.png"
+              alt="لوگو"
+              className="size-full object-contain"
             />
           </div>
         </Link>

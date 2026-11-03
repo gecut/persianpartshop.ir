@@ -159,11 +159,11 @@ export function LoginCard() {
       <div className="w-full rounded-3xl bg-background p-6 sm:p-8 py-20">
         {/* Brand Header */}
         <div className="mb-8 flex flex-col items-center text-center">
-          <div className="mb-4 flex size-14 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 p-2.5">
+          <div className="mb-4 flex size-14 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 p-2.5 overflow-hidden">
             <img
-              src="/assets/images/persian-part-logo.png"
-              alt="پرشین‌پارت"
-              className="size-10 object-contain"
+              src="https://cdn.persianpartshop.ir/assets/images/logo/persianpartshop-logo.png"
+              alt="لوگو"
+              className="size-full object-contain"
             />
           </div>
           <h1 className="text-xl font-black tracking-tight text-foreground sm:text-2xl">
