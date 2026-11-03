@@ -10,15 +10,11 @@ import { ArrowLeftIcon } from "../../components/ui/icons";
 
 export interface CartSummaryProps {
   selectedProducts: Product[];
-  editOrderId?: string;
-  onSaveEditedOrder: () => void;
   onOrderCreated: (orderId: string) => void;
 }
 
 export function CartSummary({
   selectedProducts,
-  editOrderId,
-  onSaveEditedOrder,
   onOrderCreated,
 }: CartSummaryProps) {
   const quantities = useAllQuantities();
@@ -33,27 +29,15 @@ export function CartSummary({
   return (
     <>
       <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-xl bg-white/95 dark:bg-background/95 backdrop-blur-md z-40 p-4 border-t border-border/20">
-        {editOrderId ? (
-          <Button
-            type="button"
-            onPress={onSaveEditedOrder}
-            isDisabled={!totals.hasValidQuantities}
-            className="w-full h-12 px-4 rounded-2xl bg-primary hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed text-primary-foreground text-sm font-bold flex items-center justify-center gap-2 transition-all active:scale-98 cursor-pointer select-none touch-manipulation"
-          >
-            <span>ذخیره تغییرات فاکتور</span>
-            <ArrowLeftIcon size={16} />
-          </Button>
-        ) : (
-          <Button
-            type="button"
-            onPress={() => setIsInvoiceOpen(true)}
-            isDisabled={!totals.hasValidQuantities}
-            className="w-full h-12 px-4 rounded-2xl bg-primary hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed text-primary-foreground text-sm font-bold flex items-center justify-center gap-2 transition-all active:scale-98 cursor-pointer select-none touch-manipulation"
-          >
-            <span>تایید</span>
-            <ArrowLeftIcon size={16} />
-          </Button>
-        )}
+        <Button
+          type="button"
+          onPress={() => setIsInvoiceOpen(true)}
+          isDisabled={!totals.hasValidQuantities}
+          className="w-full h-12 px-4 rounded-2xl bg-primary hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed text-primary-foreground text-sm font-bold flex items-center justify-center gap-2 transition-all active:scale-98 cursor-pointer select-none touch-manipulation"
+        >
+          <span>تایید</span>
+          <ArrowLeftIcon size={16} />
+        </Button>
       </div>
 
       <PreInvoiceModal
@@ -61,7 +45,6 @@ export function CartSummary({
         onClose={() => setIsInvoiceOpen(false)}
         products={selectedProducts}
         quantities={quantities}
-        editOrderId={editOrderId}
         onSuccess={onOrderCreated}
       />
     </>

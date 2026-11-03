@@ -26,8 +26,6 @@ export interface PreInvoiceModalProps {
   products: Product[];
   quantities: Record<string, number>;
   onSuccess: (orderId: string) => void;
-  onEdit?: () => void;
-  editOrderId?: string;
 }
 
 interface PreInvoiceItemCardProps {
@@ -138,8 +136,6 @@ export function PreInvoiceModal({
   products,
   quantities,
   onSuccess,
-  onEdit,
-  editOrderId,
 }: PreInvoiceModalProps) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -151,6 +147,7 @@ export function PreInvoiceModal({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.products.all });
     },
   });
 
@@ -228,29 +225,13 @@ export function PreInvoiceModal({
       typeof window !== "undefined"
         ? localStorage.getItem("persianpart_token")
         : null;
-    if (!token && !editOrderId) {
+    if (!token) {
       toast.warning(
         "نیاز به ورود",
         "جهت ثبت و نهایی‌سازی سفارش، ابتدا وارد حساب کاربری خود شوید.",
       );
       onClose();
       navigate({ to: "/login" as any });
-      return;
-    }
-
-    if (editOrderId) {
-      orderStore.updateOrder(editOrderId, {
-        items: orderItems,
-        subtotal: invoiceTotals.subtotal,
-        discountAmount: invoiceTotals.discountAmount,
-        taxAmount: Math.round(invoiceTotals.finalPayable * 0.1),
-        finalTotal: Math.round(invoiceTotals.finalPayable * 1.1),
-      });
-
-      // Slight delay to allow the user to see the complete 360 spin & checkmark animation
-      setTimeout(() => {
-        onSuccess(editOrderId);
-      }, 450);
       return;
     }
 
@@ -303,10 +284,6 @@ export function PreInvoiceModal({
   };
 
   const handleEditClick = () => {
-    if (onEdit) {
-      onEdit();
-      return;
-    }
     if (
       typeof window !== "undefined" &&
       !window.location.pathname.includes("/product/new")
@@ -320,7 +297,6 @@ export function PreInvoiceModal({
       onClose();
       (navigate as any)({
         to: "/product/new",
-        search: editOrderId ? { editOrderId } : undefined,
       });
       return;
     }

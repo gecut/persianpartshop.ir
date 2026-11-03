@@ -189,23 +189,8 @@ export async function calculateOrderItemPricing(
     }
   }
 
-  const sqmPerCarton = Number(product.sqmPerCarton)
-  if (isNaN(sqmPerCarton) || sqmPerCarton <= 0) {
-    return {
-      productId,
-      productName: product.name || '',
-      sku: product.sku || '',
-      requestedArea,
-      sqmPerCarton: 0,
-      cartonCount: 0,
-      deliverableArea: 0,
-      unitPrice: 0,
-      totalPrice: 0,
-      isActive: false,
-      hasIssues: true,
-      issueReason: `اطلاعات متراژ در هر کارتن محصول «${product.name}» ناقص است.`,
-    }
-  }
+  const rawSqm = Number(product.sqmPerCarton)
+  const sqmPerCarton = !isNaN(rawSqm) && rawSqm > 0 ? rawSqm : 1
 
   const cartonCount = Math.ceil(requestedArea / sqmPerCarton)
   const deliverableArea = Math.round(cartonCount * sqmPerCarton * 100) / 100

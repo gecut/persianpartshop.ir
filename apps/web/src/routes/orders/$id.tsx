@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "../../lib/query-keys";
 import { Modal as HeroUIModal, Button, Dropdown, cn } from "@heroui/react";
 import {
   useOrders,
@@ -27,7 +29,6 @@ import {
   AlertTriangleIcon,
   ClockIcon,
   TomanIcon,
-  PencilIcon,
   ChevronDownIcon,
   CheckIcon,
   FileTextIcon,
@@ -35,7 +36,6 @@ import {
 import { PreInvoiceModal } from "../../features/checkout/pre-invoice-modal";
 import { OrderInvoiceModal } from "../../features/orders/order-invoice-modal";
 import { useProducts } from "../../features/products/product-store";
-import { selectionStore } from "../../features/products/selection-store";
 import { Counter } from "../../components/ui/counter";
 
 export const Route = createFileRoute("/orders/$id")({
@@ -73,6 +73,7 @@ const CANCELLATION_REASONS = [
 function OrderDetailPage() {
   const { orderId } = Route.useLoaderData();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { getOrderById, fetchOrderById, cancelOrder, orders } = useOrders();
   const { allProducts } = useProducts();
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -275,6 +276,8 @@ function OrderDetailPage() {
   const handleCancel = async () => {
     if (!order) return;
     await cancelOrder(order.id, cancelReason);
+    queryClient.invalidateQueries({ queryKey: queryKeys.products.all });
+    queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
     setShowCancelModal(false);
     toast.info(
       "سفارش لغو شد",
@@ -287,20 +290,6 @@ function OrderDetailPage() {
   const handleReorder = async () => {
     if (!order || isCancelled) return;
     setIsReorderModalOpen(true);
-  };
-
-  const handleEditOrder = () => {
-    if (!order) return;
-    selectionStore.setBatchSelection(
-      order.items.map((item) => ({
-        id: item.productId,
-        quantity: item.requestedArea || item.deliverableArea,
-      })),
-    );
-    (navigate as any)({
-      to: "/product/new",
-      search: { editOrderId: order.id },
-    });
   };
 
   if (isLoading) {
@@ -376,7 +365,7 @@ function OrderDetailPage() {
                   )}
                 />
                 <span className="inline-flex items-center gap-1.5">
-                  <span>مهلت ویرایش یا حذف سفارش به پایان رسید </span>
+                  <span>{isWithin60Minutes ? "مهلت لغو سفارش: " : "مهلت لغو سفارش به پایان رسید"}</span>
                   {isWithin60Minutes ? (
                     <span
                       className="inline-flex items-center gap-0.5 font-bold tracking-wider"
@@ -454,25 +443,14 @@ function OrderDetailPage() {
             </Button>
 
             {isCancellableByCustomer && (
-              <>
-                <Button
-                  type="button"
-                  onPress={() => setShowCancelModal(true)}
-                  className="flex-1 h-10 px-4 rounded-2xl bg-danger/15 text-danger hover:bg-danger/20 text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
-                >
-                  <XIcon size={16} />
-                  <span>لغو سفارش</span>
-                </Button>
-
-                <Button
-                  type="button"
-                  onPress={handleEditOrder}
-                  className="flex-1 h-10 px-4 rounded-2xl bg-muted/5 text-foreground hover:bg-muted/15 text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
-                >
-                  <PencilIcon size={16} />
-                  <span>ویرایش فاکتور</span>
-                </Button>
-              </>
+              <Button
+                type="button"
+                onPress={() => setShowCancelModal(true)}
+                className="flex-1 h-10 px-4 rounded-2xl bg-danger/15 text-danger hover:bg-danger/20 text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
+              >
+                <XIcon size={16} />
+                <span>لغو سفارش</span>
+              </Button>
             )}
 
             <Button
@@ -774,11 +752,6 @@ function OrderDetailPage() {
         onClose={() => setIsReorderModalOpen(false)}
         products={reorderProducts}
         quantities={reorderQuantities}
-        editOrderId={order?.id}
-        onEdit={() => {
-          setIsReorderModalOpen(false);
-          handleEditOrder();
-        }}
         onSuccess={(newOrderId) => {
           setIsReorderModalOpen(false);
           toast.success("سفارش مجدد شما با موفقیت ثبت شد.");

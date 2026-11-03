@@ -547,6 +547,7 @@ export function useOrders() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.orders.all })
+      queryClient.invalidateQueries({ queryKey: queryKeys.products.all })
     },
   })
 
@@ -559,11 +560,13 @@ export function useOrders() {
     createOrder: (payload: any) => {
       const created = orderStore.createOrder(payload)
       queryClient.invalidateQueries({ queryKey: queryKeys.orders.all })
+      queryClient.invalidateQueries({ queryKey: queryKeys.products.all })
       return created
     },
     updateOrder: (orderId: string, payload: any) => {
       const updated = orderStore.updateOrder(orderId, payload)
       queryClient.invalidateQueries({ queryKey: queryKeys.orders.all })
+      queryClient.invalidateQueries({ queryKey: queryKeys.products.all })
       return updated
     },
     cancelOrder: async (orderId: string, reason?: string) => {
@@ -573,6 +576,7 @@ export function useOrders() {
     reactivateOrder: async (orderId: string) => {
       const res = await orderStore.reactivateOrder(orderId)
       queryClient.invalidateQueries({ queryKey: queryKeys.orders.all })
+      queryClient.invalidateQueries({ queryKey: queryKeys.products.all })
       return res
     },
     reorderToCart: orderStore.reorderToCart,

@@ -66,6 +66,7 @@ export function useOrderActions() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.orders.all })
+      queryClient.invalidateQueries({ queryKey: queryKeys.products.all })
     },
   })
 
@@ -76,6 +77,7 @@ export function useOrderActions() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.orders.all })
+      queryClient.invalidateQueries({ queryKey: queryKeys.products.all })
     },
   })
 
