@@ -9,7 +9,6 @@ import {
   PrinterIcon,
   XIcon,
   ArrowRightIcon,
-  StoreIcon,
   FileTextIcon,
 } from "../../components/ui/icons";
 
@@ -43,6 +42,14 @@ export function OrderInvoiceModal({
       (acc, i) => acc + (i.cartonCount || 0),
       0,
     );
+  }, [order.items]);
+
+  const totalArea = useMemo(() => {
+    const sum = (order.items || []).reduce(
+      (acc, i) => acc + (i.deliverableArea || i.requestedArea || 0),
+      0,
+    );
+    return Math.round(sum * 100) / 100;
   }, [order.items]);
 
   const formattedInvoiceNumber = useMemo(() => {
@@ -128,8 +135,7 @@ export function OrderInvoiceModal({
               className="w-full max-w-4xl bg-white text-neutral-900 rounded-3xl shadow-2xl p-3 sm:p-8 md:p-10 border-none print:rounded-none print:shadow-none print:p-0 print:m-0 print:w-full print:max-w-none text-right font-sans select-text box-border"
               dir="rtl"
             >
-              {/* 1. Header (لوگو و اطلاعات سربرگ - بدون بوردر) */}
-              <div className="pb-5 mb-5 print:pb-3 print:mb-3">
+              <div className="print:pb-3 print:mb-3">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 print:flex-row print:items-center print:gap-3">
                   <div className="flex items-center gap-3 print:gap-2.5">
                     <div className="size-11 rounded-2xl overflow-hidden flex items-center justify-center shrink-0 print:size-8 print:rounded-xl">
@@ -183,51 +189,8 @@ export function OrderInvoiceModal({
                 </div>
               </div>
 
-              {/* 2. Seller and Customer Information (بدون بوردر - کنتراست ملایم) */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5 print:grid-cols-2 print:gap-3 print:mb-3">
-                {/* مشخصات فروشنده */}
-                <div className="p-3.5 sm:p-4 bg-neutral-100/50 rounded-2xl space-y-2.5 text-xs print:p-2.5 print:space-y-1 print:text-[8.5px] print:rounded-xl">
-                  <div className="flex items-center gap-1.5 pb-1 font-extrabold text-neutral-900 text-xs sm:text-sm print:text-[9px]">
-                    <StoreIcon
-                      size={15}
-                      className="print:size-3 text-neutral-600"
-                    />
-                    <span>مشخصات فروشنده (تأمین‌کننده)</span>
-                  </div>
-                  <div className="space-y-1.5 text-neutral-700 leading-normal print:space-y-0.5">
-                    <div className="flex items-center justify-between gap-2 whitespace-nowrap">
-                      <span className="text-neutral-500">نام شخص حقوقی:</span>
-                      <strong className="text-neutral-900 font-bold">
-                        بازرگانی پرشین‌پارت
-                      </strong>
-                    </div>
-                    <div className="flex items-center justify-between gap-2 whitespace-nowrap">
-                      <span className="text-neutral-500">
-                        شناسه ملی / کد اقتصادی:
-                      </span>
-                      <span className=" text-neutral-900">
-                        ۱۰۱۰۳۴۵۶۷۸۹ / ۴۱۱۵۶۷۸۹۱۲۳۴
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between gap-2 whitespace-nowrap">
-                      <span className="text-neutral-500">تلفن پشتیبانی:</span>
-                      <span className=" text-neutral-900" dir="ltr">
-                        ۰۲۱-۸۸۸۸۶۶۵۵
-                      </span>
-                    </div>
-                    <div className="flex items-baseline justify-between gap-2 pt-0.5">
-                      <span className="text-neutral-500 shrink-0 whitespace-nowrap">
-                        نشانی مرکزی:
-                      </span>
-                      <span className="text-neutral-800 text-left text-[11px] sm:text-xs print:text-[8px]">
-                        تهران، خیابان ملاصدرا، پلاک ۱۴
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* مشخصات خریدار */}
-                <div className="p-3.5 sm:p-4 bg-neutral-100/50 rounded-2xl space-y-2.5 text-xs print:p-2.5 print:space-y-1 print:text-[8.5px] print:rounded-xl">
+              <div className="flex w-full">
+                <div className="p-3.5 sm:p-4 w-full rounded-2xl space-y-2.5 text-xs print:p-2.5 print:space-y-1 print:text-[8.5px] print:rounded-xl">
                   <div className="flex items-center gap-1.5 pb-1 font-extrabold text-neutral-900 text-xs sm:text-sm print:text-[9px]">
                     <FileTextIcon
                       size={15}
@@ -281,86 +244,92 @@ export function OrderInvoiceModal({
                     <Table.Header>
                       <Table.Column
                         isRowHeader
-                        className="w-[6%] h-12  text-center px-4 text-[9px] sm:text-xs print:text-[8.5px]"
+                        className="w-[8%] h-11 text-center px-1 text-[9px] sm:text-xs font-bold text-neutral-700 print:text-[8.5px]"
                       >
                         ردیف
                       </Table.Column>
-                      <Table.Column className="w-[27%] text-right px-1 py-1 text-[9.5px] sm:text-xs print:text-[8.5px]">
-                        شرح کالا
+                      <Table.Column className="w-[42%] text-right px-2 py-2 text-[9.5px] sm:text-xs font-bold text-neutral-700 print:text-[8.5px]">
+                        شرح کالا / ابعاد / درجه
                       </Table.Column>
-                      <Table.Column className="w-[13%] text-center px-0.5 py-1 text-[8.5px] sm:text-xs print:text-[8px]">
-                        کد کالا
+                      <Table.Column className="w-[12%] text-center px-1 py-2 text-[9px] sm:text-xs font-bold text-neutral-700 print:text-[8.5px]">
+                        تعداد کارتن
                       </Table.Column>
-                      <Table.Column className="w-[9%] text-center px-0.5 py-1 text-[9px] sm:text-xs print:text-[8.5px]">
-                        ابعاد
+                      <Table.Column className="w-[12%] text-center px-1 py-2 text-[9px] sm:text-xs font-bold text-neutral-700 print:text-[8.5px]">
+                        مقدار جزء
                       </Table.Column>
-                      <Table.Column className="w-[7%] text-center px-0.5 py-1 text-[8.5px] sm:text-xs leading-tight print:text-[8px]">
-                        تعداد
-                        <br className="sm:hidden" />
-                        کارتن
-                      </Table.Column>
-                      <Table.Column className="w-[9%] text-center px-0.5 py-1 text-[8.5px] sm:text-xs leading-tight print:text-[8px]">
-                        متراژ
-                        <br className="sm:hidden" />
-                        (م²)
-                      </Table.Column>
-                      <Table.Column className="w-[14%] text-left px-0.5 py-1 text-[9px] sm:text-xs leading-tight print:text-[8px]">
+                      <Table.Column className="w-[13%] text-left px-1 py-2 text-[9px] sm:text-xs font-bold text-neutral-700 print:text-[8.5px]">
                         فی
-                        <br className="sm:hidden" />
                       </Table.Column>
-                      <Table.Column className="w-[15%] text-left px-4 py-1 text-[9px] sm:text-xs leading-tight print:text-[8px]">
-                        کل
-                        <br className="sm:hidden" />
+                      <Table.Column className="w-[13%] text-left px-2 py-2 text-[9px] sm:text-xs font-bold text-neutral-700 print:text-[8.5px]">
+                        مبلغ کل
                       </Table.Column>
                     </Table.Header>
                     <Table.Body>
-                      {order.items.map((item, idx) => (
-                        <Table.Row
-                          key={item.productId || idx}
-                          id={item.productId || idx}
-                          className="border-none bg-background! hover:bg-background!"
-                        >
-                          <Table.Cell className="text-center font-bold text-neutral-500 px-0.5 py-4 text-xs sm:text-xs print:text-[8.5px]">
-                            {toPersianDigits(idx + 1)}
-                          </Table.Cell>
-                          <Table.Cell className="font-bold text-neutral-900 px-1 py-1 text-[9.5px] sm:text-xs print:text-[8.5px]">
-                            <span className="line-clamp-2 leading-tight">
-                              {item.productName}
-                            </span>
-                          </Table.Cell>
-                          <Table.Cell className="text-center  text-[8.5px] sm:text-[11px] text-neutral-600 px-0.5 py-1 print:text-[7.5px]">
-                            <span className="line-clamp-2 break-all leading-tight">
-                              {item.productSku || "—"}
-                            </span>
-                          </Table.Cell>
-                          <Table.Cell className="text-center font-medium text-neutral-700 px-0.5 py-1 text-[9.5px] sm:text-xs print:text-[8.5px] whitespace-nowrap">
-                            {toPersianDigits(item.dimension || "—")}
-                          </Table.Cell>
-                          <Table.Cell className="text-center font-bold text-neutral-900 px-0.5 py-1 text-[9.5px] sm:text-xs print:text-[8.5px] whitespace-nowrap">
-                            {toPersianDigits(item.cartonCount || 1)}
-                          </Table.Cell>
-                          <Table.Cell className="text-center font-bold text-neutral-900 px-0.5 py-1 text-[9.5px] sm:text-xs print:text-[8.5px] whitespace-nowrap">
-                            {toPersianDigits(
-                              item.deliverableArea || item.requestedArea || 1,
-                            )}
-                          </Table.Cell>
-                          <Table.Cell className="text-left font-semibold text-neutral-800 px-0.5 py-1 text-[9px] sm:text-[11px] print:text-[8px] whitespace-nowrap leading-tight">
-                            {formatToman(item.unitPrice)}
-                          </Table.Cell>
-                          <Table.Cell className="text-left font-extrabold text-neutral-900 px-0.5 py-1 text-[9.5px] sm:text-xs print:text-[8.5px] whitespace-nowrap leading-tight">
-                            {formatToman(item.totalPrice)}
-                          </Table.Cell>
-                        </Table.Row>
-                      ))}
+                      {order.items.map((item, idx) => {
+                        const details: string[] = [];
+                        if (item.dimension && item.dimension !== "—") {
+                          details.push(toPersianDigits(item.dimension));
+                        }
+                        if (item.grade) {
+                          details.push(item.grade);
+                        }
+                        const detailStr =
+                          details.length > 0 ? details.join(" ") : "";
+
+                        return (
+                          <Table.Row
+                            key={item.productId || idx}
+                            id={item.productId || idx}
+                            className="border-none bg-background! hover:bg-background!"
+                          >
+                            <Table.Cell className="text-center font-bold text-neutral-500 px-0.5 py-3 text-xs sm:text-xs print:text-[8.5px]">
+                              {toPersianDigits(idx + 1)}
+                            </Table.Cell>
+                            <Table.Cell className="font-bold text-neutral-900 px-2 py-3 text-[9.5px] sm:text-xs print:text-[8.5px]">
+                              <div className="flex flex-col gap-0.5 leading-snug">
+                                <span>
+                                  {item.productName}
+                                  {detailStr ? ` ${detailStr}` : ""}
+                                </span>
+                                {item.productSku && (
+                                  <span className="text-[10px] text-neutral-400 font-normal print:text-[7.5px] dir-ltr text-right inline-block">
+                                    کد: {item.productSku}
+                                  </span>
+                                )}
+                              </div>
+                            </Table.Cell>
+                            <Table.Cell className="text-center font-bold text-neutral-900 px-1 py-3 text-[9.5px] sm:text-xs print:text-[8.5px] whitespace-nowrap">
+                              {toPersianDigits(item.cartonCount || 1)} کارتن
+                            </Table.Cell>
+                            <Table.Cell className="text-center font-bold text-neutral-900 px-1 py-3 text-[9.5px] sm:text-xs print:text-[8.5px] whitespace-nowrap">
+                              {toPersianDigits(
+                                item.deliverableArea || item.requestedArea || 1,
+                              )}{" "}
+                              متر
+                            </Table.Cell>
+                            <Table.Cell className="text-left font-semibold text-neutral-800 px-1 py-3 text-[9px] sm:text-[11px] print:text-[8px] whitespace-nowrap leading-tight">
+                              {formatToman(item.unitPrice)}
+                            </Table.Cell>
+                            <Table.Cell className="text-left font-extrabold text-neutral-900 px-2 py-3 text-[9.5px] sm:text-xs print:text-[8.5px] whitespace-nowrap leading-tight">
+                              {formatToman(item.totalPrice)}
+                            </Table.Cell>
+                          </Table.Row>
+                        );
+                      })}
                     </Table.Body>
                   </Table.Content>
                   <Table.Footer className="border-none p-0">
                     <div className="flex items-center justify-between p-2.5 sm:p-3 font-extrabold text-neutral-900 text-[11px] sm:text-xs whitespace-nowrap print:p-1.5 print:text-[8.5px]">
-                      <div>جمع کل: {toPersianDigits(totalCartons)} کارتن </div>
+                      <div>
+                        جمع کل: {toPersianDigits(totalCartons)} کارتن
+                        {totalArea > 0 &&
+                          ` (${toPersianDigits(totalArea)} متر)`}
+                      </div>
                     </div>
                   </Table.Footer>
                 </Table>
               </div>
+
 
               {/* 4. Financial Totals & 1% Application Discount Notice (بدون بوردر) */}
               <div className="w-full flex flex-col gap-4">
@@ -373,19 +342,6 @@ export function OrderInvoiceModal({
                           تخفیف ویژه ۱٪ در صورت استفاده از اپلیکیشن پرشین‌پارت
                         </span>
                       </div>
-                      {/* <p className="text-xs sm:text-xs leading-relaxed text-emerald-900 font-medium print:text-[8px] print:leading-normal">
-                        مشتری گرامی، در صورت ثبت و پرداخت سفارش از طریق{" "}
-                        <strong>اپلیکیشن موبایل پرشین‌پارت</strong>،{" "}
-                        <strong className="text-emerald-800 underline underline-offset-2 font-bold">
-                          یک درصد (۱٪) تخفیف مازاد
-                        </strong>{" "}
-                        بر روی مبلغ فاکتور نهایی شما اعمال خواهد شد. مبلغ تخفیف
-                        اپلیکیشن برابر با{" "}
-                        <strong className="whitespace-nowrap font-bold">
-                          {formatToman(appDiscount)} تومان
-                        </strong>{" "}
-                        می‌باشد که در ردیف تسویه نهایی لحاظ گردیده است.
-                      </p> */}
                     </div>
 
                     {/* شرایط عمومی پیش‌فاکتور */}
@@ -400,7 +356,7 @@ export function OrderInvoiceModal({
                     <div className="flex items-center justify-between text-neutral-700 whitespace-nowrap">
                       <span>جمع ناخالص کالاها:</span>
                       <span className="font-bold">
-                        {formatToman(subtotal)} تومان
+                        {formatToman(subtotal)} 
                       </span>
                     </div>
 
@@ -408,7 +364,7 @@ export function OrderInvoiceModal({
                       <div className="flex items-center justify-between text-rose-700 pt-0.5 whitespace-nowrap">
                         <span>تخفیف همکار / فاکتور:</span>
                         <span className="font-bold">
-                          - {formatToman(discountAmount)} تومان
+                          - {formatToman(discountAmount)} 
                         </span>
                       </div>
                     )}
@@ -417,21 +373,21 @@ export function OrderInvoiceModal({
                       <div className="flex items-center justify-between text-neutral-700 pt-0.5 whitespace-nowrap">
                         <span>مالیات ارزش افزوده (۱۰٪):</span>
                         <span className="font-bold">
-                          {formatToman(taxAmount)} تومان
+                          {formatToman(taxAmount)} 
                         </span>
                       </div>
                     )}
 
                     <div className="flex items-center justify-between text-neutral-900 pt-0.5 font-bold whitespace-nowrap">
                       <span>مبلغ کل فاکتور:</span>
-                      <span>{formatToman(finalTotal)} تومان</span>
+                      <span>{formatToman(finalTotal)} </span>
                     </div>
 
                     {/* ردیف تخفیف ۱٪ اپلیکیشن */}
                     <div className="flex items-center justify-between text-emerald-800 bg-emerald-100/70 p-2.5 rounded-xl font-bold pt-2 whitespace-nowrap print:rounded-lg">
                       <span>تخفیف ویژه اپلیکیشن (۱٪):</span>
                       <span className="font-black dir-ltr text-emerald-900">
-                        - {formatToman(appDiscount)} تومان
+                        - {formatToman(appDiscount)} 
                       </span>
                     </div>
 

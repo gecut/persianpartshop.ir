@@ -26,6 +26,7 @@ export interface OrderItem {
   productSku: string
   productImage: string
   dimension: string
+  grade?: string
   unitPrice: number
   requestedArea: number
   cartonCount: number

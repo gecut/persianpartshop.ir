@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { type Order, type OrderItem, type TimelineStep } from '../../types'
 import { cartStore } from '../cart/cart-store'
 import { api } from '../../lib/api-client'
+import { formatGrade } from '../products/product-store'
 import {
   formatPersianDate,
   formatPersianTimelineTs,
@@ -193,8 +194,15 @@ export function mapDocToOrder(doc: any): Order {
 
   const items: OrderItem[] = (doc.items || []).map((i: any) => {
     const prod = typeof i.product === 'object' && i.product !== null ? i.product : null
-    const width = prod?.width || 60
-    const height = prod?.height || 120
+    const width = prod?.width
+    const height = prod?.height
+    const dimension =
+      width && height
+        ? `${width}×${height}`
+        : typeof prod?.dimension === 'string'
+          ? prod.dimension
+          : ''
+    const grade = prod?.grade ? formatGrade(prod.grade) : ''
     const cdnUrl = import.meta.env.VITE_CDN_URL
     const coverUrl =
       prod?.cover?.url ||
@@ -208,7 +216,8 @@ export function mapDocToOrder(doc: any): Order {
       productSlug: prod?.slug || '',
       productSku: prod?.sku || '',
       productImage: coverUrl,
-      dimension: `${width}×${height}`,
+      dimension,
+      grade,
       requestedArea: i.requestedArea || 1,
       cartonCount: i.cartonCount || 1,
       deliverableArea: i.deliverableArea || 1,
