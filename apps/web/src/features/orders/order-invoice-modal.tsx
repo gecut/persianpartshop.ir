@@ -330,7 +330,6 @@ export function OrderInvoiceModal({
                 </Table>
               </div>
 
-
               {/* 4. Financial Totals & 1% Application Discount Notice (بدون بوردر) */}
               <div className="w-full flex flex-col gap-4">
                 <div className="w-full flex items-center">
@@ -356,7 +355,7 @@ export function OrderInvoiceModal({
                     <div className="flex items-center justify-between text-neutral-700 whitespace-nowrap">
                       <span>جمع ناخالص کالاها:</span>
                       <span className="font-bold">
-                        {formatToman(subtotal)} 
+                        {formatToman(subtotal)} تومان
                       </span>
                     </div>
 
@@ -364,7 +363,7 @@ export function OrderInvoiceModal({
                       <div className="flex items-center justify-between text-rose-700 pt-0.5 whitespace-nowrap">
                         <span>تخفیف همکار / فاکتور:</span>
                         <span className="font-bold">
-                          - {formatToman(discountAmount)} 
+                          - {formatToman(discountAmount)} تومان
                         </span>
                       </div>
                     )}
@@ -373,21 +372,21 @@ export function OrderInvoiceModal({
                       <div className="flex items-center justify-between text-neutral-700 pt-0.5 whitespace-nowrap">
                         <span>مالیات ارزش افزوده (۱۰٪):</span>
                         <span className="font-bold">
-                          {formatToman(taxAmount)} 
+                          {formatToman(taxAmount)} تومان
                         </span>
                       </div>
                     )}
 
                     <div className="flex items-center justify-between text-neutral-900 pt-0.5 font-bold whitespace-nowrap">
                       <span>مبلغ کل فاکتور:</span>
-                      <span>{formatToman(finalTotal)} </span>
+                      <span>{formatToman(finalTotal)} تومان</span>
                     </div>
 
                     {/* ردیف تخفیف ۱٪ اپلیکیشن */}
                     <div className="flex items-center justify-between text-emerald-800 bg-emerald-100/70 p-2.5 rounded-xl font-bold pt-2 whitespace-nowrap print:rounded-lg">
                       <span>تخفیف ویژه اپلیکیشن (۱٪):</span>
                       <span className="font-black dir-ltr text-emerald-900">
-                        - {formatToman(appDiscount)} 
+                        - {formatToman(appDiscount)} تومان
                       </span>
                     </div>
 
