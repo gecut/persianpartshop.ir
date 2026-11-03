@@ -5,6 +5,11 @@ export async function sendSmsNotification({
   receptor: string
   message: string
 }) {
+  if (process.env.DISABLE_SMS === 'true') {
+    console.log('[SMS Skipped: DISABLE_SMS=true]', receptor)
+    return
+  }
+
   const apiKey =
     process.env.KAVENEGAR_API_KEY ||
     '46437751615871547A59364B75376339706E72384266734A596F3476644B653641356171462F557A5747383D'

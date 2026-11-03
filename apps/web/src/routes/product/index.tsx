@@ -32,6 +32,8 @@ export const Route = createFileRoute("/product/")({
   component: ProductListPage,
 });
 
+const PRODUCT_PAGE_SIZE = 24;
+
 const PRODUCT_DIMENSIONS = [
   "30×90",
   "60×120",
@@ -127,7 +129,39 @@ function ProductListPage() {
   );
 
   const listContainerRef = useRef<HTMLDivElement | null>(null);
+  const observerTargetRef = useRef<HTMLDivElement | null>(null);
   const [scrollMargin, setScrollMargin] = useState(0);
+
+  const [displayCount, setDisplayCount] = useState(PRODUCT_PAGE_SIZE);
+
+  // Reset to 24 when filters change
+  useEffect(() => {
+    setDisplayCount(PRODUCT_PAGE_SIZE);
+  }, [filters]);
+
+  const visibleProducts = useMemo(() => {
+    return products.slice(0, displayCount);
+  }, [products, displayCount]);
+
+  const hasMore = displayCount < products.length;
+
+  useEffect(() => {
+    if (!hasMore) return;
+    const target = observerTargetRef.current;
+    if (!target) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setDisplayCount((prev) => Math.min(prev + PRODUCT_PAGE_SIZE, products.length));
+        }
+      },
+      { threshold: 0.1, rootMargin: "300px" },
+    );
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [hasMore, products.length]);
 
   useLayoutEffect(() => {
     if (listContainerRef.current) {
@@ -146,20 +180,29 @@ function ProductListPage() {
   }, []);
 
   const getItemKey = useCallback(
-    (index: number) => products[index]?.id ?? index,
-    [products],
+    (index: number) => visibleProducts[index]?.id ?? index,
+    [visibleProducts],
   );
 
   const virtualizer = useWindowVirtualizer({
-    count: products.length,
+    count: visibleProducts.length,
     estimateSize: () => 104,
-    overscan: 10,
+    overscan: 8,
     scrollMargin,
     gap: 8,
     getItemKey,
   });
 
   const virtualItems = virtualizer.getVirtualItems();
+
+  useEffect(() => {
+    const lastItem = virtualItems[virtualItems.length - 1];
+    if (!lastItem) return;
+
+    if (lastItem.index >= visibleProducts.length - 4 && hasMore) {
+      setDisplayCount((prev) => Math.min(prev + PRODUCT_PAGE_SIZE, products.length));
+    }
+  }, [virtualItems, visibleProducts.length, hasMore, products.length]);
 
   return (
     <div className="w-full px-4 py-3 space-y-3 text-start pb-8 bg-background">
@@ -365,7 +408,7 @@ function ProductListPage() {
             }}
           >
             {virtualItems.map((virtualRow) => {
-              const product = products[virtualRow.index];
+              const product = visibleProducts[virtualRow.index];
               if (!product) return null;
 
               const inCart = cartIdSet.has(String(product.id));
@@ -396,6 +439,13 @@ function ProductListPage() {
               );
             })}
           </div>
+
+          {/* Infinite Scroll Loading Sentinel */}
+          {hasMore && (
+            <div ref={observerTargetRef} className="pt-2">
+              <ProductCardSkeleton />
+            </div>
+          )}
         </div>
       )}
 

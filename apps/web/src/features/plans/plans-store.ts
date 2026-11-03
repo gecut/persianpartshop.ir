@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../../lib/api-client'
 import type { Plan, B2BCustomer, Product } from '../../types'
 import { formatPersianDate } from '../../lib/utils/date'
+import { authStore, isProductAllowedForUser } from '../auth/auth-store'
 
 const STORAGE_KEY = 'persianpart_plans_v1'
 
@@ -49,11 +50,15 @@ function mapApiPlanToPlan(p: any): Plan {
   const isActive = p.isActive !== false
   const status = isExpired ? 'expired' : (p.status || (isActive ? 'active' : 'expired'))
 
-  const productIds = Array.isArray(p.products)
-    ? p.products.map((prod: any) =>
-        typeof prod === 'object' && prod !== null ? String(prod.id) : String(prod)
-      )
-    : []
+  const currentUser = authStore.getState().user
+  let productsList = Array.isArray(p.products) ? p.products : []
+  if (currentUser?.allowedCategoryIds && currentUser.allowedCategoryIds.length > 0) {
+    productsList = productsList.filter((prod: any) => isProductAllowedForUser(prod, currentUser))
+  }
+
+  const productIds = productsList.map((prod: any) =>
+    typeof prod === 'object' && prod !== null ? String(prod.id) : String(prod)
+  )
 
   const interpolate = (txt: string) => {
     if (!txt) return ''
@@ -90,7 +95,7 @@ function mapApiPlanToPlan(p: any): Plan {
     hasTimer: Boolean(p.hasTimer),
     startsAt: p.startsAt || p.starts_at || undefined,
     expiresAt: p.expiresAt || p.expires_at || undefined,
-    products: p.products || [],
+    products: productsList,
     createdAt: p.createdAt ? formatPersianDate(p.createdAt) : formatPersianDate(new Date()),
   }
 }
@@ -115,7 +120,7 @@ async function fetchFromBackend() {
   try {
     isLoadingPlans = true
     broadcast()
-    const plansRes = await api.plan.list({}).catch(() => null)
+    const plansRes = await api.plan.list({ limit: 100 }).catch(() => null)
 
     if (plansRes && Array.isArray(plansRes.items)) {
       const mapped = plansRes.items

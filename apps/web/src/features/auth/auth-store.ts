@@ -14,6 +14,92 @@ export interface UserProfile {
   economicCode: string
   hideExactStock?: boolean
   disableOrdering?: boolean
+  allowedCategories?: any[]
+  allowedCategoryIds?: number[]
+}
+
+export function parseAllowedCategories(raw: any): {
+  allowedCategories: any[]
+  allowedCategoryIds: number[]
+} {
+  if (!Array.isArray(raw) || raw.length === 0) {
+    return { allowedCategories: [], allowedCategoryIds: [] }
+  }
+  const allowedCategories = raw
+  const allowedCategoryIds = raw
+    .map((c: any) => (typeof c === 'object' && c !== null ? c.id : c))
+    .map(Number)
+    .filter((n: number) => !isNaN(n) && n > 0)
+  return { allowedCategories, allowedCategoryIds }
+}
+
+export function isCategoryAllowedForUser(
+  categoryOrId: any,
+  user?: UserProfile | null
+): boolean {
+  if (!user) return true
+  const allowed = user.allowedCategoryIds
+  // If user has no category restrictions (empty or undefined), all categories are permitted
+  if (!allowed || !Array.isArray(allowed) || allowed.length === 0) {
+    return true
+  }
+
+  let catId: number | null = null
+  let catSlug: string | null = null
+  let catName: string | null = null
+
+  if (typeof categoryOrId === 'object' && categoryOrId !== null) {
+    if (categoryOrId.id != null) catId = Number(categoryOrId.id)
+    if (categoryOrId.slug) catSlug = String(categoryOrId.slug)
+    if (categoryOrId.name) catName = String(categoryOrId.name)
+    if (categoryOrId.title) catName = String(categoryOrId.title)
+  } else if (typeof categoryOrId === 'number') {
+    catId = categoryOrId
+  } else if (typeof categoryOrId === 'string') {
+    const parsed = Number(categoryOrId)
+    if (!isNaN(parsed) && parsed > 0) {
+      catId = parsed
+    } else {
+      catSlug = categoryOrId
+    }
+  }
+
+  if (catId != null && !isNaN(catId) && catId > 0) {
+    return allowed.includes(catId)
+  }
+
+  if (Array.isArray(user.allowedCategories) && user.allowedCategories.length > 0) {
+    for (const c of user.allowedCategories) {
+      if (typeof c === 'object' && c !== null) {
+        if (catSlug && c.slug === catSlug) return true
+        if (catName && (c.name === catName || c.title === catName)) return true
+        if (catId && Number(c.id) === catId) return true
+      }
+    }
+  }
+
+  return false
+}
+
+export function isProductAllowedForUser(
+  productOrDoc: any,
+  user?: UserProfile | null
+): boolean {
+  if (!user) return true
+  const allowed = user.allowedCategoryIds
+  // If user has no category restrictions, product is permitted
+  if (!allowed || !Array.isArray(allowed) || allowed.length === 0) {
+    return true
+  }
+
+  if (!productOrDoc) return false
+
+  const rawCat =
+    productOrDoc.category ??
+    productOrDoc.categoryId ??
+    productOrDoc.category_id
+
+  return isCategoryAllowedForUser(rawCat, user)
 }
 
 interface AuthState {
@@ -88,6 +174,9 @@ export const authStore = {
       const userData = (res.user || (res as any).customer || {}) as any
       const hideExactStock = Boolean(userData.hideExactStock)
       const disableOrdering = Boolean(userData.disableOrdering) || hideExactStock
+      const { allowedCategories, allowedCategoryIds } = parseAllowedCategories(
+        userData.allowedCategories || (res as any).customer?.allowedCategories
+      )
       const userProfile: UserProfile = {
         id: String(userData.id || 'user-1'),
         name: userData.fullName || userData.contactName || 'کاربر گرامی',
@@ -99,6 +188,8 @@ export const authStore = {
         economicCode: '',
         hideExactStock,
         disableOrdering,
+        allowedCategories,
+        allowedCategoryIds,
       }
 
       broadcast({
@@ -159,6 +250,9 @@ export const authStore = {
       if (profile) {
         const hideExactStock = Boolean(profile.hideExactStock)
         const disableOrdering = Boolean(profile.disableOrdering) || hideExactStock
+        const { allowedCategories, allowedCategoryIds } = parseAllowedCategories(
+          profile.allowedCategories
+        )
         const userProfile: UserProfile = {
           id: String(profile.id),
           name: profile.fullName || profile.name || 'کاربر گرامی',
@@ -170,6 +264,8 @@ export const authStore = {
           economicCode: profile.economicCode || '',
           hideExactStock,
           disableOrdering,
+          allowedCategories,
+          allowedCategoryIds,
         }
         broadcast({
           isAuthenticated: true,

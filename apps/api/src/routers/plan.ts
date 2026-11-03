@@ -17,7 +17,7 @@ const list = base.plan.list.handler(async ({ input, context }) => {
   const result = await sdk.find({
     collection: "plans",
     where: Object.keys(where).length > 0 ? where : undefined,
-    limit: input?.limit || 50,
+    limit: input?.limit || 100,
     page: input?.page || 1,
     depth: 2,
     sort: "-createdAt",

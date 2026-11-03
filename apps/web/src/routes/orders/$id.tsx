@@ -175,21 +175,21 @@ function OrderDetailPage() {
   const createdAtMs = order?.createdAt
     ? new Date(order.createdAt).getTime()
     : Date.now();
-  const is10MinutesPassed = Date.now() >= createdAtMs + 10 * 60 * 1000;
+  const is60MinutesPassed = Date.now() >= createdAtMs + 60 * 60 * 1000;
 
   const timeline = useMemo(() => {
     if (!order) return [];
     return buildFullOrderTimeline(
       order,
       formatPersianDate(order.createdAt || order.date),
-      is10MinutesPassed,
+      is60MinutesPassed,
     );
-  }, [order, is10MinutesPassed]);
+  }, [order, is60MinutesPassed]);
 
   const displayStatusLabel = useMemo(() => {
     if (!order) return "";
     if (order.status === "pending") {
-      return is10MinutesPassed ? "در حال بررسی واحد بازرگانی" : "سفارش ثبت شده";
+      return is60MinutesPassed ? "در حال بررسی واحد بازرگانی" : "سفارش ثبت شده";
     }
     if (
       order.status === "approve" ||
@@ -208,7 +208,7 @@ function OrderDetailPage() {
       ORDER_STATUS_MAP[order.status as keyof typeof ORDER_STATUS_MAP]?.label ||
       order.statusLabel
     );
-  }, [order, is10MinutesPassed, isCancelled]);
+  }, [order, is60MinutesPassed, isCancelled]);
 
   const statusConfig = order
     ? {
@@ -217,7 +217,7 @@ function OrderDetailPage() {
           ? ("danger" as const)
           : isCompleted
             ? ("success" as const)
-            : is10MinutesPassed
+            : is60MinutesPassed
               ? ("warning" as const)
               : ("primary" as const),
       }

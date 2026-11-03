@@ -214,37 +214,37 @@ export function OrderInvoiceModal({
                 </div>
               </div>
 
-              {/* Table without negative margins or overflow, completely flush and border-radius-free on content */}
-              <div className="w-full overflow-hidden mb-4 sm:mb-5 print:overflow-visible print:mb-3">
+              {/* Table with horizontal scroll in preview, flush in print */}
+              <div className="w-full overflow-x-auto mb-4 sm:mb-5 print:overflow-visible print:mb-3">
                 <Table
                   aria-label="جدول اقلام پیش‌فاکتور پرشین‌پارت"
                   variant="secondary"
-                  className="w-full table-fixed rounded-none bg-white p-0 shadow-none border-none print:w-full"
+                  className="w-full min-w-[560px] sm:min-w-full table-fixed rounded-none bg-white p-0 shadow-none border-none print:w-full print:min-w-0"
                 >
                   <Table.Content
                     aria-label="اقلام سفارش"
-                    className="w-full table-fixed rounded-none border-none bg-white"
+                    className="w-full min-w-[560px] sm:min-w-full table-fixed rounded-none border-none bg-white print:w-full print:min-w-0"
                   >
-                    <Table.Header className="bg-black text-white rounded-none border-none overflow-hidden [&_th::after]:hidden! [&_th::after]:content-none!">
+                    <Table.Header className="bg-primary/10 text-foreground rounded-xl border-none overflow-hidden print:bg-black print:text-white print:rounded-none [&_th::after]:hidden! [&_th::after]:content-none!">
                       <Table.Column
                         isRowHeader
-                        className="w-[6%] h-10 sm:h-11 text-center px-1 text-[11px] sm:text-xs md:text-sm font-bold text-white! bg-black! rounded-none border-none after:hidden! after:content-none! print:text-[10px]"
+                        className="w-[6%] h-10 sm:h-11 text-center px-1 text-[11px] sm:text-xs md:text-sm font-bold text-foreground! bg-primary/20! rounded-s-xl print:rounded-none print:text-white! print:bg-black! border-none after:hidden! after:content-none! print:text-[10px]"
                       >
                         ردیف
                       </Table.Column>
-                      <Table.Column className="w-[35%] text-right px-2.5 py-2 text-[11px] sm:text-xs md:text-sm font-bold text-white! bg-black! rounded-none border-none after:hidden! after:content-none! print:text-[10px]">
+                      <Table.Column className="w-[35%] text-right px-2.5 py-2 text-[11px] sm:text-xs md:text-sm font-bold text-foreground! bg-primary/20! rounded-none print:text-white! print:bg-black! border-none after:hidden! after:content-none! print:text-[10px]">
                         مشخصات
                       </Table.Column>
-                      <Table.Column className="w-[11%] text-center px-1 py-2 text-[11px] sm:text-xs md:text-sm font-bold text-white! bg-black! rounded-none border-none after:hidden! after:content-none! print:text-[10px]">
+                      <Table.Column className="w-[11%] text-center px-1 py-2 text-[11px] sm:text-xs md:text-sm font-bold text-foreground! bg-primary/20! rounded-none print:text-white! print:bg-black! border-none after:hidden! after:content-none! print:text-[10px]">
                         تعداد کارتن
                       </Table.Column>
-                      <Table.Column className="w-[11%] text-center px-1 py-2 text-[11px] sm:text-xs md:text-sm font-bold text-white! bg-black! rounded-none border-none after:hidden! after:content-none! print:text-[10px]">
+                      <Table.Column className="w-[11%] text-center px-1 py-2 text-[11px] sm:text-xs md:text-sm font-bold text-foreground! bg-primary/20! rounded-none print:text-white! print:bg-black! border-none after:hidden! after:content-none! print:text-[10px]">
                         مقدار جزء
                       </Table.Column>
-                      <Table.Column className="w-[17%] text-left px-2 py-2 text-[11px] sm:text-xs md:text-sm font-bold text-white! bg-black! rounded-none border-none after:hidden! after:content-none! print:text-[10px]">
+                      <Table.Column className="w-[17%] text-left px-2 py-2 text-[11px] sm:text-xs md:text-sm font-bold text-foreground! bg-primary/20! rounded-none print:text-white! print:bg-black! border-none after:hidden! after:content-none! print:text-[10px]">
                         فی
                       </Table.Column>
-                      <Table.Column className="w-[20%] text-left px-2 sm:px-2.5 py-2 text-[11px] sm:text-xs md:text-sm font-bold text-white! bg-black! rounded-none border-none after:hidden! after:content-none! print:text-[10px]">
+                      <Table.Column className="w-[20%] text-left px-2 sm:px-2.5 py-2 text-[11px] sm:text-xs md:text-sm font-bold text-foreground! bg-primary/20! rounded-e-xl print:rounded-none print:text-white! print:bg-black! border-none after:hidden! after:content-none! print:text-[10px]">
                         مبلغ کل
                       </Table.Column>
                     </Table.Header>

@@ -134,6 +134,17 @@ async function processVerifyOtp(rawPhone: string, rawCode: string) {
   })
 
   const { notes, ...safeUser } = (userDoc || {}) as any
+  const allowedCategoryIds: number[] = []
+  if (Array.isArray(safeUser.allowedCategories)) {
+    for (const cat of safeUser.allowedCategories) {
+      const cId = typeof cat === 'object' && cat !== null ? cat.id : cat
+      const num = Number(cId)
+      if (!isNaN(num) && num > 0) {
+        allowedCategoryIds.push(num)
+      }
+    }
+  }
+  safeUser.allowedCategoryIds = allowedCategoryIds
 
   return {
     token,

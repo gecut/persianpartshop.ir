@@ -11,6 +11,17 @@ const profile = authed.user.profile.handler(async ({ context }) => {
     const { markupPercent, ...safeCt } = safeUser.customerType
     safeUser.customerType = safeCt
   }
+  const allowedCategoryIds: number[] = []
+  if (Array.isArray(safeUser.allowedCategories)) {
+    for (const cat of safeUser.allowedCategories) {
+      const cId = typeof cat === 'object' && cat !== null ? cat.id : cat
+      const num = Number(cId)
+      if (!isNaN(num) && num > 0) {
+        allowedCategoryIds.push(num)
+      }
+    }
+  }
+  safeUser.allowedCategoryIds = allowedCategoryIds
   return safeUser
 })
 
@@ -80,6 +91,17 @@ const update = authed.user.update.handler(async ({ input, context }) => {
     const { markupPercent, ...safeCt } = safeUser.customerType
     safeUser.customerType = safeCt
   }
+  const allowedCategoryIds: number[] = []
+  if (Array.isArray(safeUser.allowedCategories)) {
+    for (const cat of safeUser.allowedCategories) {
+      const cId = typeof cat === 'object' && cat !== null ? cat.id : cat
+      const num = Number(cId)
+      if (!isNaN(num) && num > 0) {
+        allowedCategoryIds.push(num)
+      }
+    }
+  }
+  safeUser.allowedCategoryIds = allowedCategoryIds
   return safeUser
 })
 

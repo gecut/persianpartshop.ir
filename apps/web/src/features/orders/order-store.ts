@@ -64,7 +64,7 @@ function broadcast(orders: Order[]) {
 export function buildFullOrderTimeline(
   doc: any,
   persianDate?: string,
-  force10MinutesPassed?: boolean
+  force60MinutesPassed?: boolean
 ): TimelineStep[] {
   const status = doc.status || 'pending'
   const isCancelled =
@@ -84,7 +84,7 @@ export function buildFullOrderTimeline(
   }
 
   const createdAtMs = doc.createdAt ? new Date(doc.createdAt).getTime() : Date.now()
-  const is10MinutesPassed = force10MinutesPassed ?? (Date.now() >= createdAtMs + 10 * 60 * 1000)
+  const is60MinutesPassed = force60MinutesPassed ?? (Date.now() >= createdAtMs + 60 * 60 * 1000)
   const isApproved = status === 'completed' || status === 'approve' || status === 'approved'
 
   // Cancellation Flow
@@ -105,12 +105,12 @@ export function buildFullOrderTimeline(
       },
     ]
 
-    if (is10MinutesPassed) {
+    if (is60MinutesPassed) {
       steps.push({
         id: 'step-2',
         title: 'در حال بررسی واحد بازرگانی',
         description: 'سفارش در صف بررسی واحد بازرگانی قرار گرفته بود.',
-        timestamp: formatTs(new Date(createdAtMs + 10 * 60 * 1000).toISOString()),
+        timestamp: formatTs(new Date(createdAtMs + 60 * 60 * 1000).toISOString()),
         status: 'completed',
       })
     }
@@ -128,15 +128,15 @@ export function buildFullOrderTimeline(
 
   // Active / Normal Flow (3 stages)
   // Stage 1: سفارش ثبت شده
-  // Stage 2: در حال بررسی واحد بازرگانی (تایید نمادین ۱۰ دقیقه‌ای بدون ذکر کلمه‌ای از زمان)
+  // Stage 2: در حال بررسی واحد بازرگانی (تایید پس از ۶۰ دقیقه)
   // Stage 3: تکمیل شده (صدور حواله نهایی)
   const step1Status: 'completed' = 'completed'
-  const step2Status: 'completed' | 'current' = (isApproved || is10MinutesPassed) ? 'completed' : 'current'
-  const step3Status: 'completed' | 'current' | 'pending' = isApproved ? 'completed' : is10MinutesPassed ? 'current' : 'pending'
+  const step2Status: 'completed' | 'current' = (isApproved || is60MinutesPassed) ? 'completed' : 'current'
+  const step3Status: 'completed' | 'current' | 'pending' = isApproved ? 'completed' : is60MinutesPassed ? 'current' : 'pending'
 
   const step1Timestamp = formatTs(doc.createdAt) || pDate
-  const step2Timestamp = (isApproved || is10MinutesPassed)
-    ? formatTs(new Date(createdAtMs + 10 * 60 * 1000).toISOString())
+  const step2Timestamp = (isApproved || is60MinutesPassed)
+    ? formatTs(new Date(createdAtMs + 60 * 60 * 1000).toISOString())
     : undefined
   const step3Timestamp = isApproved
     ? formatTs(doc.updatedAt || doc.createdAt) || pDate
@@ -153,7 +153,7 @@ export function buildFullOrderTimeline(
     {
       id: 'step-2',
       title: 'در حال بررسی واحد بازرگانی',
-      description: (isApproved || is10MinutesPassed)
+      description: (isApproved || is60MinutesPassed)
         ? 'سفارش در دست بررسی کارشناسان واحد بازرگانی قرار گرفت.'
         : 'سفارش جهت بررسی نهایی به واحد بازرگانی ارجاع داده خواهد شد.',
       timestamp: step2Timestamp,
@@ -177,11 +177,11 @@ export function mapDocToOrder(doc: any): Order {
   const normalizedStatus = doc.status === 'processing' ? 'pending' : (doc.status || 'pending')
 
   const createdAtMs = new Date(createdAt).getTime()
-  const is10MinutesPassed = Date.now() >= createdAtMs + 10 * 60 * 1000
+  const is60MinutesPassed = Date.now() >= createdAtMs + 60 * 60 * 1000
 
   let statusLabel = 'سفارش ثبت شده'
   if (normalizedStatus === 'pending') {
-    statusLabel = is10MinutesPassed ? 'در حال بررسی واحد بازرگانی' : 'سفارش ثبت شده'
+    statusLabel = is60MinutesPassed ? 'در حال بررسی واحد بازرگانی' : 'سفارش ثبت شده'
   } else if (normalizedStatus === 'completed' || normalizedStatus === 'approve' || normalizedStatus === 'approved') {
     statusLabel = 'تکمیل شده'
   } else if (normalizedStatus === 'cancelled_by_customer') {
@@ -226,7 +226,7 @@ export function mapDocToOrder(doc: any): Order {
     }
   })
 
-  const timeline = buildFullOrderTimeline(doc, persianDate, is10MinutesPassed)
+  const timeline = buildFullOrderTimeline(doc, persianDate, is60MinutesPassed)
 
   const userObj = typeof doc.user === 'object' && doc.user !== null ? doc.user : null
 

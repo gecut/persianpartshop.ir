@@ -11,7 +11,7 @@ import { CartSummary } from "../../features/checkout/cart-summary";
 import type { Product } from "../../types";
 import { toast } from "../../components/feedback/toast";
 import { ArrowRightIcon, BoxIcon } from "../../components/ui/icons";
-import { useAuth } from "../../features/auth/auth-store";
+import { useAuth, isProductAllowedForUser } from "../../features/auth/auth-store";
 
 export const Route = createFileRoute("/product/new")({
   component: ProductNewConfigurationPage,
@@ -65,6 +65,7 @@ function ProductNewConfigurationPage() {
       })
       .filter((p): p is Product => {
         if (!p) return false;
+        if (!isProductAllowedForUser(p, user)) return false;
         const isOutOfStock =
           p.stockStatus === "out_of_stock" ||
           p.inStock === false ||
@@ -72,7 +73,7 @@ function ProductNewConfigurationPage() {
             Number(p.inventorySqm) <= 0);
         return !isOutOfStock;
       });
-  }, [selectedIds, allProducts]);
+  }, [selectedIds, allProducts, user]);
 
   // Initialize quantities for newly selected products
   useEffect(() => {

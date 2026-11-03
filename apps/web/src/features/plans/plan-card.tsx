@@ -3,7 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { Drawer, Button } from "@heroui/react";
 import type { Plan, Product } from "../../types";
 import { toPersianDigits, formatToman } from "../../lib/utils/currency";
-import { formatPersianDate, formatPersianDateLong } from "../../lib/utils/date";
+import { formatPersianDate } from "../../lib/utils/date";
 import { cn } from "../../lib/utils";
 import {
   BoxIcon,
@@ -17,7 +17,7 @@ import {
 } from "../../components/ui/icons";
 import { ProductBottomSheet } from "../products/product-bottom-sheet";
 import { selectionStore } from "../products/selection-store";
-import { useAuth } from "../auth/auth-store";
+import { useAuth, isProductAllowedForUser } from "../auth/auth-store";
 
 export interface PlanCardProps {
   plan: Plan;
@@ -95,6 +95,23 @@ export function PlanCard({ plan, products }: PlanCardProps) {
     !isUpcoming &&
     (plan.status === "active" || (plan.status === undefined && plan.isActive));
 
+  const remainingDaysText = useMemo(() => {
+    if (!expireTime || isExpired) return "";
+    const diffMs = expireTime - now;
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    const diffHours = Math.ceil(diffMs / (1000 * 60 * 60));
+    if (diffDays > 1) {
+      return `${toPersianDigits(diffDays)} روز مانده به پایان`;
+    }
+    if (diffDays === 1) {
+      return "۱ روز مانده به پایان";
+    }
+    if (diffHours > 1) {
+      return `${toPersianDigits(diffHours)} ساعت مانده به پایان`;
+    }
+    return "کمتر از ۱ ساعت مانده به پایان";
+  }, [expireTime, isExpired, now]);
+
   // Product resolution from relation or list
   const planProducts = useMemo(() => {
     if (
@@ -103,11 +120,13 @@ export function PlanCard({ plan, products }: PlanCardProps) {
       typeof plan.products[0] === "object" &&
       plan.products[0] !== null
     ) {
-      return plan.products.map((p: any) => {
-        const matched = products.find(
-          (prod) => String(prod.id) === String(p.id),
-        );
-        if (matched) return matched;
+      return plan.products
+        .filter((p: any) => isProductAllowedForUser(p, user))
+        .map((p: any) => {
+          const matched = products.find(
+            (prod) => String(prod.id) === String(p.id),
+          );
+          if (matched) return matched;
 
         const rawDim = p.dimension;
         let dimStr = "";
@@ -194,8 +213,14 @@ export function PlanCard({ plan, products }: PlanCardProps) {
 
     return (plan.productIds || [])
       .map((id) => products.find((p) => String(p.id) === String(id)))
-      .filter((p): p is Product => Boolean(p));
-  }, [plan, products]);
+      .filter((p): p is Product => Boolean(p))
+      .filter((p) => isProductAllowedForUser(p, user));
+  }, [plan, products, user]);
+
+  const selectedPlanCount = useMemo(() => {
+    return planProducts.filter((p) => selectedIds.includes(String(p.id)))
+      .length;
+  }, [planProducts, selectedIds]);
 
   const rawDescription =
     plan.content || plan.notes || "شرایط این طرح توسط مدیریت تعیین شده است.";
@@ -204,53 +229,60 @@ export function PlanCard({ plan, products }: PlanCardProps) {
     <>
       <div
         className={cn(
-          "p-5 flex flex-col bg-muted/5 gap-3.5 text-start transition-all h-fit rounded-3xl text-foreground relative overflow-hidden border border-border/40",
+          "p-5 flex flex-col bg-muted/5 gap-3.5 text-start transition-all h-fit rounded-3xl text-foreground relative overflow-hidden",
           isExpired && "opacity-80 border-danger/25",
           !isActive && !isUpcoming && !isExpired && "opacity-85",
         )}
       >
         {/* Upcoming Alert Banner */}
         {isUpcoming && (
-          <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-warning/15 text-warning border border-warning/30 text-xs font-bold animate-pulse">
+          <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-warning/15 text-warning  text-xs font-bold animate-pulse">
             <ClockIcon className="size-4 shrink-0" />
             <span>{upcomingDaysText}</span>
           </div>
         )}
 
         {/* Header Section */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex-1 space-y-1">
-            <h3 className="text-base font-bold text-foreground leading-snug">
-              {plan.title}
-            </h3>
-            {/* 3 Date Fields: ۱- تاریخ ایجاد (خودکار) ۲- تاریخ شروع ۳- تاریخ پایان */}
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted">
-              {plan.startsAt && (
-                <span>تاریخ شروع: {formatPersianDate(plan.startsAt)}</span>
-              )}
-              {plan.expiresAt && (
-                <span>تاریخ پایان: {formatPersianDate(plan.expiresAt)}</span>
-              )}
-            </div>
-          </div>
+        <div className="flex items-start justify-between gap-2.5">
+          <h3 className="text-base font-bold text-foreground leading-snug flex-1 min-w-0">
+            {plan.title}
+          </h3>
 
           {/* Status Badge */}
-          <div>
+          <div className="shrink-0">
             {isExpired ? (
-              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-danger/15 text-danger">
+              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-danger/15 text-danger whitespace-nowrap inline-block shrink-0">
                 منقضی شده
               </span>
             ) : isUpcoming ? (
-              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-warning/15 text-warning">
+              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-warning/15 text-warning whitespace-nowrap inline-block shrink-0">
                 در انتظار شروع
               </span>
             ) : (
-              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-success/15 text-success">
+              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-success/15 text-success whitespace-nowrap inline-block shrink-0">
                 فعال
               </span>
             )}
           </div>
         </div>
+
+        {/* Date Row (Full Width, Spaced Apart) */}
+        {(plan.startsAt || plan.expiresAt) && (
+          <div className="w-full flex justify-between items-center gap-x-2 gap-y-1 text-xs text-muted">
+            {plan.startsAt ? (
+              <span className="whitespace-nowrap">
+                تاریخ شروع: {formatPersianDate(plan.startsAt)}
+              </span>
+            ) : (
+              <span />
+            )}
+            {plan.expiresAt && (
+              <span className="whitespace-nowrap">
+                تاریخ پایان: {formatPersianDate(plan.expiresAt)}
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Conditions Box with 3-line clamping */}
         <div
@@ -263,12 +295,9 @@ export function PlanCard({ plan, products }: PlanCardProps) {
               setIsDetailsOpen(true);
             }
           }}
-          className="rounded-2xl p-3.5 bg-muted/10 hover:bg-muted/15 transition-colors cursor-pointer space-y-1.5"
+          className="rounded-2xl p-3.5 hover:bg-muted/15 transition-colors cursor-pointer space-y-1.5"
         >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-foreground">شرایط طرح</span>
-          </div>
-          <p className="text-xs text-muted leading-relaxed line-clamp-3">
+          <p className="text-xs line-clamp-1 text-muted leading-relaxed">
             {rawDescription}
           </p>
         </div>
@@ -328,56 +357,37 @@ export function PlanCard({ plan, products }: PlanCardProps) {
               <Drawer.Body className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 py-3.5 space-y-3.5 scrollbar-none pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] text-start">
                 {/* Upcoming Notice in Bottom Sheet */}
                 {isUpcoming && (
-                  <div className="flex items-center gap-2 p-3 rounded-2xl bg-warning/15 text-warning border border-warning/30 text-xs font-bold">
+                  <div className="flex items-center gap-2 p-3 rounded-2xl bg-warning/15 text-warning text-xs font-bold">
                     <ClockIcon className="size-4 shrink-0" />
                     <span>{upcomingDaysText}</span>
                   </div>
                 )}
 
-                {/* 3 Date Fields: ۱- تاریخ ایجاد (خودکار) ۲- تاریخ شروع ۳- تاریخ پایان */}
-                <div className="rounded-2xl p-3.5 bg-muted/10 border border-border/30 space-y-3">
-                  <span className="text-xs font-bold text-foreground block">
-                    مشخصات طرح
-                  </span>
-
-                  <div className="grid grid-cols-2 gap-3 text-xs text-muted">
-                    {plan.startsAt && plan.expiresAt && (
-                      <div className="col-span-2">
-                        <span className="font-semibold text-foreground">
-                          بازه زمانی طرح:{" "}
-                        </span>
-                        <span>
-                          از {formatPersianDateLong(plan.startsAt)} تا{" "}
-                          {formatPersianDateLong(plan.expiresAt)}
-                        </span>
-                      </div>
-                    )}
-
-                    {plan.startsAt && (
-                      <div>
-                        <span>تاریخ شروع: </span>
-                        <span className="font-semibold text-foreground">
-                          {formatPersianDate(plan.startsAt)}
-                        </span>
-                      </div>
-                    )}
-
-                    {plan.expiresAt && (
-                      <div>
-                        <span>تاریخ پایان: </span>
-                        <span className="font-semibold text-foreground">
-                          {formatPersianDate(plan.expiresAt)}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <div className="rounded-2xl  space-y-3"></div>
                 {/* Complete Unabridged Conditions */}
-                <div className="space-y-1.5">
-                  <span className="text-xs font-bold text-foreground block">
-                    شرایط و ضوابط کامل طرح
-                  </span>
-                  <div className="p-3.5 rounded-2xl bg-muted/5 border border-border/20 text-xs leading-relaxed text-foreground whitespace-pre-line">
+                <div className="space-y-2">
+                  <div className="w-full flex justify-between items-center gap-3">
+                    <span className="text-sm font-bold text-foreground">
+                      شرایط کامل طرح
+                    </span>
+                    {plan.expiresAt &&
+                      (isExpired ? (
+                        <div className="w-auto bg-danger/15 text-danger  py-1.5 px-3 rounded-xl text-xs font-bold shrink-0">
+                          منقضی شده
+                        </div>
+                      ) : (
+                        <div className="w-auto bg-primary text-primary-foreground py-1.5 px-3 rounded-xl text-xs shrink-0 flex items-center gap-1.5">
+                          <span>تاریخ پایان: </span>
+                          <span className="font-semibold">
+                            {formatPersianDate(plan.expiresAt)}
+                          </span>
+                          <span className="font-medium opacity-90">
+                            ({remainingDaysText})
+                          </span>
+                        </div>
+                      ))}
+                  </div>
+                  <div className="p-3.5 rounded-2xl bg-muted/5 text-xs leading-relaxed text-foreground whitespace-pre-line">
                     {rawDescription}
                   </div>
                 </div>
@@ -554,39 +564,52 @@ export function PlanCard({ plan, products }: PlanCardProps) {
                     این طرح منقضی شده است
                   </span>
                 ) : isActive ? (
-                  isOrderingDisabled ? (
-                    <span className="px-3 py-2 rounded-lg text-xs font-semibold bg-muted/15 text-muted">
-                      فقط مشاهده کاتالوگ
-                    </span>
-                  ) : (
-                    <Button
-                      type="button"
-                      onPress={() => {
-                        const availablePlanProducts = planProducts.filter(
-                          (p) =>
-                            p.stockStatus !== "out_of_stock" &&
-                            p.inStock !== false &&
-                            !(
-                              Number.isFinite(Number(p.inventorySqm)) &&
-                              Number(p.inventorySqm) <= 0
-                            ),
-                        );
-                        if (availablePlanProducts.length === 0) {
-                          return;
-                        }
-                        // Add only available plan products to selection
-                        availablePlanProducts.forEach((p) => {
-                          selectionStore.selectProduct(p.id);
-                        });
-                        setIsDetailsOpen(false);
-                        navigate({ to: "/product/new" });
-                      }}
-                      className="h-9 px-4 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
-                    >
-                      <span>ثبت سفارش کالاها</span>
-                      <ArrowLeftIcon size={13} />
-                    </Button>
-                  )
+                  planProducts.length > 0 ? (
+                    isOrderingDisabled ? (
+                      <span className="px-3 py-2 rounded-lg text-xs font-semibold bg-muted/15 text-muted">
+                        فقط مشاهده کاتالوگ
+                      </span>
+                    ) : (
+                      <Button
+                        type="button"
+                        onPress={() => {
+                          if (selectedPlanCount > 0) {
+                            setIsDetailsOpen(false);
+                            navigate({ to: "/product/new" });
+                          } else {
+                            const availablePlanProducts = planProducts.filter(
+                              (p) =>
+                                p.stockStatus !== "out_of_stock" &&
+                                p.inStock !== false &&
+                                !(
+                                  Number.isFinite(Number(p.inventorySqm)) &&
+                                  Number(p.inventorySqm) <= 0
+                                ),
+                            );
+                            if (availablePlanProducts.length === 0) {
+                              return;
+                            }
+                            availablePlanProducts.forEach((p) => {
+                              selectionStore.selectProduct(p.id);
+                            });
+                            setIsDetailsOpen(false);
+                            navigate({ to: "/product/new" });
+                          }
+                        }}
+                        className="h-9 px-4 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <span>ثبت محصول</span>
+                          {selectedPlanCount > 0 && (
+                            <span className="min-w-5 h-5 px-1 rounded-full bg-primary-foreground text-primary text-[11px] font-black flex items-center justify-center">
+                              {toPersianDigits(selectedPlanCount)}
+                            </span>
+                          )}
+                        </div>
+                        <ArrowLeftIcon size={13} />
+                      </Button>
+                    )
+                  ) : null
                 ) : (
                   <span className="text-xs font-bold text-warning">
                     طرح به‌زودی آغاز می‌شود

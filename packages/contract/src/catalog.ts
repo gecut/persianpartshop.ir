@@ -371,7 +371,7 @@ export type CatalogProduct = z.infer<typeof CatalogProductSchema>
 export const CatalogFilterInputSchema = z
   .object({
     page: z.coerce.number().int().min(1, 'شماره صفحه باید حداقل ۱ باشد').default(1).optional(),
-    limit: z.coerce.number().int().min(1, 'تعداد در هر صفحه باید حداقل ۱ باشد').max(100, 'حداکثر ۱۰۰ قلم در هر صفحه مجاز است').default(50).optional(),
+    limit: z.coerce.number().int().min(1, 'تعداد در هر صفحه باید حداقل ۱ باشد').max(500, 'حداکثر ۵۰۰ قلم در هر صفحه مجاز است').default(50).optional(),
     search: z.string().trim().max(100, 'عبارت جستجو نمی‌تواند بیش از ۱۰۰ کاراکتر باشد').optional(),
     categoryId: z.union([EntityIdSchema, z.number().int().positive()]).optional(),
     brandId: z.union([EntityIdSchema, z.number().int().positive()]).optional(),

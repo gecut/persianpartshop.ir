@@ -5,6 +5,7 @@ import { toPersianDigits, formatToman } from "../../lib/utils/currency";
 import { cn } from "../../lib/utils";
 import { ImageViewerModal } from "../../components/ui/image-viewer-modal";
 import { formatGrade, formatUnit } from "./product-store";
+import { useAuth, isProductAllowedForUser } from "../auth/auth-store";
 import {
   XIcon,
   ZoomInIcon,
@@ -107,7 +108,8 @@ export function ProductBottomSheet({
     }
   }, [activeProduct]);
 
-  if (!activeProduct) return null;
+  const { user } = useAuth();
+  if (!activeProduct || !isProductAllowedForUser(activeProduct, user)) return null;
 
   const isOutOfStock =
     activeProduct.stockStatus === "out_of_stock" ||

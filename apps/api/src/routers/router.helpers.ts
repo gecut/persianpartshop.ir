@@ -88,6 +88,16 @@ export function formatCustomerProfile(userDoc: any) {
   if (!userDoc) return null
   const hideExactStock = Boolean(userDoc.hideExactStock)
   const disableOrdering = Boolean(userDoc.disableOrdering) || hideExactStock
+  const allowedCategoryIds: number[] = []
+  if (Array.isArray(userDoc.allowedCategories)) {
+    for (const cat of userDoc.allowedCategories) {
+      const cId = typeof cat === 'object' && cat !== null ? cat.id : cat
+      const num = Number(cId)
+      if (!isNaN(num) && num > 0) {
+        allowedCategoryIds.push(num)
+      }
+    }
+  }
   return {
     id: String(userDoc.id),
     contactName: userDoc.fullName || userDoc.name || '',
@@ -101,6 +111,8 @@ export function formatCustomerProfile(userDoc: any) {
     creditLimit: userDoc.creditLimit || 0,
     hideExactStock,
     disableOrdering,
+    allowedCategories: userDoc.allowedCategories || [],
+    allowedCategoryIds,
     status: userDoc.status || 'pending',
     banReason: userDoc.banReason || '',
   }

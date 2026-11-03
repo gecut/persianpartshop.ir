@@ -61,7 +61,7 @@ const list = base.catalog.list.handler(async ({ input, context }) => {
   }
 
   // Capped and validated pagination limits
-  const limit = Math.min(Math.max(1, Number(input?.limit) || 50), 100)
+  const limit = Math.min(Math.max(1, Number(input?.limit) || 50), 500)
   const page = Math.max(1, Number(input?.page) || 1)
 
   const res = await sdk.find({

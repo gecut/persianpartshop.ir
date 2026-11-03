@@ -73,14 +73,14 @@ const OrderCard = React.memo(function OrderCard({
   const createdAtMs = order.createdAt
     ? new Date(order.createdAt).getTime()
     : Date.now();
-  const is10MinutesPassed = Date.now() >= createdAtMs + 10 * 60 * 1000;
+  const is60MinutesPassed = Date.now() >= createdAtMs + 60 * 60 * 1000;
 
   let dynamicStatusLabel = order.statusLabel;
   let dynamicStatusColor: "primary" | "warning" | "success" | "danger" =
     "warning";
 
   if (order.status === "pending") {
-    if (is10MinutesPassed) {
+    if (is60MinutesPassed) {
       dynamicStatusLabel = "در حال بررسی واحد بازرگانی";
       dynamicStatusColor = "warning";
     } else {

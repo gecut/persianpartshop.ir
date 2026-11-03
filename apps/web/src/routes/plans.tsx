@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { usePlans } from "../features/plans/plans-store";
 import { useProducts } from "../features/products/product-store";
@@ -10,6 +10,8 @@ import { ArrowLeftIcon, SparklesIcon } from "../components/ui/icons";
 export const Route = createFileRoute("/plans")({
   component: CustomerPlansPage,
 });
+
+const PLANS_PAGE_SIZE = 12;
 
 function CustomerPlansPage() {
   const { plans, isLoading: isPlansLoading } = usePlans();
@@ -31,8 +33,35 @@ function CustomerPlansPage() {
     });
   }, [validPlans]);
 
+  const [visibleCount, setVisibleCount] = useState(PLANS_PAGE_SIZE);
+  const observerRef = useRef<HTMLDivElement | null>(null);
+
+  const visiblePlans = useMemo(() => {
+    return sortedPlans.slice(0, visibleCount);
+  }, [sortedPlans, visibleCount]);
+
+  const hasMore = visibleCount < sortedPlans.length;
+
+  useEffect(() => {
+    if (!hasMore) return;
+    const target = observerRef.current;
+    if (!target) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setVisibleCount((prev) => Math.min(prev + PLANS_PAGE_SIZE, sortedPlans.length));
+        }
+      },
+      { threshold: 0.1, rootMargin: "250px" },
+    );
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [hasMore, sortedPlans.length]);
+
   return (
-    <div className="w-full px-4 py-3 space-y-3.5 text-start">
+    <div className="w-full px-4 py-3 space-y-3.5 text-start pb-8">
       <div className="flex items-center justify-between gap-2"></div>
       {isLoading && plans.length === 0 ? (
         <div className="grid grid-cols-1 gap-4 items-stretch">
@@ -61,10 +90,17 @@ function CustomerPlansPage() {
           </Link>
         </div>
       ) : (
-        <div className="space-y-2 gap-4 items-stretch">
-          {sortedPlans.map((plan) => (
+        <div className="space-y-3.5 gap-4 items-stretch">
+          {visiblePlans.map((plan) => (
             <PlanCard key={plan.id} plan={plan} products={allProducts} />
           ))}
+
+          {/* Infinite Scroll Sentinel */}
+          {hasMore && (
+            <div ref={observerRef} className="pt-2">
+              <PlanCardSkeleton />
+            </div>
+          )}
         </div>
       )}
     </div>

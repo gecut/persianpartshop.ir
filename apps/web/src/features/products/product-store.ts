@@ -152,9 +152,9 @@ export function useProducts() {
     isError,
     refetch,
   } = useQuery({
-    queryKey: queryKeys.products.list({ page: 1, limit: 100 }),
+    queryKey: queryKeys.products.list({ page: 1, limit: 500 }),
     queryFn: async () => {
-      const res = await api.catalog.list({ page: 1, limit: 100 });
+      const res = await api.catalog.list({ page: 1, limit: 500 });
       return res.items || [];
     },
     staleTime: 60 * 1000,
