@@ -567,8 +567,7 @@ h6 {
    PRINT STYLES FOR OFFICIAL PRE-INVOICE (A5 FORMAT ONLY)
    -------------------------------------------------------------------------- */
 @media print {
-  #printable-invoice,
-  #printable-invoice * {
+  #printable-invoice {
     corner-shape: auto !important;
     -webkit-corner-shape: auto !important;
     border-radius: 0 !important;

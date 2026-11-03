@@ -132,11 +132,11 @@ export function OrderInvoiceModal({
               <div className="pb-5 mb-5 print:pb-3 print:mb-3">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 print:flex-row print:items-center print:gap-3">
                   <div className="flex items-center gap-3 print:gap-2.5">
-                    <div className="size-11 rounded-2xl overflow-hidden flex items-center justify-center shrink-0 print:size-8 print:rounded-none">
+                    <div className="size-11 rounded-2xl overflow-hidden flex items-center justify-center shrink-0 print:size-8 print:rounded-xl">
                       <img
                         src="https://cdn.persianpartshop.ir/assets/images/logo/persianpartshop-logo.png"
                         alt="لوگو"
-                        className="size-full object-contain"
+                        className="size-full object-contain rounded-2xl print:rounded-xl"
                       />
                     </div>
                     <div>
@@ -146,7 +146,7 @@ export function OrderInvoiceModal({
                     </div>
                   </div>
 
-                  <div className="w-full sm:w-auto bg-neutral-100/60 rounded-2xl p-3 min-w-52 text-xs space-y-1.5 print:p-2 print:space-y-1 print:text-[9px] print:min-w-0 print:rounded-none">
+                  <div className="w-full sm:w-auto bg-neutral-100/60 rounded-2xl p-3 min-w-52 text-xs space-y-1.5 print:p-2 print:space-y-1 print:text-[9px] print:min-w-0 print:rounded-xl">
                     <div className="flex items-center justify-between gap-3 whitespace-nowrap print:gap-2">
                       <span className="text-neutral-500 font-semibold">
                         نوع سند:
@@ -186,7 +186,7 @@ export function OrderInvoiceModal({
               {/* 2. Seller and Customer Information (بدون بوردر - کنتراست ملایم) */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5 print:grid-cols-2 print:gap-3 print:mb-3">
                 {/* مشخصات فروشنده */}
-                <div className="p-3.5 sm:p-4 bg-neutral-100/50 rounded-2xl space-y-2.5 text-xs print:p-2.5 print:space-y-1 print:text-[8.5px] print:rounded-none">
+                <div className="p-3.5 sm:p-4 bg-neutral-100/50 rounded-2xl space-y-2.5 text-xs print:p-2.5 print:space-y-1 print:text-[8.5px] print:rounded-xl">
                   <div className="flex items-center gap-1.5 pb-1 font-extrabold text-neutral-900 text-xs sm:text-sm print:text-[9px]">
                     <StoreIcon
                       size={15}
@@ -227,7 +227,7 @@ export function OrderInvoiceModal({
                 </div>
 
                 {/* مشخصات خریدار */}
-                <div className="p-3.5 sm:p-4 bg-neutral-100/50 rounded-2xl space-y-2.5 text-xs print:p-2.5 print:space-y-1 print:text-[8.5px] print:rounded-none">
+                <div className="p-3.5 sm:p-4 bg-neutral-100/50 rounded-2xl space-y-2.5 text-xs print:p-2.5 print:space-y-1 print:text-[8.5px] print:rounded-xl">
                   <div className="flex items-center gap-1.5 pb-1 font-extrabold text-neutral-900 text-xs sm:text-sm print:text-[9px]">
                     <FileTextIcon
                       size={15}
@@ -367,7 +367,7 @@ export function OrderInvoiceModal({
                 <div className="w-full flex items-center">
                   <div className="md:col-span-7 space-y-3.5 print:col-span-7 print:space-y-2">
                     {/* بخش ویژه تخفیف اپلیکیشن طبق درخواست کاربر */}
-                    <div className=" rounded-2xl p-3.5 sm:p-4 text-emerald-950 space-y-1.5 print:p-2 print:space-y-1 print:rounded-none">
+                    <div className=" rounded-2xl p-3.5 sm:p-4 text-emerald-950 space-y-1.5 print:p-2 print:space-y-1 print:rounded-xl">
                       <div className="flex items-center gap-1.5 font-black text-xs sm:text-sm text-emerald-950 print:text-[9px]">
                         <span>
                           تخفیف ویژه ۱٪ در صورت استفاده از اپلیکیشن پرشین‌پارت
@@ -392,7 +392,7 @@ export function OrderInvoiceModal({
                   </div>
                 </div>
                 {/* Left Side: Summary Table (۵ ستون - بدون بوردر) */}
-                <div className="md:col-span-5 bg-neutral-100/50 rounded-2xl text-xs overflow-hidden print:col-span-5 print:text-[9px] print:rounded-none">
+                <div className="md:col-span-5 bg-neutral-100/50 rounded-2xl text-xs overflow-hidden print:col-span-5 print:text-[9px] print:rounded-xl">
                   <div className="p-3 bg-neutral-200/60 font-extrabold text-neutral-900 text-xs sm:text-sm print:p-2 print:text-[9px]">
                     خلاصه صورت‌حساب مالی
                   </div>
@@ -428,7 +428,7 @@ export function OrderInvoiceModal({
                     </div>
 
                     {/* ردیف تخفیف ۱٪ اپلیکیشن */}
-                    <div className="flex items-center justify-between text-emerald-800 bg-emerald-100/70 p-2.5 rounded-xl font-bold pt-2 whitespace-nowrap print:rounded-none">
+                    <div className="flex items-center justify-between text-emerald-800 bg-emerald-100/70 p-2.5 rounded-xl font-bold pt-2 whitespace-nowrap print:rounded-lg">
                       <span>تخفیف ویژه اپلیکیشن (۱٪):</span>
                       <span className="font-black dir-ltr text-emerald-900">
                         - {formatToman(appDiscount)} تومان
@@ -436,7 +436,7 @@ export function OrderInvoiceModal({
                     </div>
 
                     {/* مبلغ نهایی قابل پرداخت با اپلیکیشن */}
-                    <div className="flex items-center justify-between bg-neutral-900 text-background p-3 rounded-xl font-bold text-xs sm:text-sm py-3 whitespace-nowrap print:p-2 print:rounded-none print:text-[9px]">
+                    <div className="flex items-center justify-between bg-neutral-900 text-background p-3 rounded-xl font-bold text-xs sm:text-sm py-3 whitespace-nowrap print:p-2 print:rounded-lg print:text-[9px]">
                       <span>مبلغ نهایی با اپلیکیشن:</span>
                       <span className="text-xs sm:text-sm">
                         {formatToman(finalWithAppDiscount)} تومان
@@ -445,7 +445,7 @@ export function OrderInvoiceModal({
                   </div>
                 </div>
               </div>
-              <div className="p-3  rounded-2xl text-[11px] sm:text-xs text-neutral-600 space-y-1 leading-normal print:p-2 print:text-[8px] print:space-y-0.5 print:rounded-none">
+              <div className="p-3  rounded-2xl text-[11px] sm:text-xs text-neutral-600 space-y-1 leading-normal print:p-2 print:text-[8px] print:space-y-0.5 print:rounded-xl">
                 <span className="font-bold text-neutral-800 block">
                   شرایط و ضوابط رسمی:
                 </span>
