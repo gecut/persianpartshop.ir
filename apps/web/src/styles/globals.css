@@ -621,30 +621,64 @@ h6 {
     display: none !important;
   }
 
-  /* 5. Printable invoice sheet container reset */
+  /* 5. Printable invoice sheet container reset with comfortable side padding */
   #printable-invoice {
     display: block !important;
     position: static !important;
     width: 100% !important;
     max-width: 100% !important;
     margin: 0 auto !important;
-    padding: 0 !important;
+    padding: 0 20px !important;
     box-shadow: none !important;
     border: none !important;
     background: #ffffff !important;
     border-radius: 0 !important;
   }
 
-  /* Table Header in Print: Solid Black with White Text */
+  /* Remove all black borders and separator lines in print */
+  #printable-invoice table,
+  #printable-invoice table thead,
+  #printable-invoice table thead tr,
+  #printable-invoice table th,
+  #printable-invoice table tbody,
+  #printable-invoice table tr,
+  #printable-invoice table td,
+  #printable-invoice [data-slot="th"],
+  #printable-invoice [role="columnheader"] {
+    border: none !important;
+    border-color: transparent !important;
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  #printable-invoice table th::after,
+  #printable-invoice table td::after {
+    display: none !important;
+    content: none !important;
+  }
+
+  /* Table Header in Print: Match preview with bg-primary/5, text-foreground, and rounded corners on first/last */
   #printable-invoice table thead,
   #printable-invoice table thead tr,
   #printable-invoice table th,
   #printable-invoice [data-slot="th"],
   #printable-invoice [role="columnheader"] {
-    background-color: #000000 !important;
-    color: #ffffff !important;
+    background-color: rgba(28, 22, 150, 0.05) !important;
+    color: #0c0a2a !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+  }
+
+  #printable-invoice table th:first-child,
+  #printable-invoice table [role="columnheader"]:first-child {
+    border-start-start-radius: 0.75rem !important;
+    border-end-start-radius: 0.75rem !important;
+  }
+
+  #printable-invoice table th:last-child,
+  #printable-invoice table [role="columnheader"]:last-child {
+    border-start-end-radius: 0.75rem !important;
+    border-end-end-radius: 0.75rem !important;
   }
 }
 

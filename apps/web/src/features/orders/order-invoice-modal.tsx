@@ -116,7 +116,7 @@ export function OrderInvoiceModal({
             {/* Printable Invoice Sheet (Squircle rounded-3xl on screen, crisp rectangular on print) */}
             <div
               id="printable-invoice"
-              className="w-full max-w-4xl bg-surface text-foreground rounded-2xl sm:rounded-3xl shadow-2xl p-3 sm:p-8 md:p-10 border-none print:rounded-none print:shadow-none print:p-0 print:m-0 print:w-full print:max-w-none text-right font-sans select-text box-border mx-auto"
+              className="w-full max-w-4xl bg-surface text-foreground rounded-2xl sm:rounded-3xl shadow-2xl p-3 sm:p-8 md:p-10 border-none print:rounded-none print:shadow-none print:px-5 print:py-2 print:m-0 print:w-full print:max-w-none text-right font-sans select-text box-border mx-auto"
               dir="rtl"
             >
               <div className="print:pb-3 print:mb-3">
@@ -225,26 +225,26 @@ export function OrderInvoiceModal({
                     aria-label="اقلام سفارش"
                     className="w-full min-w-[560px] sm:min-w-full table-fixed rounded-none border-none bg-white print:w-full print:min-w-0"
                   >
-                    <Table.Header className="bg-primary/10 text-foreground rounded-xl border-none overflow-hidden print:bg-black print:text-white print:rounded-none [&_th::after]:hidden! [&_th::after]:content-none!">
+                    <Table.Header className="bg-primary/5 text-foreground rounded-xl border-none overflow-hidden print:bg-primary/5 print:text-foreground print:rounded-xl print:border-none [&_th::after]:hidden! [&_th::after]:content-none!">
                       <Table.Column
                         isRowHeader
-                        className="w-[6%] h-10 sm:h-11 text-center px-1 text-[11px] sm:text-xs md:text-sm font-bold text-foreground! bg-primary/20! rounded-s-xl print:rounded-none print:text-white! print:bg-black! border-none after:hidden! after:content-none! print:text-[10px]"
+                        className="w-[6%] h-10 sm:h-11 text-center px-1 text-[11px] sm:text-xs md:text-sm font-bold text-foreground! bg-primary/5! rounded-s-xl print:rounded-s-xl print:ps-2 print:text-foreground! print:bg-primary/5! border-none print:border-none after:hidden! after:content-none! print:text-[10px]"
                       >
                         ردیف
                       </Table.Column>
-                      <Table.Column className="w-[35%] text-right px-2.5 py-2 text-[11px] sm:text-xs md:text-sm font-bold text-foreground! bg-primary/20! rounded-none print:text-white! print:bg-black! border-none after:hidden! after:content-none! print:text-[10px]">
+                      <Table.Column className="w-[35%] text-right px-2.5 py-2 text-[11px] sm:text-xs md:text-sm font-bold text-foreground! bg-primary/5! rounded-none print:text-foreground! print:bg-primary/5! border-none print:border-none after:hidden! after:content-none! print:text-[10px]">
                         مشخصات
                       </Table.Column>
-                      <Table.Column className="w-[11%] text-center px-1 py-2 text-[11px] sm:text-xs md:text-sm font-bold text-foreground! bg-primary/20! rounded-none print:text-white! print:bg-black! border-none after:hidden! after:content-none! print:text-[10px]">
+                      <Table.Column className="w-[11%] text-center px-1 py-2 text-[11px] sm:text-xs md:text-sm font-bold text-foreground! bg-primary/5! rounded-none print:text-foreground! print:bg-primary/5! border-none print:border-none after:hidden! after:content-none! print:text-[10px]">
                         تعداد کارتن
                       </Table.Column>
-                      <Table.Column className="w-[11%] text-center px-1 py-2 text-[11px] sm:text-xs md:text-sm font-bold text-foreground! bg-primary/20! rounded-none print:text-white! print:bg-black! border-none after:hidden! after:content-none! print:text-[10px]">
+                      <Table.Column className="w-[11%] text-center px-1 py-2 text-[11px] sm:text-xs md:text-sm font-bold text-foreground! bg-primary/5! rounded-none print:text-foreground! print:bg-primary/5! border-none print:border-none after:hidden! after:content-none! print:text-[10px]">
                         مقدار جزء
                       </Table.Column>
-                      <Table.Column className="w-[17%] text-left px-2 py-2 text-[11px] sm:text-xs md:text-sm font-bold text-foreground! bg-primary/20! rounded-none print:text-white! print:bg-black! border-none after:hidden! after:content-none! print:text-[10px]">
+                      <Table.Column className="w-[17%] text-left px-2 py-2 text-[11px] sm:text-xs md:text-sm font-bold text-foreground! bg-primary/5! rounded-none print:text-foreground! print:bg-primary/5! border-none print:border-none after:hidden! after:content-none! print:text-[10px]">
                         فی
                       </Table.Column>
-                      <Table.Column className="w-[20%] text-left px-2 sm:px-2.5 py-2 text-[11px] sm:text-xs md:text-sm font-bold text-foreground! bg-primary/20! rounded-e-xl print:rounded-none print:text-white! print:bg-black! border-none after:hidden! after:content-none! print:text-[10px]">
+                      <Table.Column className="w-[20%] text-left px-2 sm:px-2.5 py-2 text-[11px] sm:text-xs md:text-sm font-bold text-foreground! bg-primary/5! rounded-e-xl print:rounded-e-xl print:pe-2 print:text-foreground! print:bg-primary/5! border-none print:border-none after:hidden! after:content-none! print:text-[10px]">
                         مبلغ کل
                       </Table.Column>
                     </Table.Header>
@@ -264,9 +264,9 @@ export function OrderInvoiceModal({
                           <Table.Row
                             key={item.productId || idx}
                             id={item.productId || idx}
-                            className="border-b border-default-200/80 border-x-0 bg-white! hover:bg-default-50/40! rounded-none"
+                            className="border-b border-default-200/80 print:border-none border-x-0 bg-white! hover:bg-default-50/40! rounded-none"
                           >
-                            <Table.Cell className="text-center font-bold text-muted px-0.5 py-2.5 sm:py-3 text-xs sm:text-sm print:text-[10px] rounded-none border-x-0 bg-white!">
+                            <Table.Cell className="text-center font-bold text-muted px-0.5 py-2.5 sm:py-3 text-xs sm:text-sm print:text-[10px] rounded-none border-none bg-white!">
                               {toPersianDigits(idx + 1)}
                             </Table.Cell>
                             <Table.Cell className="font-bold text-foreground px-2 py-2.5 sm:py-3 text-xs sm:text-sm print:text-[10.5px] rounded-none border-x-0 bg-white!">
