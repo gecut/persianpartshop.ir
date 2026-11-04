@@ -101,6 +101,9 @@ function ProductConfigCardComponent({
               ) : product.weight ? (
                 <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-muted/10 text-foreground">
                   {formatUnit(product.unit)} {toPersianDigits(product.weight)}
+                  {(product.secondary_unit || product.secondaryUnit)
+                    ? ` ${formatUnit(product.secondary_unit || product.secondaryUnit)}`
+                    : ""}
                 </span>
               ) : (
                 <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-muted/10 text-foreground">

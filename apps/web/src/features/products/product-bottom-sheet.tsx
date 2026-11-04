@@ -342,12 +342,39 @@ export function ProductBottomSheet({
                                   وزن / مقدار
                                 </span>
                                 <span className="font-bold text-foreground text-xs leading-normal truncate block">
-                                  {formatUnit(activeProduct.unit)}{" "}
-                                  {toPersianDigits(activeProduct.weight)}
+                                  {toPersianDigits(activeProduct.weight)}{" "}
+                                  {(activeProduct.secondary_unit ||
+                                    activeProduct.secondaryUnit)
+                                    ? formatUnit(
+                                        activeProduct.secondary_unit ||
+                                          activeProduct.secondaryUnit,
+                                      )
+                                    : formatUnit(activeProduct.unit)}
                                 </span>
                               </div>
                             </div>
                           )}
+
+                        {/* Secondary Unit */}
+                        {(activeProduct.secondary_unit ||
+                          activeProduct.secondaryUnit) && (
+                          <div className="p-2 bg-muted/5 rounded-2xl flex items-center gap-2">
+                            <div className="w-7 h-7 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                              <SolarLayersIcon size={14} />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <span className="text-xs text-muted font-base block leading-tight mb-0.5">
+                                واحد فرعی
+                              </span>
+                              <span className="font-bold text-foreground text-xs leading-normal truncate block">
+                                {formatUnit(
+                                  activeProduct.secondary_unit ||
+                                    activeProduct.secondaryUnit,
+                                )}
+                              </span>
+                            </div>
+                          </div>
+                        )}
 
                         {/* Items per pack if applicable */}
                         {activeProduct.itemsPerPack != null &&

@@ -112,6 +112,51 @@ export function PlanCard({ plan, products }: PlanCardProps) {
     return "کمتر از ۱ ساعت مانده به پایان";
   }, [expireTime, isExpired, now]);
 
+  const timeBadgeText = useMemo(() => {
+    if (isExpired) {
+      return plan.expiresAt
+        ? `پایان: ${formatPersianDate(plan.expiresAt)}`
+        : "پایان یافته";
+    }
+    if (isUpcoming) {
+      if (startTime) {
+        const diffMs = startTime - now;
+        const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+        const diffHours = Math.ceil(diffMs / (1000 * 60 * 60));
+        if (diffDays > 1)
+          return `${toPersianDigits(diffDays)} روز مانده تا شروع`;
+        if (diffDays === 1) return "۱ روز مانده تا شروع";
+        if (diffHours > 1)
+          return `${toPersianDigits(diffHours)} ساعت مانده تا شروع`;
+        return "کمتر از ۱ ساعت تا شروع";
+      }
+      return plan.startsAt
+        ? `شروع: ${formatPersianDate(plan.startsAt)}`
+        : "به‌زودی";
+    }
+    if (remainingDaysText) {
+      return remainingDaysText;
+    }
+    if (plan.expiresAt) {
+      return `پایان: ${formatPersianDate(plan.expiresAt)}`;
+    }
+    return "بدون محدودیت زمانی";
+  }, [
+    isExpired,
+    isUpcoming,
+    plan.expiresAt,
+    plan.startsAt,
+    startTime,
+    now,
+    remainingDaysText,
+  ]);
+
+  const timeBadgeClass = useMemo(() => {
+    if (isExpired) return "bg-danger/10 text-danger";
+    if (isUpcoming) return "bg-warning/10 text-warning";
+    return "bg-primary/10 text-primary";
+  }, [isExpired, isUpcoming]);
+
   // Product resolution from relation or list
   const planProducts = useMemo(() => {
     if (
@@ -128,87 +173,91 @@ export function PlanCard({ plan, products }: PlanCardProps) {
           );
           if (matched) return matched;
 
-        const rawDim = p.dimension;
-        let dimStr = "";
-        let width = 0;
-        let height = 0;
-        if (typeof rawDim === "object" && rawDim !== null) {
-          dimStr = rawDim.name
-            ? String(rawDim.name)
-            : rawDim.width && rawDim.height
-              ? `${rawDim.width}×${rawDim.height}`
-              : "";
-          width = Number(rawDim.width) || 0;
-          height = Number(rawDim.height) || 0;
-        } else if (
-          typeof rawDim === "string" &&
-          rawDim !== "[object Object]" &&
-          !rawDim.includes("object Object")
-        ) {
-          dimStr = rawDim;
-          width = Number(p.dimensions?.width) || 0;
-          height = Number(p.dimensions?.height) || 0;
-        } else if (p.dimensions?.width && p.dimensions?.height) {
-          dimStr = `${p.dimensions.width}×${p.dimensions.height}`;
-          width = Number(p.dimensions.width);
-          height = Number(p.dimensions.height);
-        }
+          const rawDim = p.dimension;
+          let dimStr = "";
+          let width = 0;
+          let height = 0;
+          if (typeof rawDim === "object" && rawDim !== null) {
+            dimStr = rawDim.name
+              ? String(rawDim.name)
+              : rawDim.width && rawDim.height
+                ? `${rawDim.width}×${rawDim.height}`
+                : "";
+            width = Number(rawDim.width) || 0;
+            height = Number(rawDim.height) || 0;
+          } else if (
+            typeof rawDim === "string" &&
+            rawDim !== "[object Object]" &&
+            !rawDim.includes("object Object")
+          ) {
+            dimStr = rawDim;
+            width = Number(p.dimensions?.width) || 0;
+            height = Number(p.dimensions?.height) || 0;
+          } else if (p.dimensions?.width && p.dimensions?.height) {
+            dimStr = `${p.dimensions.width}×${p.dimensions.height}`;
+            width = Number(p.dimensions.width);
+            height = Number(p.dimensions.height);
+          }
 
-        const resolvedPrice = Number(
-          p.finalCustomerPricePerSqm ||
-            p.basePricePerSqm ||
-            p.basePrice ||
-            p.pricePerM2 ||
-            p.base_price_per_sqm ||
-            p.price ||
-            p.originalPricePerSqm ||
-            0,
-        );
+          const resolvedPrice = Number(
+            p.finalCustomerPricePerSqm ||
+              p.basePricePerSqm ||
+              p.basePrice ||
+              p.pricePerM2 ||
+              p.base_price_per_sqm ||
+              p.price ||
+              p.originalPricePerSqm ||
+              0,
+          );
 
-        const inv = Number(p.inventorySqm ?? p.inventory_sqm ?? 0);
-        const inStock = p.inStock ?? inv > 0;
-        const stockStatus =
-          p.stockStatus ??
-          (inStock && inv > 0
-            ? ("in_stock" as const)
-            : ("out_of_stock" as const));
+          const inv = Number(p.inventorySqm ?? p.inventory_sqm ?? 0);
+          const inStock = p.inStock ?? inv > 0;
+          const stockStatus =
+            p.stockStatus ??
+            (inStock && inv > 0
+              ? ("in_stock" as const)
+              : ("out_of_stock" as const));
 
-        return {
-          id: String(p.id),
-          slug: p.slug || String(p.id),
-          name: p.title || p.name || "محصول طرح",
-          sku: p.sku || "",
-          dimensions: { width, height },
-          dimension: dimStr,
-          brand: typeof p.brand === "object" ? p.brand?.name : p.brand || "",
-          color: p.color || "",
-          category:
-            typeof p.category === "object"
-              ? p.category?.title || p.category?.name
-              : p.category || "",
-          finalCustomerPricePerSqm: resolvedPrice,
-          pricePerM2: resolvedPrice,
-          basePricePerSqm: resolvedPrice,
-          originalPricePerSqm: resolvedPrice,
-          sqmPerCarton: Number(p.sqmPerCarton || 1),
-          areaPerCarton: Number(p.sqmPerCarton || 1),
-          piecesPerCarton: Number(p.piecesPerCarton || 1),
-          tilesPerCarton: Number(p.piecesPerCarton || 1),
-          cartonWeightKg: Number(p.cartonWeightKg || 0),
-          inventorySqm: inv,
-          stockCartons: Number(p.stockCartons || 0),
-          inStock,
-          stockStatus,
-          applications: [],
-          tags: [],
-          gallery: [],
-          images: Array.isArray(p.images)
-            ? p.images.map((img: any) =>
-                typeof img === "object" && img?.url ? img.url : String(img),
-              )
-            : ["/assets/images/placeholder.svg"],
-        } as unknown as Product;
-      });
+          return {
+            id: String(p.id),
+            slug: p.slug || String(p.id),
+            name: p.title || p.name || "محصول طرح",
+            sku: p.sku || "",
+            dimensions: { width, height },
+            dimension: dimStr,
+            brand: typeof p.brand === "object" ? p.brand?.name : p.brand || "",
+            color: p.color || "",
+            category:
+              typeof p.category === "object"
+                ? p.category?.title || p.category?.name
+                : p.category || "",
+            finalCustomerPricePerSqm: resolvedPrice,
+            pricePerM2: resolvedPrice,
+            basePricePerSqm: resolvedPrice,
+            originalPricePerSqm: resolvedPrice,
+            sqmPerCarton: Number(p.sqmPerCarton || 1),
+            areaPerCarton: Number(p.sqmPerCarton || 1),
+            piecesPerCarton: Number(p.piecesPerCarton || 1),
+            tilesPerCarton: Number(p.piecesPerCarton || 1),
+            cartonWeightKg: Number(p.cartonWeightKg || 0),
+            inventorySqm: inv,
+            stockCartons: Number(p.stockCartons || 0),
+            inStock,
+            unit: p.unit || "bag",
+            secondary_unit: p.secondary_unit || p.secondaryUnit || undefined,
+            secondaryUnit: p.secondary_unit || p.secondaryUnit || undefined,
+            weight: p.weight != null ? Number(p.weight) : undefined,
+            stockStatus,
+            applications: [],
+            tags: [],
+            gallery: [],
+            images: Array.isArray(p.images)
+              ? p.images.map((img: any) =>
+                  typeof img === "object" && img?.url ? img.url : String(img),
+                )
+              : ["/assets/images/placeholder.svg"],
+          } as unknown as Product;
+        });
     }
 
     return (plan.productIds || [])
@@ -228,89 +277,74 @@ export function PlanCard({ plan, products }: PlanCardProps) {
   return (
     <>
       <div
+        role="button"
+        tabIndex={0}
+        onClick={() => setIsDetailsOpen(true)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setIsDetailsOpen(true);
+          }
+        }}
         className={cn(
-          "p-5 flex flex-col bg-muted/5 gap-3.5 text-start transition-all h-fit rounded-3xl text-foreground relative overflow-hidden",
+          "p-5 flex flex-col bg-muted/5 hover:bg-muted/10 gap-3 text-start transition-all h-fit rounded-3xl text-foreground relative overflow-hidden cursor-pointer select-none active:scale-[0.99]",
           isExpired && "opacity-80 border-danger/25",
           !isActive && !isUpcoming && !isExpired && "opacity-85",
         )}
       >
         {/* Upcoming Alert Banner */}
-        {isUpcoming && (
-          <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-warning/15 text-warning  text-xs font-bold animate-pulse">
-            <ClockIcon className="size-4 shrink-0" />
-            <span>{upcomingDaysText}</span>
-          </div>
-        )}
 
-        {/* Header Section */}
-        <div className="flex items-start justify-between gap-2.5">
-          <h3 className="text-base font-bold text-foreground leading-snug flex-1 min-w-0">
-            {plan.title}
-          </h3>
+        {/* Title */}
+        <h3 className="text-base font-bold text-foreground leading-snug line-clamp-1">
+          {plan.title}
+        </h3>
 
+        {/* Chips Row: Status + Time/Remaining Days (Flex Row) */}
+        <div className="flex items-center justify-between gap-2 flex-wrap pt-0.5">
           {/* Status Badge */}
           <div className="shrink-0">
             {isExpired ? (
-              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-danger/15 text-danger whitespace-nowrap inline-block shrink-0">
+              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-danger/15 text-danger whitespace-nowrap inline-flex items-center shrink-0">
                 منقضی شده
               </span>
             ) : isUpcoming ? (
-              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-warning/15 text-warning whitespace-nowrap inline-block shrink-0">
+              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-warning/15 text-warning whitespace-nowrap inline-flex items-center shrink-0">
                 در انتظار شروع
               </span>
             ) : (
-              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-success/15 text-success whitespace-nowrap inline-block shrink-0">
+              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-success/15 text-success whitespace-nowrap inline-flex items-center shrink-0">
                 فعال
               </span>
             )}
           </div>
+
+          {/* Time / Remaining Days Badge */}
+          {timeBadgeText && (
+            <div className="shrink-0">
+              <span
+                className={cn(
+                  "px-2.5 py-1 rounded-full text-[11px] font-medium whitespace-nowrap inline-flex items-center gap-1.5 shrink-0",
+                  timeBadgeClass,
+                )}
+              >
+                <ClockIcon size={12} className="shrink-0" />
+                <span>{timeBadgeText}</span>
+              </span>
+            </div>
+          )}
         </div>
 
-        {/* Date Row (Full Width, Spaced Apart) */}
-        {(plan.startsAt || plan.expiresAt) && (
-          <div className="w-full flex justify-between items-center gap-x-2 gap-y-1 text-xs text-muted">
-            {plan.startsAt ? (
-              <span className="whitespace-nowrap">
-                تاریخ شروع: {formatPersianDate(plan.startsAt)}
-              </span>
-            ) : (
-              <span />
-            )}
-            {plan.expiresAt && (
-              <span className="whitespace-nowrap">
-                تاریخ پایان: {formatPersianDate(plan.expiresAt)}
-              </span>
-            )}
-          </div>
-        )}
-
         {/* Conditions Box with 3-line clamping */}
-        <div
-          role="button"
-          tabIndex={0}
-          onClick={() => setIsDetailsOpen(true)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              setIsDetailsOpen(true);
-            }
-          }}
-          className="rounded-2xl p-3.5 hover:bg-muted/15 transition-colors cursor-pointer space-y-1.5"
-        >
+        <div className="rounded-2xl transition-colors">
           <p className="text-xs line-clamp-1 text-muted leading-relaxed">
             {rawDescription}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsDetailsOpen(true);
-          }}
-          className="text-xs font-semibold text-primary-foreground p-3 rounded-2xl bg-primary transition-color duration-200 hover:bg-primary/80"
-        >
-          مشاهده جزئیات طرح
-        </button>
+
+        {/* Action Arrow Icon */}
+        <div className="text-xs w-fit flex items-center justify-end font-semibold px-3 rounded-2xl text-primary transition-colors duration-200">
+          <ArrowLeftIcon />
+        </div>
       </div>
 
       {/* Plan Details HeroUI Bottom Sheet (Drawer) */}
@@ -334,7 +368,7 @@ export function PlanCard({ plan, products }: PlanCardProps) {
               <Drawer.Header className="w-full flex flex-row! items-center justify-between px-5 pt-1 pb-2 shrink-0 border-b border-border/40">
                 <div className="flex items-center gap-2 min-w-0 flex-1 pe-2">
                   <TagIcon className="size-4 text-primary shrink-0" />
-                  <Drawer.Heading className="text-sm font-extrabold text-foreground truncate">
+                  <Drawer.Heading className="text-sm  font-extrabold text-foreground truncate">
                     {plan.title}
                   </Drawer.Heading>
                   {isExpired && (

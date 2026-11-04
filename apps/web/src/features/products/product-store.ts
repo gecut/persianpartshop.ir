@@ -86,6 +86,16 @@ export function formatUnit(rawUnit?: string | null): string {
     kg: "کیلوگرم",
     liter: "لیتر",
     m2: "متر",
+    meter: "متر",
+    m: "متر",
+    cm: "سانتی‌متر",
+    "سانتی متر": "سانتی‌متر",
+    "سانتی‌متر": "سانتی‌متر",
+    g: "گرم",
+    gram: "گرم",
+    گرم: "گرم",
+    کیلوگرم: "کیلوگرم",
+    متر: "متر",
   };
   return mapping[rawUnit] || rawUnit;
 }
@@ -232,6 +242,8 @@ export function useProducts() {
         grade: item.grade ? formatGrade(item.grade) : undefined,
         category: categoryName,
         unit: (item as any).unit || (isOther ? "bag" : "m2"),
+        secondary_unit: (item as any).secondary_unit || (item as any).secondaryUnit || undefined,
+        secondaryUnit: (item as any).secondary_unit || (item as any).secondaryUnit || undefined,
         weight:
           (item as any).weight != null
             ? Number((item as any).weight)

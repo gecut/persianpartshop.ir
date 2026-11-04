@@ -26,6 +26,8 @@ export interface Product {
   grade?: string
   category: string
   unit?: 'bag' | 'bucket' | 'pack' | 'piece' | 'kg' | 'liter' | 'can' | 'branch' | 'box' | 'roll' | 'm2' | string
+  secondary_unit?: 'meter' | 'kg' | 'cm' | 'g' | 'm' | string
+  secondaryUnit?: 'meter' | 'kg' | 'cm' | 'g' | 'm' | string
   weight?: number
   itemsPerPack?: number
   approxCoverage?: string

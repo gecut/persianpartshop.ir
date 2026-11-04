@@ -382,6 +382,28 @@ export const Products: CollectionConfig = {
                       ],
                     },
                     {
+                      name: "secondary_unit",
+                      type: "select",
+                      required: false,
+                      label: "واحد فرعی (اختیاری)",
+                      admin: {
+                        width: "50%",
+                        description:
+                          "واحد فرعی محتوا یا وزن (مثال: کیلوگرم برای کیسه چسب).",
+                      },
+                      options: [
+                        { label: "متر", value: "meter" },
+                        { label: "کیلوگرم", value: "kg" },
+                        { label: "سانتی‌متر", value: "cm" },
+                        { label: "گرم", value: "g" },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "row",
+                  fields: [
+                    {
                       name: "weight",
                       type: "number",
                       label: "وزن یا مقدار هر واحد (اختیاری)",
@@ -390,11 +412,6 @@ export const Products: CollectionConfig = {
                         description: "مثال: ۲۵ برای کیسه ۲۵ کیلو",
                       },
                     },
-                  ],
-                },
-                {
-                  type: "row",
-                  fields: [
                     {
                       name: "itemsPerPack",
                       type: "number",
@@ -404,6 +421,11 @@ export const Products: CollectionConfig = {
                         description: "مثال: ۱۰۰ عدد",
                       },
                     },
+                  ],
+                },
+                {
+                  type: "row",
+                  fields: [
                     {
                       name: "approxCoverage",
                       type: "text",

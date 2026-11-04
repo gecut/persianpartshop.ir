@@ -231,6 +231,10 @@ export interface Product {
   piecesPerCarton?: number | null;
   unit?: ('bag' | 'bucket' | 'pack' | 'can' | 'branch' | 'piece' | 'box' | 'roll' | 'kg' | 'liter') | null;
   /**
+   * واحد فرعی محتوا یا وزن (مثال: کیلوگرم برای کیسه چسب).
+   */
+  secondary_unit?: ('meter' | 'kg' | 'cm' | 'g') | null;
+  /**
    * مثال: ۲۵ برای کیسه ۲۵ کیلو
    */
   weight?: number | null;
@@ -1074,6 +1078,7 @@ export interface ProductsSelect<T extends boolean = true> {
   height?: T;
   piecesPerCarton?: T;
   unit?: T;
+  secondary_unit?: T;
   weight?: T;
   itemsPerPack?: T;
   approxCoverage?: T;

@@ -213,6 +213,7 @@ export const ProductSchema = z.object({
   sqmPerCarton: z.number().positive('متراژ هر کارتن الزامی است').optional().nullable(),
 
   unit: z.enum(['bag', 'bucket', 'pack', 'piece', 'kg', 'liter', 'can', 'branch', 'box', 'roll', 'm2']).optional().nullable(),
+  secondary_unit: z.enum(['meter', 'kg', 'cm', 'g', 'm']).or(z.string()).optional().nullable(),
   weight: z.number().nonnegative().optional().nullable(),
   itemsPerPack: z.number().int().positive().optional().nullable(),
   approxCoverage: z.string().optional().nullable(),
@@ -249,6 +250,7 @@ export const CreateProductInputSchema = z.object({
   piecesPerCarton: z.number().int().positive().optional().nullable(),
   sqmPerCarton: z.number().positive().optional().nullable(),
   unit: z.enum(['bag', 'bucket', 'pack', 'piece', 'kg', 'liter', 'can', 'branch', 'box', 'roll', 'm2']).optional().nullable(),
+  secondary_unit: z.enum(['meter', 'kg', 'cm', 'g', 'm']).or(z.string()).optional().nullable(),
   weight: z.number().nonnegative().optional().nullable(),
   itemsPerPack: z.number().int().positive().optional().nullable(),
   approxCoverage: z.string().optional().nullable(),
@@ -277,6 +279,7 @@ export const UpdateProductInputSchema = z.object({
   piecesPerCarton: z.number().int().positive().optional().nullable(),
   sqmPerCarton: z.number().positive().optional().nullable(),
   unit: z.enum(['bag', 'bucket', 'pack', 'piece', 'kg', 'liter', 'can', 'branch', 'box', 'roll', 'm2']).optional().nullable(),
+  secondary_unit: z.enum(['meter', 'kg', 'cm', 'g', 'm']).or(z.string()).optional().nullable(),
   weight: z.number().nonnegative().optional().nullable(),
   itemsPerPack: z.number().int().positive().optional().nullable(),
   approxCoverage: z.string().optional().nullable(),
@@ -353,6 +356,7 @@ export const CatalogProductSchema = z.object({
   sqmPerCarton: z.number().positive().optional().nullable(),
 
   unit: z.enum(['bag', 'bucket', 'pack', 'piece', 'kg', 'liter', 'can', 'branch', 'box', 'roll', 'm2']).optional().nullable(),
+  secondary_unit: z.enum(['meter', 'kg', 'cm', 'g', 'm']).or(z.string()).optional().nullable(),
   weight: z.number().nonnegative().optional().nullable(),
   itemsPerPack: z.number().int().positive().optional().nullable(),
   approxCoverage: z.string().optional().nullable(),

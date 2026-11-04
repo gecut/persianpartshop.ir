@@ -81,8 +81,7 @@ export const ProductCard = React.memo(function ProductCard({
     (Number.isFinite(Number(product.inventorySqm)) &&
       Number(product.inventorySqm) <= 0);
 
-  const effectiveSelected =
-    !isOrderingDisabled && !isOutOfStock && isSelected;
+  const effectiveSelected = !isOrderingDisabled && !isOutOfStock && isSelected;
 
   const handleCardClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
@@ -144,20 +143,25 @@ export const ProductCard = React.memo(function ProductCard({
           <div className="flex items-center gap-1.5 flex-wrap mt-2">
             {product.productType === "other" ? (
               <>
+                <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-muted/10 text-foreground">
+                  {formatUnit(product.unit)}
+                </span>
                 {product.weight ? (
                   <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-muted/10 text-foreground">
-                    {formatUnit(product.unit)} {toPersianDigits(product.weight)}
+                    {toPersianDigits(product.weight)}
+                    {(product.secondary_unit || product.secondaryUnit)
+                      ? ` ${formatUnit(product.secondary_unit || product.secondaryUnit)}`
+                      : ""}
+                  </span>
+                ) : (product.secondary_unit || product.secondaryUnit) ? (
+                  <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-muted/10 text-foreground">
+                    {formatUnit(product.secondary_unit || product.secondaryUnit)}
                   </span>
                 ) : product.itemsPerPack ? (
                   <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-muted/10 text-foreground">
-                    {formatUnit(product.unit)}{" "}
-                    {toPersianDigits(product.itemsPerPack)}
+                    {toPersianDigits(product.itemsPerPack)} عدد
                   </span>
-                ) : (
-                  <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-muted/10 text-foreground">
-                    {formatUnit(product.unit)}
-                  </span>
-                )}
+                ) : null}
                 {product.approxCoverage && (
                   <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-primary/10 text-primary">
                     {product.approxCoverage}
