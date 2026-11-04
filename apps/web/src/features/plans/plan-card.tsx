@@ -1,4 +1,4 @@
-import { useState, useMemo, useSyncExternalStore } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Drawer, Button } from "@heroui/react";
 import type { Plan, Product } from "../../types";
@@ -12,9 +12,8 @@ import {
   ClockIcon,
   XIcon,
   TagIcon,
-  CheckIcon,
-  PlusIcon,
 } from "../../components/ui/icons";
+import { toast } from "../../components/feedback/toast";
 import { ProductBottomSheet } from "../products/product-bottom-sheet";
 import { selectionStore } from "../products/selection-store";
 import { useAuth, isProductAllowedForUser } from "../auth/auth-store";
@@ -57,12 +56,6 @@ export function PlanCard({ plan, products }: PlanCardProps) {
   const { user } = useAuth();
   const isOrderingDisabled =
     Boolean(user?.disableOrdering) || Boolean(user?.hideExactStock);
-
-  const selectedIds = useSyncExternalStore(
-    selectionStore.subscribe,
-    () => selectionStore.getSnapshot().selectedIds,
-    () => [],
-  );
 
   // Time & Status computations
   const now = Date.now();
@@ -266,11 +259,6 @@ export function PlanCard({ plan, products }: PlanCardProps) {
       .filter((p) => isProductAllowedForUser(p, user));
   }, [plan, products, user]);
 
-  const selectedPlanCount = useMemo(() => {
-    return planProducts.filter((p) => selectedIds.includes(String(p.id)))
-      .length;
-  }, [planProducts, selectedIds]);
-
   const rawDescription =
     plan.content || plan.notes || "شرایط این طرح توسط مدیریت تعیین شده است.";
 
@@ -287,67 +275,53 @@ export function PlanCard({ plan, products }: PlanCardProps) {
           }
         }}
         className={cn(
-          "p-5 flex flex-col bg-muted/5 hover:bg-muted/10 gap-3 text-start transition-all h-fit rounded-3xl text-foreground relative overflow-hidden cursor-pointer select-none active:scale-[0.99]",
+          "p-5 flex flex-col bg-muted/5 hover:bg-muted/10 gap-3 text-start transition-all h-fit rounded-2xl text-foreground relative overflow-hidden cursor-pointer select-none active:scale-[0.99]",
           isExpired && "opacity-80 border-danger/25",
           !isActive && !isUpcoming && !isExpired && "opacity-85",
         )}
       >
-        {/* Upcoming Alert Banner */}
-
         {/* Title */}
-        <h3 className="text-base font-bold text-foreground leading-snug line-clamp-1">
+        <h3 className="text-xs sm:text-base font-bold text-foreground leading-snug line-clamp-1">
           {plan.title}
         </h3>
 
-        {/* Chips Row: Status + Time/Remaining Days (Flex Row) */}
-        <div className="flex items-center justify-between gap-2 flex-wrap pt-0.5">
-          {/* Status Badge */}
-          <div className="shrink-0">
-            {isExpired ? (
-              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-danger/15 text-danger whitespace-nowrap inline-flex items-center shrink-0">
-                منقضی شده
-              </span>
-            ) : isUpcoming ? (
-              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-warning/15 text-warning whitespace-nowrap inline-flex items-center shrink-0">
-                در انتظار شروع
-              </span>
-            ) : (
-              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-success/15 text-success whitespace-nowrap inline-flex items-center shrink-0">
-                فعال
-              </span>
+        <div className="w-full flex items-center justify-between">
+          <div className="flex items-center justify-start gap-2 flex-wrap">
+            <div className="shrink-0">
+              {isExpired ? (
+                <span className="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-danger/15 text-danger whitespace-nowrap inline-flex items-center shrink-0">
+                  منقضی شده
+                </span>
+              ) : isUpcoming ? (
+                <span className="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-warning/15 text-warning whitespace-nowrap inline-flex items-center shrink-0">
+                  در انتظار شروع
+                </span>
+              ) : (
+                <span className="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-success/15 text-success whitespace-nowrap inline-flex items-center shrink-0">
+                  فعال
+                </span>
+              )}
+            </div>
+
+            {timeBadgeText && (
+              <div className="shrink-0">
+                <span
+                  className={cn(
+                    "px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap inline-flex items-center gap-1.5 shrink-0",
+                    timeBadgeClass,
+                  )}
+                >
+                  <ClockIcon size={12} className="shrink-0" />
+                  <span>{timeBadgeText}</span>
+                </span>
+              </div>
             )}
           </div>
-
-          {/* Time / Remaining Days Badge */}
-          {timeBadgeText && (
-            <div className="shrink-0">
-              <span
-                className={cn(
-                  "px-2.5 py-1 rounded-full text-[11px] font-medium whitespace-nowrap inline-flex items-center gap-1.5 shrink-0",
-                  timeBadgeClass,
-                )}
-              >
-                <ClockIcon size={12} className="shrink-0" />
-                <span>{timeBadgeText}</span>
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Conditions Box with 3-line clamping */}
-        <div className="rounded-2xl transition-colors">
-          <p className="text-xs line-clamp-1 text-muted leading-relaxed">
-            {rawDescription}
-          </p>
-        </div>
-
-        {/* Action Arrow Icon */}
-        <div className="text-xs w-fit flex items-center justify-end font-semibold px-3 rounded-2xl text-primary transition-colors duration-200">
-          <ArrowLeftIcon />
+          <div className="text-xs w-fit flex items-center justify-end font-semibold px-3 rounded-2xl text-primary transition-colors duration-200">
+            <ArrowLeftIcon />
+          </div>
         </div>
       </div>
-
-      {/* Plan Details HeroUI Bottom Sheet (Drawer) */}
       <Drawer>
         <Drawer.Backdrop
           isOpen={isDetailsOpen}
@@ -364,11 +338,10 @@ export function PlanCard({ plan, products }: PlanCardProps) {
                 <Drawer.Handle className="w-16 h-1.5 rounded-full" />
               </div>
 
-              {/* Bottom Sheet Header */}
               <Drawer.Header className="w-full flex flex-row! items-center justify-between px-5 pt-1 pb-2 shrink-0 border-b border-border/40">
                 <div className="flex items-center gap-2 min-w-0 flex-1 pe-2">
                   <TagIcon className="size-4 text-primary shrink-0" />
-                  <Drawer.Heading className="text-sm  font-extrabold text-foreground truncate">
+                  <Drawer.Heading className="text-sm font-extrabold text-foreground truncate">
                     {plan.title}
                   </Drawer.Heading>
                   {isExpired && (
@@ -391,7 +364,7 @@ export function PlanCard({ plan, products }: PlanCardProps) {
               <Drawer.Body className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 py-3.5 space-y-3.5 scrollbar-none pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] text-start">
                 {/* Upcoming Notice in Bottom Sheet */}
                 {isUpcoming && (
-                  <div className="flex items-center gap-2 p-3 rounded-2xl bg-warning/15 text-warning text-xs font-bold">
+                  <div className="flex items-center gap-2 p-3 rounded-2xl text-warning text-xs font-bold">
                     <ClockIcon className="size-4 shrink-0" />
                     <span>{upcomingDaysText}</span>
                   </div>
@@ -410,13 +383,10 @@ export function PlanCard({ plan, products }: PlanCardProps) {
                           منقضی شده
                         </div>
                       ) : (
-                        <div className="w-auto bg-primary text-primary-foreground py-1.5 px-3 rounded-xl text-xs shrink-0 flex items-center gap-1.5">
+                        <div className="w-auto text-primary py-1.5 px-3 rounded-xl text-xs shrink-0 flex items-center gap-1.5">
                           <span>تاریخ پایان: </span>
                           <span className="font-semibold">
                             {formatPersianDate(plan.expiresAt)}
-                          </span>
-                          <span className="font-medium opacity-90">
-                            ({remainingDaysText})
                           </span>
                         </div>
                       ))}
@@ -455,9 +425,6 @@ export function PlanCard({ plan, products }: PlanCardProps) {
                           prod.inStock === false ||
                           (Number.isFinite(Number(prod.inventorySqm)) &&
                             Number(prod.inventorySqm) <= 0);
-                        const isSelected =
-                          !isProdOutOfStock &&
-                          selectedIds.includes(String(prod.id));
 
                         return (
                           <div
@@ -480,14 +447,11 @@ export function PlanCard({ plan, products }: PlanCardProps) {
                                   }
                             }
                             className={cn(
-                              "flex items-center  justify-between gap-3 p-2.5 rounded-2xl border transition-all text-start",
+                              "flex items-center justify-between gap-3 p-2.5 rounded-2xl border transition-all text-start",
                               isExpired
-                                ? "opacity-40  pointer-events-none cursor-not-allowed select-none bg-muted/5 border-border/20 grayscale-[0.2]"
+                                ? "opacity-40 pointer-events-none cursor-not-allowed select-none bg-muted/5 border-border/20 grayscale-[0.2]"
                                 : cn(
-                                    "cursor-pointer select-none",
-                                    isSelected
-                                      ? "bg-primary/8 ring-1 ring-primary border-primary/30"
-                                      : "bg-muted/10 hover:bg-muted/15 border-border/20",
+                                    "cursor-pointer select-none bg-muted/10 hover:bg-muted/15 border-border/20",
                                     isProdOutOfStock && "opacity-80",
                                   ),
                             )}
@@ -551,29 +515,11 @@ export function PlanCard({ plan, products }: PlanCardProps) {
                               <span className="h-8 px-2.5 rounded-xl bg-danger/15 text-danger text-[11px] font-bold shrink-0 flex items-center justify-center">
                                 ناموجود
                               </span>
-                            ) : isSelected && !isOrderingDisabled ? (
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  selectionStore.unselectProduct(prod.id);
-                                }}
-                                className="h-8 px-3 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold shrink-0 flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition-all"
-                              >
-                                <CheckIcon size={13} className="stroke-3" />
-                              </button>
-                            ) : isActive && !isOrderingDisabled ? (
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  selectionStore.selectProduct(prod.id);
-                                }}
-                                className="h-8 px-3 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold shrink-0 flex items-center justify-center gap-1 cursor-pointer active:scale-95 transition-all"
-                              >
-                                <PlusIcon size={13} />
-                              </button>
-                            ) : null}
+                            ) : (
+                              <div className="size-8 rounded-xl bg-muted/10 text-muted flex items-center justify-center shrink-0">
+                                <ArrowLeftIcon size={12} />
+                              </div>
+                            )}
                           </div>
                         );
                       })}
@@ -607,38 +553,38 @@ export function PlanCard({ plan, products }: PlanCardProps) {
                       <Button
                         type="button"
                         onPress={() => {
-                          if (selectedPlanCount > 0) {
-                            setIsDetailsOpen(false);
-                            navigate({ to: "/product/new" });
-                          } else {
-                            const availablePlanProducts = planProducts.filter(
-                              (p) =>
-                                p.stockStatus !== "out_of_stock" &&
-                                p.inStock !== false &&
-                                !(
-                                  Number.isFinite(Number(p.inventorySqm)) &&
-                                  Number(p.inventorySqm) <= 0
-                                ),
+                          const availablePlanProducts = planProducts.filter(
+                            (p) =>
+                              p.stockStatus !== "out_of_stock" &&
+                              p.inStock !== false &&
+                              !(
+                                Number.isFinite(Number(p.inventorySqm)) &&
+                                Number(p.inventorySqm) <= 0
+                              ),
+                          );
+                          if (availablePlanProducts.length === 0) {
+                            toast.warning(
+                              "کالای ناموجود",
+                              "متأسفانه در حال حاضر کالاهای این طرح ناموجود هستند.",
                             );
-                            if (availablePlanProducts.length === 0) {
-                              return;
-                            }
-                            availablePlanProducts.forEach((p) => {
-                              selectionStore.selectProduct(p.id);
-                            });
                             setIsDetailsOpen(false);
-                            navigate({ to: "/product/new" });
+                            navigate({ to: "/product" });
+                            return;
                           }
+                          availablePlanProducts.forEach((p) => {
+                            selectionStore.selectProduct(p.id);
+                          });
+                          toast.success(
+                            "محصولات طرح انتخاب شدند",
+                            `${toPersianDigits(availablePlanProducts.length)} محصول از این طرح به انتخاب‌های شما اضافه شد.`,
+                          );
+                          setIsDetailsOpen(false);
+                          navigate({ to: "/product" });
                         }}
                         className="h-9 px-4 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold flex items-center justify-center gap-2 cursor-pointer active:scale-95"
                       >
                         <div className="flex items-center gap-1.5">
                           <span>ثبت محصول</span>
-                          {selectedPlanCount > 0 && (
-                            <span className="min-w-5 h-5 px-1 rounded-full bg-primary-foreground text-primary text-[11px] font-black flex items-center justify-center">
-                              {toPersianDigits(selectedPlanCount)}
-                            </span>
-                          )}
                         </div>
                         <ArrowLeftIcon size={13} />
                       </Button>
@@ -658,27 +604,9 @@ export function PlanCard({ plan, products }: PlanCardProps) {
       <ProductBottomSheet
         product={selectedProductForDetail}
         isOpen={Boolean(selectedProductForDetail)}
-        isSelected={
-          selectedProductForDetail
-            ? selectedIds.includes(String(selectedProductForDetail.id))
-            : false
-        }
-        isOrderingDisabled={isOrderingDisabled}
+        isSelected={false}
+        isOrderingDisabled={true}
         onClose={() => setSelectedProductForDetail(null)}
-        onToggleSelect={
-          selectedProductForDetail && !isOrderingDisabled
-            ? () => selectionStore.toggleProduct(selectedProductForDetail.id)
-            : undefined
-        }
-        onOrderDirect={(product) => {
-          if (isOrderingDisabled) return;
-          selectionStore.selectProduct(product.id);
-          setSelectedProductForDetail(null);
-          setIsDetailsOpen(false);
-          navigate({
-            to: "/product/new",
-          });
-        }}
       />
     </>
   );

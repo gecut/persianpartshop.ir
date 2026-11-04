@@ -143,20 +143,16 @@ export const ProductCard = React.memo(function ProductCard({
           <div className="flex items-center gap-1.5 flex-wrap mt-2">
             {product.productType === "other" ? (
               <>
-                <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-muted/10 text-foreground">
-                  {product.secondary_unit || product.secondaryUnit
-                    ? ` ${formatUnit(product.secondary_unit || product.secondaryUnit)}`
-                    : ""}{" "}
-                </span>
-                {product.weight ? (
-                  <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-muted/10 text-foreground">
-                    {toPersianDigits(product.weight)}
-                  </span>
-                ) : product.secondary_unit || product.secondaryUnit ? (
+                {Boolean(product.secondary_unit || product.secondaryUnit) && (
                   <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-muted/10 text-foreground">
                     {formatUnit(
                       product.secondary_unit || product.secondaryUnit,
                     )}
+                  </span>
+                )}
+                {product.weight ? (
+                  <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-muted/10 text-foreground">
+                    {toPersianDigits(product.weight)}
                   </span>
                 ) : product.itemsPerPack ? (
                   <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-muted/10 text-foreground">
