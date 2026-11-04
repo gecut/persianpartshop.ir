@@ -516,9 +516,7 @@ export function PlanCard({ plan, products }: PlanCardProps) {
                                 ناموجود
                               </span>
                             ) : (
-                              <div className="size-8 rounded-xl bg-muted/10 text-muted flex items-center justify-center shrink-0">
-                                <ArrowLeftIcon size={12} />
-                              </div>
+                              ""
                             )}
                           </div>
                         );
