@@ -25,6 +25,7 @@ import { fa } from '@payloadcms/translations/languages/fa'
 import { en } from '@payloadcms/translations/languages/en'
 import { isImportExportAuthorized } from './collections/products/_product-access'
 import { roundToTwoDecimals } from './collections/products/_inventory-math'
+import { migrations } from './migrations'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -379,6 +380,7 @@ export default buildConfig({
           connectionString: databaseUrl,
         },
         push: false,
+        prodMigrations: migrations,
       })
     : sqliteAdapter({
         client: {
