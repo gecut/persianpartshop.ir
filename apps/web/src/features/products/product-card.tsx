@@ -144,18 +144,19 @@ export const ProductCard = React.memo(function ProductCard({
             {product.productType === "other" ? (
               <>
                 <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-muted/10 text-foreground">
-                  {formatUnit(product.unit)}
+                  {product.secondary_unit || product.secondaryUnit
+                    ? ` ${formatUnit(product.secondary_unit || product.secondaryUnit)}`
+                    : ""}{" "}
                 </span>
                 {product.weight ? (
                   <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-muted/10 text-foreground">
                     {toPersianDigits(product.weight)}
-                    {(product.secondary_unit || product.secondaryUnit)
-                      ? ` ${formatUnit(product.secondary_unit || product.secondaryUnit)}`
-                      : ""}
                   </span>
-                ) : (product.secondary_unit || product.secondaryUnit) ? (
+                ) : product.secondary_unit || product.secondaryUnit ? (
                   <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-muted/10 text-foreground">
-                    {formatUnit(product.secondary_unit || product.secondaryUnit)}
+                    {formatUnit(
+                      product.secondary_unit || product.secondaryUnit,
+                    )}
                   </span>
                 ) : product.itemsPerPack ? (
                   <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-muted/10 text-foreground">
