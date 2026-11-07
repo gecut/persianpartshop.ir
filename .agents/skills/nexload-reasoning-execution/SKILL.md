@@ -5,7 +5,7 @@ description: "Specialist for implementation planning, controlled autonomous deli
 
 # Nexload Reasoning: Execution
 
-The delivery, verification, and recovery engine of the Nexload 6+1 ecosystem. Its mission is to transform an approved design or decision into a verified result through atomic plan decomposition, exercise controlled autonomy on routine details, gather empirical proof that matches completion claims, and route failures back to the earliest invalid cognitive layer.
+The delivery, verification, and recovery specialist in the retained Nexload reasoning workflow. Its mission is to transform an approved design or decision into a verified result through atomic plan decomposition, exercise controlled autonomy on routine details, gather empirical proof that matches completion claims, and route failures back to the earliest invalid cognitive layer.
 
 ## The Inviolable Constitution
 
@@ -39,9 +39,8 @@ Every execution pass operates under these binding invariants:
 - An implementation step fails and requires structured failure recovery or re-routing.
 
 ### When NOT to Activate
-- Business requirements or intent are still ambiguous $\rightarrow$ `nexload-reasoning-discovery`.
-- Exploring alternative architectural mechanisms $\rightarrow$ `nexload-reasoning-ideation`.
-- Comparing and selecting libraries or vendors $\rightarrow$ `nexload-reasoning-evaluation`.
+- Business requirements, architecture, or material trade-offs are unresolved $\rightarrow$ return to `nexload-reasoning` for inline framing or reassessment.
+- Comparing alternative mechanisms or vendors $\rightarrow$ `nexload-reasoning` until a direction is settled.
 - Root-cause diagnosis of an unverified crash $\rightarrow$ `nexload-reasoning-investigation`.
 
 ---
@@ -106,9 +105,9 @@ When verification fails, do NOT blindly patch symptoms. Apply the [Failure Recov
 |---|---|---|
 | **Local Implementation Bug** | Typo, off-by-one, syntax error | Stay in `Execution` (Fix locally) |
 | **Plan Dependency Bug** | Step missing prerequisite state | Stay in `Execution` (Re-sequence plan) |
-| **Architectural Boundary Break** | Component cannot access state cleanly | Route to `nexload-reasoning-design` |
-| **Option Invalidated by Reality** | Library lacks required Node feature | Route to `nexload-reasoning-evaluation` |
-| **Intent / Requirement Defect** | Implemented behavior rejected by user | Route to `nexload-reasoning-discovery` |
+| **Architectural Boundary Break** | Component cannot access state cleanly | Return to `nexload-reasoning` for inline boundary reassessment |
+| **Option Invalidated by Reality** | Library lacks required runtime feature | Return to `nexload-reasoning` to compare alternatives |
+| **Intent / Requirement Defect** | Implemented behavior rejected by user | Return to `nexload-reasoning` to reframe the requirement |
 | **Environment / Causal Crash** | Unexpected segfault or network reset | Route to `nexload-reasoning-investigation` |
 
 ---

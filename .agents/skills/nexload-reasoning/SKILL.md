@@ -1,11 +1,11 @@
 ---
 name: nexload-reasoning
-description: "Kernel, orchestrator, and depth controller for the 6+1 cognitive graph reasoning ecosystem. Use when a complex, ambiguous, multi-step, or high-stakes task requires determining the appropriate reasoning specialists (discovery, investigation, ideation, design, evaluation, execution), selecting reasoning depth, preventing premature execution, or enforcing stopping discipline. Do not use for deterministic syntax transformations, trivial factual lookups, single-command executions, or when a task already cleanly targets a specific specialist."
+description: "Kernel and depth controller for Nexload reasoning. Use when a complex, ambiguous, multi-step, or high-stakes task requires determining the appropriate retained specialist (investigation or execution) and handling other reasoning needs inline, selecting reasoning depth, preventing premature execution, or enforcing stopping discipline. Do not use for deterministic syntax transformations, trivial factual lookups, single-command executions, or when a task already cleanly targets a specific specialist."
 ---
 
 # Nexload Reasoning (Kernel)
 
-The orchestration kernel and depth controller for the Nexload 6+1 Cognitive Graph Architecture. It classifies cognitive demand, controls reasoning depth, routes tasks to specialized reasoning engines, enforces stopping discipline, and guarantees context integrity across transitions.
+The orchestration kernel for Nexload reasoning. It classifies cognitive demand, handles problem framing and option analysis inline, routes empirical diagnosis to investigation and approved delivery to execution, and enforces stopping discipline and context integrity.
 
 ## The Inviolable Constitution
 
@@ -19,7 +19,7 @@ Every cognitive pass in this ecosystem executes under eight binding invariants:
 3. **Problem Space Framing:**
    A proposed solution (e.g., "Add Redis", "Create microservice") is an implementation hypothesis, never a requirement. Frame the underlying problem first.
 4. **Separation of Divergence and Convergence (Divergence Firewall):**
-   During ideation, ideas MUST NOT be suppressed by implementation difficulty or cost filtering. Divergence and convergence must never execute within the same cognitive pass.
+   During option generation in the kernel, ideas MUST NOT be suppressed by implementation difficulty or cost filtering. Keep generating options separate from later trade-off evaluation.
 5. **Complexity Must Pay Rent:**
    Any introduced abstraction, dependency, or state must measurably reduce system complexity or satisfy confirmed hard requirements. Speculative scalability is rejected.
 6. **Preservation of Settled Decisions:**
@@ -43,7 +43,7 @@ Every cognitive pass in this ecosystem executes under eight binding invariants:
 - Deterministic commands (e.g., "Format the file", "Run git status", "Add export to index.ts").
 - Factual syntax or documentation lookups (e.g., "What is the return type of `useMemo`?").
 - Straightforward implementation tasks under an already approved, unambiguous plan.
-- The task already cleanly maps to a single known specialist (activate that specialist directly).
+- The task already cleanly maps to investigation or execution (activate that specialist directly).
 
 ---
 
@@ -66,9 +66,9 @@ Every cognitive pass in this ecosystem executes under eight binding invariants:
  (Direct Action)            │
         │                   ▼
         │            3. ROUTE SPECIALIST
-        │       (Discovery | Investigation |
-        │        Ideation | Design |
-        │        Evaluation | Execution | NONE)
+        │       (Kernel inline | Investigation |
+        │        Execution |
+        │        NONE)
         │                   │
         │                   ▼
         │            4. ATTACH CONSTRAINTS
@@ -89,18 +89,15 @@ Inspect repository artifacts, configs, manifests, and git status prior to any ro
 ### 2. Classify Demand & Depth
 Evaluate task complexity according to [depth heuristics](references/depth-heuristics.md):
 - **Low Depth:** Reversible, deterministic, low stakes. Execute directly without specialist ceremony.
-- **Medium Depth:** Local design choice, single-point uncertainty, bug with reproduction. Route to **one** primary specialist.
-- **High Depth:** Irreversible choices, architectural changes, multi-system bugs, production failures. Route through structured specialist sequence with explicit handoffs.
+- **Medium Depth:** Local design choice, single-point uncertainty, or reproducible bug. Use one retained specialist or reason inline in the kernel.
+- **High Depth:** Irreversible choices, architectural changes, multi-system bugs, or production failures. Sequence only the justified kernel, investigation, and execution stages with explicit handoffs.
 
-### 3. Route to Primary Specialist
-Evaluate the primary cognitive question according to the [routing matrix](references/routing-matrix.md):
-- *"What problem are we actually solving?"* $\rightarrow$ `nexload-reasoning-discovery`
-- *"What is actually true/happening and why?"* $\rightarrow$ `nexload-reasoning-investigation`
-- *"What materially different mechanisms exist?"* $\rightarrow$ `nexload-reasoning-ideation`
-- *"How can this direction work as a coherent system?"* $\rightarrow$ `nexload-reasoning-design`
-- *"Which direction should we choose given trade-offs?"* $\rightarrow$ `nexload-reasoning-evaluation`
-- *"How do we safely build and verify this result?"* $\rightarrow$ `nexload-reasoning-execution`
-- *No structured reasoning needed* $\rightarrow$ `NONE` (Direct action)
+### 3. Route or reason inline
+Use the [routing matrix](references/routing-matrix.md) to select one of the retained specialists or handle the reasoning in this kernel:
+- Observed crashes, regressions, intermittent behavior, or conflicting runtime evidence $\rightarrow$ `nexload-reasoning-investigation`.
+- Approved implementation, migration sequencing, or verification $\rightarrow$ `nexload-reasoning-execution`.
+- Unclear intent, competing mechanisms, system boundaries, or material trade-offs: frame the problem and reason through options here. Do not route to deleted skills or begin implementation before the direction is settled.
+- No structured reasoning needed $\rightarrow$ `NONE` (direct action).
 
 ---
 
@@ -129,7 +126,7 @@ Next Cognitive Objective:
 ## Stopping Discipline & Anti-Patterns
 
 Reasoning must cease as soon as the next action is unambiguous and risks are mitigated. Review [anti-patterns](references/anti-patterns.md) to prevent:
-- **Over-Routing:** Invoking all 6 specialists sequentially for a straightforward task.
+- **Over-Routing:** Invoking multiple retained skills or adding kernel analysis to a straightforward task.
 - **Specialist Stacking:** Activating multiple specialists concurrently with overlapping scopes.
 - **Analysis Paralysis:** Continuing exploration when residual uncertainty has zero leverage on outcome.
 - **Settled Decision Re-litigation:** Re-debating approved architecture without new material evidence.

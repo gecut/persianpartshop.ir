@@ -18,10 +18,10 @@
       "category": "negative_trigger",
       "prompt": "Design an interface for our new payment provider gateway that supports both Zarinpal and Stripe.",
       "context_files": ["packages/payment/src/types.ts"],
-      "expected_routing": "nexload-reasoning-design",
+      "expected_routing": "nexload-reasoning",
       "behavioral_assertions": [
         "The agent identifies that this is an interface contract design task, not an anomaly or bug investigation.",
-        "The agent routes to design rather than investigation."
+        "The agent handles the design work in the kernel rather than routing to investigation or a deleted skill."
       ]
     },
     {

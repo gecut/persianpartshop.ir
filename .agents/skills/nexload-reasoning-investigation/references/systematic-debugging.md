@@ -37,8 +37,8 @@ Applying `try/catch`, adding null checks, or inserting `setTimeout` without iden
               ▼
 5. ESCALATE OR RESOLVE
    • Local code error ──► Route to Execution
-   • Flawed boundary ──► Route to Design
-   • Library incompatibility ──► Route to Evaluation
+   • Flawed boundary ──► Return to the kernel for inline reassessment
+   • Library incompatibility ──► Return to the kernel to compare alternatives
 ```
 
 ---

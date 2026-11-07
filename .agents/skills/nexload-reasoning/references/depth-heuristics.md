@@ -11,7 +11,7 @@ This reference establishes the operational heuristics used by `nexload-reasoning
 │                       REASONING DEPTH                       │
 ├─────────────────┬───────────────────────┬───────────────────┤
 │    LOW DEPTH    │     MEDIUM DEPTH      │    HIGH DEPTH     │
-│  (0 Specialists)│    (1-2 Specialists)  │ (3+ Specialists)  │
+│  (Direct action)│ (Kernel or 1 skill)   │ (Staged reasoning)│
 ├─────────────────┼───────────────────────┼───────────────────┤
 │ • Deterministic │ • Local architecture  │ • Cross-cutting   │
 │ • Fully local   │ • Non-trivial bug     │ • Irreversible    │
@@ -36,26 +36,26 @@ This reference establishes the operational heuristics used by `nexload-reasoning
   - "What does HTTP status 429 mean?"
 - **Operational Action:** Bypass specialist activation. Execute directly.
 
-### Level 2: Medium Depth (Single Specialist Pass)
+### Level 2: Medium Depth (Kernel or One Specialist)
 - **Characteristics:**
-  - One dimension of material uncertainty (e.g., intent ambiguity, unknown bug cause, or choice between two libraries).
-  - Blast radius is contained within a single module or package.
-  - Verification requires targeted integration checks or reproduction steps.
+  - One dimension of material uncertainty (e.g., intent ambiguity, unknown bug cause, or a choice between viable mechanisms).
+  - Blast radius is contained within a module or package.
+  - Verification requires a targeted integration check or reproduction.
 - **Examples:**
-  - "Why is our Redis cache key expiring immediately after write?" $\rightarrow$ `nexload-reasoning-investigation`
-  - "The customer says 'make the export faster', what do they actually care about?" $\rightarrow$ `nexload-reasoning-discovery`
-  - "Should we use `pnpm-workspace` or `turbo` for this task orchestration?" $\rightarrow$ `nexload-reasoning-evaluation`
-- **Operational Action:** Activate exactly one primary specialist. If that specialist discovers unexpected cross-cutting complexity, escalate to High Depth via a sparse handoff.
+  - "Why does this request intermittently return 500?" $\rightarrow$ `nexload-reasoning-investigation`.
+  - "Make this export faster" with unclear success criteria $\rightarrow$ frame the goal inline in `nexload-reasoning`.
+  - "Should we use one of these two libraries?" $\rightarrow$ compare evidence and constraints inline in `nexload-reasoning`.
+- **Operational Action:** Use exactly one retained specialist when its trigger fits; otherwise the kernel handles the bounded framing or trade-off. Escalate only if evidence reveals material cross-cutting complexity.
 
-### Level 3: High Depth (Multi-Specialist Graph Traversal)
+### Level 3: High Depth (Staged Reasoning)
 - **Characteristics:**
-  - Multiple dimensions of uncertainty: intent is ambiguous AND architecture is unformed AND trade-offs carry heavy operational or financial risk.
-  - One-way door decisions (data migrations, public API deprecations, new external dependencies).
-  - System crashes under load with conflicting or incomplete telemetry.
+  - Multiple dimensions of uncertainty or a cross-cutting change with material operational risk.
+  - One-way-door decisions (data migrations, public API deprecations, new external dependencies).
+  - Runtime anomaly with incomplete telemetry and downstream architectural implications.
 - **Examples:**
-  - "We need to replace our entire auth system with Passkeys while keeping SMS fallback." $\rightarrow$ Discovery $\rightarrow$ Design $\rightarrow$ Evaluation $\rightarrow$ Execution.
-  - "Production database OOMs every Tuesday at 03:00 UTC." $\rightarrow$ Investigation $\rightarrow$ Design $\rightarrow$ Execution.
-- **Operational Action:** Execute sequential specialist passes with formal `[NEXLOAD HANDOFF]` checkpoints. Enforce stopping conditions after each step.
+  - "Replace the auth system while preserving SMS fallback" $\rightarrow$ frame constraints and assess the design inline, then use execution after approval.
+  - "Production database OOMs every Tuesday at 03:00 UTC" $\rightarrow$ investigation, kernel reassessment if the evidence changes the system direction, then execution after approval.
+- **Operational Action:** Sequence only the reasoning stages justified by evidence. Use sparse handoffs between kernel, investigation, and execution; do not invoke deleted skills or impose a fixed specialist chain.
 
 ---
 

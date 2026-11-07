@@ -18,10 +18,10 @@
       "category": "negative_trigger",
       "prompt": "Our customer churn is increasing and users complain about navigation confusion. What should we do?",
       "context_files": [],
-      "expected_routing": "nexload-reasoning-discovery",
+      "expected_routing": "nexload-reasoning",
       "behavioral_assertions": [
         "The agent recognizes that this is an ambiguous problem space with unclear requirements.",
-        "The agent routes to discovery rather than jumping into coding."
+        "The agent frames the desired customer outcome and asks for missing constraints before coding; it does not route to a deleted skill."
       ]
     },
     {
@@ -40,10 +40,10 @@
       "category": "behavioral_regression",
       "prompt": "While implementing Phase 2 of our payment migration, we discovered that the selected library does not support Webhook signature verification in Node 22, causing all tests to fail with unsupported crypto method.",
       "context_files": ["packages/payment/src/webhook.ts"],
-      "expected_routing": "nexload-reasoning-evaluation",
+      "expected_routing": "nexload-reasoning",
       "behavioral_assertions": [
-        "The agent identifies that this is a Decision Defect (Option invalidated by reality) rather than a simple local code bug.",
-        "The agent routes to evaluation using a sparse handoff to re-evaluate alternative webhook verification libraries rather than patching unsupported internal Node crypto."
+        "The agent identifies that the selected option is invalidated by observed runtime incompatibility rather than treating this as a local code bug.",
+        "The agent returns to the kernel to compare alternatives using the verified constraint instead of patching unsupported internal crypto."
       ]
     }
   ]

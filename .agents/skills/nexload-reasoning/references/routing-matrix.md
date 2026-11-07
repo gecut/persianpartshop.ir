@@ -1,93 +1,75 @@
 # Routing Matrix & Transition Graph
 
-This reference governs how the Kernel (`nexload-reasoning`) maps raw prompts and tasks to specific cognitive specialists, resolves conflicts when multiple skills seem applicable, and navigates non-linear transitions.
+This reference governs how the `nexload-reasoning` kernel selects a retained specialist or performs bounded reasoning inline. Only `nexload-reasoning-investigation` and `nexload-reasoning-execution` are separate reasoning specialists in this repository.
 
 ---
 
-## 1. Primary Specialist Routing Table
+## 1. Primary Routing Table
 
-| Unresolved Need / Symptom | Primary Cognitive Question | Routed Specialist |
+| Need or symptom | Primary question | Action |
 |---|---|---|
-| Ambiguous intent, solution disguised as requirement, scope boundaries unclear | *"What problem are we actually solving, under what constraints, and what must remain unchanged?"* | `nexload-reasoning-discovery` |
-| Crashes, inconsistent behavior, performance anomaly, conflicting documentation | *"What is actually true/happening, what is the root cause, and what discriminates hypotheses?"* | `nexload-reasoning-investigation` |
-| Solution fixation, need for novel mechanisms, exploring alternative architectures | *"What materially different mechanisms could achieve this objective?"* | `nexload-reasoning-ideation` |
-| Selected direction needs interfaces, state ownership, seams, or failure behavior | *"How can this direction work as an internally coherent, minimal, and bounded system?"* | `nexload-reasoning-design` |
-| Multiple viable designs, library selection, risk assessment, pre-mortem, trade-offs | *"Which direction should we select based on material trade-offs, risk, and reversibility?"* | `nexload-reasoning-evaluation` |
-| Approved design ready to implement, migration planning, verification, recovery | *"What is the safest sequence to implement this, how do we prove it works, and how do we recover?"* | `nexload-reasoning-execution` |
-| Deterministic refactor, mechanical syntax change, factual query, approved plan step | *No cognitive decomposition required.* | `NONE` (Direct execution) |
+| Crashes, inconsistent behavior, performance anomaly, or conflicting runtime evidence | What is happening, what caused it, and which observation distinguishes the hypotheses? | `nexload-reasoning-investigation` |
+| Approved direction ready to implement, migrate, or verify | What is the safest sequence, and what evidence proves the result? | `nexload-reasoning-execution` |
+| Ambiguous intent or a proposed solution presented as a requirement | What outcome is needed, under which constraints, and what must remain unchanged? | Frame inline in the kernel; inspect first, then ask only for missing human-owned decisions |
+| Several plausible mechanisms or architectures | Which materially different options satisfy the confirmed objective? | Generate and compare options inline in the kernel; do not filter during ideation |
+| A selected direction needs boundaries, ownership, interfaces, or failure behavior | What is the smallest coherent design that satisfies the constraints? | Resolve inline in the kernel before execution |
+| Material trade-offs, library choice, risk, or reversibility | Which option best meets the confirmed constraints, and what evidence could invalidate it? | Evaluate inline in the kernel; retrieve current evidence when version-sensitive |
+| Deterministic refactor, syntax change, factual lookup, or approved plan step | Can this be done directly with immediate, reproducible verification? | `NONE` (direct action) |
+
+Do not refer to or attempt to load removed specialist skills. The reasoning responsibilities they covered remain kernel work; they are not additional skills or mandatory phases.
 
 ---
 
-## 2. Non-Linear Transition Graph
+## 2. Non-Linear Transitions
 
-The reasoning ecosystem is a **directed graph**, never a rigid waterfall pipeline. Real problems transition between specialists dynamically based on emerging evidence:
+The workflow is evidence-driven, not a fixed pipeline:
 
-```mermaid
-graph TD
-    Kernel[Kernel Router] --> Discovery
-    Kernel --> Investigation
-    Kernel --> Ideation
-    Kernel --> Design
-    Kernel --> Evaluation
-    Kernel --> Execution
-    Kernel --> None[Direct Execution]
+```text
+Kernel / inline framing, ideation, design, or evaluation
+  ├─ verified anomaly or unknown cause ──> Investigation
+  ├─ approved direction ready to deliver ─> Execution
+  └─ bounded, deterministic task ─────────> Direct action (NONE)
 
-    Discovery -->|Framed Intent| Ideation
-    Discovery -->|Clear Problem, Known Pattern| Design
-    Discovery -->|Strategy Comparison| Evaluation
+Investigation
+  ├─ local causal fix is clear ───────────> Execution
+  ├─ approved boundary/design must change > Kernel (reframe, design, evaluate)
+  └─ evidence remains insufficient ───────> Investigation continues
 
-    Investigation -->|Root Cause Identified| Design
-    Investigation -->|Root Cause Has Direct Fix| Execution
-    Investigation -->|Vendor / System Capability Proof| Evaluation
-
-    Ideation -->|Candidate Concepts| Design
-    Ideation -->|High-Level Direction Selection| Evaluation
-
-    Design -->|System Specification Ready| Evaluation
-    Design -->|Design Contradiction / Scope Mismatch| Discovery
-    Design -->|Unverified Subsystem Behavior| Investigation
-
-    Evaluation -->|Approved Design Decision| Execution
-    Evaluation -->|All Concepts Rejected| Ideation
-    Evaluation -->|Architectural Refinement Needed| Design
-
-    Execution -->|Local Implementation Bug| Execution
-    Execution -->|Seam / Boundary Breakdown| Design
-    Execution -->|Option Invalidated in Practice| Evaluation
-    Execution -->|Root Requirement Misunderstood| Discovery
-    Execution -->|Runtime Anomaly / Unexpected Crash| Investigation
+Execution
+  ├─ local code or sequencing defect ─────> Execution continues
+  ├─ evidence invalidates an assumption ─> Investigation or kernel reassessment
+  └─ material intent/design decision ────> Kernel reassessment before more changes
 ```
 
----
-
-## 3. Conflict Resolution Heuristics
-
-When a task exhibits signals for multiple specialists, use these disambiguation rules:
-
-### A. Discovery vs. Investigation ("Why is this failing?")
-- **Discovery:** The failure stems from mismatched expectations, vague business requirements, or unclear stakeholder goals ("Users aren't adopting feature X").
-- **Investigation:** The failure stems from an observed deviation between expected system behavior and actual runtime/data facts ("Requests return 500 intermittently").
-
-### B. Ideation vs. Design ("We need architecture options")
-- **Ideation:** Generates $\ge 3$ mechanism-distinct concepts (e.g., Pull vs. Push vs. Event-driven; Client vs. Worker). Focuses on conceptual variety without deep interface contracts.
-- **Design:** Synthesizes a candidate direction into state ownership, module boundaries, data flow, error paths, and concrete contracts.
-
-### C. Design vs. Evaluation ("Should we build X or Y?")
-- **Design:** Asks *"How could option X work as a coherent system?"*
-- **Evaluation:** Asks *"Given that both X and Y could work, which one should we choose based on constraints, cost, complexity, and reversibility?"*
-
-### D. Evaluation vs. Execution ("Let's deploy this change")
-- **Evaluation:** Decides whether to proceed, evaluating timing, risks, blast radius, and rollbacks.
-- **Execution:** Sequences atomic tasks, writes code/config, gathers verification evidence, and handles execution recovery.
+Use sparse handoffs when the next stage needs preserved evidence, constraints, or settled decisions. A handoff does not imply a separate agent or automatically reopen a decision.
 
 ---
 
-## 4. The `NONE` Routing Rule
+## 3. Conflict Resolution
 
-If the prompt can be satisfied by a direct tool call or straightforward code edit where:
-1. No architectural boundary is altered,
-2. No business logic ambiguity exists,
-3. The change is completely reversible, and
-4. Verification is instantaneous and deterministic,
+### Intent uncertainty vs. runtime uncertainty
 
-**The Kernel routes to `NONE`.** Do not add specialist overhead to trivial work.
+- Use investigation when an observable runtime or data deviation has an unknown cause.
+- Keep goal, scope, and stakeholder ambiguity in the kernel. Inspect accessible project evidence first; ask the user only for decisions that cannot be recovered locally.
+
+### Option generation vs. system design
+
+- During option generation, identify materially distinct mechanisms without prematurely ranking them by implementation convenience.
+- Once the objective and candidates are clear, design the selected direction inline: state ownership, boundaries, data flow, errors, and contracts.
+
+### Design vs. evaluation
+
+- Design asks whether a candidate can form a coherent system.
+- Evaluation compares viable candidates against confirmed constraints, cost, complexity, risk, and reversibility.
+- Do not invent a library choice or re-open a settled decision without material contradictory evidence.
+
+### Evaluation vs. execution
+
+- Evaluation ends with a chosen direction and its material conditions.
+- Execution starts only when the direction is approved or otherwise authorized; it sequences changes and verifies their effects.
+
+---
+
+## 4. `NONE` Rule
+
+Route directly when the task is bounded and reversible, does not change an architectural boundary or business rule, and has deterministic verification. Do not add specialist overhead to trivial work.

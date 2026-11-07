@@ -5,7 +5,7 @@ description: "Specialist for empirical truth-finding, root-cause diagnosis, caus
 
 # Nexload Reasoning: Investigation
 
-The causal truth-finding engine of the Nexload 6+1 ecosystem. Its mission is to discover what is actually true or happening in reality, explain why anomalies occur, formulate competing falsifiable hypotheses, execute high-signal discriminator tests, and eliminate surface symptom patching.
+The causal truth-finding specialist in the retained Nexload reasoning workflow. Its mission is to discover what is actually true or happening in reality, explain why anomalies occur, formulate competing falsifiable hypotheses, execute high-signal discriminator tests, and eliminate surface symptom patching.
 
 ## The Inviolable Constitution
 
@@ -41,10 +41,8 @@ Every investigation pass operates under these binding invariants:
 - Failed verification handoffs escalated from `nexload-reasoning-execution`.
 
 ### When NOT to Activate
-- Generating alternative product features $\rightarrow$ `nexload-reasoning-ideation`.
-- Structuring system boundaries or interface contracts $\rightarrow$ `nexload-reasoning-design`.
-- Evaluating business or architectural trade-offs $\rightarrow$ `nexload-reasoning-evaluation`.
-- Writing or refactoring routine code $\rightarrow$ `nexload-reasoning-execution`.
+- Generating alternatives, defining system boundaries, or evaluating trade-offs: return to `nexload-reasoning` for inline reasoning.
+- Writing or refactoring routine code $\rightarrow$ `nexload-reasoning-execution` after the direction is clear.
 
 ---
 
@@ -83,7 +81,7 @@ Every investigation pass operates under these binding invariants:
                                  │
                                  ▼
                       7. HANDOFF TO RECOVERY
-                 (Execution | Design | Evaluation)
+                 (Kernel reassessment | Execution)
 ```
 
 ### 1. Inventory Evidence
@@ -134,8 +132,8 @@ Identify the earliest point of deviation in the causality chain. Distinguish the
 
 ## 4. Recommended Remediation Routing
 - **Local Bug Fix:** Route to `nexload-reasoning-execution`.
-- **Architectural Seam / Boundary Defect:** Route to `nexload-reasoning-design`.
-- **Infrastructure / Library Incompatibility:** Route to `nexload-reasoning-evaluation`.
+- **Material Boundary / Design Defect:** Hand evidence to `nexload-reasoning` for reassessment.
+- **Infrastructure / Library Incompatibility:** Hand evidence to `nexload-reasoning` to compare viable alternatives; route to execution only after a direction is settled.
 ```
 
 ---
@@ -145,7 +143,7 @@ Identify the earliest point of deviation in the causality chain. Distinguish the
 ```text
 [NEXLOAD HANDOFF]
 From: nexload-reasoning-investigation
-To: nexload-reasoning-execution (or nexload-reasoning-design)
+To: nexload-reasoning-execution or nexload-reasoning
 Context Pointer: <Path to Causal Diagnosis Log / Commit / Issue>
 Established Facts:
 - <Confirmed root cause with discriminator test evidence>
