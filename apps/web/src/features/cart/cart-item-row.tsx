@@ -1,3 +1,4 @@
+import { formatUnit } from '../../lib/utils/unit'
 import React from "react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@heroui/react";
@@ -37,7 +38,7 @@ export const CartItemRow = React.memo(function CartItemRow({
                   Math.round(item.stockCartons * item.sqmPerCarton * 100) / 100,
                 )}
               </strong>{" "}
-              م²).
+              {formatUnit(item.unit)}).
             </span>
           </div>
           <Button
@@ -144,11 +145,11 @@ export const CartItemRow = React.memo(function CartItemRow({
           <div className="flex items-center gap-1.5 text-xs text-muted mt-1">
             <BoxIcon size={13} className="text-muted" />
             <span>
-              متراژ تحویلی:{" "}
+              مقدار تحویلی:{" "}
               <strong className="text-foreground">
                 {toPersianDigits(item.deliverableArea)}
               </strong>{" "}
-              م²
+              {formatUnit(item.unit)}
             </span>
             {item.sqmPerCarton > 0 && (
               <span className="text-muted text-[11px]">
@@ -175,7 +176,7 @@ export const CartItemRow = React.memo(function CartItemRow({
                 )
               }
               className="w-8 h-full flex items-center justify-center text-foreground hover:bg-default/25 transition-colors cursor-pointer active:bg-default/35"
-              aria-label="افزایش متراژ (متر مربع)"
+              aria-label={`افزایش مقدار (${formatUnit(item.unit)})`}
             >
               <PlusIcon size={14} />
             </Button>
@@ -183,7 +184,7 @@ export const CartItemRow = React.memo(function CartItemRow({
               className="px-2 text-xs font-bold text-foreground select-none min-w-[56px] text-center"
               dir="ltr"
             >
-              {toPersianDigits(item.requestedArea || item.deliverableArea)} م²
+              {toPersianDigits(item.requestedArea || item.deliverableArea)} {formatUnit(item.unit)}
             </span>
             <Button
               type="button"
@@ -199,7 +200,7 @@ export const CartItemRow = React.memo(function CartItemRow({
                 )
               }
               className="w-8 h-full flex items-center justify-center text-foreground hover:bg-default/25 transition-colors cursor-pointer active:bg-default/35"
-              aria-label="کاهش متراژ (متر مربع)"
+              aria-label={`کاهش مقدار (${formatUnit(item.unit)})`}
             >
               <MinusIcon size={14} />
             </Button>

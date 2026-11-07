@@ -6,7 +6,7 @@ export function validateSeedTarget(environment: {
 }): void {
   if (environment.NODE_ENV !== 'development') throw new Error('Seed requires NODE_ENV=development')
 
-  const databaseUri = environment.DATABASE_URI || environment.DATABASE_URL
+  const databaseUri = environment.DATABASE_URL || environment.DATABASE_URI
   if (!databaseUri || environment.CMS_SEED_DATABASE_URI !== databaseUri) {
     throw new Error('Seed requires explicit CMS_SEED_DATABASE_URI matching the configured database')
   }

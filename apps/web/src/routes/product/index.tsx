@@ -17,7 +17,7 @@ import { FilterDrawer } from "../../features/products/filter-drawer";
 import type { Product } from "../../types";
 import { useAuth } from "../../features/auth/auth-store";
 import { useCart } from "../../features/cart/cart-store";
-import { useProductSelection } from "../../features/products/selection-store";
+import { selectionStore, useProductSelection } from "../../features/products/selection-store";
 import { toPersianDigits } from "../../lib/utils/currency";
 import { ProductCardSkeleton } from "../../components/ui/skeleton";
 import {
@@ -482,10 +482,11 @@ function ProductListPage() {
             ? () => handleToggleSelect(activeBottomSheetProduct)
             : undefined
         }
-        onOrderDirect={(product) => {
+        onOrderDirect={async (product) => {
           if (isOrderingDisabled) return;
-          selectProduct(product.id);
           handleCloseBottomSheet();
+          await selectProduct(product.id);
+          if (!selectionStore.getSnapshot().selectedIds.includes(product.id)) return;
           navigate({
             to: "/product/new",
           });

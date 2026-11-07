@@ -26,6 +26,8 @@ export interface OrderItem {
   productSku: string
   productImage: string
   dimension: string
+  productType?: string
+  unit?: string
   grade?: string
   unitPrice: number
   requestedArea: number
@@ -51,6 +53,7 @@ export interface Order {
   status: OrderStatus
   cancelledBy?: 'customer' | 'admin'
   statusLabel: string
+  warehouseName?: string
   storeName: string
   customerName: string
   customerPhone: string

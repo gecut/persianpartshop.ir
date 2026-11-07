@@ -1,9 +1,13 @@
-import { useMemo, useRef } from "react";
+import { customerErrorMessage } from '../../lib/utils/error'
+import { summarizeQuantities } from '../../lib/utils/unit'
+import { useProductSelection } from '../products/selection-store'
+import { WarehouseSummary } from '../cart/warehouse-selection'
+import { useEffect, useMemo, useRef } from "react";
 import { Button } from "@heroui/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import type { Product, OrderItem } from "../../types";
+import type { Product } from "../../types";
 import { calculateCartonRequirement } from "../../lib/utils/math";
 import { formatToman, toPersianDigits } from "../../lib/utils/currency";
 import { SlideCommit } from "../../components/ui/slide-commit";
@@ -99,19 +103,19 @@ function PreInvoiceItemCard({ item }: PreInvoiceItemCardProps) {
       <div className="flex items-center justify-between text-xs pt-2.5 border-t border-border/10 bg-transparent">
         <div className="text-start">
           <span className="text-[11px] text-muted block mb-0.5">
-            تعداد کارتن
+            {item.product.productType === 'other' ? 'تعداد' : 'تعداد کارتن'}
           </span>
           <span className="font-bold text-primary">
-            {toPersianDigits(item.cartonCount)} کارتن
+            {toPersianDigits(item.cartonCount)} {item.product.productType === 'other' ? formatUnit(item.product.unit) : 'کارتن'}
           </span>
         </div>
 
         <div className="text-center">
           <span className="text-[11px] text-muted block mb-0.5">
-            متراژ تحویلی
+            {item.product.productType === 'other' ? 'مقدار تحویلی' : 'متراژ تحویلی'}
           </span>
           <span className="font-bold text-foreground">
-            {toPersianDigits(item.deliverableArea)} متر
+            {toPersianDigits(item.deliverableArea)} {item.product.productType === 'other' ? formatUnit(item.product.unit) : 'مترمربع'}
           </span>
         </div>
 
@@ -137,6 +141,8 @@ export function PreInvoiceModal({
   quantities,
   onSuccess,
 }: PreInvoiceModalProps) {
+  const draft = useProductSelection();
+  useEffect(() => { if (isOpen) void selectionStore.revalidate() }, [isOpen]);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const idempotencyKeyRef = useRef<string | null>(null);
@@ -161,65 +167,30 @@ export function PreInvoiceModal({
         product.finalCustomerPricePerSqm,
         product.inventorySqm,
       );
+      const quote = draft.quotes.find(item => String(item.productId) === product.id);
       return {
         product,
         requestedArea: area,
-        cartonCount: calc.cartonCount,
-        deliverableArea: calc.deliverableArea,
-        unitPrice: product.finalCustomerPricePerSqm,
-        totalPrice: calc.totalPrice,
+        cartonCount: quote?.cartonCount ?? calc.cartonCount,
+        deliverableArea: quote?.deliverableArea ?? calc.deliverableArea,
+        unitPrice: quote?.unitPrice ?? product.finalCustomerPricePerSqm,
+        totalPrice: quote?.totalPrice ?? calc.totalPrice,
       };
     });
-  }, [products, quantities]);
+  }, [products, quantities, draft.quotes]);
 
   const invoiceTotals = useMemo(() => {
-    let totalCartons = 0;
-    let totalDeliverableArea = 0;
-    let subtotal = 0;
-    let discountAmount = 0;
-
-    invoiceItems.map((item) => {
-      totalCartons += item.cartonCount;
-      totalDeliverableArea += item.deliverableArea;
-
-      const originalRate =
-        item.product.originalPricePerSqm ||
-        item.product.finalCustomerPricePerSqm;
-      const itemSubtotal = originalRate * item.deliverableArea;
-      subtotal += itemSubtotal;
-      if (itemSubtotal > item.totalPrice) {
-        discountAmount += itemSubtotal - item.totalPrice;
-      }
-    });
-
-    const finalPayable = Math.max(0, subtotal - discountAmount);
-
     return {
-      totalCartons,
-      totalDeliverableArea: Math.round(totalDeliverableArea * 100) / 100,
-      subtotal,
-      discountAmount,
-      finalPayable,
+      totalCartons: invoiceItems.filter(item => item.product.productType !== 'other').reduce((total, item) => total + item.cartonCount, 0),
+      finalPayable: invoiceItems.reduce((total, item) => total + item.totalPrice, 0),
     };
   }, [invoiceItems]);
 
   const handleFinalConfirm = async () => {
-    const orderItems: OrderItem[] = invoiceItems.map((item) => ({
-      productId: item.product.id,
-      productName: item.product.name,
-      productSlug: item.product.slug,
-      productSku: item.product.sku,
-      productImage: item.product.images[0],
-      dimension: item.product.dimension,
-      requestedArea: item.requestedArea,
-      cartonCount: item.cartonCount,
-      deliverableArea: item.deliverableArea,
-      unitPrice: item.unitPrice,
-      totalPrice: item.totalPrice,
-    }));
-
+    if (invoiceItems.length !== draft.selectedIds.length || invoiceItems.some(item => draft.quantities[item.product.id] !== item.requestedArea)) throw new Error('سبد تغییر کرده است؛ پیش‌فاکتور را دوباره دریافت کنید.');
+    if (!draft.warehouse || draft.busy || draft.quotes.length !== draft.selectedIds.length) throw new Error('ابتدا انبار و موجودی سبد را بررسی کنید.');
     let createdId = "";
-    let createdOrderNumber = "";
+
 
     const token =
       typeof window !== "undefined"
@@ -236,8 +207,10 @@ export function PreInvoiceModal({
     }
 
     try {
-      idempotencyKeyRef.current ??= crypto.randomUUID();
-      const res: any = await submitOrderMutation.mutateAsync({
+      idempotencyKeyRef.current = selectionStore.submissionKey("ثبت سفارش از لیست محصولات");
+      const submittedDraft = selectionStore.submissionSnapshot();
+      const res = await submitOrderMutation.mutateAsync({
+        warehouseId: draft.warehouse.id,
         items: invoiceItems.map((item) => ({
           productId: isNaN(Number(item.product.id))
             ? item.product.id
@@ -248,38 +221,24 @@ export function PreInvoiceModal({
         idempotencyKey: idempotencyKeyRef.current,
       });
       if (res?.id) {
+        if (!selectionStore.finishSubmission(submittedDraft)) return;
+        orderStore.acceptOrder(res);
         idempotencyKeyRef.current = null;
         createdId = String(res.id);
-        createdOrderNumber = res.orderNumber;
+
       }
-    } catch (err: any) {
-      console.error("Backend order submission failed:", err);
-      toast.error(
-        "خطا در ثبت سفارش",
-        err?.message || "مشکلی در ثبت سفارش رخ داد.",
-      );
-      return;
+    } catch (err) {
+      toast.error('خطا در ثبت سفارش', customerErrorMessage(err, 'ثبت سفارش ممکن نشد؛ دوباره تلاش کنید.'));
+      throw err;
     }
 
     if (!createdId) {
       return;
     }
 
-    const newOrder = orderStore.createOrder({
-      id: createdId || undefined,
-      orderNumber: createdOrderNumber || undefined,
-      items: orderItems,
-      subtotal: invoiceTotals.subtotal,
-      discountAmount: invoiceTotals.discountAmount,
-      taxAmount: Math.round(invoiceTotals.finalPayable * 0.1),
-      finalTotal: Math.round(invoiceTotals.finalPayable * 1.1),
-      deliveryAddress: "تهران، انبار مرکزی بازرگانی دهقان",
-      notes: "ثبت سفارش محصولات آنلاین",
-    });
-
     // Slight delay to allow the user to see the complete 360 spin & checkmark animation
     setTimeout(() => {
-      onSuccess(newOrder.id);
+      onSuccess(createdId);
     }, 450);
   };
 
@@ -353,6 +312,7 @@ export function PreInvoiceModal({
 
           {/* Scrollable Body: Items List */}
           <div className="flex-1 w-full max-w-xl mx-auto overflow-y-auto overscroll-contain px-4 py-3 space-y-2.5 scrollbar-none">
+            <WarehouseSummary />
             {invoiceItems.map((item) => (
               <PreInvoiceItemCard key={item.product.id} item={item} />
             ))}
@@ -361,20 +321,20 @@ export function PreInvoiceModal({
           {/* Financial Summary & Action Footer */}
           <div className="w-full bg-background border-t border-border/30 shrink-0 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]">
             <div className="w-full max-w-xl mx-auto px-4 py-2.5 space-y-1.5 text-xs">
-              <div className="flex items-center justify-between">
+              {invoiceTotals.totalCartons > 0 && <div className="flex items-center justify-between">
                 <span className="text-xs font-medium text-muted">
                   تعداد کارتن‌ها:
                 </span>
                 <span className="text-xs font-bold text-foreground">
                   {toPersianDigits(invoiceTotals.totalCartons)} عدد
                 </span>
-              </div>
+              </div>}
               <div className="flex items-center justify-between">
                 <span className="text-xs font-medium text-muted">
-                  متراژ کلی:
+                  مقدار تحویلی:
                 </span>
                 <span className="text-xs font-bold text-foreground">
-                  {toPersianDigits(invoiceTotals.totalDeliverableArea)} مترمربع
+                  {summarizeQuantities(invoiceItems.map(item => ({ unit: item.product.productType === 'other' ? (item.product.unit ?? 'piece') : 'm2', quantity: item.deliverableArea })))}
                 </span>
               </div>
               <div className="flex items-center justify-between pt-1">
@@ -411,7 +371,7 @@ export function PreInvoiceModal({
                   successColor="#059669"
                   textColor="var(--color-foreground, #0e0c2d)"
                   disabled={
-                    invoiceItems.length === 0 || submitOrderMutation.isPending
+                    invoiceItems.length === 0 || submitOrderMutation.isPending || draft.busy || !draft.warehouse || draft.quotes.length !== draft.selectedIds.length
                   }
                   onConfirm={handleFinalConfirm}
                   className="w-full h-12! border-none! shadow-none! [box-shadow:none]!"

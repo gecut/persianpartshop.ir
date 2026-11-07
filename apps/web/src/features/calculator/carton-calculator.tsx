@@ -37,19 +37,18 @@ export function CartonCalculator({ product, onAddedToCart }: CartonCalculatorPro
   }
 
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (isOutOfStock || isExceedingStock || calc.cartonCount <= 0) return
 
     setIsAdding(true)
-    setTimeout(() => {
-      addItem(product, requestedArea)
-      setIsAdding(false)
+    try {
+      if (!await addItem(product, requestedArea)) return
       toast.success(
         'به سبد خرید اضافه شد',
         `${toPersianDigits(calc.cartonCount)} کارتن (${toPersianDigits(calc.deliverableArea)}) از «${product.name}» به سبد خرید افزوده شد.`
       )
       if (onAddedToCart) onAddedToCart()
-    }, 400)
+    } finally { setIsAdding(false) }
   }
 
   return (

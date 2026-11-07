@@ -9,6 +9,7 @@ export interface ModalProps {
   children: React.ReactNode
   isBottomSheetOnMobile?: boolean
   className?: string
+  backdropClassName?: string
 }
 
 export function Modal({
@@ -18,6 +19,7 @@ export function Modal({
   children,
   isBottomSheetOnMobile = true,
   className = '',
+  backdropClassName = 'z-50',
 }: ModalProps) {
   useEffect(() => {
     if (isOpen) {
@@ -34,7 +36,7 @@ export function Modal({
     <HeroUIModal.Root isOpen={isOpen} onOpenChange={(open) => !open && onClose()}>
       <HeroUIModal.Backdrop
         isDismissable
-        className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 m-0! mb-0! sm:p-4 animate-backdrop-enter"
+        className={`${backdropClassName} fixed inset-0 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 m-0! mb-0! sm:p-4 animate-backdrop-enter`}
       >
         <HeroUIModal.Container className="pointer-events-none w-full max-w-xl h-auto p-0 m-0! mb-0! flex flex-col items-center justify-end sm:justify-center">
           <HeroUIModal.Dialog

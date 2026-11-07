@@ -1,3 +1,6 @@
+import { customerErrorMessage } from '../lib/utils/error'
+import { selectionStore } from '../features/products/selection-store'
+import { WarehouseSummary } from '../features/cart/warehouse-selection'
 import { useRef, useState } from 'react'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -30,8 +33,9 @@ function CartPage() {
   const navigate = useNavigate()
   const {
     items,
+    warehouse,
     itemCount,
-    totalArea,
+    quantitySummary,
     subtotal,
     discountAmount,
     finalTotal,
@@ -67,14 +71,15 @@ function CartPage() {
       return
     }
 
-    if (items.length === 0 || hasBlockingIssues) {
+    if (items.length === 0 || hasBlockingIssues || !warehouse) {
       toast.error('خطای ثبت سفارش', 'امکان ثبت سفارش با اقلام ناموجود یا سبد خالی وجود ندارد.')
       return
     }
 
     try {
-      idempotencyKeyRef.current ??= crypto.randomUUID()
+      idempotencyKeyRef.current = selectionStore.submissionKey(orderNotes || '')
       const orderPayload = {
+        warehouseId: warehouse!.id,
         items: items.map((i) => ({
           productId: i.productId,
           requestedArea: i.requestedArea || i.deliverableArea || 1,
@@ -83,23 +88,25 @@ function CartPage() {
         idempotencyKey: idempotencyKeyRef.current,
       }
 
+      const submittedDraft = selectionStore.submissionSnapshot()
       const newOrder = await submitOrderMutation.mutateAsync(orderPayload)
       idempotencyKeyRef.current = null
 
-      clearCart()
+      if (!selectionStore.finishSubmission(submittedDraft)) return
       setIsCheckoutModalOpen(false)
       toast.success(
         'سفارش با موفقیت در سامانه ثبت گردید',
         `شماره پیگیری: ${newOrder.orderNumber}`
       )
-      navigate({ to: '/orders/$id', params: { id: newOrder.id } })
-    } catch (err: any) {
-      toast.error('خطا در ثبت سفارش', err.message || 'مشکلی در ارتباط با سرور رخ داد.')
+      navigate({ to: '/orders/$id', params: { id: String(newOrder.id) } })
+    } catch (err) {
+      toast.error('خطا در ثبت سفارش', customerErrorMessage(err, 'مشکلی در ارتباط با سرور رخ داد؛ دوباره تلاش کنید.'))
     }
   }
 
   return (
     <div className="w-full px-3 py-3 space-y-3">
+      <WarehouseSummary />
       {/* Header */}
       <div className="flex items-center justify-between gap-2">
         <div>
@@ -169,8 +176,8 @@ function CartPage() {
               </div>
 
               <div className="flex justify-between">
-                <span>مجموع متراژ:</span>
-                <span className="font-bold text-foreground">{toPersianDigits(totalArea)} م²</span>
+                <span>مقدار تحویلی:</span>
+                <span className="font-bold text-foreground">{quantitySummary}</span>
               </div>
 
               <div className="pt-1.5 flex justify-between">
@@ -182,7 +189,7 @@ function CartPage() {
               </div>
 
               <div className="flex justify-between text-success font-bold">
-                <span>تخفیف (۵٪):</span>
+                <span>تخفیف:</span>
                 <span className="inline-flex items-center gap-1">
                   <span>- {formatToman(discountAmount)}</span>
                   <TomanIcon className="size-3.5" />

@@ -1,3 +1,5 @@
+> به‌روزرسانی انبار: قواعد موجودی، سبد، سفارش و CSV این سند با [تفکیک انبار و سبد تک‌انباره](./07-warehouses.md) تکمیل و در موارد تعارض جایگزین می‌شوند.
+
 # 02 — Business Rules & Computational Invariants
 
 This document serves as the authoritative specification for all financial, packaging, inventory, and lifecycle logic in PersianPart 2.0.

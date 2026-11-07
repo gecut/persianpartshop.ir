@@ -1,3 +1,4 @@
+import { getSalesFactor } from '@persianpart/cms/inventory'
 import { sdk } from '../payload'
 import type { Order, Product } from '@persianpart/cms/types'
 import type { UserContext } from '../rpc/context'
@@ -189,8 +190,7 @@ export async function calculateOrderItemPricing(
     }
   }
 
-  const rawSqm = Number(product.sqmPerCarton)
-  const sqmPerCarton = !isNaN(rawSqm) && rawSqm > 0 ? rawSqm : 1
+  const sqmPerCarton = getSalesFactor(product)
 
   const cartonCount = Math.ceil(requestedArea / sqmPerCarton)
   const deliverableArea = Math.round(cartonCount * sqmPerCarton * 100) / 100

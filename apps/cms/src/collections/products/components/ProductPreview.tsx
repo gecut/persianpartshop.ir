@@ -2,19 +2,17 @@
 
 import React from 'react'
 import { useFormFields } from '@payloadcms/ui'
-import { calculateBasePricePerCarton, calculateStockCartons } from '../_inventory-math'
+import { calculateBasePricePerCarton } from '../_inventory-math'
 
 export const ProductPreview: React.FC = () => {
   const priceField = useFormFields(([fields]) => fields.basePricePerSqm)
   const sqmField = useFormFields(([fields]) => fields.sqmPerCarton)
-  const invField = useFormFields(([fields]) => fields.inventorySqm)
   const typeField = useFormFields(([fields]) => fields.productType)
   const unitField = useFormFields(([fields]) => fields.unit)
   const weightField = useFormFields(([fields]) => fields.weight)
 
   const isOther = typeField?.value === 'other'
   const price = typeof priceField?.value === 'number' ? priceField.value : Number(priceField?.value ?? 0)
-  const inv = typeof invField?.value === 'number' ? invField.value : Number(invField?.value ?? 0)
 
   if (isOther) {
     const unitLabels: Record<string, string> = {
@@ -50,10 +48,7 @@ export const ProductPreview: React.FC = () => {
             <span style={{ color: 'var(--theme-elevation-600)' }}>قیمت هر {unitName}: </span>
             <strong style={{ color: 'var(--theme-elevation-900)' }}>{price.toLocaleString('fa-IR')} تومان</strong>
           </div>
-          <div>
-            <span style={{ color: 'var(--theme-elevation-600)' }}>موجودی انبار: </span>
-            <strong style={{ color: 'var(--theme-elevation-900)' }}>{inv.toLocaleString('fa-IR')} {unitName}</strong>
-          </div>
+<div><a href="/admin/collections/warehouse-stock">مدیریت موجودی به تفکیک انبار</a></div>
           {Number.isFinite(weight) && weight > 0 && (
             <div>
               <span style={{ color: 'var(--theme-elevation-600)' }}>وزن / مقدار هر واحد: </span>
@@ -67,7 +62,7 @@ export const ProductPreview: React.FC = () => {
 
   // Tile preview
   const sqm = typeof sqmField?.value === 'number' ? sqmField.value : Number(sqmField?.value ?? 0)
-  const isValidInputs = Number.isFinite(price) && price >= 0 && Number.isFinite(sqm) && sqm > 0 && Number.isFinite(inv) && inv >= 0
+  const isValidInputs = Number.isFinite(price) && price >= 0 && Number.isFinite(sqm) && sqm > 0
 
   if (!isValidInputs) {
     return (
@@ -80,14 +75,12 @@ export const ProductPreview: React.FC = () => {
         fontSize: '13px',
         color: 'var(--theme-elevation-600)',
       }}>
-        ⚠️ مقادیر قیمت، ضریب کارتن یا متراژ هنوز کامل یا معتبر نیستند.
+        ⚠️ مقادیر قیمت یا ضریب کارتن هنوز کامل یا معتبر نیستند.
       </div>
     )
   }
 
-  const cartons = calculateStockCartons(inv, sqm)
   const pricePerCarton = calculateBasePricePerCarton(price, sqm)
-  const remainderSqm = Math.max(0, Math.round((inv - cartons * sqm) * 100) / 100)
 
   return (
     <div style={{
@@ -100,22 +93,17 @@ export const ProductPreview: React.FC = () => {
       lineHeight: '1.6',
     }}>
       <div style={{ fontWeight: 'bold', marginBottom: '8px', color: 'var(--theme-elevation-900)' }}>
-        📊 پیش‌نمایش محاسباتی مقادیر:
+        پیش‌نمایش قیمت بسته‌بندی:
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
-        <div>
-          <span style={{ color: 'var(--theme-elevation-600)' }}>موجودی کارتن کامل: </span>
-          <strong style={{ color: 'var(--theme-elevation-900)' }}>{cartons.toLocaleString('fa-IR')} کارتن</strong>
-        </div>
+
         <div>
           <span style={{ color: 'var(--theme-elevation-600)' }}>قیمت پایه هر کارتن: </span>
           <strong style={{ color: 'var(--theme-elevation-900)' }}>{pricePerCarton.toLocaleString('fa-IR')} تومان</strong>
         </div>
-        <div>
-          <span style={{ color: 'var(--theme-elevation-600)' }}>باقی‌مانده خارج از کارتن: </span>
-          <strong style={{ color: 'var(--theme-elevation-900)' }}>{remainderSqm.toLocaleString('fa-IR')} م²</strong>
-        </div>
+
       </div>
+      <a href="/admin/collections/warehouse-stock">مدیریت موجودی به تفکیک انبار</a>
       <div style={{ marginTop: '6px', fontSize: '11px', color: 'var(--theme-elevation-500)' }}>
         * این پیش‌نمایش فقط در پنل مدیریت است و قیمت نهایی مشتری بر اساس ضریب رده مشتری محاسبه می‌شود.
       </div>

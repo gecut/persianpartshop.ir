@@ -1,3 +1,4 @@
+import { attachWarehouseStock } from './warehouse-stock.helpers'
 import { sdk } from '../payload'
 import { base, adminOnly } from '../rpc/base'
 import type { Product, Category, Brand, Tag, Dimension } from '@persianpart/cms/types'
@@ -5,7 +6,6 @@ import { calculateCartonMetrics } from './catalog.helpers'
 import {
   fetchTaxonomy,
   getUserPermissions,
-  getUserMarkupPercent,
   applyProductPricing,
 } from './router.helpers'
 
@@ -73,7 +73,7 @@ const list = base.catalog.list.handler(async ({ input, context }) => {
     sort: '-createdAt',
   })
 
-  const products = res.docs as Product[]
+  const products = await attachWarehouseStock(res.docs as Product[])
   const items = products.map((prod) =>
     applyProductPricing(prod, userPerms.markupPercent, userPerms.hideExactStock)
   )
@@ -120,13 +120,13 @@ const getById = base.catalog.getById.handler(async ({ input, context, errors }) 
         typeof prod.category === 'object' && prod.category !== null
           ? (prod.category as any).id
           : prod.category
-      if (catId && !userPerms.allowedCategoryIds.includes(Number(catId))) {
+      if (!catId || !userPerms.allowedCategoryIds.includes(Number(catId))) {
         throw errors.NOT_FOUND({ data: { message: 'شما دسترسی مشاهده این دسته‌بندی را ندارید.' } })
       }
     }
   }
 
-  return applyProductPricing(prod, userPerms.markupPercent, userPerms.hideExactStock)
+  return applyProductPricing((await attachWarehouseStock([prod]))[0]!, userPerms.markupPercent, userPerms.hideExactStock)
 })
 
 const categories = base.catalog.categories.handler(async ({ input, context }) => {
@@ -212,8 +212,8 @@ const deleteCategory = adminOnly.catalog.deleteCategory.handler(async ({ input, 
 })
 
 const calculateCartons = base.catalog.calculateCartons.handler(async ({ input, context }) => {
-  const markupPercent = await getUserMarkupPercent(context?.user?.id)
-  return calculateCartonMetrics(input, markupPercent)
+  const permissions = await getUserPermissions(context?.user?.id)
+  return calculateCartonMetrics(input, permissions.markupPercent, permissions.allowedCategoryIds)
 })
 
 export const catalog = base.catalog.router({

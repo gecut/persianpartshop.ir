@@ -19,12 +19,13 @@ import { Plans } from './collections/plans'
 import { Dimensions } from './collections/dimensions'
 import { CustomerTypes } from './collections/customer-types'
 import { Otps } from './collections/otps'
+import { Warehouses } from './collections/warehouses/warehouses.collection'
+import { WarehouseStock } from './collections/warehouse-stock/warehouse-stock.collection'
 import { AuditLogs } from './collections/audit-logs'
 
 import { fa } from '@payloadcms/translations/languages/fa'
 import { en } from '@payloadcms/translations/languages/en'
 import { isImportExportAuthorized } from './collections/products/_product-access'
-import { roundToTwoDecimals } from './collections/products/_inventory-math'
 import { migrations } from './migrations'
 
 const filename = fileURLToPath(import.meta.url)
@@ -167,6 +168,8 @@ export default buildConfig({
     Plans,
     Users,
     Otps,
+    Warehouses,
+    WarehouseStock,
     // رسانه و مدیریت
     Media,
     Admins,
@@ -186,7 +189,6 @@ export default buildConfig({
                 return data.map((row: any) => ({
                   sku: row.sku,
                   basePricePerSqm: row.basePricePerSqm ?? 0,
-                  inventorySqm: row.inventorySqm ?? 0,
                 }))
               },
             },
@@ -230,23 +232,12 @@ export default buildConfig({
                     throw new Error(`ردیف ${rowNum}: قیمت پایه باید یک عدد صحیح و نامنفی باشد (${doc.basePricePerSqm}).`)
                   }
 
-                  if (doc.inventorySqm === undefined || doc.inventorySqm === null || doc.inventorySqm === '') {
-                    throw new Error(`ردیف ${rowNum}: ستون inventorySqm الزامی است.`)
-                  }
-                  const inv = Number(doc.inventorySqm)
-                  if (!Number.isFinite(inv) || inv < 0) {
-                    throw new Error(`ردیف ${rowNum}: موجودی متراژ باید یک عدد نامنفی و متناهی باشد (${doc.inventorySqm}).`)
-                  }
-                  const roundedInv = roundToTwoDecimals(inv)
-                  if (Math.abs(inv - roundedInv) > 0.0001) {
-                    throw new Error(`ردیف ${rowNum}: دقت اعشار موجودی متراژ حداکثر ۲ رقم است (${doc.inventorySqm}).`)
-                  }
+                  if (doc.inventorySqm !== undefined) throw new Error('برای موجودی از بخش موجودی انبارها استفاده کنید.')
 
                   // Strictly whitelist operational columns only (no modifying name, media, packaging, slug)
                   return {
                     sku: rawSku,
                     basePricePerSqm: price,
-                    inventorySqm: roundedInv,
                   }
                 })
 

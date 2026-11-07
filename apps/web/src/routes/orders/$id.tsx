@@ -1,3 +1,6 @@
+import { customerErrorMessage } from '../../lib/utils/error'
+import { formatUnit, summarizeQuantities } from '../../lib/utils/unit'
+import { prepareReorderDraft } from '../../features/products/selection-store'
 import { useState, useEffect, useMemo } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -233,6 +236,8 @@ function OrderDetailPage() {
       );
       if (found) return found;
       return {
+        productType: item.productType === 'other' ? 'other' as const : 'tile' as const,
+        unit: item.unit,
         id: item.productId,
         slug: item.productSlug || item.productId,
         name: item.productName,
@@ -275,6 +280,7 @@ function OrderDetailPage() {
 
   const handleCancel = async () => {
     if (!order) return;
+    try {
     await cancelOrder(order.id, cancelReason);
     queryClient.invalidateQueries({ queryKey: queryKeys.products.all });
     queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
@@ -285,11 +291,14 @@ function OrderDetailPage() {
     );
     const fresh = await fetchOrderById(order.id);
     if (fresh) setOrder(fresh);
+    } catch (error) {
+      toast.error('لغو سفارش انجام نشد', customerErrorMessage(error, 'دوباره تلاش کنید.'));
+    }
   };
 
   const handleReorder = async () => {
     if (!order || isCancelled) return;
-    setIsReorderModalOpen(true);
+    if (await prepareReorderDraft(order.items)) setIsReorderModalOpen(true);
   };
 
   if (isLoading) {
@@ -479,18 +488,7 @@ function OrderDetailPage() {
           <span>اقلام سفارش</span>
           <span className="text-xs text-muted font-normal">
             {toPersianDigits(order.items.length)} کالا انتخاب شده
-            {(() => {
-              const totalArea =
-                Math.round(
-                  order.items.reduce(
-                    (s, i) => s + (i.deliverableArea || i.requestedArea || 0),
-                    0,
-                  ) * 100,
-                ) / 100;
-              return totalArea > 0
-                ? ` • متراژ کلی: ${toPersianDigits(totalArea)} متر`
-                : "";
-            })()}
+            {` • مقدار تحویلی: ${summarizeQuantities(order.items.map(item => ({ unit: item.unit ?? 'm2', quantity: item.deliverableArea })))}`}
           </span>
         </h3>
 
@@ -533,13 +531,13 @@ function OrderDetailPage() {
                     <span>{toPersianDigits(item.dimension)}</span>
                   </div>
                   <div className="text-xs text-muted mt-1">
-                    متراژ کلی:{" "}
+                    مقدار تحویلی:{" "}
                     <strong>
                       {toPersianDigits(
                         item.deliverableArea || item.requestedArea,
                       )}
                     </strong>{" "}
-                    متر ({toPersianDigits(item.cartonCount)} کارتن)
+                    {formatUnit(item.unit ?? 'm2')}{item.productType !== 'other' && ` (${toPersianDigits(item.cartonCount)} کارتن)`}
                   </div>
                 </div>
               </div>
@@ -582,6 +580,7 @@ function OrderDetailPage() {
               <span className="text-muted block">فروشگاه:</span>
               <span className="font-bold text-foreground">
                 {order.storeName}
+                {order.warehouseName && <p>انبار تأمین: {order.warehouseName}</p>}
               </span>
             </div>
           </div>

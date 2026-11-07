@@ -1,3 +1,4 @@
+import { formatUnit } from '../../lib/utils/unit'
 import { useMemo } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
@@ -30,11 +31,6 @@ export function OrderInvoiceModal({
   const discountAmount = order.discountAmount || 0;
   const taxAmount = order.taxAmount || 0;
   const finalTotal = order.finalTotal || subtotal;
-
-  // 1% Application Discount calculation (e.g. 200,000,000 -> 2,000,000 discount -> 198,000,000 final)
-  const appDiscountRate = 0.01;
-  const appDiscount = Math.round(finalTotal * appDiscountRate);
-  const finalWithAppDiscount = Math.max(0, finalTotal - appDiscount);
 
   const formattedInvoiceNumber = useMemo(() => {
     if (order.orderNumber && /^ptp\s+/i.test(order.orderNumber)) {
@@ -116,10 +112,11 @@ export function OrderInvoiceModal({
             {/* Printable Invoice Sheet (Squircle rounded-3xl on screen, crisp rectangular on print) */}
             <div
               id="printable-invoice"
-              className="w-full max-w-4xl bg-surface text-foreground rounded-2xl sm:rounded-3xl shadow-2xl p-3 sm:p-8 md:p-10 border-none print:rounded-none print:shadow-none print:px-5 print:py-2 print:m-0 print:w-full print:max-w-none text-right font-sans select-text box-border mx-auto"
+              className="w-full max-w-4xl bg-surface text-foreground rounded-2xl sm:rounded-3xl shadow-2xl p-3 sm:p-8 md:p-10 border-none print:rounded-none print:shadow-none print:px-5 print:py-2 print:m-0 print:w-full print:max-w-none text-start font-sans select-text box-border mx-auto"
               dir="rtl"
             >
               <div className="print:pb-3 print:mb-3">
+                {order.warehouseName && <p>انبار تأمین: {order.warehouseName}</p>}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 print:flex-row print:items-center print:gap-3">
                   <div className="flex items-center gap-2.5 sm:gap-3 print:gap-2.5">
                     <div className="size-10 sm:size-11 rounded-xl sm:rounded-2xl overflow-hidden flex items-center justify-center shrink-0 print:size-8 print:rounded-xl">
@@ -236,7 +233,7 @@ export function OrderInvoiceModal({
                         مشخصات
                       </Table.Column>
                       <Table.Column className="w-[11%] text-center px-1 py-2 text-[11px] sm:text-xs md:text-sm font-bold text-foreground! bg-primary/5! rounded-none print:text-foreground! print:bg-primary/5! border-none print:border-none after:hidden! after:content-none! print:text-[10px]">
-                        تعداد کارتن
+                        بسته / واحد
                       </Table.Column>
                       <Table.Column className="w-[11%] text-center px-1 py-2 text-[11px] sm:text-xs md:text-sm font-bold text-foreground! bg-primary/5! rounded-none print:text-foreground! print:bg-primary/5! border-none print:border-none after:hidden! after:content-none! print:text-[10px]">
                         مقدار جزء
@@ -283,13 +280,13 @@ export function OrderInvoiceModal({
                               </div>
                             </Table.Cell>
                             <Table.Cell className="text-center font-bold text-foreground px-1 py-2.5 sm:py-3 text-xs sm:text-sm print:text-[10px] whitespace-nowrap rounded-none border-x-0 bg-white!">
-                              {toPersianDigits(item.cartonCount || 1)} کارتن
+                              {toPersianDigits(item.cartonCount || 1)} {item.productType === 'other' ? formatUnit(item.unit) : 'کارتن'}
                             </Table.Cell>
                             <Table.Cell className="text-center font-bold text-foreground px-1 py-2.5 sm:py-3 text-xs sm:text-sm print:text-[10px] whitespace-nowrap rounded-none border-x-0 bg-white!">
                               {toPersianDigits(
                                 item.deliverableArea || item.requestedArea || 1,
                               )}{" "}
-                              متر
+                              {item.productType === 'other' ? formatUnit(item.unit) : 'مترمربع'}
                             </Table.Cell>
                             <Table.Cell className="text-left font-bold text-foreground px-1.5 sm:px-2 py-2.5 sm:py-3 text-xs sm:text-sm print:text-[10.5px] whitespace-nowrap leading-none rounded-none border-x-0 bg-white!">
                               {formatToman(item.unitPrice)}
@@ -340,19 +337,11 @@ export function OrderInvoiceModal({
                       <span>{formatToman(finalTotal)} تومان</span>
                     </div>
 
-                    {/* ردیف تخفیف ۱٪ اپلیکیشن */}
-                    <div className="flex items-center justify-between bg-emerald-100/90 dark:bg-emerald-950/60 border border-emerald-400 text-emerald-950 dark:text-emerald-100 p-2 sm:p-2.5 rounded-lg sm:rounded-xl font-bold pt-2 whitespace-nowrap print:rounded-lg print:bg-emerald-200 print:border-emerald-400">
-                      <span>تخفیف ویژه اپلیکیشن (۱٪):</span>
-                      <span className="font-black dir-ltr text-emerald-950 dark:text-emerald-100">
-                        - {formatToman(appDiscount)} تومان
-                      </span>
-                    </div>
-
                     {/* مبلغ نهایی قابل پرداخت با اپلیکیشن */}
                     <div className="flex items-center justify-between bg-foreground text-background p-2.5 sm:p-3 rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm py-2.5 sm:py-3 whitespace-nowrap print:p-2 print:rounded-lg print:text-[9px]">
-                      <span>مبلغ نهایی با اپلیکیشن:</span>
+                      <span>مبلغ نهایی قابل پرداخت:</span>
                       <span className="text-xs sm:text-sm">
-                        {formatToman(finalWithAppDiscount)} تومان
+                        {formatToman(finalTotal)} تومان
                       </span>
                     </div>
                   </div>

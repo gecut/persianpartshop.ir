@@ -77,6 +77,8 @@ export interface Config {
     plans: Plan;
     users: User;
     otps: Otp;
+    warehouses: Warehouse;
+    'warehouse-stock': WarehouseStock;
     media: Media;
     admins: Admin;
     'audit-logs': AuditLog;
@@ -100,6 +102,8 @@ export interface Config {
     plans: PlansSelect<false> | PlansSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     otps: OtpsSelect<false> | OtpsSelect<true>;
+    warehouses: WarehousesSelect<false> | WarehousesSelect<true>;
+    'warehouse-stock': WarehouseStockSelect<false> | WarehouseStockSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     admins: AdminsSelect<false> | AdminsSelect<true>;
     'audit-logs': AuditLogsSelect<false> | AuditLogsSelect<true>;
@@ -449,6 +453,10 @@ export interface CustomerType {
  */
 export interface Order {
   id: number;
+  requestFingerprint?: string | null;
+  warehouse: number | Warehouse;
+  warehouseName?: string | null;
+  warehouseCode?: string | null;
   idempotencyKey?: string | null;
   /**
    * شناسه یکتا و رسمی فاکتور سفارش در سیستم.
@@ -467,6 +475,9 @@ export interface Order {
    */
   cancelledBy?: ('customer' | 'admin') | null;
   items: {
+    productType?: string | null;
+    unit?: string | null;
+    salesFactor?: number | null;
     product: number | Product;
     requestedArea: number;
     cartonCount: number;
@@ -509,6 +520,18 @@ export interface Order {
         id?: string | null;
       }[]
     | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "warehouses".
+ */
+export interface Warehouse {
+  id: number;
+  code: string;
+  name: string;
+  isActive: boolean;
   updatedAt: string;
   createdAt: string;
 }
@@ -684,6 +707,20 @@ export interface Otp {
   expiresAt: string;
   cooldownUntil: string;
   attempts: number;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "warehouse-stock".
+ */
+export interface WarehouseStock {
+  id: number;
+  stockCartons?: number | null;
+  warehouse: number | Warehouse;
+  product: number | Product;
+  inventorySqm: number;
+  revision: number;
   updatedAt: string;
   createdAt: string;
 }
@@ -1001,6 +1038,14 @@ export interface PayloadLockedDocument {
         value: number | Otp;
       } | null)
     | ({
+        relationTo: 'warehouses';
+        value: number | Warehouse;
+      } | null)
+    | ({
+        relationTo: 'warehouse-stock';
+        value: number | WarehouseStock;
+      } | null)
+    | ({
         relationTo: 'media';
         value: number | Media;
       } | null)
@@ -1160,6 +1205,10 @@ export interface CustomerTypesSelect<T extends boolean = true> {
  * via the `definition` "orders_select".
  */
 export interface OrdersSelect<T extends boolean = true> {
+  requestFingerprint?: T;
+  warehouse?: T;
+  warehouseName?: T;
+  warehouseCode?: T;
   idempotencyKey?: T;
   orderNumber?: T;
   user?: T;
@@ -1168,6 +1217,9 @@ export interface OrdersSelect<T extends boolean = true> {
   items?:
     | T
     | {
+        productType?: T;
+        unit?: T;
+        salesFactor?: T;
         product?: T;
         requestedArea?: T;
         cartonCount?: T;
@@ -1263,6 +1315,30 @@ export interface OtpsSelect<T extends boolean = true> {
   expiresAt?: T;
   cooldownUntil?: T;
   attempts?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "warehouses_select".
+ */
+export interface WarehousesSelect<T extends boolean = true> {
+  code?: T;
+  name?: T;
+  isActive?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "warehouse-stock_select".
+ */
+export interface WarehouseStockSelect<T extends boolean = true> {
+  stockCartons?: T;
+  warehouse?: T;
+  product?: T;
+  inventorySqm?: T;
+  revision?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1489,6 +1565,8 @@ export interface TaskCreateCollectionExport {
       | 'plans'
       | 'users'
       | 'otps'
+      | 'warehouses'
+      | 'warehouse-stock'
       | 'media'
       | 'admins'
       | 'audit-logs'

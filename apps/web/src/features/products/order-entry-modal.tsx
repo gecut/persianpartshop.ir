@@ -52,20 +52,19 @@ export function OrderEntryModal({
     }
   }
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (isOutOfStock || calc.isExceedingStock || calc.cartonCount <= 0) return
 
     setIsAdding(true)
-    setTimeout(() => {
-      addItem(product, requestedArea)
-      setIsAdding(false)
+    try {
+      if (!await addItem(product, requestedArea)) return
       toast.success(
         'به سبد خرید افزوده شد',
         `${toPersianDigits(calc.cartonCount)} کارتن (${toPersianDigits(calc.deliverableArea)}) از «${product.name}» افزوده شد.`
       )
       onClose()
       if (onSuccess) onSuccess()
-    }, 300)
+    } finally { setIsAdding(false) }
   }
 
   return (

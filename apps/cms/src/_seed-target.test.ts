@@ -9,6 +9,12 @@ test('seed accepts an explicitly selected local disposable target', () => {
   assert.doesNotThrow(() => validateSeedTarget(valid))
 })
 
+test('seed validates DATABASE_URL when both connection variables are set', () => {
+  const actual = uri.replace('cms_seed_fixture', 'cms_seed_actual')
+  assert.throws(() => validateSeedTarget({ ...valid, DATABASE_URL: actual }))
+  assert.doesNotThrow(() => validateSeedTarget({ ...valid, DATABASE_URL: actual, CMS_SEED_DATABASE_URI: actual }))
+})
+
 for (const [name, environment] of Object.entries({
   production: { ...valid, NODE_ENV: 'production' },
   unspecified: {},

@@ -14,13 +14,14 @@ import {
 
 export const CartItemInputSchema = z.object({
   productId: z.union([EntityIdSchema, z.number().int().positive()]),
-  requestedSqm: z.number().positive('متراژ باید بزرگتر از صفر باشد').finite().optional(),
-  requestedArea: z.number().positive('متراژ باید بزرگتر از صفر باشد').finite().optional(),
-})
+  requestedSqm: z.number().positive('متراژ باید بزرگتر از صفر باشد').finite().max(1_000_000).optional(),
+  requestedArea: z.number().positive('متراژ باید بزرگتر از صفر باشد').finite().max(1_000_000).optional(),
+}).refine(item => item.requestedArea !== undefined || item.requestedSqm !== undefined, 'متراژ درخواستی الزامی است')
 
 export type CartItemInput = z.infer<typeof CartItemInputSchema>
 
 export const ValidateCartInputSchema = z.object({
+  warehouseId: z.number().int().positive(),
   items: z.array(CartItemInputSchema).min(1, 'سبد خرید نمی‌تواند خالی باشد'),
 })
 
@@ -147,8 +148,31 @@ export const OrderSchema = z.object({
 
 export type Order = z.infer<typeof OrderSchema>
 
+const PayloadEntityIdSchema = z.union([z.number().int().positive(), EntityIdSchema])
+const CustomerProductSnapshotSchema = z.object({
+  id: PayloadEntityIdSchema, name: z.string(), sku: z.string(), slug: z.string(),
+  width: z.number().nullable().optional(), height: z.number().nullable().optional(),
+  productType: z.enum(['tile', 'other']).nullable().optional(), unit: z.string().nullable().optional(),
+  grade: z.string().nullable().optional(), sqmPerCarton: z.number().nullable().optional(),
+  weight: z.number().nullable().optional(),
+  cover: z.union([PayloadEntityIdSchema, z.object({ url: z.string().nullable().optional(), filename: z.string().nullable().optional() })]).nullable().optional(),
+})
+export const CustomerOrderDocumentSchema = z.object({
+  id: PayloadEntityIdSchema, orderNumber: z.string(), status: OrderStatusSchema,
+  warehouse: z.union([PayloadEntityIdSchema, z.object({ id: PayloadEntityIdSchema, code: z.string(), name: z.string() })]),
+  warehouseName: z.string().nullable().optional(), warehouseCode: z.string().nullable().optional(),
+  user: z.union([PayloadEntityIdSchema, z.object({ id: PayloadEntityIdSchema, fullName: z.string(), companyName: z.string().nullable().optional(), phone: z.string(), address: z.string().nullable().optional() })]),
+  items: z.array(z.object({ product: z.union([PayloadEntityIdSchema, CustomerProductSnapshotSchema]), productName: z.string().nullable().optional(), productSku: z.string().nullable().optional(), productType: z.string().nullable().optional(), unit: z.string().nullable().optional(), salesFactor: z.number().positive().nullable().optional(), requestedArea: z.number().positive(), cartonCount: z.number().int().positive(), deliverableArea: z.number().positive(), unitPrice: z.number().nonnegative(), totalPrice: z.number().nonnegative() })),
+  subtotal: z.number().nonnegative(), finalTotal: z.number().nonnegative(),
+  discountAmount: z.number().nonnegative().nullable().optional(), taxAmount: z.number().nonnegative().nullable().optional(),
+  createdAt: z.string(), updatedAt: z.string(), notes: z.string().nullable().optional(), deliveryAddress: z.string().nullable().optional(),
+  cancelledBy: z.enum(['customer', 'admin']).nullable().optional(),
+  timeline: z.array(z.object({ timestamp: z.string().nullable().optional(), status: z.string().nullable().optional() })).nullable().optional(),
+})
+
 export const SubmitOrderInputSchema = z.object({
-  items: z.array(CartItemInputSchema).min(1, 'سبد خرید جهت ثبت سفارش الزامی است'),
+  warehouseId: z.number().int().positive(),
+  items: z.array(CartItemInputSchema).min(1, 'سبد خرید جهت ثبت سفارش الزامی است').max(100),
   notes: z.string().trim().max(1000).optional(),
   deliveryAddress: z.string().trim().max(1000).optional(),
   idempotencyKey: z.string().trim().min(1).max(128).optional(),
@@ -267,7 +291,7 @@ export const orderContract = {
         id: z.union([EntityIdSchema, z.number().int().positive()]).optional(),
       })
     )
-    .output(OrderSchema.or(z.any()))
+    .output(CustomerOrderDocumentSchema)
     .errors({
       UNAUTHORIZED: {},
       NOT_FOUND: {},
@@ -277,7 +301,7 @@ export const orderContract = {
   getById: oc
     .meta(openapi({ method: 'GET', path: '/orders/{id}', summary: 'مشاهده جزییات سفارش و تایم‌لاین توسط مشتری' }))
     .input(z.object({ id: z.union([EntityIdSchema, z.number().int().positive()]) }))
-    .output(OrderSchema.or(z.any()))
+    .output(CustomerOrderDocumentSchema)
     .errors({
       UNAUTHORIZED: {},
       NOT_FOUND: {},
@@ -285,6 +309,7 @@ export const orderContract = {
     }),
 
   createCustomOrder: oc
+    .errors({ BAD_REQUEST: {} })
     .meta(openapi({ method: 'POST', path: '/orders/custom', summary: 'ثبت سفارش اختصاصی' }))
     .input(
       z.object({
@@ -299,26 +324,24 @@ export const orderContract = {
         id: z.union([EntityIdSchema, z.number()]),
         message: z.string(),
       })
-    )
-    .errors({
-      FORBIDDEN: { data: StandardErrorDataSchema },
-    }),
+    ),
 
   submit: oc
     .meta(openapi({ method: 'POST', path: '/orders', summary: 'ثبت سفارش قطعی تراکنشی توسط مشتری' }))
     .input(SubmitOrderInputSchema)
-    .output(OrderSchema.or(z.any()))
+    .output(CustomerOrderDocumentSchema)
     .errors({
-      UNAUTHORIZED: { data: StandardErrorDataSchema },
-      FORBIDDEN: { data: StandardErrorDataSchema },
-      INSUFFICIENT_STOCK: { data: StandardErrorDataSchema },
-      BAD_REQUEST: { data: StandardErrorDataSchema },
+      UNAUTHORIZED: { data: StandardErrorDataSchema.optional() },
+      FORBIDDEN: { data: StandardErrorDataSchema.optional() },
+      INSUFFICIENT_STOCK: { data: StandardErrorDataSchema.optional() },
+      CONFLICT: {},
+      BAD_REQUEST: { data: StandardErrorDataSchema.optional() },
     }),
 
   cancel: oc
     .meta(openapi({ method: 'POST', path: '/orders/{id}/cancel', summary: 'لغو مستقیم سفارش توسط مشتری قبل از انقضای مهلت' }))
     .input(CustomerCancelOrderInputSchema)
-    .output(OrderSchema.or(z.any()))
+    .output(CustomerOrderDocumentSchema)
     .errors({
       UNAUTHORIZED: {},
       NOT_FOUND: {},

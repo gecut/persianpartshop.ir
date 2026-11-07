@@ -1,3 +1,5 @@
+import { summarizeQuantities } from '../../lib/utils/unit'
+import { prepareReorderDraft } from '../../features/products/selection-store'
 import React, {
   useState,
   useMemo,
@@ -117,14 +119,7 @@ const OrderCard = React.memo(function OrderCard({
 
   const isCancelled = isCancelledStatus(order.status);
 
-  const totalCartons = order.items.reduce((s, i) => s + i.cartonCount, 0);
-  const totalArea =
-    Math.round(
-      order.items.reduce(
-        (s, i) => s + (i.deliverableArea || i.requestedArea || 0),
-        0,
-      ) * 100,
-    ) / 100;
+  const quantitySummary = summarizeQuantities(order.items.map(item => ({ unit: item.unit ?? 'm2', quantity: item.deliverableArea })));
 
   return (
     <div className="p-4 space-y-3 rounded-2xl bg-muted/3 select-none">
@@ -174,17 +169,8 @@ const OrderCard = React.memo(function OrderCard({
         {/* Scrollable Products Images */}
         <div className="w-full overflow-x-auto py-1 flex items-center gap-2 scrollbar-none overscroll-x-contain touch-pan-x">
           <span className="w-full flex items-center gap-2 font-bold rounded-lg py-3 px-4 bg-foreground text-background text-xs">
-            {toPersianDigits(order.items.length)} محصول (
-            {toPersianDigits(totalCartons)} کارتن)
-            {totalArea > 0 && (
-              <span className="text-background/70">
-                متراژ کلی:{" "}
-                <strong className="text-background/80">
-                  {toPersianDigits(totalArea)}
-                </strong>{" "}
-                متر
-              </span>
-            )}
+            {toPersianDigits(order.items.length)} محصول
+            <span className="text-background/70">{quantitySummary}</span>
           </span>
         </div>
 
@@ -359,9 +345,9 @@ function OrdersListPage() {
   }, [reorderOrder?.items, allProducts]);
 
   const handleReorder = useCallback(
-    (orderId: string) => {
+    async (orderId: string) => {
       const target = orders.find((o) => o.id === orderId);
-      if (target) {
+      if (target && await prepareReorderDraft(target.items)) {
         setReorderOrder(target);
       }
     },

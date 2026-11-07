@@ -1,3 +1,5 @@
+> به‌روزرسانی انبار: قواعد موجودی، سبد، سفارش و CSV این سند با [تفکیک انبار و سبد تک‌انباره](./07-warehouses.md) تکمیل و در موارد تعارض جایگزین می‌شوند.
+
 # 06 — Administration, Catalog Operations & Runbook
 
 This document defines standard operating procedures (SOPs) for internal operations staff (`Support`) and supervisors (`Admin`) managing PersianPart 2.0.

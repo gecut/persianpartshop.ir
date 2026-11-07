@@ -40,16 +40,7 @@ function ProductNewConfigurationPage() {
   useEffect(() => {
     if (allProducts && allProducts.length > 0) {
       selectionStore.reconcileWithProducts(allProducts.map((p) => p.id));
-      allProducts.forEach((p) => {
-        const isOutOfStock =
-          p.stockStatus === "out_of_stock" ||
-          p.inStock === false ||
-          (Number.isFinite(Number(p.inventorySqm)) &&
-            Number(p.inventorySqm) <= 0);
-        if (isOutOfStock && selectedIds.includes(String(p.id))) {
-          selectionStore.unselectProduct(p.id);
-        }
-      });
+
     }
   }, [allProducts, selectedIds]);
 
@@ -94,7 +85,6 @@ function ProductNewConfigurationPage() {
   };
 
   const handleOrderCreated = (orderId: string) => {
-    selectionStore.clearSelection();
     toast.success("ثبت سفارش", "سفارش با موفقیت ثبت شد.");
     navigate({
       to: "/orders/$id",

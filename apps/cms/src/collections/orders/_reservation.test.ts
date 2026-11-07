@@ -50,35 +50,34 @@ test('validates all reservation inputs before the first write', async () => {
   for (const invalid of [0, -1, NaN, Infinity, '', null, true, {}, 'NaN']) {
     for (const field of ['product', 'cartonCount', 'deliverableArea']) {
       const { apply, queries } = fixture()
-      await assert.rejects(apply({ operation: 'create', data: { items: [item, { ...item, [field]: invalid }] } }))
+      await assert.rejects(apply({ operation: 'create', data: { warehouse: 1, items: [item, { ...item, [field]: invalid }] } }))
       assert.equal(queries.length, 0)
     }
   }
   for (const field of ['product', 'cartonCount']) {
     const { apply } = fixture()
-    await assert.rejects(apply({ operation: 'create', data: { items: [{ ...item, [field]: 1.5 }] } }))
+    await assert.rejects(apply({ operation: 'create', data: { warehouse: 1, items: [{ ...item, [field]: 1.5 }] } }))
   }
 })
 
 test('reserves sorted populated and scalar product IDs', async () => {
-  const { apply, queries } = fixture([[{ id: 1 }], [{ id: 2 }]])
-  const data = { items: [{ ...item, product: { id: 2 } }, item] }
+  const { apply, queries } = fixture([[{ id: 1 }], [{ id: 1 }], [{ id: 2 }]])
+  const data = { warehouse: 1, items: [{ ...item, product: { id: 2 } }, item] }
   assert.equal(await apply({ operation: 'create', data }), data)
-  assert.equal(queries.length, 2)
+  assert.equal(queries.length, 3)
 })
 
-test('failed reservation lookup receives the identical request', async () => {
-  const { apply, req, lookups } = fixture([[]])
-  await assert.rejects(apply({ operation: 'create', data: { items: [item] } }), /موجودی ناکافی/)
-  assert.equal(lookups.length, 1)
-  assert.equal((lookups[0] as { req: PayloadRequest }).req, req)
+test('missing active warehouse fails before inventory writes', async () => {
+  const { apply, queries } = fixture([[]])
+  await assert.rejects(apply({ operation: 'create', data: { warehouse: 1, items: [item] } }), /فعال نیست/)
+  assert.equal(queries.length, 1)
 })
 
 test('all updates reject stale locked order status before product writes', async () => {
   for (const status of ['cancelled_by_admin', 'approve', 'completed']) {
     for (const data of [{ status: 'cancelled_by_customer' }, { status: 'approve' }, { notes: 'note' }]) {
       const { apply, queries } = fixture([[{ status }]])
-      await assert.rejects(apply({ operation: 'update', data, originalDoc: { id: 1, status: 'pending', items: [item] } }), /status changed/)
+      await assert.rejects(apply({ operation: 'update', data, originalDoc: { warehouse: 1, id: 1, status: 'pending', items: [item] } }), /status changed/)
       assert.equal(queries.length, 1)
     }
   }
@@ -87,18 +86,18 @@ test('all updates reject stale locked order status before product writes', async
 test('missing order and restore targets fail closed', async () => {
   for (const responses of [[[]], [[{ status: 'pending' }], []]]) {
     const { apply } = fixture(responses)
-    await assert.rejects(apply({ operation: 'update', data: { status: 'cancel' }, originalDoc: { id: 1, status: 'pending', items: [item] } }))
+    await assert.rejects(apply({ operation: 'update', data: { status: 'cancel' }, originalDoc: { warehouse: 1, id: 1, status: 'pending', items: [item] } }))
   }
 })
 
 test('cancellation restores once and preserves normalization', async () => {
   const { apply, queries } = fixture([[{ status: 'pending' }], [{ id: 1 }]])
   const data = { status: 'cancel', cancelledBy: 'customer' }
-  await apply({ operation: 'update', data, originalDoc: { id: 1, status: 'pending', items: [item] } })
+  await apply({ operation: 'update', data, originalDoc: { warehouse: 1, id: 1, status: 'pending', items: [item] } })
   assert.equal(data.status, 'cancelled_by_customer')
   assert.equal(queries.length, 2)
   const repeated = fixture([[{ status: 'cancelled_by_customer' }]])
-  await repeated.apply({ operation: 'update', data: { status: 'cancelled_by_customer' }, originalDoc: { id: 1, status: 'cancelled_by_customer', items: [item] } })
+  await repeated.apply({ operation: 'update', data: { status: 'cancelled_by_customer' }, originalDoc: { warehouse: 1, id: 1, status: 'cancelled_by_customer', items: [item] } })
   assert.equal(repeated.queries.length, 1)
 })
 
@@ -107,7 +106,7 @@ test('invalid restore quantities fail after order lock but before stock writes',
     const { apply, queries } = fixture([[{ status: 'pending' }]])
     await assert.rejects(apply({
       operation: 'update', data: { status: 'cancel' },
-      originalDoc: { id: 1, status: 'pending', items: [item, { ...item, [field]: Infinity }] },
+      originalDoc: { warehouse: 1, id: 1, status: 'pending', items: [item, { ...item, [field]: Infinity }] },
     }))
     assert.equal(queries.length, 1)
   }
@@ -115,14 +114,14 @@ test('invalid restore quantities fail after order lock but before stock writes',
 
 test('cancelling an approved order restores reserved area', async () => {
   const { apply, queries } = fixture([[{ status: 'approve' }], [{ id: 1 }]])
-  await apply({ operation: 'update', data: { status: 'cancelled_by_admin' }, originalDoc: { id: 1, status: 'approve', items: [item] } })
+  await apply({ operation: 'update', data: { status: 'cancelled_by_admin' }, originalDoc: { warehouse: 1, id: 1, status: 'approve', items: [item] } })
   assert.equal(queries.length, 2)
 })
 
 test('cancelling a closed order is rejected before any stock write', async () => {
   const { apply, queries } = fixture([[{ status: 'completed' }]])
   await assert.rejects(
-    apply({ operation: 'update', data: { status: 'cancelled_by_admin' }, originalDoc: { id: 1, status: 'completed', items: [item] } }),
+    apply({ operation: 'update', data: { status: 'cancelled_by_admin' }, originalDoc: { warehouse: 1, id: 1, status: 'completed', items: [item] } }),
     /قابل لغو نیست/,
   )
   assert.equal(queries.length, 1)

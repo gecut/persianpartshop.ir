@@ -7,13 +7,13 @@ import { getAdminUser } from '../../access/roles'
 export const isOperationalStaff = (user: unknown): boolean => {
   const admin = getAdminUser(user)
   if (!admin || admin.isActive === false) return false
-  return admin.role === 'superadmin' || admin.role === 'manager' || admin.role === 'support'
+  return admin.role === 'superadmin' || admin.role === 'manager'
 }
 
 /**
  * Field-level access for basePricePerSqm:
  * Read is allowed for all authenticated admins (to view in admin UI).
- * Update/create is restricted to superadmin, manager, and support.
+ * Update/create is restricted to superadmin and manager.
  */
 export const canUpdateOperationalPrice: FieldAccess = ({ req: { user } }) => {
   return isOperationalStaff(user)
@@ -30,7 +30,7 @@ export const canUpdateOperationalInventory: FieldAccess = ({ req: { user } }) =>
 
 /**
  * Access rule for import/export collection operations:
- * Only operational staff (superadmin, manager, support) can trigger imports/exports.
+ * Only operational staff (superadmin, manager) can trigger imports/exports.
  */
 export const isImportExportAuthorized: Access = ({ req: { user } }) => {
   return isOperationalStaff(user)

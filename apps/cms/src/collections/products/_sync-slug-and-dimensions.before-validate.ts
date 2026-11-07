@@ -1,3 +1,5 @@
+import { sql } from '@payloadcms/db-postgres'
+import { getOrderTransaction } from '../orders/_transaction'
 import type { CollectionBeforeValidateHook } from "payload";
 import { calculateStockCartons, roundToTwoDecimals } from "./_inventory-math";
 
@@ -125,7 +127,16 @@ export const syncSlugAndDimensions: CollectionBeforeValidateHook = async ({
 
     const isPackagingChanged =
       Math.abs(origSqm - newSqm) > 0.001 || origPieces !== newPieces;
-    if (isPackagingChanged) {
+    const salesUnitChanged = (data.productType !== undefined && data.productType !== originalDoc.productType) || (data.unit !== undefined && data.unit !== originalDoc.unit);
+    if (isPackagingChanged || salesUnitChanged) {
+      const db = await getOrderTransaction(req);
+      const locked = await db.execute(sql`SELECT sqm_per_carton, pieces_per_carton, product_type, unit FROM products WHERE id = ${originalDoc.id} FOR UPDATE`);
+      const current = locked.rows[0];
+      if (!current || Number(current.sqm_per_carton ?? 0) !== origSqm || Number(current.pieces_per_carton ?? 4) !== origPieces || String(current.product_type ?? 'tile') !== String(originalDoc.productType ?? 'tile') || String(current.unit ?? '') !== String(originalDoc.unit ?? '')) throw new Error('اطلاعات بسته‌بندی تغییر کرده است؛ محصول را دوباره دریافت کنید.');
+      if (salesUnitChanged) {
+        const stock = await req.payload.find({ collection: 'warehouse-stock', where: { product: { equals: originalDoc.id } }, limit: 1, depth: 0, req });
+        if (stock.totalDocs > 0) throw new Error('تغییر نوع یا واحد فروش کالای دارای رکورد انبار مجاز نیست.');
+      }
       // Query if any open orders (status 'pending') reference this product
       const productId = originalDoc.id;
       const pendingOrders = await req.payload.find({

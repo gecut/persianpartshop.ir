@@ -1,3 +1,5 @@
+> به‌روزرسانی انبار: قواعد موجودی، سبد، سفارش و CSV این سند با [تفکیک انبار و سبد تک‌انباره](./07-warehouses.md) تکمیل و در موارد تعارض جایگزین می‌شوند.
+
 # 03 — Core System Flows & Lifecycle State Machines
 
 This document specifies the end-to-end procedural workflows and deterministic state transitions governing PersianPart 2.0.

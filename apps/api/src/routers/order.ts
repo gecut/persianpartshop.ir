@@ -1,3 +1,6 @@
+import { createHash } from 'node:crypto'
+import { call } from '@orpc/server'
+import { warehouse } from './warehouse'
 import { sdk } from '../payload'
 import { base, authed } from '../rpc/base'
 import { ORPCError } from '@orpc/server'
@@ -101,36 +104,11 @@ const getById = authed.order.getById.handler(async ({ input, context, errors }) 
   return sanitizeOrderForCustomer(doc)
 })
 
-const createCustomOrder = authed.order.createCustomOrder.handler(
-  async ({ input, context, errors }) => {
-    const userPerms = await getUserPermissions(context.user.id)
-    if (userPerms.disableOrdering || userPerms.hideExactStock) {
-      throw errors.FORBIDDEN({
-        message: 'حساب کاربری شما در وضعیت «فقط مشاهده کاتالوگ» تنظیم شده است و امکان ثبت سفارش را ندارد.',
-        data: { message: 'حساب کاربری شما در وضعیت «فقط مشاهده کاتالوگ» تنظیم شده است و امکان ثبت سفارش را ندارد.' },
-      })
-    }
+const createCustomOrder = authed.order.createCustomOrder.handler(async ({ errors }) => {
+  throw errors.BAD_REQUEST({ message: 'ثبت سفارش اختصاصی فعلاً فعال نیست.' })
+})
 
-    const tempOrderNumber = generateTempOrderNumber()
-    const orderDoc = (await sdk.create({
-      collection: 'orders',
-      data: {
-        orderNumber: tempOrderNumber,
-        user: Number(context.user.id),
-        status: 'pending',
-        items: [],
-        subtotal: 0,
-        finalTotal: 0,
-        notes: `[سفارش اختصاصی - ${input.productType || 'عمومی'}]: ${input.notes || ''}`,
-      },
-    })) as Order
-
-    const finalized = await finalizeOrderNumber(orderDoc)
-    return { id: finalized.id, message: 'سفارش اختصاصی با موفقیت ثبت شد' }
-  }
-)
-
-const submit = authed.order.submit.handler(async ({ input, context, errors }) => {
+export const submit = authed.order.submit.handler(async ({ input, context, errors }) => {
   if (!input.items || input.items.length === 0) {
     throw errors.BAD_REQUEST({
       message: 'سبد سفارش نمی‌تواند خالی باشد.',
@@ -146,7 +124,7 @@ const submit = authed.order.submit.handler(async ({ input, context, errors }) =>
     })
   }
 
-  const idempotencyKey = input.idempotencyKey?.trim()
+  const idempotencyKey = input.idempotencyKey ? createHash('sha256').update(`${context.user.id}:${input.idempotencyKey.trim()}`).digest('hex') : undefined
 
   const findExistingOrder = async () => {
     if (!idempotencyKey) return null
@@ -164,20 +142,30 @@ const submit = authed.order.submit.handler(async ({ input, context, errors }) =>
     return existing.docs[0] ?? null
   }
 
+  const requestedTotals = new Map<number, number>()
+  for (const item of input.items) {
+    const id = Number(item.productId)
+    requestedTotals.set(id, (requestedTotals.get(id) ?? 0) + Number(item.requestedArea ?? item.requestedSqm))
+  }
+  const requestFingerprint = createHash('sha256').update(JSON.stringify({ warehouseId: input.warehouseId, items: [...requestedTotals].sort(([a], [b]) => a - b), notes: input.notes?.trim() ?? '', deliveryAddress: input.deliveryAddress?.trim() ?? null })).digest('hex')
+  const assertReplay = (existing: Order) => {
+    if (existing.requestFingerprint !== requestFingerprint) throw errors.CONFLICT({ message: 'کلید تکرار برای سفارش متفاوت استفاده شده است.' })
+  }
   const replay = await findExistingOrder()
   if (replay) {
-    return sanitizeOrderForCustomer(replay) as Order
+    assertReplay(replay)
+    return sanitizeOrderForCustomer(replay)
   }
 
   const rawItems = input.items.map((item) => {
     const pId = Number(item.productId)
-    if (isNaN(pId) || pId <= 0) {
+    if (!Number.isSafeInteger(pId) || pId <= 0) {
       throw errors.BAD_REQUEST({
         message: 'شناسه محصول نامعتبر است.',
         data: { message: 'شناسه محصول نامعتبر است.' },
       })
     }
-    const requestedArea = Math.max(0.01, Number(item.requestedArea || item.requestedSqm || 1))
+    const requestedArea = Number(item.requestedArea ?? item.requestedSqm)
     return {
       product: pId,
       requestedArea,
@@ -196,57 +184,8 @@ const submit = authed.order.submit.handler(async ({ input, context, errors }) =>
 
   const tempOrderNumber = generateTempOrderNumber()
 
-  // Pre-validate inventory to return clear, actionable user feedback instead of an internal error
-  for (const item of rawItems) {
-    let prod: any = null
-    try {
-      prod = await sdk.findByID({ collection: 'products', id: item.product, depth: 0 })
-    } catch {
-      prod = null
-    }
-
-    if (!prod) {
-      throw errors.BAD_REQUEST({
-        message: `محصول با شناسه ${item.product} در کاتالوگ یافت نشد.`,
-        data: { message: `محصول با شناسه ${item.product} در کاتالوگ یافت نشد.` },
-      })
-    }
-
-    if (prod.isActive === false) {
-      throw errors.BAD_REQUEST({
-        message: `محصول «${prod.name || item.product}» در حال حاضر غیرفعال است.`,
-        data: { message: `محصول «${prod.name || item.product}» در حال حاضر غیرفعال است.` },
-      })
-    }
-
-    if (userPerms.allowedCategoryIds.length > 0) {
-      const catId =
-        typeof prod.category === 'object' && prod.category !== null
-          ? prod.category.id
-          : prod.category
-      if (!catId || !userPerms.allowedCategoryIds.includes(Number(catId))) {
-        throw errors.FORBIDDEN({
-          message: `ثبت سفارش برای محصول «${prod.name || item.product}» به دلیل محدودیت دسته‌بندی مجاز نیست.`,
-          data: { message: `ثبت سفارش برای محصول «${prod.name || item.product}» به دلیل محدودیت دسته‌بندی مجاز نیست.` },
-        })
-      }
-    }
-
-    const sqmPerCarton = Number(prod.sqmPerCarton) || 1
-    const cartonCount = Math.ceil(item.requestedArea / sqmPerCarton)
-    const deliverableArea = Math.round(cartonCount * sqmPerCarton * 100) / 100
-    const availableInventorySqm = Number(prod.inventorySqm) || 0
-
-    if (availableInventorySqm < deliverableArea) {
-      const availableCartons = Math.floor(availableInventorySqm / sqmPerCarton)
-      throw errors.INSUFFICIENT_STOCK({
-        message: `موجودی ناکافی برای «${prod.name}». موجودی انبار: ${availableCartons} کارتن (${availableInventorySqm} مترمربع)، درخواستی شما: ${cartonCount} کارتن (${deliverableArea} مترمربع)`,
-        data: {
-          message: `موجودی ناکافی برای «${prod.name}». موجودی انبار: ${availableCartons} کارتن (${availableInventorySqm} مترمربع)، درخواستی شما: ${cartonCount} کارتن (${deliverableArea} مترمربع)`,
-        },
-      })
-    }
-  }
+  const quote = await call(warehouse.availability, { items: rawItems.map(item => ({ productId: item.product, requestedArea: item.requestedArea })) }, { context })
+  if (!quote.warehouses.some(candidate => candidate.id === input.warehouseId)) throw errors.INSUFFICIENT_STOCK({ message: 'موجودی انبار انتخاب‌شده برای تأمین کل سفارش کافی نیست.' })
 
   let orderDoc: Order
   try {
@@ -255,6 +194,8 @@ const submit = authed.order.submit.handler(async ({ input, context, errors }) =>
       data: {
         orderNumber: tempOrderNumber,
         user: Number(context.user.id),
+        warehouse: input.warehouseId,
+        requestFingerprint,
         status: 'pending',
         items: rawItems as any,
         subtotal: 0,
@@ -270,7 +211,8 @@ const submit = authed.order.submit.handler(async ({ input, context, errors }) =>
     // instead of surfacing a 500. The failed create (and its stock decrement) is rolled back.
     const racedOrder = await findExistingOrder()
     if (racedOrder) {
-      return sanitizeOrderForCustomer(racedOrder) as Order
+      assertReplay(racedOrder)
+      return sanitizeOrderForCustomer(racedOrder)
     }
 
     const rawMsg =
@@ -307,7 +249,7 @@ const submit = authed.order.submit.handler(async ({ input, context, errors }) =>
     })
   }
 
-  return sanitizeOrderForCustomer(orderDoc) as Order
+  return sanitizeOrderForCustomer(orderDoc)
 })
 
 const cancel = authed.order.cancel.handler(async ({ input, context, errors }) => {
@@ -409,7 +351,7 @@ const prepareReorder = authed.order.prepareReorder.handler(async ({ input, conte
   }
 })
 
-const validateCart = base.order.pricing.validateCart.handler(async ({ input, context }) => {
+const validateCart = authed.order.pricing.validateCart.handler(async ({ input, context }) => {
   const markupPercent = await getUserMarkupPercent(context?.user?.id)
 
   const calculatedItems = await Promise.all(
@@ -423,6 +365,8 @@ const validateCart = base.order.pricing.validateCart.handler(async ({ input, con
     )
   )
 
+  const availability = await call(warehouse.availability, { items: input.items.map(item => ({ productId: Number(item.productId), requestedArea: Number(item.requestedArea ?? item.requestedSqm) })) }, { context })
+  const warehouseAvailable = availability.warehouses.some(candidate => candidate.id === input.warehouseId)
   const subtotal = calculatedItems.reduce((acc, cur) => acc + cur.totalPrice, 0)
 
   const validatedItems = calculatedItems.map((item) => ({
@@ -434,8 +378,8 @@ const validateCart = base.order.pricing.validateCart.handler(async ({ input, con
     deliverableArea: item.deliverableArea,
     unitPrice: item.unitPrice,
     totalPrice: item.totalPrice,
-    hasIssues: item.hasIssues,
-    issueReason: item.issueReason,
+    hasIssues: item.hasIssues || !warehouseAvailable,
+    issueReason: item.issueReason ?? (!warehouseAvailable ? 'موجودی انبار انتخاب‌شده کافی نیست.' : undefined),
   }))
 
   return {

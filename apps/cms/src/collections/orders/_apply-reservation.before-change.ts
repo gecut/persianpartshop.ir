@@ -1,6 +1,7 @@
-import { APIError, type CollectionBeforeChangeHook } from 'payload'
+import type { CollectionBeforeChangeHook } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getOrderTransaction } from './_transaction'
+import { reserveWarehouseStock, restoreWarehouseStock } from '../warehouse-stock/_stock-operations'
 
 const isCancelledStatus = (s?: string) =>
   s === 'cancel' ||
@@ -61,41 +62,15 @@ export const applyReservationBeforeChange: CollectionBeforeChangeHook = async ({
   }
 
   // Reservation on Order Create:
-  // inventory_sqm is authoritative. stock_cartons is derived as FLOOR(new_inventory_sqm / sqm_per_carton).
+  // Warehouse stock is authoritative.
   if (operation === 'create' && Array.isArray(data.items)) {
     const items = reservationItems(data.items)
-    for (const { productId, cartonCount, deliverableArea } of items) {
-      const result = await db.execute(sql`
-        UPDATE "products"
-        SET
-          "inventory_sqm" = ROUND(("inventory_sqm" - ${deliverableArea})::numeric, 2),
-          "stock_cartons" = FLOOR(ROUND(("inventory_sqm" - ${deliverableArea})::numeric, 2) / COALESCE(NULLIF("sqm_per_carton", 0), 1)),
-          "updated_at" = NOW()
-        WHERE "id" = ${productId}
-          AND "inventory_sqm" >= ${deliverableArea}
-          AND FLOOR(ROUND(("inventory_sqm" - ${deliverableArea})::numeric, 2) / COALESCE(NULLIF("sqm_per_carton", 0), 1)) >= 0
-        RETURNING "id", "name", "stock_cartons", "inventory_sqm"
-      `)
-
-      if (result.rows.length !== 1) {
-        const current = await req.payload.findByID({
-          collection: 'products',
-          id: productId,
-          depth: 0,
-          req,
-        })
-        const cCartons = current?.stockCartons ?? 0
-        const cSqm = current?.inventorySqm ?? 0
-        throw new APIError(
-          `موجودی ناکافی برای محصول ${current?.name || productId}. موجودی: ${cCartons} کارتن (${cSqm} م²)، درخواستی: ${cartonCount} کارتن (${deliverableArea} م²)`,
-          400,
-        )
-      }
-    }
+    const warehouseId = positiveNumber(typeof data.warehouse === 'object' ? data.warehouse?.id : data.warehouse, true)
+    await reserveWarehouseStock(req, warehouseId, items)
   }
 
   // Inventory Restoration on Order Cancel:
-  // inventory_sqm is incremented by deliverableArea, and stock_cartons is re-derived as FLOOR(new_inventory_sqm / sqm_per_carton).
+  // Restore only the original warehouse.
   if (
     operation === 'update' &&
     originalDoc &&
@@ -108,20 +83,8 @@ export const applyReservationBeforeChange: CollectionBeforeChangeHook = async ({
     }
 
     const items = reservationItems(originalDoc.items)
-    for (const { productId, cartonCount, deliverableArea } of items) {
-      const result = await db.execute(sql`
-        UPDATE "products"
-        SET
-          "inventory_sqm" = ROUND(("inventory_sqm" + ${deliverableArea})::numeric, 2),
-          "stock_cartons" = FLOOR(ROUND(("inventory_sqm" + ${deliverableArea})::numeric, 2) / COALESCE(NULLIF("sqm_per_carton", 0), 1)),
-          "updated_at" = NOW()
-        WHERE "id" = ${productId}
-        RETURNING "id"
-      `)
-      if (result.rows.length !== 1) {
-        throw new Error(`محصول با شناسه ${productId} در هنگام رزرو موجودی یافت نشد.`)
-      }
-    }
+    const warehouseId = positiveNumber(typeof originalDoc.warehouse === 'object' ? originalDoc.warehouse?.id : originalDoc.warehouse, true)
+    await restoreWarehouseStock(req, warehouseId, items)
   }
 
   if (data.status === 'cancelled_by_customer') {

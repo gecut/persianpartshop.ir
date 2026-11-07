@@ -18,6 +18,10 @@ export const validateTransitionBeforeChange: CollectionBeforeChangeHook = async 
   }
 
   if (operation === 'update' && originalDoc) {
+    for (const field of ['warehouse', 'warehouseName', 'warehouseCode', 'requestFingerprint']) {
+      const id = (value: unknown) => value && typeof value === 'object' && 'id' in value ? value.id : value
+      if (data[field] !== undefined && String(id(data[field])) !== String(id(originalDoc[field]))) throw new Error('تغییر انبار سفارش ممنوع است.')
+    }
     const fromStatus = originalDoc.status
     const toStatus = data.status || fromStatus
 

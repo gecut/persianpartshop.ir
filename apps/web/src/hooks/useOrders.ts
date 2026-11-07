@@ -1,3 +1,4 @@
+import { selectionStore } from '../features/products/selection-store'
 import { useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api, type Order, type OrderStatus } from '../lib/api-client'
@@ -55,8 +56,9 @@ export function useOrderActions() {
       items: Array<{ productId: string; requestedSqm: number }>
       notes?: string
     }) => {
-      idempotencyKeyRef.current ??= crypto.randomUUID()
+      idempotencyKeyRef.current = selectionStore.submissionKey(notes ?? '')
       const order = await api.order.submit({
+        warehouseId: selectionStore.getSnapshot().warehouse?.id ?? 0,
         items,
         notes,
         idempotencyKey: idempotencyKeyRef.current,

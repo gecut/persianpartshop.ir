@@ -1,3 +1,5 @@
+> به‌روزرسانی انبار: قواعد موجودی، سبد، سفارش و CSV این سند با [تفکیک انبار و سبد تک‌انباره](./07-warehouses.md) تکمیل و در موارد تعارض جایگزین می‌شوند.
+
 # 00 — Project Overview & Vision
 
 ## 1. Product Definition & Purpose
@@ -94,7 +96,7 @@ journey
 - Public storefront or guest checkout without an approved trade account.
 - Online payment gateway integration (B2B settlements occur through trade credit, banking drafts, or invoicing).
 - External shipping carrier APIs (delivery methods are handled offline by logistics dispatch).
-- Complex multi-warehouse / multi-branch stock reservation.
+- Splitting a single order across warehouses, pooled inventory, and inter-warehouse transfers (single-warehouse orders across multiple independent warehouses are supported; see document 07).
 - Product variant hierarchies (each physical SKU is an independent product record).
 - Automated CSV rollback (imports require preview and human confirmation before apply).
 

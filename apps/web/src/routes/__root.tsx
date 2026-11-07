@@ -1,3 +1,5 @@
+import { selectionStore } from '../features/products/selection-store'
+import { WarehouseSelection, WarehouseSummary } from '../features/cart/warehouse-selection'
 import { useEffect } from 'react'
 import { createRootRoute, Outlet, redirect, useNavigate, useRouterState } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
@@ -34,11 +36,13 @@ export const Route = createRootRoute({
 })
 
 function RootComponent() {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, user } = useAuth()
   const routerState = useRouterState()
   const navigate = useNavigate()
   const pathname = routerState.location.pathname
   const isLoginPage = pathname === '/login'
+
+  useEffect(() => { selectionStore.setOwner(isAuthenticated && user ? String(user.id) : '') }, [isAuthenticated, user?.id])
 
   // Periodic background check of session validity and ban status (every 4 seconds and on focus)
   const { data: sessionData, error: sessionError } = useQuery({
@@ -94,6 +98,7 @@ function RootComponent() {
         >
           {!isLoginPage && <AppHeader />}
           <ToastContainer />
+          <WarehouseSelection />
           {/* Main App Content Area */}
           <main
             className={cn(
@@ -103,6 +108,7 @@ function RootComponent() {
                 : 'max-w-xl mx-auto pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))]'
             )}
           >
+            {pathname.startsWith('/product') && <WarehouseSummary />}
             <Outlet />
           </main>
 

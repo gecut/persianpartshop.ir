@@ -1,4 +1,7 @@
+import { getSalesFactor } from '../products/_inventory-math'
 import type { CollectionBeforeValidateHook } from 'payload'
+import { sql } from '@payloadcms/db-postgres'
+import { getOrderTransaction } from './_transaction'
 
 export const prepareOrderBeforeValidate: CollectionBeforeValidateHook = async ({
   data,
@@ -11,6 +14,15 @@ export const prepareOrderBeforeValidate: CollectionBeforeValidateHook = async ({
   if (operation === 'update') {
     return data
   }
+
+  const db = await getOrderTransaction(req)
+  const warehouseId = Number(typeof data.warehouse === 'object' ? data.warehouse?.id : data.warehouse)
+  if (!Number.isSafeInteger(warehouseId) || warehouseId <= 0) throw new Error('انتخاب انبار الزامی است.')
+  const lockedWarehouse = await db.execute(sql`SELECT id FROM warehouses WHERE id = ${warehouseId} AND is_active = true FOR SHARE`)
+  if (lockedWarehouse.rows.length !== 1) throw new Error('انبار انتخاب‌شده فعال نیست.')
+  const warehouse = await req.payload.findByID({ collection: 'warehouses', id: warehouseId, depth: 0, req })
+  data.warehouseName = warehouse.name
+  data.warehouseCode = warehouse.code
 
   // 2. Check Idempotency Key replay on creation (scoped to user)
   if (data.idempotencyKey) {
@@ -48,6 +60,7 @@ export const prepareOrderBeforeValidate: CollectionBeforeValidateHook = async ({
 
   // 4. Resolve and validate customer tier markup
   let customerMarkupPercent = 0
+  let allowedCategoryIds: number[] = []
   const userId =
     typeof data.user === 'object' && data.user !== null ? (data.user as any).id : data.user
 
@@ -68,6 +81,7 @@ export const prepareOrderBeforeValidate: CollectionBeforeValidateHook = async ({
       if ((userDoc as any).disableOrdering === true || (userDoc as any).hideExactStock === true) {
         throw new Error('حساب کاربری شما در وضعیت «فقط مشاهده کاتالوگ» تنظیم شده و امکان ثبت سفارش را ندارد.')
       }
+      allowedCategoryIds = (userDoc.allowedCategories ?? []).map(category => typeof category === 'object' ? category.id : category)
       if ((userDoc as any).customerType) {
         const ct = (userDoc as any).customerType
         if (typeof ct === 'object' && ct !== null && typeof ct.markupPercent === 'number') {
@@ -116,11 +130,15 @@ export const prepareOrderBeforeValidate: CollectionBeforeValidateHook = async ({
     totalPrice: number
     productSku?: string
     productName?: string
+    productType: string
+    unit: string
+    salesFactor: number
   }> = []
 
   let calculatedSubtotal = 0
 
-  for (const [productId, requestedArea] of consolidatedMap.entries()) {
+  for (const [productId, requestedArea] of [...consolidatedMap.entries()].sort(([a], [b]) => a - b)) {
+    await db.execute(sql`SELECT id FROM products WHERE id = ${productId} FOR SHARE`)
     const productDoc = await req.payload.findByID({
       collection: 'products',
       id: productId,
@@ -136,8 +154,9 @@ export const prepareOrderBeforeValidate: CollectionBeforeValidateHook = async ({
       throw new Error(`محصول ${(productDoc as any).name || productId} غیرفعال است.`)
     }
 
-    const rawSqm = Number((productDoc as any).sqmPerCarton)
-    const sqmPerCarton = Number.isFinite(rawSqm) && rawSqm > 0 ? rawSqm : 1
+    const categoryId = typeof productDoc.category === 'object' ? productDoc.category?.id : productDoc.category
+    if (allowedCategoryIds.length && !allowedCategoryIds.includes(Number(categoryId))) throw new Error('دسترسی مشتری به دسته‌بندی کالا مجاز نیست.')
+    const sqmPerCarton = getSalesFactor(productDoc)
 
     const basePrice = Number((productDoc as any).basePricePerSqm)
     if (!Number.isFinite(basePrice) || basePrice < 0) {
@@ -166,6 +185,9 @@ export const prepareOrderBeforeValidate: CollectionBeforeValidateHook = async ({
 
     consolidatedItems.push({
       product: productId,
+      productType: productDoc.productType ?? 'tile',
+      unit: productDoc.productType === 'other' ? (productDoc.unit ?? 'piece') : 'm2',
+      salesFactor: sqmPerCarton,
       requestedArea,
       cartonCount,
       deliverableArea,

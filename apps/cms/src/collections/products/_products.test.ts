@@ -85,7 +85,9 @@ test('syncSlugAndDimensions preserves slug, enforces bounds, and only derives st
 
   // 5. Packaging change with open orders throws error
   const reqWithOrders = {
+    transactionID: 'test',
     payload: {
+      db: { name: 'postgres', sessions: { test: { db: { execute: async () => ({ rows: [{ sqm_per_carton: 1.44, pieces_per_carton: 4 }] }) } } } },
       find: async () => ({ totalDocs: 1 }),
     },
   } as any

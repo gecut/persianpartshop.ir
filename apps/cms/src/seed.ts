@@ -930,7 +930,7 @@ export async function runSeed() {
     {
       name: "کارشناس پشتیبانی سفارشات",
       email: "support@persianpart.ir",
-      role: "support",
+      role: "manager",
       password: "SupportPassword2026!",
       isActive: true,
       enableAPIKey: false,
@@ -1353,6 +1353,33 @@ export async function runSeed() {
     }
   }
 
+  const otherFixtures = [
+    { sku: 'PP-DEMO-ADHESIVE', slug: 'demo-adhesive', name: 'چسب کاشی نمونه', unit: 'bag' as const, basePricePerSqm: 250000, weight: 20 },
+    { sku: 'PP-DEMO-GROUT', slug: 'demo-grout', name: 'پودر بندکشی نمونه', unit: 'kg' as const, basePricePerSqm: 80000, weight: 1 },
+  ]
+  const otherProducts = []
+  for (const fixture of otherFixtures) {
+    const existing = await payload.find({ collection: 'products', where: { sku: { equals: fixture.sku } }, limit: 1 })
+    otherProducts.push(existing.docs[0] ?? await payload.create({ collection: 'products', data: { ...fixture, productType: 'other', isActive: true } }))
+  }
+
+  const seededWarehouses = []
+  for (const fixture of [{ code: 'DEMO-1', name: 'انبار نمونهٔ یک' }, { code: 'DEMO-2', name: 'انبار نمونهٔ دو' }]) {
+    const existing = await payload.find({ collection: 'warehouses', where: { code: { equals: fixture.code } }, limit: 1 })
+    const warehouse = existing.docs[0] ?? await payload.create({ collection: 'warehouses', data: { ...fixture, isActive: true } })
+    seededWarehouses.push(warehouse)
+    for (const product of otherProducts) {
+      const existingStock = await payload.find({ collection: 'warehouse-stock', where: { and: [{ warehouse: { equals: warehouse.id } }, { product: { equals: product.id } }] }, limit: 1 })
+      if (!existingStock.docs.length) await payload.create({ collection: 'warehouse-stock', data: { warehouse: warehouse.id, product: product.id, inventorySqm: fixture.code === 'DEMO-1' ? 100 : 25 } })
+    }
+    for (const product of PRODUCTS) {
+      const found = await payload.find({ collection: 'products', where: { sku: { equals: product.sku } }, limit: 1 })
+      if (!found.docs[0]) continue
+      const existingStock = await payload.find({ collection: 'warehouse-stock', where: { and: [{ warehouse: { equals: warehouse.id } }, { product: { equals: found.docs[0].id } }] }, limit: 1 })
+      if (!existingStock.docs.length) await payload.create({ collection: 'warehouse-stock', data: { warehouse: warehouse.id, product: found.docs[0].id, inventorySqm: Math.round(product.stockCartons * product.sqmPerCarton * (fixture.code === 'DEMO-1' ? 1 : 0.25) * 100) / 100, revision: 0 } })
+    }
+  }
+
   // 6. Seed B2B Users
   console.log("👤 Seeding B2B Users / Customers...");
   const userMap = new Map<string, number>();
@@ -1435,6 +1462,7 @@ export async function runSeed() {
 
     const orderData: any = {
       orderNumber: ord.orderNumber,
+      warehouse: seededWarehouses[0]!.id,
       user: userId,
       status: "pending",
       items: itemsData,

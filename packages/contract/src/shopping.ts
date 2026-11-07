@@ -1,3 +1,5 @@
+import { SubmitOrderInputSchema, CustomerOrderDocumentSchema } from './order'
+import { StandardErrorDataSchema } from './common'
 import { oc } from '@orpc/contract'
 import { openapi } from '@orpc/openapi'
 import { z } from 'zod'
@@ -94,11 +96,14 @@ export const shoppingContract = {
 
   createOrder: oc
     .meta(openapi({ method: 'POST', path: '/shopping/create-order', summary: 'ثبت سفارش از طریق خرید' }))
-    .input(z.any())
-    .output(z.any())
+    .input(SubmitOrderInputSchema)
+    .output(CustomerOrderDocumentSchema)
     .errors({
-      UNAUTHORIZED: {},
-      BAD_REQUEST: {},
+      UNAUTHORIZED: { data: StandardErrorDataSchema.optional() },
+      BAD_REQUEST: { data: StandardErrorDataSchema.optional() },
+      FORBIDDEN: { data: StandardErrorDataSchema.optional() },
+      INSUFFICIENT_STOCK: { data: StandardErrorDataSchema.optional() },
+      CONFLICT: {},
     }),
 
   verifyPayment: oc

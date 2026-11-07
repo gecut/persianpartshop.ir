@@ -1,3 +1,6 @@
+import { attachWarehouseStock } from './warehouse-stock.helpers'
+import { call } from '@orpc/server'
+import { submit } from './order'
 import { sdk } from '../payload'
 import { base, authed } from '../rpc/base'
 import { calculateCartonMetrics } from './catalog.helpers'
@@ -5,7 +8,7 @@ import {
   fetchTaxonomy,
   finalizeOrderNumber,
   findOrderByIdOrNumber,
-  getUserMarkupPercent,
+  getUserPermissions,
   applyProductPricing,
   sanitizeOrderForCustomer,
 } from './router.helpers'
@@ -13,11 +16,13 @@ import {
 const cartProducts = base.shopping.cartProducts.handler(async ({ input, context }) => {
   if (!input || input.length === 0) return []
 
+  const permissions = await getUserPermissions(context.user?.id)
   const products = await sdk.find({
     collection: 'products',
     where: {
       and: [
         { isActive: { equals: true } },
+        ...(permissions.allowedCategoryIds.length ? [{ category: { in: permissions.allowedCategoryIds } }] : []),
         {
           or: input.map((id) => ({
             id: { equals: isNaN(Number(id)) ? id : Number(id) },
@@ -29,8 +34,7 @@ const cartProducts = base.shopping.cartProducts.handler(async ({ input, context 
     depth: 2,
   })
 
-  const markupPercent = await getUserMarkupPercent(context?.user?.id)
-  return products.docs.map((prod: any) => applyProductPricing(prod, markupPercent))
+  return (await attachWarehouseStock(products.docs)).map(prod => applyProductPricing(prod, permissions.markupPercent, permissions.hideExactStock))
 })
 
 const addressList = authed.shopping.addressList.handler(async ({ context }) => {
@@ -66,8 +70,10 @@ const mutateAddress = authed.shopping.mutateAddress.handler(async ({ input, cont
   return updatedUser.addresses || []
 })
 
-const categories = base.shopping.categories.handler(async ({ input }) => {
-  return fetchTaxonomy('categories', { onlyActive: input?.onlyActive, sort: 'ordering' })
+const categories = base.shopping.categories.handler(async ({ input, context }) => {
+  const permissions = await getUserPermissions(context.user?.id)
+  const categories = await fetchTaxonomy('categories', { onlyActive: input?.onlyActive, sort: 'ordering' })
+  return permissions.allowedCategoryIds.length ? categories.filter(category => permissions.allowedCategoryIds.includes(category.id)) : categories
 })
 
 const brands = base.shopping.brands.handler(async ({ input }) => {
@@ -79,8 +85,8 @@ const tags = base.shopping.tags.handler(async ({ input }) => {
 })
 
 const calculateCartons = base.shopping.calculateCartons.handler(async ({ input, context }) => {
-  const markupPercent = await getUserMarkupPercent(context?.user?.id)
-  return calculateCartonMetrics(input, markupPercent)
+  const permissions = await getUserPermissions(context?.user?.id)
+  return calculateCartonMetrics(input, permissions.markupPercent, permissions.allowedCategoryIds)
 })
 
 const all = base.shopping.all.handler(async ({ input, context }) => {
@@ -98,6 +104,10 @@ const all = base.shopping.all.handler(async ({ input, context }) => {
     where.brand = { equals: input.brandId }
   }
 
+  const permissions = await getUserPermissions(context.user?.id)
+  if (permissions.allowedCategoryIds.length) {
+    where.category = { in: input?.categoryId && !permissions.allowedCategoryIds.includes(Number(input.categoryId)) ? [-1] : input?.categoryId ? [Number(input.categoryId)] : permissions.allowedCategoryIds }
+  }
   const res = await sdk.find({
     collection: 'products',
     where,
@@ -106,8 +116,7 @@ const all = base.shopping.all.handler(async ({ input, context }) => {
     depth: 2,
   })
 
-  const markupPercent = await getUserMarkupPercent(context?.user?.id)
-  const items = res.docs.map((prod: any) => applyProductPricing(prod, markupPercent))
+  const items = (await attachWarehouseStock(res.docs)).map(prod => applyProductPricing(prod, permissions.markupPercent, permissions.hideExactStock))
 
   return {
     ...res,
@@ -123,64 +132,13 @@ const detail = base.shopping.detail.handler(async ({ input, context }) => {
   })
 
   if (!prod || prod.isActive === false) return null
-  const markupPercent = await getUserMarkupPercent(context?.user?.id)
-  return applyProductPricing(prod, markupPercent)
+  const permissions = await getUserPermissions(context.user?.id)
+  const categoryId = typeof prod.category === 'object' ? prod.category?.id : prod.category
+  if (permissions.allowedCategoryIds.length && !permissions.allowedCategoryIds.includes(Number(categoryId))) return null
+  return applyProductPricing((await attachWarehouseStock([prod]))[0]!, permissions.markupPercent, permissions.hideExactStock)
 })
 
-const createOrder = authed.shopping.createOrder.handler(async ({ input, context, errors }) => {
-  if (!input.items || !Array.isArray(input.items) || input.items.length === 0) {
-    throw errors.BAD_REQUEST({ message: 'سبد سفارش نمی‌تواند خالی باشد.' })
-  }
-
-  const idempotencyKey = (input as any).idempotencyKey
-  if (idempotencyKey) {
-    const existing = await sdk.find({
-      collection: 'orders',
-      where: {
-        and: [
-          { user: { equals: Number(context.user.id) } },
-          { idempotencyKey: { equals: String(idempotencyKey) } },
-        ],
-      },
-      limit: 1,
-      depth: 2,
-    })
-    if (existing.docs.length > 0) {
-      return sanitizeOrderForCustomer(existing.docs[0])
-    }
-  }
-
-  // Pass raw products & requested areas to CMS — CMS is authoritative for calculation & reservation
-  const rawItems = input.items.map((item: any) => {
-    const pId = Number(item.productId || item.product)
-    if (isNaN(pId) || pId <= 0) {
-      throw errors.BAD_REQUEST({ message: 'شناسه محصول نامعتبر است.' })
-    }
-    const requestedArea = Math.max(0.01, Number(item.requestedArea || item.requestedSqm || 1))
-    return {
-      product: pId,
-      requestedArea,
-    }
-  })
-
-  const tempOrderNumber = `ptp ${Date.now().toString().slice(-6)}${Math.floor(1000 + Math.random() * 9000)}`
-
-  const order = await sdk.create({
-    collection: 'orders',
-    data: {
-      orderNumber: tempOrderNumber,
-      user: Number(context.user.id),
-      status: 'pending',
-      items: rawItems as any,
-      subtotal: 0,
-      finalTotal: 0,
-      notes: input.notes || '',
-      ...(idempotencyKey ? { idempotencyKey: String(idempotencyKey) } : {}),
-    },
-  })
-
-  return sanitizeOrderForCustomer(order)
-})
+const createOrder = authed.shopping.createOrder.handler(async ({ input, context }) => call(submit, input, { context }))
 
 const verifyPayment = authed.shopping.verifyPayment.handler(async ({ input, context, errors }) => {
   if (!input?.orderId) {

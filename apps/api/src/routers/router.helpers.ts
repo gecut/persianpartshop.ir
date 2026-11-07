@@ -1,3 +1,4 @@
+import { ORPCError } from '@orpc/server'
 import { sdk } from '../payload'
 import { normalizeDigits } from '../lib/otp'
 import { extractBearerToken, revokeToken } from '../lib/jwt'
@@ -159,7 +160,7 @@ export async function getUserPermissions(userId?: string | number): Promise<User
       depth: 1,
     })
 
-    if (!userDoc) return defaults
+    if (!userDoc) throw new Error('Customer not found')
 
     let markupPercent = 0
     const ct = userDoc.customerType
@@ -169,7 +170,7 @@ export async function getUserPermissions(userId?: string | number): Promise<User
       try {
         const ctDoc: any = await sdk.findByID({ collection: 'customer-types', id: ct })
         markupPercent = Number(ctDoc?.markupPercent) || 0
-      } catch {}
+      } catch { throw new Error('Customer pricing unavailable') }
     }
 
     const allowedCategoryIds: number[] = []
@@ -193,7 +194,7 @@ export async function getUserPermissions(userId?: string | number): Promise<User
       disableOrdering,
     }
   } catch {
-    return defaults
+    throw new ORPCError('SERVICE_UNAVAILABLE', { message: 'بررسی دسترسی حساب ممکن نشد؛ دوباره تلاش کنید.' })
   }
 }
 

@@ -1,3 +1,5 @@
+> به‌روزرسانی انبار: قواعد موجودی، سبد، سفارش و CSV این سند با [تفکیک انبار و سبد تک‌انباره](./07-warehouses.md) تکمیل و در موارد تعارض جایگزین می‌شوند.
+
 # 05 — Architecture, Contracts & Technical Topology
 
 This document specifies the technical architecture, data contract specifications (SSOT), communication topologies, and deployment infrastructure of PersianPart 2.0.

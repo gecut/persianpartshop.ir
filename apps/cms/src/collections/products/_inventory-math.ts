@@ -20,3 +20,10 @@ export function calculateBasePricePerCarton(basePricePerSqm: number, sqmPerCarto
   }
   return Math.round(basePricePerSqm * sqmPerCarton)
 }
+
+export function getSalesFactor(product: { productType?: string | null; sqmPerCarton?: number | null }): number {
+  if (product.productType === 'other') return 1
+  const factor = Number(product.sqmPerCarton)
+  if (!Number.isFinite(factor) || factor < 0.01) throw new Error('متراژ کارتن محصول کاشی معتبر نیست.')
+  return roundToTwoDecimals(factor)
+}

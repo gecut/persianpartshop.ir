@@ -13,7 +13,7 @@ export const Orders: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'orderNumber',
-    defaultColumns: ['orderNumber', 'user', 'status', 'finalTotal', 'createdAt'],
+    defaultColumns: ['orderNumber', 'user', 'warehouse', 'status', 'finalTotal', 'createdAt'],
     group: 'فروش و مشتریان',
     description: 'فهرست و وضعیت سفارشات.',
   },
@@ -29,6 +29,10 @@ export const Orders: CollectionConfig = {
     beforeChange: [validateTransitionBeforeChange, applyReservationBeforeChange],
   },
   fields: [
+    { name: 'requestFingerprint', type: 'text', admin: { hidden: true } },
+    { name: 'warehouse', type: 'relationship', relationTo: 'warehouses', required: true, index: true, label: 'انبار تأمین' },
+    { name: 'warehouseName', type: 'text', admin: { hidden: true } },
+    { name: 'warehouseCode', type: 'text', admin: { hidden: true } },
     {
       name: 'idempotencyKey',
       type: 'text',
@@ -101,6 +105,9 @@ export const Orders: CollectionConfig = {
         plural: 'اقلام سفارش',
       },
       fields: [
+        { name: 'productType', type: 'text', admin: { hidden: true } },
+        { name: 'unit', type: 'text', label: 'واحد فروش', admin: { readOnly: true } },
+        { name: 'salesFactor', type: 'number', admin: { hidden: true } },
         {
           name: 'product',
           type: 'relationship',

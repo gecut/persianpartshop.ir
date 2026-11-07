@@ -1,3 +1,4 @@
+import { getSalesFactor } from '@persianpart/cms/inventory'
 import { ORPCError } from '@orpc/server'
 import { sdk } from '../payload'
 
@@ -21,17 +22,19 @@ export interface CartonCalcResult {
  * deliverableArea = round(cartonCount * sqmPerCarton, 2)
  * totalPrice = round(deliverableArea * pricePerSqm)
  */
-export async function calculateCartonMetrics(input: CartonCalcInput, markupPercent = 0): Promise<CartonCalcResult> {
+export async function calculateCartonMetrics(input: CartonCalcInput, markupPercent = 0, allowedCategoryIds: number[] = []): Promise<CartonCalcResult> {
   let sqmPerCarton = input.sqmPerCarton
   let pricePerSqm = input.pricePerSqm
 
   if (input.productId) {
     try {
-      const prod: any = await sdk.findByID({ collection: 'products', id: input.productId })
+      const prod = await sdk.findByID({ collection: 'products', id: input.productId })
       if (!prod) {
         throw new ORPCError('NOT_FOUND', { message: 'محصول مورد نظر یافت نشد.' })
       }
-      sqmPerCarton = sqmPerCarton || prod.sqmPerCarton
+      const categoryId = typeof prod.category === 'object' ? prod.category?.id : prod.category
+      if (!prod.isActive || (allowedCategoryIds.length && !allowedCategoryIds.includes(Number(categoryId)))) throw new ORPCError('NOT_FOUND', { message: 'محصول مورد نظر یافت نشد.' })
+      sqmPerCarton = getSalesFactor(prod)
       if (pricePerSqm === undefined) {
         // Apply customer tier markup; do not disclose raw base wholesale price
         pricePerSqm = Math.round((Number(prod.basePricePerSqm) || 0) * (1 + markupPercent / 100))

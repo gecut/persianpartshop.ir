@@ -72,33 +72,7 @@ export function formatGrade(rawGrade?: string | null): string {
   return gradeStr;
 }
 
-export function formatUnit(rawUnit?: string | null): string {
-  if (!rawUnit) return "عدد";
-  const mapping: Record<string, string> = {
-    bag: "کیسه",
-    bucket: "سطل",
-    pack: "بسته",
-    can: "قوطی",
-    branch: "شاخه",
-    piece: "عدد",
-    box: "کارتن",
-    roll: "رول",
-    kg: "کیلوگرم",
-    liter: "لیتر",
-    m2: "متر",
-    meter: "متر",
-    m: "متر",
-    cm: "سانتی‌متر",
-    "سانتی متر": "سانتی‌متر",
-    "سانتی‌متر": "سانتی‌متر",
-    g: "گرم",
-    gram: "گرم",
-    گرم: "گرم",
-    کیلوگرم: "کیلوگرم",
-    متر: "متر",
-  };
-  return mapping[rawUnit] || rawUnit;
-}
+export { formatUnit } from '../../lib/utils/unit'
 
 export type ViewMode = "list" | "grid-2" | "grid-3" | "compact";
 
@@ -210,7 +184,7 @@ export function useProducts() {
           ? item.category.name
           : item.categoryName || "عمومی";
       const basePrice =
-        item.finalCustomerPricePerSqm || item.basePricePerSqm || 1250000;
+        Number(item.finalCustomerPricePerSqm ?? 0);
       const rawGallery = Array.isArray(item.gallery) ? item.gallery : [];
       const galleryUrls = rawGallery
         .map((g: any) => resolveMediaUrl(g?.image || g))
@@ -258,8 +232,8 @@ export function useProducts() {
         originalPricePerSqm,
         discountPercent,
         discountPlanTitle,
-        sqmPerCarton: item.sqmPerCarton || (isOther ? 1 : 1.44),
-        areaPerCarton: item.sqmPerCarton || (isOther ? 1 : 1.44),
+        sqmPerCarton: isOther ? 1 : (item.sqmPerCarton || 1.44),
+        areaPerCarton: isOther ? 1 : (item.sqmPerCarton || 1.44),
         piecesPerCarton: item.piecesPerCarton || 1,
         tilesPerCarton: item.piecesPerCarton || 1,
         cartonWeightKg:

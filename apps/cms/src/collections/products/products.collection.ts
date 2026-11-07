@@ -4,7 +4,6 @@ import { isCatalogManager } from "../../access/roles";
 import { logAction } from "../audit-logs/log-action";
 import {
   canUpdateOperationalPrice,
-  canUpdateOperationalInventory,
 } from "./_product-access";
 
 export const Products: CollectionConfig = {
@@ -19,7 +18,6 @@ export const Products: CollectionConfig = {
       "name",
       "sku",
       "sqmPerCarton",
-      "stockCartons",
       "isActive",
       "updatedAt",
     ],
@@ -258,14 +256,14 @@ export const Products: CollectionConfig = {
                   required: false,
                   defaultValue: 0,
                   label: "موجودی (م² یا تعداد)",
-                  admin: {
+                  admin: { hidden: true,
                     width: "33.3%",
                     description:
                       "موجودی قابل سفارش (برای کاشی بر حسب متر مربع، برای اقلام غیره بر حسب تعداد واحد/بسته).",
                   },
                   access: {
-                    update: canUpdateOperationalInventory,
-                    create: canUpdateOperationalInventory,
+                    update: () => false,
+                    create: () => false,
                   },
                 },
               ],
@@ -275,7 +273,7 @@ export const Products: CollectionConfig = {
               type: "number",
               label: "تعداد کارتن (محاسبه خودکار)",
               defaultValue: 0,
-              admin: {
+              admin: { hidden: true,
                 readOnly: true,
                 description:
                   "محاسبه سیستمی در سرور: حاصل تقسیم موجودی بر متراژ کارتن.",

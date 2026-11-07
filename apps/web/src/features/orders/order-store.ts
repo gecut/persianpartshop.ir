@@ -1,6 +1,7 @@
+import { authStore } from '../auth/auth-store'
+import { selectionStore, prepareReorderDraft } from '../products/selection-store'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { type Order, type OrderItem, type TimelineStep } from '../../types'
-import { cartStore } from '../cart/cart-store'
 import { api } from '../../lib/api-client'
 import { formatGrade } from '../products/product-store'
 import {
@@ -47,6 +48,16 @@ function getInitialState(): Order[] {
 }
 
 let currentOrders: Order[] = getInitialState()
+let ordersOwner = ''
+const accountId = () => authStore.getState().user?.id ?? ''
+function ensureOwner() {
+  const nextOwner = accountId()
+  if (ordersOwner !== nextOwner) {
+    ordersOwner = nextOwner
+    currentOrders = []
+    try { localStorage.removeItem(STORAGE_KEY) } catch { /* Storage may be unavailable. */ }
+  }
+}
 const listeners = new Set<(orders: Order[]) => void>()
 
 function broadcast(orders: Order[]) {
@@ -212,11 +223,13 @@ export function mapDocToOrder(doc: any): Order {
       '/assets/images/placeholder.svg'
     return {
       productId: String(prod?.id || i.product || ''),
-      productName: prod?.name || 'قطعه',
+      productName: i.productName || prod?.name || 'قطعه',
       productSlug: prod?.slug || '',
-      productSku: prod?.sku || '',
+      productSku: i.productSku || prod?.sku || '',
       productImage: coverUrl,
       dimension,
+      productType: i.productType ?? prod?.productType ?? 'tile',
+      unit: i.unit ?? (prod?.productType === 'other' ? (prod?.unit ?? 'piece') : 'm2'),
       grade,
       requestedArea: i.requestedArea || 1,
       cartonCount: i.cartonCount || 1,
@@ -246,6 +259,7 @@ export function mapDocToOrder(doc: any): Order {
     storeName: userObj?.companyName || 'بازرگانی دهقان (پرشین پارت)',
     customerName: userObj?.fullName || 'خریدار محترم',
     customerPhone: userObj?.phone || '',
+    warehouseName: doc.warehouseName ?? (typeof doc.warehouse === 'object' ? doc.warehouse?.name : undefined),
     deliveryAddress: doc.deliveryAddress || userObj?.address || 'انبار مرکزی بازرگانی دهقان',
     notes: doc.notes || '',
     cancellationDeadline: doc.cancellationDeadline || new Date(createdAtMs + 60 * 60 * 1000).toISOString(),
@@ -259,15 +273,15 @@ export function mapDocToOrder(doc: any): Order {
 }
 
 export const orderStore = {
-  getOrders: () => currentOrders,
-  getOrderById: (id: string) => currentOrders.find((o) => o.id === id || o.orderNumber === id),
+  getOrders: () => ordersOwner === accountId() ? currentOrders : [],
+  getOrderById: (id: string) => ordersOwner === accountId() ? currentOrders.find(o => o.id === id || o.orderNumber === id) : undefined,
 
   fetchOrderById: async (id: string): Promise<Order | null> => {
-    const existing = currentOrders.find((o) => o.id === id || o.orderNumber === id)
-    if (existing) return existing
-
+    ensureOwner()
+    const expectedOwner = accountId()
     try {
       const doc: any = await api.order.getById({ id })
+      if (expectedOwner !== accountId()) return null
       if (doc && doc.id) {
         const order = mapDocToOrder(doc)
         const updated = [order, ...currentOrders.filter((o) => o.id !== order.id)]
@@ -281,103 +295,31 @@ export const orderStore = {
   },
 
   syncFromApi: async () => {
+    ensureOwner()
+    const expectedOwner = accountId()
     try {
       const res = await api.order.list()
-      if (res.items && res.items.length > 0) {
-        const liveMapped: Order[] = res.items.map(mapDocToOrder)
-        broadcast(liveMapped)
-      }
+      if (expectedOwner !== accountId()) return
+      broadcast((res.items ?? []).map(mapDocToOrder))
     } catch {
       // Keep existing orders if API fails
     }
   },
 
-  createOrder: (payload: {
-    id?: string
-    orderNumber?: string
-    items: OrderItem[]
-    subtotal: number
-    discountAmount: number
-    taxAmount: number
-    finalTotal: number
-    deliveryAddress: string
-    notes?: string
-  }): Order => {
-    const randomNum = Math.floor(1000 + Math.random() * 9000)
-    const newId = payload.id || `${randomNum}`
-    const cleanId = String(newId).replace(/^ord-/, "").replace(/^ptp\s*/i, "")
-    const orderNumber = payload.orderNumber || `ptp ${cleanId}`
-    const now = new Date()
-    const isoString = now.toISOString()
-    const persianDate = formatPersianDate(now)
-    const deadlineIso = new Date(now.getTime() + 60 * 60 * 1000).toISOString()
-    const timeline = buildFullOrderTimeline(
-      {
-        status: 'pending',
-        createdAt: isoString,
-      },
-      persianDate,
-      false
-    )
-
-    const newOrder: Order = {
-      id: newId,
-      orderNumber,
-      date: persianDate,
-      createdAt: isoString,
-      cancellationDeadline: deadlineIso,
-      status: 'pending',
-      statusLabel: 'سفارش ثبت شده',
-      storeName: 'بازرگانی دهقان (پرشین پارت تهران)',
-      customerName: 'آرش دهقان',
-      customerPhone: '۰۹۱۲۳۴۵۶۷۸۹',
-      deliveryAddress: payload.deliveryAddress,
-      notes: payload.notes,
-      items: payload.items,
-      subtotal: payload.subtotal,
-      discountAmount: payload.discountAmount,
-      taxAmount: payload.taxAmount,
-      finalTotal: payload.finalTotal,
-      timeline,
-    }
-
-    const updated = [newOrder, ...currentOrders]
-    broadcast(updated)
-    cartStore.clearCart()
-
-    // Persist order to backend API only if it was not already created on the server
-    if (!payload.id) {
-      try {
-        api.order
-          .submit({
-            items: payload.items.map((i) => ({
-              productId: i.productId,
-              requestedArea: i.deliverableArea || i.requestedArea || 1,
-              requestedSqm: i.deliverableArea || i.requestedArea || 1,
-            })),
-            notes: payload.notes || 'ثبت سفارش محصولات آنلاین',
-          })
-          .then((res: any) => {
-            if (res && res.id) {
-              const serverId = String(res.id)
-              const serverOrderNumber = res.orderNumber || `ptp ${serverId}`
-              const synced = currentOrders.map((o) =>
-                o.id === newOrder.id
-                  ? { ...o, id: serverId, orderNumber: serverOrderNumber }
-                  : o
-              )
-              broadcast(synced)
-            }
-          })
-          .catch((err) => {
-            console.warn('[ORDER_SYNC_BACKEND]: Fallback to local storage:', err)
-          })
-      } catch (err) {
-        console.warn('[ORDER_SYNC_BACKEND]: Dispatch error:', err)
-      }
-    }
-
-    return newOrder
+  acceptOrder: (doc: unknown): Order => {
+    ensureOwner()
+    const order = mapDocToOrder(doc)
+    broadcast([order, ...currentOrders.filter(item => item.id !== order.id)])
+    return order
+  },
+  createOrder: async (payload: { items: OrderItem[]; notes?: string; deliveryAddress?: string; [key: string]: unknown }): Promise<Order> => {
+    const draft = selectionStore.getSnapshot()
+    if (!draft.warehouse || draft.busy) throw new Error('ابتدا انبار سبد را انتخاب کنید.')
+    const submittedDraft = selectionStore.submissionSnapshot()
+    const doc = await api.order.submit({ warehouseId: draft.warehouse.id, items: payload.items.map(item => ({ productId: item.productId, requestedArea: item.requestedArea })), notes: payload.notes, deliveryAddress: payload.deliveryAddress, idempotencyKey: selectionStore.submissionKey(JSON.stringify([payload.notes ?? '', payload.deliveryAddress ?? null])) })
+    if (!selectionStore.finishSubmission(submittedDraft)) throw new Error('حساب کاربری تغییر کرده است.')
+    const order = orderStore.acceptOrder(doc)
+    return order
   },
 
   clearOrders: () => {
@@ -399,133 +341,24 @@ export const orderStore = {
       notes?: string
     }
   ): Order | null => {
-    const existing = currentOrders.find((o) => o.id === orderId || o.orderNumber === orderId)
-    if (existing) {
-      const deadline = existing.cancellationDeadline
-        ? new Date(existing.cancellationDeadline).getTime()
-        : existing.createdAt
-        ? new Date(existing.createdAt).getTime() + 60 * 60 * 1000
-        : 0
-      if (Date.now() > deadline) {
-        console.warn('امکان ویرایش سفارش پس از ۶۰ دقیقه وجود ندارد.')
-        return null
-      }
-    }
-
-    let updatedOrder: Order | null = null
-    const updated = currentOrders.map((order) => {
-      if (order.id === orderId || order.orderNumber === orderId) {
-        updatedOrder = {
-          ...order,
-          items: payload.items,
-          subtotal: payload.subtotal,
-          discountAmount: payload.discountAmount,
-          taxAmount: payload.taxAmount,
-          finalTotal: payload.finalTotal,
-          notes: payload.notes || order.notes,
-        }
-        return updatedOrder
-      }
-      return order
-    })
-    if (updatedOrder) {
-      broadcast(updated)
-      return updatedOrder
-    }
-    return null
+    void orderId; void payload
+    throw new Error('برای تغییر اقلام، سفارش را لغو و دوباره ثبت کنید.')
   },
 
   cancelOrder: async (orderId: string, reason?: string): Promise<boolean> => {
-    try {
-      const numericId = !isNaN(Number(orderId)) ? Number(orderId) : orderId
-      await api.order.cancel({ id: numericId, reason })
-    } catch (err: any) {
-      console.warn('API cancelOrder warning:', err?.message || err)
-    }
-
-    const updated = currentOrders.map((order) => {
-      if (order.id === orderId || order.orderNumber === orderId) {
-        return mapDocToOrder({
-          ...order,
-          status: 'cancelled_by_customer',
-          cancelledBy: 'customer',
-          statusLabel: 'لغو توسط کاربر',
-          notes: reason ? `دلیل لغو کاربر: ${reason}` : 'لغو توسط کاربر',
-          updatedAt: new Date().toISOString(),
-        })
-      }
-      return order
-    })
-    broadcast(updated)
+    const expectedOwner = accountId()
+    const numericId = !isNaN(Number(orderId)) ? Number(orderId) : orderId
+    const doc = await api.order.cancel({ id: numericId, reason })
+    if (expectedOwner !== accountId()) throw new Error('حساب کاربری تغییر کرده است.')
+    orderStore.acceptOrder(doc)
     return true
   },
 
-  reactivateOrder: async (orderId: string): Promise<Order | null> => {
-    let updatedOrder: Order | null = null
-    const updated = currentOrders.map((order) => {
-      if (order.id === orderId || order.orderNumber === orderId) {
-        updatedOrder = mapDocToOrder({
-          ...order,
-          status: 'pending',
-          statusLabel: 'سفارش ثبت شده',
-          cancelledBy: null,
-          notes: 'راه‌اندازی مجدد سفارش توسط مشتری',
-          updatedAt: new Date().toISOString(),
-          createdAt: new Date().toISOString(),
-        })
-        return updatedOrder
-      }
-      return order
-    })
-
-    if (!updatedOrder) {
-      const existing = orderStore.getOrderById(orderId)
-      if (existing) {
-        updatedOrder = {
-          ...existing,
-          status: 'pending',
-          statusLabel: 'سفارش ثبت شده',
-          cancelledBy: undefined,
-          notes: 'راه‌اندازی مجدد سفارش توسط مشتری',
-          updatedAt: new Date().toISOString(),
-          createdAt: new Date().toISOString(),
-        }
-        updated.push(updatedOrder)
-      }
-    }
-
-    broadcast(updated)
-    return updatedOrder
-  },
-
-  reorderToCart: (orderId: string): { success: boolean; warnings: string[] } => {
-    const order = currentOrders.find((o) => o.id === orderId)
+  reorderToCart: async (orderId: string) => {
+    const order = currentOrders.find(item => item.id === orderId)
     if (!order) return { success: false, warnings: ['سفارش یافت نشد.'] }
-
-    if (order.status === 'cancelled' || order.status === 'cancelled_by_customer' || order.status === 'cancelled_by_admin') {
-      return { success: false, warnings: ['این سفارش لغو شده است و امکان سفارش مجدد آن وجود ندارد.'] }
-    }
-
-    const warnings: string[] = []
-
-    // Populate cart with order items
-    order.items.forEach((item) => {
-      const productObj: any = {
-        id: item.productId,
-        name: item.productName,
-        slug: item.productSlug,
-        sku: item.productSku,
-        dimension: item.dimension,
-        images: [item.productImage],
-        finalCustomerPricePerSqm: item.unitPrice,
-        sqmPerCarton: item.deliverableArea / (item.cartonCount || 1),
-        stockCartons: 999,
-        inventorySqm: 999,
-      }
-      cartStore.addItem(productObj, item.requestedArea)
-    })
-
-    return { success: true, warnings }
+    const success = await prepareReorderDraft(order.items)
+    return { success, warnings: success ? [] : ['ابتدا سبد و موجودی را بررسی کنید.'] }
   },
 }
 
@@ -537,8 +370,11 @@ export function useOrders() {
   const { data: orders = orderStore.getOrders(), isLoading, refetch } = useQuery({
     queryKey: queryKeys.orders.list(),
     queryFn: async () => {
+      ensureOwner()
+      const expectedOwner = accountId()
       const res = await api.order.list()
-      if (res.items && res.items.length > 0) {
+      if (expectedOwner !== accountId()) return []
+      if (res.items) {
         const liveMapped: Order[] = res.items.map(mapDocToOrder)
         broadcast(liveMapped)
         return liveMapped
@@ -582,12 +418,7 @@ export function useOrders() {
       const res = await cancelMutation.mutateAsync({ orderId, reason })
       return res
     },
-    reactivateOrder: async (orderId: string) => {
-      const res = await orderStore.reactivateOrder(orderId)
-      queryClient.invalidateQueries({ queryKey: queryKeys.orders.all })
-      queryClient.invalidateQueries({ queryKey: queryKeys.products.all })
-      return res
-    },
+
     reorderToCart: orderStore.reorderToCart,
   }
 }
