@@ -1,151 +1,64 @@
-> به‌روزرسانی انبار: قواعد موجودی، سبد، سفارش و CSV این سند با [تفکیک انبار و سبد تک‌انباره](./07-warehouses.md) تکمیل و در موارد تعارض جایگزین می‌شوند.
+# 06 — Administration and verification runbook
 
-# 06 — Administration, Catalog Operations & Runbook
+Reviewed: 2026-11-07. Human operators are manager/superadmin; consult [permissions](04-roles-and-permissions.md) for exact boundaries.
 
-This document defines standard operating procedures (SOPs) for internal operations staff (`Support`) and supervisors (`Admin`) managing PersianPart 2.0.
+## Accounts and catalog
 
----
+Create a customer with full name, unique phone, tier and account status. Company/address/identity and documents can be completed as needed; do not describe every optional address field as a schema requirement. OTP requires `status=active`; pending/suspended/banned customers cannot use normal sign-in. Account flags do not automatically cancel existing orders.
 
-## 1. Trade Customer Onboarding & Management
+Use allowed categories for catalog restrictions. `hideExactStock` also disables ordering; `disableOrdering` can independently disable it. Review uploaded document status separately; document review does not substitute for reading the actual account status.
 
-Because PersianPart 2.0 does not offer open public registration, trade customer accounts are provisioned and qualified by internal staff.
+Create tile and other products with SKU/name/slug and the appropriate metadata. A tile must have a valid carton factor to be ordered. Other uses its primary unit; secondary weight/content is descriptive. Existing stock records prevent changing product type/primary unit. Packaging changes with open orders are rejected. There is no implemented general catalog-completeness scoring service.
 
-### 1.1 Customer Creation Procedure
-1. Navigate to **کاربران و مشتریان (Users / Customers)** in the administration portal.
-2. Click **ایجاد کاربر جدید (Create User)**.
-3. Complete mandatory identification fields:
-   - **شماره موبایل (Mobile)**: Primary 11-digit Iranian mobile number (e.g., `09123456789`). Must be unique.
-   - **نام فروشگاه / شرکت (Store / Company Name)**: Registered commercial title.
-   - **نام رابط (Contact Name)**: Primary purchasing agent or owner.
-   - **استان و شهر (Province & City)**: Geographical operational area.
-   - **آدرس دقیق (Address)**: Default delivery unloading point.
-4. Select the appropriate **نوع مشتری (CustomerType)**:
-   - Sets the automated pricing markup tier for this customer.
-5. Set **وضعیت کاربر (isActive)** to `true`.
-6. Save the record. The customer can now authenticate immediately using SMS OTP.
+## Warehouse setup and stock CSV
 
-### 1.2 Account Suspension
-- Toggling `isActive` to `false` immediately revokes the customer's ability to request OTPs or submit new orders. Active in-flight orders are not cancelled automatically.
+1. Create an active warehouse with a stable unique code. Rename/deactivate instead of deleting.
+2. Open warehouse stock administration and choose the target warehouse.
+3. Upload or paste UTF-8 CSV with exactly `sku,inventorySqm`; BOM is accepted. Limits: 1 MB, 1–1000 rows, existing unique SKUs, nonnegative amounts with at most two decimals, maximum 1,000,000,000 per row.
+4. Amounts are sellable stock **after reservations**, in each product's primary unit. Missing rows are unchanged. A missing product/warehouse balance can be created by apply.
+5. Preview, then confirm application within 15 minutes using the same actor. Balance or product changes invalidate preview; obtain a fresh one. Apply is one transaction, including audit. Do not attempt to reuse an already applied token.
+6. Export the selected warehouse from its stock endpoint when needed. An accepted stale physical count can still be operationally wrong: the system validates revisions, not the time of a physical count outside the system.
 
----
+Direct balance update/delete and warehouse deletion are blocked. No automatic undo of a completed import exists. A compensating import needs a fresh, reconciled sellable count.
 
-## 2. Catalog Enrichment & Product Completeness
+## Global price CSV
 
-Products represent individual physical tile/ceramic SKUs. Staff is responsible for enriching product records with visual media and technical specifications.
+Use the official Payload import-export interface with `sku,basePricePerSqm`, at most 100 rows. Base prices are whole nonnegative Tomans in the primary selling unit. Unknown/duplicate SKU and invalid prices are rejected; the flow updates existing products and does not create partial products. Stock column `inventorySqm` is rejected. It does not share the stock CSV signed-preview workflow; do not promise identical transaction/rollback guarantees for plugin imports without separate verification.
 
-### 2.1 Product Creation Checklist
-When registering a new tile product:
-- [ ] **کد کالا (SKU)**: Input unique alphanumeric identifier (e.g., `PP-SLAB-120240-05`). Must be unique.
-- [ ] **نام کالا (Name)**: Standard Persian trade name.
-- [ ] **اسلاگ (Slug)**: URL-friendly Latin or Persian identifier.
-- [ ] **دسته‌بندی (Category)**: Assign to primary category (e.g., پرسلان کف, اسلب پرسلان).
-- [ ] **ابعاد (Dimension)**: Select from standardized dimensions (e.g., `60x120`).
-- [ ] **ضریب متراژ هر کارتن (sqmPerCarton)**: **CRITICAL VALUE**. Must match physical factory carton specifications (e.g., `1.44`, `2.16`, `1.92`).
-- [ ] **درجه کیفی (Grade)**: Select `grade_1`, `grade_2`, `grade_3`, or `grade_4`.
-- [ ] **تصویر شاخص (Cover Image)**: Upload high-resolution front-facing slab photograph.
-- [ ] **گالری تصاویر (Gallery)**: Add installation, ambient room setting, and surface texture photos.
-- [ ] **ویژگی‌ها (Tags)**: Attach relevant tags (کالیبره, ضد اسید, نانو پولیش).
+## Orders and plans
 
-### 2.2 Product Completeness Audit
-To maintain catalog quality, the system flags incomplete catalog records:
-- **Critical Incompleteness** (Blocks customer ordering): Missing `sku`, missing `name`, missing `sqmPerCarton`, or missing `dimension`.
-- **Quality Incompleteness** (Allowed but flagged): Missing `cover` photo, missing `category`, or missing `grade`.
+Orders arrive as `pending` with warehouse and immutable authoritative line amounts. Staff can approve (`approve`), complete, or cancel within the allowed transitions. Print the warehouse name and original quantities; no picking across warehouses. Customers can cancel pending orders within 60 minutes; staff can cancel pending/approved orders before completion. Cancelled/completed orders cannot reopen. No required structured staff-reason field or multi-stage preparing/ready workflow is implemented.
 
----
+Plans require title/content and assigned users, with optional product references and start/expiry. Activate the plan and review derived display status. Plan terms are text, not automatically applied financing math. Adding recipients may send notifications; disable notification SMS in seed/test environments.
 
-## 3. CSV Price & Inventory Batch Synchronization
+## Local commands
 
-Wholesale base prices and physical inventory counts are updated in batch via the official Payload import-export plugin (`@payloadcms/plugin-import-export`), configured in update-only mode matching by `sku`.
+Run from repository root using pnpm:
 
-```
-CSV Input File (UTF-8, Max 100 rows)
-├── Column: sku (Unique matching identifier)
-├── Column: basePricePerSqm (Whole Tomans per m²)
-└── Column: inventorySqm (Available physical net area in m², max 2 decimals)
+```bash
+pnpm install
+pnpm --filter @persianpart/cms generate:types
+pnpm --filter @persianpart/cms generate:importmap
+pnpm --filter @persianpart/api typecheck
+pnpm --filter @persianpart/web build
+pnpm --filter @persianpart/cms exec tsc --noEmit --incremental false
+pnpm --filter @persianpart/cms build
+pnpm --filter @persianpart/cms test:hardening
+pnpm --filter @persianpart/api test
 ```
 
-### 3.1 Step-by-Step Sync Workflow
+Root `dev` currently calls itself; use workspace commands when dev is requested. CMS/API/Web default to 5174/5175/5173. Do not manually edit generated route tree, Payload types or import map. Web has no configured unit-test runner; its warehouse browser script uses Playwright CLI.
 
-1. **File Preparation**:
-   - Ensure the CSV is encoded in standard **UTF-8 without BOM**.
-   - Ensure header names match exactly: `sku`, `basePricePerSqm`, `inventorySqm`.
-   - Ensure numbers do not contain commas or currency symbols, and max file length is $\le 100$ rows.
-2. **Execution**:
-   - Navigate to **کاتالوگ و انبارداری > درون‌ریزی‌ها (Imports)**.
-   - Upload file and trigger import. The import runs live; no maintenance window is required.
-   - Existing SKUs are overwritten with the incoming `inventorySqm` and an auto-calculated `stockCartons`.
-   - A batch containing any unknown SKU is rejected as a whole, so no partial products are created.
-3. **Review**:
-   - Review the import summary (`updated` count and issue details).
-   - The announced `inventorySqm` is the authoritative balance; items sold outside the site are reflected in the next announcement.
+PostgreSQL tests require disposable local targets: `CMS_TEST_DATABASE_URI` for `test:hardening:postgres` must name `cms_hardening_test`; that fixture drops/truncates tables. `CMS_MIGRATION_TEST_DATABASE_URI` for `test:hardening:migrations` points at a loopback `/postgres` control database with an explicit port and creates/deletes a random database. No environment variable means skip, not successful database verification.
 
----
+Live API tests in `warehouse.live.test.ts` are opt-in: `WAREHOUSE_LIVE_TEST=true`, CMS on loopback 55174, and `WAREHOUSE_HTTP_TEST=true` for the API on 55175. They mutate a disposable seeded dataset. Browser mock scenario expects web on 55173. Tests must not invoke real OTP/SMS unintentionally.
 
-## 4. Order Operations & Fulfillment
+## Migration, seed and deployment
 
-Customer orders flow into the administration portal with the initial status `pending_review`.
+CMS has nine registered migrations as of this review. Warehouse foundation follows the two remote product/customer migrations, then order binding, retry fingerprint, sales-unit snapshot and plan-title constraint correction. `plans.title` null values are populated before adding its required constraint.
 
-### 4.1 Order Review & Progression Checklist
+Warehouse order migration rejects nonempty historical orders rather than inventing a warehouse assignment. For preserved data, design and approve a historical allocation/backfill before applying it. Reset is appropriate only for an explicitly approved disposable target. Automatic production migration configuration does not remove this prerequisite and does not establish zero downtime.
 
-```mermaid
-graph LR
-    A[pending_review] -->|1. Confirm Credit & Stock| B[confirmed]
-    B -->|2. Warehouse Picking Sheet| C[preparing]
-    C -->|3. Pallets Loaded on Transport| D[ready]
-    D -->|4. Customer Delivery Acknowledged| E[completed]
-```
+Seed requires `NODE_ENV=development` and `CMS_SEED_DATABASE_URI` exactly matching the effective local database URI with a guarded name. It creates 26 tile products, two other products, two demo warehouses, 56 balances, three customers and five demo orders on a fresh target. Existing balances are preserved on rerun; seed is not a reset command. Use `DISABLE_SMS=true` for CMS plan notifications.
 
-1. **Review (`pending_review` $\rightarrow$ `confirmed`)**:
-   - Verify customer's trade credit or payment arrangement.
-   - Confirm that the physical warehouse has not suffered breakages affecting the required cartons.
-   - Advance status to `confirmed`. (Customer can no longer cancel directly).
-
-2. **Warehouse Dispatch (`confirmed` $\rightarrow$ `preparing`)**:
-   - Print packing slip showing:
-     - SKU & Product Name
-     - Total Cartons to pick ($\text{cartonCount}$)
-     - Equivalent Area in $m^2$ ($\text{actualSqm}$)
-   - Warehouse staff picks and palletizes the requested cartons.
-
-3. **Transport Ready (`preparing` $\rightarrow$ `ready`)**:
-   - Pallets are staged at loading dock. Customer or carrier is notified.
-
-4. **Order Completion (`ready` $\rightarrow$ `completed`)**:
-   - Bill of lading is signed upon customer receipt.
-   - Mark order as `completed`. This is a permanent terminal state.
-
----
-
-## 5. Exception Handling & Manual Staff Cancellation
-
-### 5.1 When Can Staff Cancel an Order?
-Staff may cancel an order when:
-- The customer requests cancellation after their direct grace window has elapsed.
-- A physical warehouse discrepancy (damage, tile batch breakage) prevents fulfillment.
-- Commercial credit terms cannot be verified.
-
-### 5.2 Stock Release Invariant
-When staff executes a cancellation on an active order (`pending_review`, `confirmed`, `preparing`, or `ready`):
-1. The status changes to `cancelled`.
-2. A required staff cancellation reason is entered into the order timeline.
-3. **Automated Stock Release**: The system automatically restores the exact carton quantities ($\text{actualSqm}$) to physical inventory:
-   $$\text{inventorySqm} = \text{inventorySqm} + \sum \text{item.actualSqm}$$
-4. Once cancelled, an order can never be reopened or re-confirmed.
-
----
-
-## 6. Configuring Promotional Credit & Financing Plans (`Plans`)
-
-Wholesale buyers rely on flexible trade credit and seasonal installment terms.
-
-### 6.1 Creating a Promotional Financing Card
-1. Navigate to **طرح‌های اعتباری و اقساطی (Plans)**.
-2. Click **ایجاد طرح جدید (New Plan)**.
-3. Configure the informational fields:
-   - **عنوان طرح (Title)**: E.g., "طرح تابستانه پرداخت اعتباری ۶۰ روزه همکاران".
-   - **درصد پیش‌پرداخت (Prepayment Percent)**: E.g., $25\%$.
-   - **مدت اقساط (Tenor Months)**: E.g., 2 months.
-   - **مشتریان هدف (Target Customer Types)**: Choose which customer tiers can view this plan (or leave empty for all trade buyers).
-   - **توضیحات و شرایط ضمانت (Terms & Conditions)**: Document required promissory notes, bank check clearance rules, and maximum invoice limits.
-4. Set `isActive` to `true`.
-5. The plan immediately renders as an informational card in the customer's mobile portal.
+The session verification used independent temporary databases. It did not migrate/reset the working `persianpart_cms`, deploy, or push. See the [verification record](../.agents/brain/warehouse-merge-completion-2026-11-07.md) for measured checks and limitations; it is historical evidence, not a statement about a future environment.

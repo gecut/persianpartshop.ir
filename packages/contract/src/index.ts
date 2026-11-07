@@ -19,7 +19,7 @@ import { warehouseContract } from './warehouse'
  * 6. user          - User profile, listing, and updates
  * 7. order         - Order lifecycle, reorder preparation & cart pricing validation
  * 8. plan          - Personalized credit terms & promotional plans
- * 9. system        - Health probes, global settings, audit trail, CSV batch import & Payload CMS integration
+ * 9. warehouse     - Whole-cart warehouse eligibility and authoritative quote
  */
 export const appContract = {
   health: oc.output(

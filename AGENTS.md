@@ -181,7 +181,7 @@ pnpm --filter @persianpart/web dev --port 5173
 # 5. Tests (existing, not aspirational)
 pnpm --filter @persianpart/cms test:hardening          # node:test via tsx (unit)
 pnpm --filter @persianpart/cms test:hardening:postgres # requires live Postgres
-pnpm --filter @persianpart/api test                    # bun test (no suites committed yet)
+pnpm --filter @persianpart/api test                    # bun test (warehouse unit suites; live suites are opt-in)
 # apps/web: no test runner configured — verify through typecheck and build
 ```
 

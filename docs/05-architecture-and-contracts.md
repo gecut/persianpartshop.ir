@@ -1,207 +1,59 @@
-> به‌روزرسانی انبار: قواعد موجودی، سبد، سفارش و CSV این سند با [تفکیک انبار و سبد تک‌انباره](./07-warehouses.md) تکمیل و در موارد تعارض جایگزین می‌شوند.
+# 05 — Architecture, contracts and deployment configuration
 
-# 05 — Architecture, Contracts & Technical Topology
+Reviewed: 2026-11-07. Deployed infrastructure state is [UNKNOWN]; repository configuration is described below.
 
-This document specifies the technical architecture, data contract specifications (SSOT), communication topologies, and deployment infrastructure of PersianPart 2.0.
-
----
-
-## 1. Clean Monorepo Architecture
-
-PersianPart 2.0 is structured as a **Contract-First Monorepo** managed via `pnpm workspaces`.
-
-```
-persianpart/
-├── packages/
-│   └── contract/       # Single Source of Truth (SSOT) Data Contracts & Zod Schemas
-└── apps/
-    ├── cms/            # Content & Data Layer (Payload CMS 3 + PostgreSQL)
-    ├── api/            # High-Performance API & Business Engine (Hono + Bun)
-    └── web/            # B2B Trade Customer SPA (React 19 + TanStack Router + Tailwind v4)
-```
-
-### 1.1 Structural Topology & Data Flow
+## Runtime boundaries
 
 ```mermaid
-flowchart TB
-    subgraph ClientLayer ["Client & Interface Layer"]
-        Web["apps/web (Customer SPA)<br/>React 19 + Vite 8 + TanStack Router<br/>Port: 5173 / Prod: 80"]
-        AdminUI["apps/cms (Admin Portal)<br/>Payload Admin / Next.js 16<br/>Port: 5174"]
-    end
-
-    subgraph ContractLayer ["Single Source of Truth (SSOT)"]
-        Contract["packages/contract<br/>@orpc/contract + Zod<br/>Shared Types & Interface Definitions"]
-    end
-
-    subgraph ServiceLayer ["API & Execution Layer"]
-        API["apps/api (High-Speed Engine)<br/>Hono on Bun Runtime<br/>Port: 5175"]
-        SMS["Kavenegar Gateway<br/>SMS OTP Dispatch"]
-    end
-
-    subgraph StorageLayer ["Data & Storage Layer"]
-        CMSLocal["apps/cms SDK / Engine<br/>Payload 3 Server Engine"]
-        Postgres[(PostgreSQL 16+<br/>PersianPart Database)]
-        MediaVol[(persianpart_media_data<br/>Shared Media Storage)]
-    end
-
-    Web -.->|Depends on Types| Contract
-    API -.->|Implements Contract| Contract
-
-    Web -->|oRPC Type-Safe Calls /api/rpc| API
-    API -->|SMS Verification| SMS
-    API -->|Type-Safe Data Operations| CMSLocal
-    CMSLocal -->|ACID Persistence| Postgres
-    AdminUI -->|Direct Local Engine| Postgres
-
-    API -->|Uploads & Reads Bytes| MediaVol
-    AdminUI -->|Uploads & Reads Bytes| MediaVol
-    Web -->|Static Asset CDN Requests| API
+flowchart LR
+    Web[React SPA] -->|oRPC over HTTP| API[Hono on Bun]
+    API -->|Payload REST SDK and service key| CMS[Payload on Next.js]
+    CMS -->|Local API and transactions| DB[(PostgreSQL)]
+    Web -.-> Contract[packages/contract]
+    API -.-> Contract
+    CMS --> Media[(Shared media volume)]
+    API --> Media
+    CDN[CDN service] --> Media
 ```
 
----
+`pnpm` workspaces cover `apps/*` and `packages/*`; package manager is pinned in root `package.json`. `apps/web` uses React 19, TypeScript 7, Vite 8, TanStack Router/Query, HeroUI v3 and Tailwind v4. API/CMS TypeScript versions come from their own manifests and must not be described as uniformly TypeScript 7. Bun is the API runtime, not the package manager.
 
-## 2. Contract-First API Specification (`@persianpart/contract`)
+API business data goes through [CMS SDK](../apps/cms/src/sdk.ts); the running API does not use a local Payload database engine for normal commerce requests. The CMS package exposes a pure inventory helper subpath used for consistent selling factors. Local Payload exists for migrations, seed and administrative server code.
 
-All data boundaries are declared in `packages/contract` using **Zod** and **oRPC v2**. Neither the frontend nor the backend may establish custom endpoints or models without a prior formal declaration in this contract package.
+## Actual contract surface
 
-### 2.1 The Root Application Contract (`appContract`)
+The root [appContract](../packages/contract/src/index.ts) exports `health`, `echo`, `auth`, `catalog`, `shopping`, `customer`, `user`, `order`, `plan`, `warehouse`. There is no `system` router in the current root, despite a stale source comment referring to it.
 
-```typescript
-export const appContract = {
-  // 1. Health & Heartbeat
-  health: oc.output(HealthCheckOutputSchema),
+Relevant names are `auth.session`, `catalog.getById`, `order.pricing.validateCart`, `order.submit`, `order.cancel`, `order.prepareReorder`, `warehouse.availability`, and `shopping.createOrder`. The latter delegates to the same submit implementation. Do not use former conceptual names such as `getBySlug`, `cancelByCustomer`, `system.previewCsvImport` or `getGlobalConfig` as executable API documentation.
 
-  // 2. Customer & Staff Authentication
-  auth: {
-    requestOtp: oc.input(RequestOtpInputSchema).output(RequestOtpOutputSchema),
-    verifyOtp: oc.input(VerifyOtpInputSchema).output(VerifyOtpOutputSchema),
-    me: oc.output(AuthSessionSchema),
-    logout: oc.output(StandardSuccessSchema),
-  },
+Stock CSV endpoints are Payload collection endpoints: `/api/warehouse-stock/preview`, `/apply`, `/export`; their data schemas are in the shared contract. They are not oRPC `system` procedures. Payload Admin endpoints and Hono health/media routes also exist outside oRPC.
 
-  // 3. Tile & Ceramic Catalog
-  catalog: {
-    list: oc.input(CatalogQuerySchema).output(PaginatedProductsSchema),
-    getBySlug: oc.input(SlugParamSchema).output(ProductDetailSchema),
-    getById: oc.input(EntityIdParamSchema).output(ProductDetailSchema),
-    categories: oc.output(CategoryListSchema),
-    brands: oc.output(BrandListSchema),
-    tags: oc.output(TagListSchema),
-    dimensions: oc.output(DimensionListSchema),
-    calculateCartons: oc.input(CartonCalculationInputSchema).output(CartonCalculationOutputSchema),
-  },
+Contracts contain a mixture of specific schemas and legacy permissive outputs (`z.any`/unions); contract-first does not mean every response is strictly validated. Changed order submit/detail/cancel boundaries use `CustomerOrderDocumentSchema`; persistence shapes remain defined by CMS collections, with generated types.
 
-  // 4. Customer Profile
-  customer: {
-    getProfile: oc.output(CustomerProfileSchema),
-    updateProfile: oc.input(UpdateCustomerProfileSchema).output(CustomerProfileSchema),
-  },
+## Transport and errors
 
-  // 5. Order Management & Checkout
-  order: {
-    validateCart: oc.input(CartValidationInputSchema).output(CartValidationOutputSchema),
-    submit: oc.input(SubmitOrderInputSchema).output(OrderConfirmationSchema),
-    list: oc.input(OrderFilterSchema).output(PaginatedOrdersSchema),
-    getById: oc.input(EntityIdParamSchema).output(OrderDetailSchema),
-    cancelByCustomer: oc.input(CancelOrderInputSchema).output(StandardSuccessSchema),
-    prepareReorder: oc.input(EntityIdParamSchema).output(ReorderPreparationSchema),
-  },
+Hono serves oRPC at `/api/rpc`. Context resolves bearer JWT and CMS account state; `requireAuth`/`requireAdmin` wrap selected procedures. Server-side `call` tests exercise procedures but do not by themselves prove socket, JWT or middleware integration.
 
-  // 6. Credit & Promotional Financing Plans
-  plan: {
-    list: oc.output(PlanListSchema),
-  },
+Defined codes include `BAD_REQUEST`, `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`, `CONFLICT`, `INSUFFICIENT_STOCK`, `CANCELLATION_DEADLINE_EXPIRED`, `INVALID_STATUS_TRANSITION`; permission lookup failures can raise `SERVICE_UNAVAILABLE`. Exact error/data/status shape depends on each contract and handler. Do not promise a universal SKU/stock/quantity error payload or HTTP 400 for every custom code.
 
-  // 7. System Administration & Operations
-  system: {
-    getAuditLogs: oc.input(AuditLogFilterSchema).output(PaginatedAuditLogsSchema),
-    previewCsvImport: oc.input(CsvUploadPayloadSchema).output(CsvDiffPreviewSchema),
-    applyCsvImport: oc.input(CsvApplyPayloadSchema).output(CsvApplySummarySchema),
-    getGlobalConfig: oc.output(GlobalConfigSchema),
-    updateGlobalConfig: oc.input(UpdateGlobalConfigSchema).output(GlobalConfigSchema),
-  },
-}
-```
+## Media
 
----
+CMS stores media under its `media` directory and can return CDN URLs. API uses `MEDIA_DIR` when set and otherwise its CMS media path, with file delivery fallbacks. Current CMS upload MIME list is JPEG/PNG/WebP/AVIF; do not promise SVG acceptance based on a prior diagram. Delivery code sets long-lived immutable caching for media file responses; filename replacement/invalidation behavior must be considered operationally.
 
-## 3. Standard Error Envelope
+## Compose topology
 
-All procedures uniformly return errors conforming to the standardized oRPC error format:
+[docker-compose.yml](../docker-compose.yml) defines `migration`, `api`, `cms`, `web`, `cdn` on external `dokploy-network`. It does **not** define a PostgreSQL service. A reachable external database and its provisioning are deployment prerequisites; the hostname used by a connection setting does not create a service.
 
-```json
-{
-  "code": "INSUFFICIENT_STOCK",
-  "status": 400,
-  "message": "موجودی انبار برای متراژ درخواستی (۷۲ متر مربع) کافی نیست. حداکثر موجودی: ۵۱.۸۴ متر مربع",
-  "data": {
-    "sku": "PP-CER-60120-001",
-    "requestedSqm": 72.0,
-    "availableSqm": 51.84,
-    "sqmPerCarton": 1.44
-  }
-}
-```
+Migration is a one-shot command and API/CMS depend on its success. CMS PostgreSQL adapter also has `push: false` and `prodMigrations: migrations`. This configuration is not proof of zero-downtime deployment: warehouse-order migration deliberately rejects nonempty order history. See the [runbook](06-admin-and-operations.md).
 
-### Standard Error Codes
-| Code | HTTP Status | Definition |
-| :--- | :---: | :--- |
-| `BAD_REQUEST` | 400 | Malformed input, negative values, or schema violations. |
-| `UNAUTHORIZED` | 401 | Missing, invalid, or expired JWT bearer token. |
-| `FORBIDDEN` | 403 | Attempting to access resources owned by another customer. |
-| `NOT_FOUND` | 404 | Entity (Product, Order, Customer) does not exist. |
-| `CONFLICT` | 409 | Concurrent order collision, duplicate SKU, or state transition violation. |
-| `INTERNAL_SERVER_ERROR`| 500 | Unhandled database or operational exception. |
+Shared volume mounts differ by service: API `/app/media`, CMS `/app/apps/cms/media`, CDN `/data:ro`. Normal ports are API 5175, CMS 5174, web/CDN container 80; local Vite defaults to 5173.
 
----
+## Configuration names
 
-## 4. Media Storage & Delivery Topology
+- Database: `DATABASE_URL` takes precedence over `DATABASE_URI` in CMS.
+- Service calls: `CMS_API_URL`/`PAYLOAD_URL`/`CMS_URL` and `CMS_API_KEY`; SDK resolver specifies precedence.
+- Authentication: `PAYLOAD_SECRET`, `JWT_SECRET` and Kavenegar environment configuration.
+- Media: `MEDIA_DIR`, `CDN_URL` and frontend build-time settings.
+- Tests/seed: use explicit disposable DB settings and `DISABLE_SMS=true` for CMS notification hooks. OTP sending uses a separate Kavenegar helper; this flag must not be treated as proof that a test invoking OTP can never send SMS.
 
-Tile and ceramic catalogs are visually heavy, requiring high-resolution photos of tile textures, edge bevels, and ambient staging.
-
-```
-       Upload File (Multipart/Form-Data)
-                   │
-                   ▼
-┌─────────────────────────────────────────────────────┐
-│  API Gateway / CMS Upload Endpoint                  │
-│  - Sanitize filename (ASCII + Persian Unicode)      │
-│  - Validate MIME types: JPG, PNG, WEBP, AVIF, SVG   │
-│  - Enforce size limits (max 15MB)                   │
-└──────────────────┬──────────────────────────────────┘
-                   │ Write to disk
-                   ▼
-┌─────────────────────────────────────────────────────┐
-│  Shared Storage Volume (`persianpart_media_data`)   │
-│  Canonical path: `/app/media`                       │
-└──────────────────┬──────────────────────────────────┘
-                   │ Read access
-                   ▼
-┌─────────────────────────────────────────────────────┐
-│  Static File Delivery Service (Nginx / API Fallback)│
-│  - Route: `/api/media/file/:filename`               │
-│  - Header: Cache-Control: public, max-age=31536000  │
-│  - Direct Zero-Copy Streaming (Bun.file / sendfile) │
-└─────────────────────────────────────────────────────┘
-```
-
----
-
-## 5. Deployment & Containerization Topology
-
-PersianPart 2.0 deploys as a set of coordinated micro-services via **Docker Compose** on **Dokploy**:
-
-| Service Name | Base Image / Runtime | Port / Exposure | Responsibility |
-| :--- | :--- | :---: | :--- |
-| **`migration`** | Node.js (Payload CLI) | *None* (One-shot) | Executes pending database migrations on startup. Runs before API or CMS boots. |
-| **`api`** | Bun (`oven/bun:1.2`) | `5175` | Serves Hono oRPC endpoints, JWT auth, SMS OTP integration, and media streaming. |
-| **`cms`** | Node.js 22 (Next.js 16) | `5174` | Serves Payload Admin UI for internal staff and manages raw data collections. |
-| **`web`** | Nginx (`alpine`) | `80` | Serves compiled React 19 SPA static assets and proxies `/api/*` to `api:5175`. |
-| **`postgres`** | PostgreSQL 16+ | `5432` | Relational database engine with ACID transactional support. |
-
-### Environment Variables & Configuration Invariants
-- `DATABASE_URI` / `DATABASE_URL`: Connection string to PostgreSQL instance.
-- `PAYLOAD_SECRET`: 32+ character cryptographic secret for administrative sessions.
-- `JWT_SECRET`: 32+ character HMAC-SHA256 secret for trade customer mobile sessions.
-- `KAVENEGAR_API_KEY`: API credential for the SMS verification gateway.
-- `MEDIA_DIR`: Canonical directory path for shared media persistence.
+Never copy credentials or fallback values from repository configuration into documentation examples.

@@ -1,194 +1,62 @@
-> به‌روزرسانی انبار: قواعد موجودی، سبد، سفارش و CSV این سند با [تفکیک انبار و سبد تک‌انباره](./07-warehouses.md) تکمیل و در موارد تعارض جایگزین می‌شوند.
+# 03 — System flows
 
-# 03 — Core System Flows & Lifecycle State Machines
+Reviewed: 2026-11-07. Diagrams reflect current handlers, not planned endpoints.
 
-This document specifies the end-to-end procedural workflows and deterministic state transitions governing PersianPart 2.0.
+## Customer authentication
 
----
+`auth.requestOtp` (and its customer alias) normalizes Persian/Arabic digits and validates an Iranian mobile number. The account must exist, be active, not banned and not pending document approval. An active admin phone can be linked to a separate customer account by existing helpers.
 
-## 1. Authentication & Session Flow (SMS OTP)
+OTP is four digits, expires after 120 seconds, has a 60-second request cooldown and at most five verification attempts. Records persist through CMS. SMS delivery failure invalidates the issued code. `auth.verifyOtp` issues a signed customer JWT; API context verifies the token and reloads account state. Web polls session every four seconds and on focus; logout clears query cache. JWT revocation storage is process-local, not a documented distributed revocation service.
 
-PersianPart 2.0 enforces a passwordless, phone-based authentication model for trade customers.
+Sources: [auth](../apps/api/src/routers/auth.ts), [OTP](../apps/api/src/lib/otp.ts), [JWT](../apps/api/src/lib/jwt.ts), [context](../apps/api/src/rpc/context.ts).
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Customer as Trade Customer
-    participant Web as Web Client (SPA)
-    participant API as API Server (Hono / Bun)
-    participant SMS as SMS Gateway (Kavenegar)
-    participant CMS as CMS / Database
-
-    Customer->>Web: Enters mobile number (e.g., 0912xxxxxxx)
-    Web->>API: POST /api/rpc/auth.requestOtp { mobile }
-    API->>CMS: Check if Customer exists & isActive == true
-    alt Customer Not Found or Inactive
-        API-->>Web: Error (Account inactive or unauthorized)
-    else Active Customer
-        API->>API: Generate 5-digit cryptographically secure OTP & Store with TTL (120s)
-        API->>SMS: Send OTP SMS via verified lookup template
-        SMS-->>Customer: Deliver SMS containing code
-        API-->>Web: Success (OTP Sent, retry allowed in 120s)
-    end
-
-    Customer->>Web: Enters 5-digit OTP
-    Web->>API: POST /api/rpc/auth.verifyOtp { mobile, code }
-    API->>API: Validate code & expiration
-    alt Code Invalid or Expired
-        API-->>Web: Error (Invalid or expired verification code)
-    else Code Valid
-        API->>API: Invalidate / consume OTP immediately
-        API->>API: Issue signed JWT session token (HS256)
-        API-->>Web: Return JWT token & Customer Profile
-        Web->>Web: Persist token & Redirect to Product Catalog
-    end
-```
-
-### Authentication Rules
-- **Rate Limiting**: An individual phone number cannot request more than 1 OTP per 2 minutes, and is blocked for 15 minutes after 5 consecutive incorrect verify attempts.
-- **Single-Use Consumption**: Once verified, the OTP is instantly purged from active memory/cache to prevent replay attacks.
-- **Never Log Secrets**: The cleartext OTP value is NEVER logged to technical logs or audit trails.
-
----
-
-## 2. Product Discovery & Order Entry Flow
+## Selection to order
 
 ```mermaid
 flowchart TD
-    Start([Customer on Catalog]) --> Filter[Apply Filters: Dimensions, Brand, Grade, Category]
-    Filter --> List[Render Compact B2B Product Row]
-    List --> Select[Tap Product Row]
-    Select --> Modal[Open Order Entry Modal]
-    Modal --> Input[Input Desired Area in m²]
-    Input --> Calc[Client Engine Previews:<br/>Carton Count = ceil requested / sqmPerCarton<br/>Actual Area = Cartons * sqmPerCarton<br/>Total Price = Actual Area * Customer Unit Price]
-    Calc --> CheckStock{Actual Area <= Available Stock?}
-    CheckStock -- No --> ErrorBadge[Show Warning: Exceeds Warehouse Stock]
-    CheckStock -- Yes --> AddBtn[Enable 'Add to Cart' Button]
-    AddBtn --> AddCart[Add to Live Cart & Show Toast]
+    A[Requested quantities] --> B[Quote entire candidate cart]
+    B --> C{Eligible active warehouses}
+    C -->|None| D[Reject; preserve old draft]
+    C -->|One| E[Bind automatically]
+    C -->|Several| F[Explicit selection]
+    E --> G[Account-scoped draft]
+    F --> G
+    G --> H[Review quote and units]
+    H --> I[Submit with warehouse and retry key]
+    I --> J[CMS transaction: calculate, snapshot, reserve]
+    J -->|Failure| K[Rollback; keep draft/key]
+    J -->|Success| L[Return server order; clear matching draft]
 ```
 
----
+Changes to a bound cart are checked against its warehouse. Account switches/removals invalidate stale async work; another tab invalidates stored quotes. Order responses and caches must not expose a previous account after logout. See [selection store](../apps/web/src/features/products/selection-store.ts) and [order store](../apps/web/src/features/orders/order-store.ts).
 
-## 3. Order Lifecycle State Machine
-
-The order lifecycle is governed by a deterministic, finite state machine with strict transition guards:
+## Persisted order state
 
 ```mermaid
 stateDiagram-v2
-    [*] --> pending_review : Customer Submits Order
-
-    pending_review --> confirmed : Staff Reviews & Confirms
-    pending_review --> cancelled : Customer Cancels (within deadline)
-    pending_review --> cancelled : Staff Cancels
-
-    confirmed --> preparing : Warehouse Picking & Loading
-    confirmed --> cancelled : Staff Cancels with reason
-
-    preparing --> ready : Palletized & Ready for Dispatch
-    preparing --> cancelled : Staff Cancels with inventory release
-
-    ready --> completed : Dispatched & Received by Customer
-
-    completed --> [*] : Terminal State
-    cancelled --> [*] : Terminal State (Stock Restored)
+    [*] --> pending
+    pending --> approve: Staff approval
+    approve --> completed: Staff completion
+    pending --> cancelled_by_customer: Customer within 60 minutes
+    pending --> cancelled_by_admin: Staff cancellation
+    approve --> cancelled_by_admin: Staff cancellation
+    completed --> [*]
+    cancelled_by_customer --> [*]
+    cancelled_by_admin --> [*]
 ```
 
-### 3.1 Allowed Statuses & State Definitions
+`cancel` is normalized using `cancelledBy`. The database update lock and status comparison prevent concurrent transitions restoring stock twice. The customer timeline is a projection: after 60 minutes it can show sales review while stored status remains `pending`.
 
-| Status Key | Persian Display Label | Definition & Operational Meaning |
-| :--- | :--- | :--- |
-| `pending_review` | در حال بررسی واحد بازرگانی | Newly submitted order awaiting commercial verification. Eligible for customer self-cancellation. |
-| `confirmed` | تأیید شده توسط بازرگانی | Commercial team has verified inventory, pricing, and account standing. |
-| `preparing` | در حال بارگیری و انبارداری | Physical cartons are being picked, palletized, and prepared at the central warehouse. |
-| `ready` | آماده تحویل / بارگیری | Goods are loaded on truck or ready for transport pickup. |
-| `completed` | تکمیل و تحویل شده | Delivery confirmed and goods accepted by the trade customer. Terminal state. |
-| `cancelled` | لغو شده | Order voided; reserved inventory restored to warehouse. Terminal state. |
+## Reorder
 
-### 3.2 Transition Invariants
-1. **Unidirectional Flow**: Statuses move forward strictly along the primary track. Backward transitions (e.g., `preparing` $\rightarrow$ `pending_review`) are prohibited.
-2. **Terminal Inviolability**: `completed` and `cancelled` are permanent terminal states. No further status changes can occur on a completed or cancelled order.
-3. **No Free-Form Edits**: Statuses cannot be edited arbitrarily; every transition must occur via authorized command endpoints that trigger stock checks and audit events.
+Read an authorized historical order → require an empty current draft → quote current quantities and warehouses → choose a fresh warehouse → review current quote → submit a new order/key. Historical price and warehouse do not authorize a new reservation. Current screens block reorder actions for cancelled orders; no local reactivation path is supported.
 
----
+## CSV
 
-## 4. Customer Self-Service Cancellation Flow
+Stock: select warehouse → parse/validate CSV → read product versions and balance revisions → show signed preview → human apply → lock/check warehouse/products → conditional updates/create missing balances + audit → commit all or rollback all. A completed import has no automatic undo operation.
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Customer
-    participant Client as Web App
-    participant Server as Order Service
-    participant DB as Database Engine
+Price: official Payload import-export plugin → validate rows and SKU existence → whitelist SKU/base price → update existing products. This is not the signed warehouse stock pipeline and does not have its documented token/revision mechanism.
 
-    Customer->>Client: Clicks 'Cancel Order' on Recent Order
-    Client->>Client: Check: now() <= order.cancellationDeadline?
-    alt Deadline Expired
-        Client-->>Customer: Cancellation Window Expired. Please contact Support.
-    else Deadline Valid
-        Customer->>Client: Confirms Cancellation Prompt
-        Client->>Server: POST /api/rpc/order.cancelByCustomer { orderId }
-        Server->>DB: Begin ACID Transaction
-        Server->>DB: Query Order FOR UPDATE
-        Server->>Server: Verify: status == 'pending_review' AND now() <= cancellationDeadline
-        alt Verification Fails
-            Server->>DB: Rollback
-            Server-->>Client: Error (Cancellation Window Expired or Order Already Confirmed)
-        else Verification Succeeds
-            Server->>DB: Update order status = 'cancelled', cancelledBy = 'customer'
-            loop For Each OrderItem
-                Server->>DB: Restore stock: inventorySqm = inventorySqm + item.actualSqm
-            end
-            Server->>DB: Append Timeline Event (customer_cancelled)
-            Server->>DB: Commit Transaction
-            Server-->>Client: Success (Order Cancelled & Stock Released)
-            Client->>Client: Refresh UI to show Cancelled Badge
-        end
-    end
-```
+## Plans
 
----
-
-## 5. Reorder Workflow
-
-```mermaid
-flowchart TD
-    Start([Customer Views Order Detail]) --> ReorderBtn[Click 'Reorder Items' / سفارش مجدد]
-    ReorderBtn --> Fetch[Server Loads Original Product IDs & Quantities]
-    Fetch --> Query[Query Live Products, Current Prices & Live Inventory]
-    Query --> Evaluate{Are all items active & in stock?}
-    Evaluate -- No --> Warn[Add available items to Cart;<br/>Flag discontinued/out-of-stock items with clear banner]
-    Evaluate -- Yes --> Populate[Populate Live Cart with Recalculated Quantities & Current Prices]
-    Warn --> Cart[Redirect Customer to Live Cart]
-    Populate --> Cart
-    Cart --> Review[Customer Reviews Cart & Proceeds to Normal Checkout]
-```
-
-**Key Principle**: Reorder is an accelerator for purchasing, **never an automatic re-submission**. The customer must always review and execute standard checkout.
-
----
-
-## 6. CSV Operational Sync Pipeline
-
-```mermaid
-flowchart LR
-    A[Staff Uploads CSV] --> B[Structural & Header Validation]
-    B --> C[Row Parse & Format Verification]
-    C --> D[SKU Match Against Database]
-    D --> E[Diff Engine:<br/>Compute Price & Stock Delta]
-    E --> F[Suspicious Change Detector]
-    F --> G[Interactive Preview Report]
-    G --> H{Staff Approves Apply?}
-    H -- No / Reject --> I[Abort & Log Cancellation]
-    H -- Yes / Confirm --> J[Atomic Database Update]
-    J --> K[Record ImportRun Audit Event]
-```
-
-### Pipeline Phases (Official Plugin Update-Only Pipeline)
-1. **Upload & Parse**: Reads CSV data via official `@payloadcms/plugin-import-export` (update-only mode, matching by `sku`); validates UTF-8 encoding and required columns (`sku`, `basePricePerSqm`, `inventorySqm`).
-2. **Pre-flight & Row Validation**: Verifies that prices and stock values are valid non-negative numbers and that the file contains $\le 100$ rows. Duplicate SKUs inside the CSV halt the file before writing.
-3. **SKU Matching & Execution**:
-   - Matched SKUs overwrite base price and net inventory directly (no maintenance window).
-   - Unmatched SKUs (in CSV but not in DB) reject the batch with row-level issue reports and never create new products.
-   - Per-row errors do not halt valid sibling rows; native summary reports `updated` and `issues`.
-4. **Derived Apply**: `stockCartons` is recalculated synchronously on the server from the incoming `inventorySqm` and `sqmPerCarton`. Inventory writes are absolute; concurrent customer orders are guarded by an atomic conditional decrement at order creation.
+CMS assigns a plan to users and optional products. API exposes active assigned plans with derived upcoming/active/expired status; expired/upcoming records can still be returned with that status. Web handles display and selection of plan products. Plan content is informational and is not a pricing engine. Adding recipients can trigger a notification SMS; tests/seed must explicitly disable those notifications.

@@ -2,7 +2,8 @@ import type { Access, FieldAccess } from 'payload'
 import { getAdminUser } from '../../access/roles'
 
 /**
- * Superadmin, Manager, and Support are authorized operational roles for product pricing/inventory and import/export.
+ * Superadmin and manager are authorized for operational prices and import/export.
+ * Warehouse balances use their separate controlled access and update paths.
  */
 export const isOperationalStaff = (user: unknown): boolean => {
   const admin = getAdminUser(user)
@@ -20,9 +21,9 @@ export const canUpdateOperationalPrice: FieldAccess = ({ req: { user } }) => {
 }
 
 /**
- * Field-level access for inventorySqm:
- * Update/create is restricted to operational staff. Inventory is an absolute
- * authoritative value, so no maintenance window gates direct edits.
+ * Legacy operational-inventory helper, retained for compatibility.
+ * Product inventory fields are write-blocked in the collection; warehouse
+ * balances use controlled reserve/restore/import operations instead.
  */
 export const canUpdateOperationalInventory: FieldAccess = ({ req: { user } }) => {
   return isOperationalStaff(user)
