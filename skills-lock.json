@@ -55,6 +55,12 @@
       "skillPath": "skills/nexload-reasoning/nexload-reasoning-investigation/SKILL.md",
       "computedHash": "753159b70c1814ffd250b6f74143a9fdbf9437e8240e85f8b2dba0095b5f4682"
     },
+    "nginx-spa": {
+      "source": "gecut/containers",
+      "sourceType": "github",
+      "skillPath": "skills/nginx-spa/SKILL.md",
+      "computedHash": "816d842d60407adbf0a29d913b2a5a5bfb42cefb72f1bf9cb3fdb921e9ffdaf0"
+    },
     "payload": {
       "source": "payloadcms/skills",
       "sourceType": "github",

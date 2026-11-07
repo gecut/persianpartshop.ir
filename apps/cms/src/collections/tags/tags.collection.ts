@@ -29,17 +29,6 @@ export const Tags: CollectionConfig = {
       },
     },
     {
-      name: 'slug',
-      type: 'text',
-      required: true,
-      unique: true,
-      label: 'اسلاگ URL',
-      admin: {
-        position: 'sidebar',
-        description: 'شناسه انگلیسی یکتا در آدرس اینترنتی.',
-      },
-    },
-    {
       name: 'isActive',
       type: 'checkbox',
       defaultValue: true,
@@ -47,6 +36,16 @@ export const Tags: CollectionConfig = {
       admin: {
         position: 'sidebar',
         description: 'فعال بودن این برچسب در فیلترهای کاتالوگ.',
+      },
+    },
+    {
+      name: 'slug',
+      type: 'text',
+      required: true,
+      unique: true,
+      label: 'شناسه فنی',
+      admin: {
+        description: 'شناسه انگلیسی یکتا در آدرس اینترنتی.',
       },
     },
   ],

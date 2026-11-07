@@ -333,6 +333,7 @@ export type AvailabilityBadge = z.infer<typeof AvailabilityBadgeSchema>
 
 export const CatalogProductSchema = z.object({
   id: EntityIdSchema,
+  hasScanCode: z.boolean().optional(),
   sku: z.string(),
   name: z.string(),
   slug: z.string(),
@@ -371,6 +372,51 @@ export const CatalogProductSchema = z.object({
 })
 
 export type CatalogProduct = z.infer<typeof CatalogProductSchema>
+
+// Payload-shaped product returned by the scan endpoint. Keep this distinct
+// from the older flattened CatalogProductSchema used by legacy procedures.
+const CatalogRelationSchema = z.union([
+  z.number().int().positive(),
+  EntityIdSchema,
+  z.object({ id: z.union([z.number().int().positive(), EntityIdSchema]), name: z.string(), slug: z.string().optional() }),
+])
+const CatalogMediaSchema = z.union([
+  z.number().int().positive(),
+  z.string(),
+  z.object({ id: z.union([z.number(), z.string()]).optional(), url: z.string().nullish(), thumbnailURL: z.string().nullish(), filename: z.string().nullish() }),
+])
+export const ScannedCatalogProductSchema = z.object({
+  id: z.union([z.number().int().positive(), EntityIdSchema]),
+  sku: z.string().min(1),
+  name: z.string().min(1),
+  slug: z.string().min(1),
+  productType: z.enum(['tile', 'other']).nullish(),
+  category: CatalogRelationSchema.nullish(),
+  brand: CatalogRelationSchema.nullish(),
+  color: z.string().nullish(),
+  grade: z.string().nullish(),
+  tags: z.array(CatalogRelationSchema).nullish(),
+  dimension: z.union([z.number().int().positive(), EntityIdSchema, z.object({ id: z.number().int().positive(), name: z.string(), width: z.number(), height: z.number() })]).nullish(),
+  width: z.number().nullish(),
+  height: z.number().nullish(),
+  sqmPerCarton: z.number().nullish(),
+  piecesPerCarton: z.number().nullish(),
+  unit: z.string().nullish(),
+  secondary_unit: z.string().nullish(),
+  weight: z.number().nullish(),
+  itemsPerPack: z.number().nullish(),
+  approxCoverage: z.string().nullish(),
+  cover: CatalogMediaSchema.nullish(),
+  gallery: z.array(z.object({ image: CatalogMediaSchema, id: z.string().nullish() })).nullish(),
+  richDescription: z.union([z.string(), z.object({ root: z.unknown() }).passthrough()]).nullish(),
+  inventorySqm: z.number().nonnegative(),
+  stockCartons: z.number().nonnegative(),
+  availability: AvailabilityBadgeSchema,
+  hideExactStock: z.boolean().optional(),
+  hasScanCode: z.literal(true),
+  finalCustomerPricePerSqm: z.number().nonnegative(),
+})
+export type ScannedCatalogProduct = z.infer<typeof ScannedCatalogProductSchema>
 
 export const CatalogFilterInputSchema = z
   .object({
@@ -580,6 +626,14 @@ export const tagContract = {
 }
 
 export const catalogContract = {
+  getByScanCode: oc
+    .meta(openapi({ method: 'POST', path: '/catalog/scan', summary: 'شناسایی محصول با کد اسکن' }))
+    .input(z.object({ scanCode: z.string().trim().min(1).max(128).regex(/^[a-zA-Z0-9-]+$/).transform(value => value.toUpperCase()) }))
+    .output(ScannedCatalogProductSchema),
+  getProductQr: oc
+    .meta(openapi({ method: 'POST', path: '/catalog/product-qr', summary: 'دریافت کد QR محصول' }))
+    .input(z.object({ id: z.union([EntityIdSchema, z.number().int().positive()]) }))
+    .output(z.object({ scanCode: z.string() })),
   list: oc
     .meta(openapi({ method: 'GET', path: '/catalog', summary: 'کاتالوگ محصولات با قیمت اختصاصی مشتری جاری' }))
     .input(CatalogFilterInputSchema)

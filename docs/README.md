@@ -14,6 +14,7 @@ Reviewed: 2026-11-07 (Asia/Tehran).
 | [05 — Architecture](05-architecture-and-contracts.md) | Runtime ownership, real contract surface, deployment configuration |
 | [06 — Operations](06-admin-and-operations.md) | Administration, CSV, migration/seed and verification commands |
 | [07 — Warehouses](07-warehouses.md) | Warehouse decision record and detailed operational contract |
+| [08 — PWA](08-pwa.md) | Installation, offline shell, drafts, upgrades and browser verification |
 | [CSV example](examples/warehouse-stock.csv) | Stock import syntax only; not actual stock data |
 
 Keep a rule in its owning document and link elsewhere. In particular document 07 preserves the warehouse decisions, while model/rule/runbook documents describe their current implementation without contradictory fallback banners.

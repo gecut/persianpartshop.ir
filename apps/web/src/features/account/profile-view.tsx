@@ -1,3 +1,7 @@
+import { PwaAccountButton } from '../pwa/pwa-controls'
+import { DataStatus } from '../../components/feedback/data-status'
+import { useTextDraft } from '../../lib/drafts'
+import { useWriteActivity, writeActivity } from '../../lib/write-activity'
 import { useState, useRef } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -155,6 +159,7 @@ async function compressImageFile(file: File, maxDimension = 1920, quality = 0.82
 }
 
 export function ProfileView() {
+  const pendingWrites = useWriteActivity();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -166,6 +171,8 @@ export function ProfileView() {
   const {
     data: profileDoc,
     isLoading: isProfileLoading,
+    error: profileError,
+    isFetching: isProfileFetching,
     refetch: refetchProfile,
   } = useQuery({
     queryKey: queryKeys.auth.profile(),
@@ -189,7 +196,7 @@ export function ProfileView() {
   // State for previewing full-size document
   const [previewDoc, setPreviewDoc] = useState<CustomerDocument | null>(null);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData, discardProfileDraft] = useTextDraft(user?.id ?? '', 'profile', {
     name: user?.name || "",
     storeName: user?.storeName || "",
     address: user?.address || "",
@@ -216,14 +223,7 @@ export function ProfileView() {
     );
   }
 
-  const handleStartEdit = () => {
-    setFormData({
-      name: user.name,
-      storeName: user.storeName,
-      address: user.address || "",
-    });
-    setIsEditing(true);
-  };
+  const handleStartEdit = () => { setIsEditing(true); };
 
   const handleCancelEdit = () => {
     setFormData({
@@ -231,11 +231,13 @@ export function ProfileView() {
       storeName: user.storeName,
       address: user.address || "",
     });
+    discardProfileDraft();
     setIsEditing(false);
   };
 
-  const handleSaveProfile = (e: React.FormEvent) => {
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (pendingWrites > 0) return;
 
     if (!formData.name.trim()) {
       toast.warning("نام و نام خانوادگی الزامی است.");
@@ -247,22 +249,23 @@ export function ProfileView() {
       return;
     }
 
-    updateProfile({
-      name: formData.name.trim(),
-      storeName: formData.storeName.trim(),
-      address: formData.address.trim(),
-    });
-
-    toast.success(
-      "تغییرات ذخیره شد",
-      "اطلاعات حساب کاربری با موفقیت به‌روزرسانی گردید.",
-    );
-    setIsEditing(false);
+    try {
+      await updateProfile({
+        name: formData.name.trim(),
+        storeName: formData.storeName.trim(),
+        address: formData.address.trim(),
+      });
+      toast.success('تغییرات ذخیره شد', 'اطلاعات حساب کاربری با موفقیت به‌روزرسانی گردید.');
+      discardProfileDraft();
+      setIsEditing(false);
+    } catch (error) {
+      toast.error('تغییرات ذخیره نشد', error instanceof Error ? error.message : 'دوباره تلاش کنید.');
+    }
   };
 
   const handleLogout = () => {
     setShowLogoutConfirm(false);
-    logout();
+    if (!logout()) return;
     toast.info("خروج از حساب", "از حساب کاربری خود خارج شدید.");
     navigate({ to: "/login" });
   };
@@ -310,6 +313,7 @@ export function ProfileView() {
       return;
     }
 
+    const finishUpload = writeActivity.begin();
     setIsUploading(true);
     try {
       const token =
@@ -333,6 +337,7 @@ export function ProfileView() {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: formDataUpload,
+        signal: AbortSignal.timeout(30_000),
       });
 
       if (!uploadRes.ok) {
@@ -343,6 +348,7 @@ export function ProfileView() {
         throw new Error(errJson?.error || "خطا در بارگذاری فایل در سرور");
       }
 
+      if (token !== localStorage.getItem('persianpart_token')) throw new Error('حساب کاربری تغییر کرده است.');
       const uploadData = await uploadRes.json();
       const mediaId = uploadData.id;
 
@@ -384,6 +390,7 @@ export function ProfileView() {
         err.message || "لطفاً مجدداً تلاش فرمایید.",
       );
     } finally {
+      finishUpload();
       setIsUploading(false);
     }
   };
@@ -430,6 +437,8 @@ export function ProfileView() {
 
   return (
     <div className="space-y-3.5 w-full">
+      <PwaAccountButton />
+      <DataStatus error={profileError} hasData={!!profileDoc} fetching={isProfileFetching} onRetry={() => void refetchProfile()} />
       {/* Top Header Card */}
       <div className="bg-muted/5 rounded-2xl p-4 flex items-center justify-between gap-2">
         <div className="flex items-center gap-3">
@@ -817,7 +826,7 @@ export function ProfileView() {
                     <span>انصراف</span>
                   </Button>
                   <Button
-                    type="submit"
+                    type="submit" isDisabled={pendingWrites > 0}
                     className="flex-1 h-12 px-4 rounded-2xl bg-success/15 text-success hover:bg-success/20 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-98"
                   >
                     <CheckIcon size={15} />
@@ -1019,7 +1028,7 @@ export function ProfileView() {
                   </Button>
                   <Button
                     type="submit"
-                    isDisabled={!uploadFile || isUploading}
+                    isDisabled={!uploadFile || isUploading || pendingWrites > 0}
                     className="h-11 px-4 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs cursor-pointer flex-1 flex items-center justify-center gap-1.5 disabled:opacity-50"
                   >
                     {isUploading ? (
@@ -1113,7 +1122,7 @@ export function ProfileView() {
                   خروج از حساب کاربری
                 </HeroUIModal.Heading>
                 <p className="text-xs text-muted mt-1 leading-relaxed">
-                  آیا از خروج از حساب کاربری همکاران اطمینان دارید؟
+                  با خروج، سبد و تمام پیش‌نویس‌های این حساب در دستگاه حذف می‌شوند. ادامه می‌دهید؟
                 </p>
               </div>
               <div className="w-full flex items-center justify-center gap-1.5 pt-2">
@@ -1126,6 +1135,7 @@ export function ProfileView() {
                 </Button>
                 <Button
                   type="button"
+                  isDisabled={pendingWrites > 0 || isUploading || !!isDeletingDocId}
                   onPress={handleLogout}
                   className="h-12 px-4 w-full rounded-2xl bg-danger/15 text-danger hover:bg-danger/20 font-bold text-xs cursor-pointer transition-all"
                 >

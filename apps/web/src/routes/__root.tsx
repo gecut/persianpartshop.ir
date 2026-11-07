@@ -1,3 +1,5 @@
+import { PwaControls } from '../features/pwa/pwa-controls'
+import { DataStatus } from '../components/feedback/data-status'
 import { selectionStore } from '../features/products/selection-store'
 import { WarehouseSelection, WarehouseSummary } from '../features/cart/warehouse-selection'
 import { useEffect } from 'react'
@@ -5,7 +7,7 @@ import { createRootRoute, Outlet, redirect, useNavigate, useRouterState } from '
 import { useQuery } from '@tanstack/react-query'
 import { AppHeader } from '../components/layout/app-header'
 import { MobileBottomNav } from '../components/layout/mobile-bottom-nav'
-import { ToastContainer, toast } from '../components/feedback/toast'
+import { ToastContainer } from '../components/feedback/toast'
 import { authStore, useAuth } from '../features/auth/auth-store'
 import { api } from '../lib/api-client'
 import { queryKeys } from '../lib/query-keys'
@@ -27,9 +29,11 @@ export const Route = createRootRoute({
     }
 
     if (isAuth && isLoginPage) {
-      throw redirect({
-        to: '/product',
-      })
+      const destination = new URL(location.href, window.location.origin).searchParams.get('redirect')
+      let target: URL | undefined
+      try { if (typeof destination === 'string') target = new URL(destination, window.location.origin) } catch { /* Invalid login destination. */ }
+      if (target && target.origin === window.location.origin && target.pathname !== '/login') throw redirect({ href: target.pathname + target.search + target.hash })
+      throw redirect({ to: '/product' })
     }
   },
   component: RootComponent,
@@ -45,7 +49,7 @@ function RootComponent() {
   useEffect(() => { selectionStore.setOwner(isAuthenticated && user ? String(user.id) : '') }, [isAuthenticated, user?.id])
 
   // Periodic background check of session validity and ban status (every 4 seconds and on focus)
-  const { data: sessionData, error: sessionError } = useQuery({
+  const { data: sessionData, error: sessionError, refetch: refetchSession } = useQuery({
     queryKey: queryKeys.auth.session(),
     queryFn: async () => {
       const token = typeof window !== 'undefined' ? localStorage.getItem('persianpart_token') : null
@@ -61,15 +65,8 @@ function RootComponent() {
   useEffect(() => {
     if (!isAuthenticated || isLoginPage) return
 
-    if (sessionError) {
-      const errMsg = (sessionError as any)?.message || ''
-      authStore.logout()
-      if (errMsg.includes('مسدود') || (sessionError as any)?.code === 'FORBIDDEN') {
-        toast.error('مسدود شدن حساب کاربری', errMsg)
-      }
-    } else if (sessionData && !sessionData.user) {
-      authStore.logout()
-    }
+    if (sessionError && typeof sessionError === 'object' && 'code' in sessionError && sessionError.code === 'FORBIDDEN') authStore.logout()
+    else if (!sessionError && sessionData && !sessionData.user) authStore.logout()
   }, [sessionData, sessionError, isAuthenticated, isLoginPage])
 
   // Dynamic client-side redirect if auth state drops while on a protected page
@@ -77,9 +74,10 @@ function RootComponent() {
     if (!isAuthenticated && !isLoginPage) {
       navigate({
         to: '/login',
+        search: { redirect: routerState.location.href },
       })
     }
-  }, [isAuthenticated, isLoginPage, navigate])
+  }, [isAuthenticated, isLoginPage, navigate, routerState.location.href])
 
   return (
     <NuqsAdapter>
@@ -98,6 +96,8 @@ function RootComponent() {
         >
           {!isLoginPage && <AppHeader />}
           <ToastContainer />
+          <PwaControls />
+          {isAuthenticated && sessionError && <DataStatus error={sessionError} hasData onRetry={() => void refetchSession()} />}
           <WarehouseSelection />
           {/* Main App Content Area */}
           <main
@@ -109,7 +109,7 @@ function RootComponent() {
             )}
           >
             {pathname.startsWith('/product') && <WarehouseSummary />}
-            <Outlet />
+            <Outlet key={user?.id ?? 'guest'} />
           </main>
 
           {/* Permanent Bottom Navigation Bar (Hidden on login) */}

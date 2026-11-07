@@ -111,8 +111,7 @@ export const Plans: CollectionConfig = {
       required: true,
       label: "مشتریان هدف",
       admin: {
-        position: "sidebar",
-        description: "خریدارانی که این طرح به آن‌ها تخصیص داده می‌شود.",
+        description: "با افزودن مشتری، پیامک اطلاع‌رسانی برای او ارسال می‌شود.",
       },
     },
     {

@@ -1,6 +1,6 @@
 import { sdk } from "../payload";
 import { base, adminOnly } from "../rpc/base";
-import { enrichPlanWithUserName } from "./router.helpers";
+import { enrichPlanWithUserName, sanitizePlanProducts } from "./router.helpers";
 
 const list = base.plan.list.handler(async ({ input, context }) => {
   const where: Record<string, any> = {};
@@ -50,7 +50,7 @@ const list = base.plan.list.handler(async ({ input, context }) => {
   const items = validDocs.map((doc: any) => {
     const enriched = enrichPlanWithUserName(doc, currentUserName);
     const { users, ...safePlan } = enriched;
-    return { ...safePlan, users: [context.user?.id] };
+    return sanitizePlanProducts({ ...safePlan, users: [context.user?.id] });
   });
 
   return {
@@ -95,12 +95,12 @@ const getById = base.plan.getById.handler(
     const currentUserName = context.user?.fullName || "همکار";
     const enriched = enrichPlanWithUserName(doc, currentUserName);
     const { users, ...safePlan } = enriched;
-    return {
+    return sanitizePlanProducts({
       ...safePlan,
       status,
       isExpired,
       users: [context.user?.id],
-    };
+    });
   },
 );
 

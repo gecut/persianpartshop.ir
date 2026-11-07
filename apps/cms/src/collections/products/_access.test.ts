@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { isOperationalStaff, canUpdateOperationalPrice, canUpdateOperationalInventory, isImportExportAuthorized } from './_product-access'
+import { isOperationalStaff, canUpdateOperationalPrice, canUpdateOperationalInventory } from './_product-access'
 
 test('operational staff includes superadmin, manager and excludes support, editor, service, inactive', () => {
   assert.equal(isOperationalStaff({ collection: 'admins', role: 'superadmin' }), true)
@@ -27,10 +27,4 @@ test('canUpdateOperationalInventory allows only operational staff (no maintenanc
   // Unauthorized roles are always blocked
   assert.equal(canUpdateOperationalInventory({ req: { user: { collection: 'admins', role: 'editor' } } } as any), false)
   assert.equal(canUpdateOperationalInventory({ req: { user: null } } as any), false)
-})
-
-test('isImportExportAuthorized allows only operational staff', () => {
-  assert.equal(isImportExportAuthorized({ req: { user: { collection: 'admins', role: 'support' } } } as any), false)
-  assert.equal(isImportExportAuthorized({ req: { user: { collection: 'admins', role: 'editor' } } } as any), false)
-  assert.equal(isImportExportAuthorized({ req: { user: { collection: 'admins', role: 'service' } } } as any), false)
 })

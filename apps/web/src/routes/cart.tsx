@@ -1,3 +1,4 @@
+import { useTextDraft } from '../lib/drafts'
 import { customerErrorMessage } from '../lib/utils/error'
 import { selectionStore } from '../features/products/selection-store'
 import { WarehouseSummary } from '../features/cart/warehouse-selection'
@@ -47,7 +48,7 @@ function CartPage() {
   const isOrderingDisabled = Boolean(user?.disableOrdering) || Boolean(user?.hideExactStock)
 
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false)
-  const [orderNotes, setOrderNotes] = useState('')
+  const [orderNotes, setOrderNotes, discardNotes] = useTextDraft<string>(user?.id ?? '', 'cart-notes', '')
   const idempotencyKeyRef = useRef<string | null>(null)
   const queryClient = useQueryClient()
 
@@ -93,6 +94,7 @@ function CartPage() {
       idempotencyKeyRef.current = null
 
       if (!selectionStore.finishSubmission(submittedDraft)) return
+      discardNotes()
       setIsCheckoutModalOpen(false)
       toast.success(
         'سفارش با موفقیت در سامانه ثبت گردید',
@@ -100,7 +102,7 @@ function CartPage() {
       )
       navigate({ to: '/orders/$id', params: { id: String(newOrder.id) } })
     } catch (err) {
-      toast.error('خطا در ثبت سفارش', customerErrorMessage(err, 'مشکلی در ارتباط با سرور رخ داد؛ دوباره تلاش کنید.'))
+      toast.error('خطا در ثبت سفارش', customerErrorMessage(err, 'پاسخ دریافت نشد و ممکن است سفارش ثبت شده باشد؛ سفارش‌ها را بررسی کنید یا با همین سبد دوباره تلاش کنید.'))
     }
   }
 
@@ -122,7 +124,7 @@ function CartPage() {
         {items.length > 0 && (
           <Button
             type="button"
-            onClick={clearCart}
+            onPress={() => { clearCart(); setOrderNotes(''); discardNotes() }}
             className="text-xs font-semibold text-danger hover:text-danger/80 flex items-center gap-1 cursor-pointer active:scale-95 transition-transform"
           >
             <Trash2Icon size={13} />

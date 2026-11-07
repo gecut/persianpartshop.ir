@@ -82,10 +82,7 @@ export interface Config {
     media: Media;
     admins: Admin;
     'audit-logs': AuditLog;
-    exports: Export;
-    imports: Import;
     'payload-kv': PayloadKv;
-    'payload-jobs': PayloadJob;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -107,10 +104,7 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     admins: AdminsSelect<false> | AdminsSelect<true>;
     'audit-logs': AuditLogsSelect<false> | AuditLogsSelect<true>;
-    exports: ExportsSelect<false> | ExportsSelect<true>;
-    imports: ImportsSelect<false> | ImportsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
-    'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -127,14 +121,7 @@ export interface Config {
   };
   user: Admin;
   jobs: {
-    tasks: {
-      createCollectionExport: TaskCreateCollectionExport;
-      createCollectionImport: TaskCreateCollectionImport;
-      inline: {
-        input: unknown;
-        output: unknown;
-      };
-    };
+    tasks: unknown;
     workflows: unknown;
   };
 }
@@ -165,98 +152,61 @@ export interface AdminAuthOperations {
 export interface Product {
   id: number;
   /**
-   * در صورت فعال بودن، در کاتالوگ فروشگاه نمایش داده می‌شود.
+   * محصول فعال در کاتالوگ فروشگاه نمایش داده می‌شود.
    */
   isActive?: boolean | null;
-  productType?: ('tile' | 'other') | null;
-  /**
-   * شناسه یکتا در آدرس صفحه وبسایت (تولید خودکار از روی کد کالا).
-   */
-  slug: string;
-  /**
-   * گروه کالایی تخصصی در کاتالوگ فروشگاه.
-   */
-  category?: (number | null) | Category;
-  /**
-   * کارخانه یا برند سازنده کالا.
-   */
-  brand?: (number | null) | Brand;
-  /**
-   * درجه‌بندی استاندارد کیفیت کارخانه‌ای (اختیاری برای تمام محصولات).
-   */
-  grade?: ('grade_1' | 'grade_2' | 'grade_3' | 'grade_4') | null;
-  /**
-   * طیف رنگی اصلی کالا (مثال: سفید، طوسی، کرم).
-   */
-  color?: string | null;
-  /**
-   * ویژگی‌های کاربردی و فنی کالا.
-   */
-  tags?: (number | Tag)[] | null;
-  /**
-   * عنوان تجاری و رسمی کالا در فروشگاه و فاکتور.
-   */
   name: string;
-  /**
-   * شناسه یکتای انبارداری کالا جهت تطبیق موجودی.
-   */
   sku: string;
   /**
-   * قیمت پایه (برای کاشی بر حسب متر مربع، برای اقلام غیره بر حسب هر واحد/بسته).
+   * تغییر نوع کالای دارای رکورد انبار مجاز نیست.
+   */
+  productType?: ('tile' | 'other') | null;
+  category?: (number | null) | Category;
+  brand?: (number | null) | Brand;
+  /**
+   * مثلاً سفید، طوسی یا کرم.
+   */
+  color?: string | null;
+  grade?: ('grade_1' | 'grade_2' | 'grade_3' | 'grade_4') | null;
+  dimension?: (number | null) | Dimension;
+  width?: number | null;
+  height?: number | null;
+  tags?: (number | Tag)[] | null;
+  /**
+   * برای کاشی قیمت هر مترمربع و برای سایر اقلام قیمت هر واحد فروش را وارد کنید.
    */
   basePricePerSqm?: number | null;
   /**
-   * ضریب متراژ فیزیکی در هر کارتن (مخصوص کاشی و سرامیک).
+   * مقدار پیش‌فرض را با بسته‌بندی کالا تطبیق دهید. تغییر آن در صورت وجود سفارش باز مجاز نیست.
    */
   sqmPerCarton?: number | null;
   /**
-   * موجودی قابل سفارش (برای کاشی بر حسب متر مربع، برای اقلام غیره بر حسب تعداد واحد/بسته).
-   */
-  inventorySqm?: number | null;
-  /**
-   * محاسبه سیستمی در سرور: حاصل تقسیم موجودی بر متراژ کارتن.
-   */
-  stockCartons?: number | null;
-  /**
-   * انتخاب سایز استاندارد کالا از لیست ابعاد.
-   */
-  dimension?: (number | null) | Dimension;
-  /**
-   * عرض همگام‌شده پس از ذخیره.
-   */
-  width?: number | null;
-  /**
-   * طول همگام‌شده پس از ذخیره.
-   */
-  height?: number | null;
-  /**
-   * تعداد فیزیکی قالب/اسلب کاشی در کارتن (مستقل از متراژ).
+   * مقدار پیش‌فرض را بررسی کنید. تغییر آن در صورت وجود سفارش باز مجاز نیست.
    */
   piecesPerCarton?: number | null;
+  /**
+   * تغییر واحد کالای دارای رکورد انبار مجاز نیست.
+   */
   unit?: ('bag' | 'bucket' | 'pack' | 'can' | 'branch' | 'piece' | 'box' | 'roll' | 'kg' | 'liter') | null;
   /**
-   * واحد فرعی محتوا یا وزن (مثال: کیلوگرم برای کیسه چسب).
-   */
-  secondary_unit?: ('meter' | 'kg' | 'cm' | 'g') | null;
-  /**
-   * مثال: ۲۵ برای کیسه ۲۵ کیلو
+   * مثلاً ۲۵ برای کیسه ۲۵ کیلوگرمی.
    */
   weight?: number | null;
+  secondary_unit?: ('meter' | 'kg' | 'cm' | 'g') | null;
   /**
-   * مثال: ۱۰۰ عدد
+   * مثلاً ۱۰۰ عدد.
    */
   itemsPerPack?: number | null;
   /**
-   * مثال: ۴ الی ۵ مترمربع
+   * مثلاً ۴ تا ۵ مترمربع.
    */
   approxCoverage?: string | null;
+  inventorySqm?: number | null;
+  stockCartons?: number | null;
   /**
-   * تصویر اصلی و کاور محصول در کاتالوگ فروشگاه.
+   * تصویر اصلی محصول در فروشگاه.
    */
   cover?: (number | null) | Media;
-  /**
-   * تصاویر تکمیلی و محیطی محصول.
-   */
   gallery?:
     | {
         image: number | Media;
@@ -264,7 +214,7 @@ export interface Product {
       }[]
     | null;
   /**
-   * مشخصات فنی، ویژگی‌های لعاب و راهنمای نصب و نگهداری.
+   * ویژگی‌ها و راهنمای نصب و نگهداری.
    */
   richDescription?: {
     root: {
@@ -281,6 +231,14 @@ export interface Product {
     };
     [k: string]: unknown;
   } | null;
+  /**
+   * هنگام ایجاد از کد کالا ساخته می‌شود؛ تغییر آن نشانی محصول را تغییر می‌دهد.
+   */
+  slug: string;
+  /**
+   * کد یکتای محصول برای ساخت QR و شناسایی هنگام اسکن.
+   */
+  scanCode?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -295,10 +253,6 @@ export interface Category {
    */
   name: string;
   /**
-   * شناسه انگلیسی یکتا در آدرس اینترنتی.
-   */
-  slug: string;
-  /**
    * اولویت چینش در منوی سایت (عدد کوچکتر بالاتر).
    */
   ordering?: number | null;
@@ -310,6 +264,10 @@ export interface Category {
    * نمایش این دسته‌بندی در سایت.
    */
   isActive?: boolean | null;
+  /**
+   * شناسه انگلیسی یکتا در آدرس اینترنتی.
+   */
+  slug: string;
   updatedAt: string;
   createdAt: string;
 }
@@ -328,13 +286,13 @@ export interface Brand {
    */
   logo?: (number | null) | Media;
   /**
-   * شناسه انگلیسی برند در آدرس سایت.
-   */
-  slug: string;
-  /**
    * فعال بودن برند در سایت و فیلترها.
    */
   isActive?: boolean | null;
+  /**
+   * شناسه انگلیسی برند در آدرس سایت.
+   */
+  slug: string;
   updatedAt: string;
   createdAt: string;
 }
@@ -363,27 +321,6 @@ export interface Media {
   focalY?: number | null;
 }
 /**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "tags".
- */
-export interface Tag {
-  id: number;
-  /**
-   * عنوان ویژگی یا کاربرد کالا (مانند پرسلان، پولیش، ضداسید).
-   */
-  name: string;
-  /**
-   * شناسه انگلیسی یکتا در آدرس اینترنتی.
-   */
-  slug: string;
-  /**
-   * فعال بودن این برچسب در فیلترهای کاتالوگ.
-   */
-  isActive?: boolean | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
  * ابعاد استاندارد کاشی و سرامیک.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -404,13 +341,34 @@ export interface Dimension {
    */
   height: number;
   /**
-   * شناسه انگلیسی یکتا در آدرس (مثال: 60x120).
-   */
-  slug: string;
-  /**
    * نمایش و فعال بودن این سایز در فیلترها.
    */
   isActive?: boolean | null;
+  /**
+   * شناسه انگلیسی یکتا در آدرس (مثال: 60x120).
+   */
+  slug: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tags".
+ */
+export interface Tag {
+  id: number;
+  /**
+   * عنوان ویژگی یا کاربرد کالا (مانند پرسلان، پولیش، ضداسید).
+   */
+  name: string;
+  /**
+   * فعال بودن این برچسب در فیلترهای کاتالوگ.
+   */
+  isActive?: boolean | null;
+  /**
+   * شناسه انگلیسی یکتا در آدرس اینترنتی.
+   */
+  slug: string;
   updatedAt: string;
   createdAt: string;
 }
@@ -435,13 +393,13 @@ export interface CustomerType {
    */
   description?: string | null;
   /**
-   * شناسه انگلیسی یکتای رده.
-   */
-  slug: string;
-  /**
    * فعال بودن این رده مشتری در سیستم.
    */
   isActive?: boolean | null;
+  /**
+   * شناسه انگلیسی یکتای رده.
+   */
+  slug: string;
   updatedAt: string;
   createdAt: string;
 }
@@ -454,10 +412,13 @@ export interface CustomerType {
 export interface Order {
   id: number;
   requestFingerprint?: string | null;
-  warehouse: number | Warehouse;
   warehouseName?: string | null;
   warehouseCode?: string | null;
   idempotencyKey?: string | null;
+  /**
+   * مرحله جاری پردازش در انبار و حسابداری.
+   */
+  status: 'pending' | 'approve' | 'completed' | 'cancelled_by_customer' | 'cancelled_by_admin' | 'cancel';
   /**
    * شناسه یکتا و رسمی فاکتور سفارش در سیستم.
    */
@@ -466,14 +427,7 @@ export interface Order {
    * خریدار یا شرکت ثبت‌کننده سفارش.
    */
   user: number | User;
-  /**
-   * مرحله جاری پردازش در انبار و حسابداری.
-   */
-  status: 'pending' | 'approve' | 'completed' | 'cancelled_by_customer' | 'cancelled_by_admin' | 'cancel';
-  /**
-   * سمت فرد لغو‌کننده سفارش.
-   */
-  cancelledBy?: ('customer' | 'admin') | null;
+  warehouse: number | Warehouse;
   items: {
     productType?: string | null;
     unit?: string | null;
@@ -511,6 +465,10 @@ export interface Order {
    */
   notes?: string | null;
   /**
+   * سمت فرد لغوکننده سفارش.
+   */
+  cancelledBy?: ('customer' | 'admin') | null;
+  /**
    * ثبت زمانی تغییرات وضعیت سفارش.
    */
   timeline?:
@@ -524,18 +482,6 @@ export interface Order {
   createdAt: string;
 }
 /**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "warehouses".
- */
-export interface Warehouse {
-  id: number;
-  code: string;
-  name: string;
-  isActive: boolean;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
  * فهرست مشتریان و خریداران تجاری.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -543,29 +489,12 @@ export interface Warehouse {
  */
 export interface User {
   id: number;
+  status: 'active' | 'pending' | 'suspended';
   /**
    * تعیین‌کننده درصد تخفیف و رده قیمت کاتالوگ.
    */
   customerType: number | CustomerType;
-  status: 'active' | 'pending' | 'suspended';
   isBanned?: boolean | null;
-  /**
-   * پیام خطا هنگام ورود
-   */
-  banReason?: string | null;
-  /**
-   * خالی = دسترسی کامل به کاتالوگ
-   */
-  allowedCategories?: (number | Category)[] | null;
-  /**
-   * مخفی‌سازی عدد موجودی (با فعال‌سازی، ثبت سفارش برای مشتری غیرفعال می‌شود)
-   */
-  hideExactStock?: boolean | null;
-  disableOrdering?: boolean | null;
-  /**
-   * یادداشت‌های اختصاصی مدیران فروش درباره سابقه مشتری.
-   */
-  notes?: string | null;
   /**
    * نام و نام خانوادگی خریدار یا نماینده خرید.
    */
@@ -648,6 +577,42 @@ export interface User {
         id?: string | null;
       }[]
     | null;
+  /**
+   * خالی = دسترسی کامل به کاتالوگ
+   */
+  allowedCategories?: (number | Category)[] | null;
+  /**
+   * مخفی‌سازی عدد موجودی (با فعال‌سازی، ثبت سفارش برای مشتری غیرفعال می‌شود)
+   */
+  hideExactStock?: boolean | null;
+  /**
+   * اجازهٔ اسکن و دریافت QR محصولات قابل مشاهده.
+   */
+  canUseProductQr?: boolean | null;
+  disableOrdering?: boolean | null;
+  /**
+   * یادداشت‌های اختصاصی مدیران فروش درباره سابقه مشتری.
+   */
+  notes?: string | null;
+  /**
+   * پیام خطا هنگام ورود
+   */
+  banReason?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "warehouses".
+ */
+export interface Warehouse {
+  id: number;
+  /**
+   * پس از ایجاد انبار قابل تغییر نیست.
+   */
+  code: string;
+  name: string;
+  isActive: boolean;
   updatedAt: string;
   createdAt: string;
 }
@@ -668,7 +633,7 @@ export interface Plan {
    */
   content: string;
   /**
-   * خریدارانی که این طرح به آن‌ها تخصیص داده می‌شود.
+   * با افزودن مشتری، پیامک اطلاع‌رسانی برای او ارسال می‌شود.
    */
   users: (number | User)[];
   /**
@@ -716,9 +681,15 @@ export interface Otp {
  */
 export interface WarehouseStock {
   id: number;
+  /**
+   * این مقدار از موجودی و بسته‌بندی محصول محاسبه می‌شود.
+   */
   stockCartons?: number | null;
   warehouse: number | Warehouse;
   product: number | Product;
+  /**
+   * برای کاشی مترمربع و برای سایر کالاها تعداد واحد فروش است. اصلاح موجودی از مسیر کنترل‌شده انبار انجام می‌شود.
+   */
   inventorySqm: number;
   revision: number;
   updatedAt: string;
@@ -798,90 +769,6 @@ export interface AuditLog {
   createdAt: string;
 }
 /**
- * خروجی اکسل/CSV قیمت و موجودی کاتالوگ.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "exports".
- */
-export interface Export {
-  id: number;
-  name?: string | null;
-  format: 'csv' | 'json';
-  limit?: number | null;
-  page?: number | null;
-  sort?: string | null;
-  sortOrder?: ('asc' | 'desc') | null;
-  drafts?: ('yes' | 'no') | null;
-  selectionToUse?: ('currentSelection' | 'currentFilters' | 'all') | null;
-  fields?: string[] | null;
-  collectionSlug: string;
-  where?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  updatedAt: string;
-  createdAt: string;
-  url?: string | null;
-  thumbnailURL?: string | null;
-  filename?: string | null;
-  mimeType?: string | null;
-  filesize?: number | null;
-  width?: number | null;
-  height?: number | null;
-  focalX?: number | null;
-  focalY?: number | null;
-}
-/**
- * عملیات بارگذاری و به‌روزرسانی قیمت و موجودی کاتالوگ.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "imports".
- */
-export interface Import {
-  id: number;
-  collectionSlug: string;
-  /**
-   * در این سیستم فقط به‌روزرسانی اقلام موجود (update) مجاز است.
-   */
-  importMode?: ('create' | 'update' | 'upsert') | null;
-  /**
-   * تطبیق ردیف‌های فایل منحصراً بر اساس فیلد کد کالا (sku) انجام می‌شود.
-   */
-  matchField?: string | null;
-  status?: ('pending' | 'completed' | 'partial' | 'failed') | null;
-  summary?: {
-    imported?: number | null;
-    updated?: number | null;
-    total?: number | null;
-    issues?: number | null;
-    issueDetails?:
-      | {
-          [k: string]: unknown;
-        }
-      | unknown[]
-      | string
-      | number
-      | boolean
-      | null;
-  };
-  updatedAt: string;
-  createdAt: string;
-  url?: string | null;
-  thumbnailURL?: string | null;
-  filename?: string | null;
-  mimeType?: string | null;
-  filesize?: number | null;
-  width?: number | null;
-  height?: number | null;
-  focalX?: number | null;
-  focalY?: number | null;
-}
-/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -897,98 +784,6 @@ export interface PayloadKv {
     | number
     | boolean
     | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "payload-jobs".
- */
-export interface PayloadJob {
-  id: number;
-  /**
-   * Input data provided to the job
-   */
-  input?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  taskStatus?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  completedAt?: string | null;
-  totalTried?: number | null;
-  /**
-   * If hasError is true this job will not be retried
-   */
-  hasError?: boolean | null;
-  /**
-   * If hasError is true, this is the error that caused it
-   */
-  error?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  /**
-   * Task execution log
-   */
-  log?:
-    | {
-        executedAt: string;
-        completedAt: string;
-        taskSlug: 'inline' | 'createCollectionExport' | 'createCollectionImport';
-        taskID: string;
-        input?:
-          | {
-              [k: string]: unknown;
-            }
-          | unknown[]
-          | string
-          | number
-          | boolean
-          | null;
-        output?:
-          | {
-              [k: string]: unknown;
-            }
-          | unknown[]
-          | string
-          | number
-          | boolean
-          | null;
-        state: 'failed' | 'succeeded';
-        error?:
-          | {
-              [k: string]: unknown;
-            }
-          | unknown[]
-          | string
-          | number
-          | boolean
-          | null;
-        id?: string | null;
-      }[]
-    | null;
-  taskSlug?: ('inline' | 'createCollectionExport' | 'createCollectionImport') | null;
-  queue?: string | null;
-  waitUntil?: string | null;
-  processing?: boolean | null;
-  updatedAt: string;
-  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1105,28 +900,27 @@ export interface PayloadMigration {
  */
 export interface ProductsSelect<T extends boolean = true> {
   isActive?: T;
-  productType?: T;
-  slug?: T;
-  category?: T;
-  brand?: T;
-  grade?: T;
-  color?: T;
-  tags?: T;
   name?: T;
   sku?: T;
-  basePricePerSqm?: T;
-  sqmPerCarton?: T;
-  inventorySqm?: T;
-  stockCartons?: T;
+  productType?: T;
+  category?: T;
+  brand?: T;
+  color?: T;
+  grade?: T;
   dimension?: T;
   width?: T;
   height?: T;
+  tags?: T;
+  basePricePerSqm?: T;
+  sqmPerCarton?: T;
   piecesPerCarton?: T;
   unit?: T;
-  secondary_unit?: T;
   weight?: T;
+  secondary_unit?: T;
   itemsPerPack?: T;
   approxCoverage?: T;
+  inventorySqm?: T;
+  stockCartons?: T;
   cover?: T;
   gallery?:
     | T
@@ -1135,6 +929,8 @@ export interface ProductsSelect<T extends boolean = true> {
         id?: T;
       };
   richDescription?: T;
+  slug?: T;
+  scanCode?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1144,10 +940,10 @@ export interface ProductsSelect<T extends boolean = true> {
  */
 export interface CategoriesSelect<T extends boolean = true> {
   name?: T;
-  slug?: T;
   ordering?: T;
   parent?: T;
   isActive?: T;
+  slug?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1159,8 +955,8 @@ export interface DimensionsSelect<T extends boolean = true> {
   name?: T;
   width?: T;
   height?: T;
-  slug?: T;
   isActive?: T;
+  slug?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1171,8 +967,8 @@ export interface DimensionsSelect<T extends boolean = true> {
 export interface BrandsSelect<T extends boolean = true> {
   name?: T;
   logo?: T;
-  slug?: T;
   isActive?: T;
+  slug?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1182,8 +978,8 @@ export interface BrandsSelect<T extends boolean = true> {
  */
 export interface TagsSelect<T extends boolean = true> {
   name?: T;
-  slug?: T;
   isActive?: T;
+  slug?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1195,8 +991,8 @@ export interface CustomerTypesSelect<T extends boolean = true> {
   name?: T;
   markupPercent?: T;
   description?: T;
-  slug?: T;
   isActive?: T;
+  slug?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1206,14 +1002,13 @@ export interface CustomerTypesSelect<T extends boolean = true> {
  */
 export interface OrdersSelect<T extends boolean = true> {
   requestFingerprint?: T;
-  warehouse?: T;
   warehouseName?: T;
   warehouseCode?: T;
   idempotencyKey?: T;
+  status?: T;
   orderNumber?: T;
   user?: T;
-  status?: T;
-  cancelledBy?: T;
+  warehouse?: T;
   items?:
     | T
     | {
@@ -1234,6 +1029,7 @@ export interface OrdersSelect<T extends boolean = true> {
   finalTotal?: T;
   deliveryAddress?: T;
   notes?: T;
+  cancelledBy?: T;
   timeline?:
     | T
     | {
@@ -1264,14 +1060,9 @@ export interface PlansSelect<T extends boolean = true> {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
-  customerType?: T;
   status?: T;
+  customerType?: T;
   isBanned?: T;
-  banReason?: T;
-  allowedCategories?: T;
-  hideExactStock?: T;
-  disableOrdering?: T;
-  notes?: T;
   fullName?: T;
   phone?: T;
   companyName?: T;
@@ -1301,6 +1092,12 @@ export interface UsersSelect<T extends boolean = true> {
         uploadedAt?: T;
         id?: T;
       };
+  allowedCategories?: T;
+  hideExactStock?: T;
+  canUseProductQr?: T;
+  disableOrdering?: T;
+  notes?: T;
+  banReason?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1408,100 +1205,11 @@ export interface AuditLogsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "exports_select".
- */
-export interface ExportsSelect<T extends boolean = true> {
-  name?: T;
-  format?: T;
-  limit?: T;
-  page?: T;
-  sort?: T;
-  sortOrder?: T;
-  drafts?: T;
-  selectionToUse?: T;
-  fields?: T;
-  collectionSlug?: T;
-  where?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  url?: T;
-  thumbnailURL?: T;
-  filename?: T;
-  mimeType?: T;
-  filesize?: T;
-  width?: T;
-  height?: T;
-  focalX?: T;
-  focalY?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "imports_select".
- */
-export interface ImportsSelect<T extends boolean = true> {
-  collectionSlug?: T;
-  importMode?: T;
-  matchField?: T;
-  status?: T;
-  summary?:
-    | T
-    | {
-        imported?: T;
-        updated?: T;
-        total?: T;
-        issues?: T;
-        issueDetails?: T;
-      };
-  updatedAt?: T;
-  createdAt?: T;
-  url?: T;
-  thumbnailURL?: T;
-  filename?: T;
-  mimeType?: T;
-  filesize?: T;
-  width?: T;
-  height?: T;
-  focalX?: T;
-  focalY?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv_select".
  */
 export interface PayloadKvSelect<T extends boolean = true> {
   key?: T;
   data?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "payload-jobs_select".
- */
-export interface PayloadJobsSelect<T extends boolean = true> {
-  input?: T;
-  taskStatus?: T;
-  completedAt?: T;
-  totalTried?: T;
-  hasError?: T;
-  error?: T;
-  log?:
-    | T
-    | {
-        executedAt?: T;
-        completedAt?: T;
-        taskSlug?: T;
-        taskID?: T;
-        input?: T;
-        output?: T;
-        state?: T;
-        error?: T;
-        id?: T;
-      };
-  taskSlug?: T;
-  queue?: T;
-  waitUntil?: T;
-  processing?: T;
-  updatedAt?: T;
-  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1544,73 +1252,6 @@ export interface CollectionsWidget {
     [k: string]: unknown;
   };
   width: 'full';
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "TaskCreateCollectionExport".
- */
-export interface TaskCreateCollectionExport {
-  input: {
-    id: string;
-    name: string;
-    batchSize?: number | null;
-    collectionSlug:
-      | 'products'
-      | 'categories'
-      | 'dimensions'
-      | 'brands'
-      | 'tags'
-      | 'customer-types'
-      | 'orders'
-      | 'plans'
-      | 'users'
-      | 'otps'
-      | 'warehouses'
-      | 'warehouse-stock'
-      | 'media'
-      | 'admins'
-      | 'audit-logs'
-      | 'exports'
-      | 'imports';
-    drafts?: ('yes' | 'no') | null;
-    exportCollection: string;
-    fields?: string[] | null;
-    format: 'csv' | 'json';
-    limit?: number | null;
-    locale?: string | null;
-    maxLimit?: number | null;
-    page?: number | null;
-    sort?: string | null;
-    userCollection?: string | null;
-    userID?: string | null;
-    where?:
-      | {
-          [k: string]: unknown;
-        }
-      | unknown[]
-      | string
-      | number
-      | boolean
-      | null;
-  };
-  output?: unknown;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "TaskCreateCollectionImport".
- */
-export interface TaskCreateCollectionImport {
-  input: {
-    importId: string;
-    importCollection: string;
-    userID?: string | null;
-    userCollection?: string | null;
-    batchSize?: number | null;
-    debug?: boolean | null;
-    defaultVersionStatus?: ('draft' | 'published') | null;
-    maxLimit?: number | null;
-  };
-  output?: unknown;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

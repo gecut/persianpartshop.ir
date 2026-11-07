@@ -21,8 +21,11 @@ const listeners = new Set<() => void>()
 const key = () => `persianpart_draft_v3:${owner}`
 const emit = () => listeners.forEach(listener => listener())
 function persist() {
-  try { localStorage.setItem(key(), JSON.stringify({ version: 3, selectedIds: state.selectedIds, quantities: state.quantities, warehouse: state.warehouse })) } catch { /* Keep memory state when storage is unavailable. */ }
+  if (!owner) return true
+  try { localStorage.setItem(key(), JSON.stringify({ version: 3, selectedIds: state.selectedIds, quantities: state.quantities, warehouse: state.warehouse })); return true }
+  catch { state = { ...state, error: 'پیش‌نویس ذخیره نشد؛ فضای ذخیره‌سازی در دسترس نیست.' }; toast.warning('پیش‌نویس ذخیره نشد', state.error!); emit(); return false }
 }
+window.addEventListener('persianpart:flush-drafts', event => { if (!persist() && event instanceof CustomEvent) event.detail.fail() })
 function readSaved(value: string | null): SelectionState {
   const next = empty()
   if (!value) return next

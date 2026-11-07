@@ -77,6 +77,7 @@ export const CustomerProfileSchema = z.object({
   }).optional(),
   hideExactStock: z.boolean().optional(),
   disableOrdering: z.boolean().optional(),
+  canUseProductQr: z.boolean().optional(),
   allowedCategories: z.array(z.any()).optional(),
   allowedCategoryIds: z.array(z.number()).optional(),
   status: z.string().optional(),

@@ -1,0 +1,137 @@
+{
+  "snapshot_id": "sha256:dcc56f59b3c07b919bc605e31abc342532a3ea3a8aa3bba9597a6495da54e949",
+  "format_version": 1,
+  "enola_version": "0.4.38",
+  "extractor_version": "v500",
+  "generated_at": "2026-11-07T07:36:03Z",
+  "duration": "8.236018541s",
+  "repo_path": "/Users/mm25zamanian/Codes/persianpartshop.ir",
+  "git": {
+    "ref": "main",
+    "commit": "8c39a55c27629c3512c8f6faa62d147bee1aee9e",
+    "dirty": true,
+    "remote": "github.com/gecut/persianpartshop.ir"
+  },
+  "extractors": [
+    "manifests",
+    "mdintent",
+    "python",
+    "typescript"
+  ],
+  "explainers": [
+    "cycles",
+    "layers",
+    "crossrepo",
+    "coverage",
+    "unused-routes",
+    "domain",
+    "query-loops",
+    "dead-methods",
+    "entry-points",
+    "messaging-coverage",
+    "god-class",
+    "hotspots",
+    "dependency-depth",
+    "exported-surface",
+    "complexity-outliers",
+    "intent",
+    "constraints",
+    "vendored-candidates",
+    "import-closure",
+    "package-metrics",
+    "dead-code",
+    "performance",
+    "packwerk"
+  ],
+  "renderers": [
+    "llm_context",
+    "flows",
+    "docs"
+  ],
+  "config_hash": "sha256:0bd4dd70eadd883034fcb98b5d4c9bf19bf25984306c3557610420f86875a2cd",
+  "ignore_glob_hash": "sha256:83dbf7e109a97f4fbe4c6255c5ea1648b57ede0e31e953295664e95171114a16",
+  "output_hashes": {
+    "docs.jsonl": "sha256:bd4fd4ea5f357984e296cd1e8383d3a55be7f2d9f2b76f81b22d54c6ac7745d8",
+    "facts.jsonl": "sha256:2543f43c45cdcde4dea36336843a4965505875795d21f73d0bfc60a95be38e46",
+    "flows.json": "sha256:f480fe5d0c0b92739b6b0de95f20abc9cf47306b9135f856550176ddf8e785ee",
+    "insights.json": "sha256:c626fb54ae9477c263cf2d213afeb04327291b0fef4c9891c3f4e0b2e833112e",
+    "llm_context.md": "sha256:309d15d97919331dcdbc55971e09bfb948802b5d1c49fb552e56483ae7ecc15d"
+  },
+  "fact_count": 4629,
+  "insight_count": 89,
+  "quality": {
+    "files_seen": 467,
+    "files_parsed": 322,
+    "files_skipped": 19,
+    "dirs_skipped": 10,
+    "skipped_sample": [
+      ".agents/skills/nexload-cto-review/evals/fixtures/approved-clean-package/test/cache.test.ts (glob: **/*.test.ts)",
+      ".agents/skills/nexload-cto-review/evals/fixtures/change-with-existing-debt/target/ (glob: **/target/**)",
+      ".agents/skills/ui-ux-pro-max/scripts/__pycache__/ (glob: **/__pycache__/**)",
+      ".agents/skills/ui-ux-pro-max/scripts/tests/test_catalog_refresh.py (glob: **/test_*.py)",
+      ".agents/skills/ui-ux-pro-max/scripts/tests/test_core.py (glob: **/test_*.py)",
+      ".agents/skills/ui-ux-pro-max/scripts/tests/test_core_data_quality.py (glob: **/test_*.py)",
+      ".agents/skills/ui-ux-pro-max/scripts/tests/test_data_contracts.py (glob: **/test_*.py)",
+      ".agents/skills/ui-ux-pro-max/scripts/tests/test_design_system_mode.py (glob: **/test_*.py)",
+      ".agents/skills/ui-ux-pro-max/scripts/tests/test_native_desktop_stack_freshness.py (glob: **/test_*.py)",
+      ".agents/skills/ui-ux-pro-max/scripts/tests/test_relevance_evaluator.py (glob: **/test_*.py)",
+      ".agents/skills/ui-ux-pro-max/scripts/tests/test_style_taxonomy.py (glob: **/test_*.py)",
+      ".agents/skills/ui-ux-pro-max/scripts/tests/test_text_layout_resilience.py (glob: **/test_*.py)",
+      ".agents/skills/ui-ux-pro-max/scripts/tests/test_web_stack_freshness.py (glob: **/test_*.py)",
+      ".git/ (glob: **/.git/**)",
+      "apps/api/node_modules/ (glob: **/node_modules/**)",
+      "apps/cms/.next/ (glob: **/.next/**)",
+      "apps/cms/node_modules/ (glob: **/node_modules/**)",
+      "apps/cms/src/_schema-inspect.test.ts (glob: **/*.test.ts)",
+      "apps/cms/src/_sdk.test.ts (glob: **/*.test.ts)",
+      "apps/cms/src/_seed-target.test.ts (glob: **/*.test.ts)"
+    ],
+    "parse_errors": 0,
+    "heuristic_insights": 87,
+    "coverage": {
+      "services_total": 0,
+      "coverage_gaps": 0,
+      "unresolved_edges": 0,
+      "extractors_reporting": 2,
+      "extraction_unresolved": 294
+    },
+    "census": {
+      "files_walked": 486,
+      "parsed": 322,
+      "excluded_by_ignore": 19,
+      "excluded_by_kind": 132,
+      "excluded_kinds": {
+        "(no extension)": 3,
+        ".css": 10,
+        ".csv": 37,
+        ".dockerignore": 1,
+        ".env": 2,
+        ".example": 3,
+        ".gitignore": 1,
+        ".gitkeep": 5,
+        ".jpg": 17,
+        ".json": 34,
+        ".npmrc": 1,
+        ".png": 4,
+        ".svg": 1,
+        ".tsbuildinfo": 2,
+        ".ttf": 1,
+        ".webp": 5,
+        ".woff2": 1,
+        ".yaml": 2,
+        ".yml": 2
+      },
+      "skipped_with_cause": 13,
+      "top_skip_causes": [
+        {
+          "cause": "claimed by manifests, no facts emitted",
+          "count": 12
+        },
+        {
+          "cause": "claimed by typescript, no facts emitted",
+          "count": 1
+        }
+      ]
+    }
+  }
+}

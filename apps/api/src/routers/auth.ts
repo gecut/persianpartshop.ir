@@ -188,7 +188,7 @@ export const auth = base.auth.router({
       return { user: safeUser }
     } catch (err) {
       if (err instanceof ORPCError) throw err
-      return { user: null }
+      throw new ORPCError('SERVICE_UNAVAILABLE', { message: 'بررسی نشست موقتاً در دسترس نیست؛ دوباره تلاش کنید.' })
     }
   }),
   logout: base.auth.logout.handler(async ({ context }) => handleLogout(context)),

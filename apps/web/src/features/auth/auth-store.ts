@@ -1,6 +1,9 @@
+import { clearAccountDrafts } from '../../lib/drafts'
+import { writeActivity } from '../../lib/write-activity'
+import { isSessionError } from '../../lib/session-error'
+import { selectionStore } from '../products/selection-store'
 import { useState, useEffect } from 'react'
 import { api, setAuthErrorHandler } from '../../lib/api-client'
-import { toast } from '../../components/feedback/toast'
 import { clearTanStackCache } from '../../lib/query-client'
 
 export interface UserProfile {
@@ -14,6 +17,7 @@ export interface UserProfile {
   economicCode: string
   hideExactStock?: boolean
   disableOrdering?: boolean
+  canUseProductQr?: boolean
   allowedCategories?: any[]
   allowedCategoryIds?: number[]
 }
@@ -95,8 +99,8 @@ export function isProductAllowedForUser(
   if (!productOrDoc) return false
 
   const rawCat =
-    productOrDoc.category ??
     productOrDoc.categoryId ??
+    productOrDoc.category ??
     productOrDoc.category_id
 
   return isCategoryAllowedForUser(rawCat, user)
@@ -180,7 +184,7 @@ export const authStore = {
       const userProfile: UserProfile = {
         id: String(userData.id || 'user-1'),
         name: userData.fullName || userData.contactName || 'کاربر گرامی',
-        storeName: userData.storeName || 'فروشگاه قطعات',
+        storeName: userData.companyName || userData.storeName || 'فروشگاه قطعات',
         phone: userData.phone || userData.mobile || mobile,
         province: userData.province || 'تهران',
         city: userData.city || 'تهران',
@@ -188,10 +192,14 @@ export const authStore = {
         economicCode: '',
         hideExactStock,
         disableOrdering,
+        canUseProductQr: Boolean(userData.canUseProductQr),
         allowedCategories,
         allowedCategoryIds,
       }
 
+      clearTanStackCache()
+      window.dispatchEvent(new Event('persianpart:account-change'))
+      window.dispatchEvent(new Event('persianpart:login-success'))
       broadcast({
         isAuthenticated: true,
         user: userProfile,
@@ -203,9 +211,19 @@ export const authStore = {
     }
   },
 
-  logout: () => {
+  logout: (explicit = false) => {
+    if (!currentState.isAuthenticated) return true
+    if (explicit && writeActivity.count()) return false
+    if (explicit && writeActivity.hasUncertainOrder() && !window.confirm('ممکن است سفارش شما ثبت شده باشد. با خروج، پیش‌نویس حذف می‌شود؛ پیش از ثبت دوباره سفارش‌ها را بررسی کنید. ادامه می‌دهید؟')) return false
+    if (explicit && currentState.user) {
+      try { localStorage.setItem('persianpart_explicit_logout', JSON.stringify({ owner: String(currentState.user.id), at: Date.now() })) } catch { /* Same-tab deletion remains available. */ }
+      selectionStore.clearSelection()
+      clearAccountDrafts(String(currentState.user.id))
+      writeActivity.clearUncertainOrder()
+    }
+    selectionStore.setOwner('')
     try {
-      api.auth.logout()
+      void api.auth.logout().catch(() => {})
     } catch {
       // Best effort
     }
@@ -220,24 +238,17 @@ export const authStore = {
       user: null,
       pendingPhone: null,
     })
+    window.dispatchEvent(new Event('persianpart:account-change'))
+    return true
   },
 
   updateProfile: async (updated: Partial<UserProfile>) => {
     if (!currentState.user) return
 
-    try {
-      await api.user.update({
-        fullName: updated.name,
-        address: updated.address,
-      })
-    } catch {
-      // Best effort update
-    }
-
-    broadcast({
-      ...currentState,
-      user: { ...currentState.user, ...updated },
-    })
+    const expectedUser = currentState.user.id
+    await api.user.update({ fullName: updated.name, companyName: updated.storeName, address: updated.address })
+    if (currentState.user?.id !== expectedUser) throw new Error('حساب کاربری تغییر کرده است.')
+    broadcast({ ...currentState, user: { ...currentState.user, ...updated } })
   },
 
   syncProfile: async () => {
@@ -247,7 +258,7 @@ export const authStore = {
 
     try {
       const profile: any = await api.user.profile()
-      if (profile) {
+      if (profile && token === localStorage.getItem(TOKEN_KEY)) {
         const hideExactStock = Boolean(profile.hideExactStock)
         const disableOrdering = Boolean(profile.disableOrdering) || hideExactStock
         const { allowedCategories, allowedCategoryIds } = parseAllowedCategories(
@@ -264,6 +275,7 @@ export const authStore = {
           economicCode: profile.economicCode || '',
           hideExactStock,
           disableOrdering,
+          canUseProductQr: Boolean(profile.canUseProductQr),
           allowedCategories,
           allowedCategoryIds,
         }
@@ -279,29 +291,24 @@ export const authStore = {
   },
 }
 
-setAuthErrorHandler((err) => {
-  const msg = err?.message || err?.error?.message || ''
-  const isBanned =
-    (err?.data?.code === 'USER_BANNED' ||
-      err?.error?.data?.code === 'USER_BANNED' ||
-      msg.includes('توسط مدیریت مسدود') ||
-      msg.includes('مسدود گردید')) &&
-    !msg.includes('کاتالوگ') &&
-    !msg.includes('دسته‌بندی') &&
-    !msg.includes('مدیران سیستم')
+setAuthErrorHandler((error: unknown) => {
+  if (isSessionError(error)) authStore.logout()
+})
 
-  const isUnauthorized =
-    err?.code === 'UNAUTHORIZED' ||
-    err?.error?.code === 'UNAUTHORIZED' ||
-    err?.status === 401 ||
-    msg.includes('وارد حساب کاربری')
-
-  if (isBanned) {
-    authStore.logout()
-    toast.error('مسدود شدن حساب کاربری', msg || 'حساب کاربری شما توسط مدیریت مسدود گردید.')
-  } else if (isUnauthorized) {
-    authStore.logout()
+window.addEventListener('storage', event => {
+  if (event.key === 'persianpart_explicit_logout') {
+    try {
+      const data: unknown = JSON.parse(event.newValue ?? 'null')
+      if (data && typeof data === 'object' && 'owner' in data && typeof data.owner === 'string') window.dispatchEvent(new CustomEvent('persianpart:discard-drafts', { detail: data.owner }))
+    } catch { /* Ignore malformed cross-tab messages. */ }
+    return
   }
+  if (event.key !== STORAGE_KEY && event.key !== TOKEN_KEY) return
+  clearTanStackCache()
+  selectionStore.setOwner('')
+  currentState = getInitialState()
+  listeners.forEach(listener => listener(currentState))
+  window.dispatchEvent(new Event('persianpart:account-change'))
 })
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -346,10 +353,7 @@ export function useAuth() {
     ...state,
     sendOtp: (phone: string) => sendOtpMutation.mutateAsync(phone),
     verifyOtp: (code: string) => verifyOtpMutation.mutateAsync(code),
-    logout: () => {
-      authStore.logout()
-      clearTanStackCache()
-    },
+    logout: () => authStore.logout(true),
     updateProfile: (updated: Partial<UserProfile>) => updateProfileMutation.mutateAsync(updated),
   }
 }

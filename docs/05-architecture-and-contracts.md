@@ -26,6 +26,8 @@ The root [appContract](../packages/contract/src/index.ts) exports `health`, `ech
 
 Relevant names are `auth.session`, `catalog.getById`, `order.pricing.validateCart`, `order.submit`, `order.cancel`, `order.prepareReorder`, `warehouse.availability`, and `shopping.createOrder`. The latter delegates to the same submit implementation. Do not use former conceptual names such as `getBySlug`, `cancelByCustomer`, `system.previewCsvImport` or `getGlobalConfig` as executable API documentation.
 
+`catalog.getByScanCode` performs an exact permission-checked QR lookup, independent of the initial 500-item catalog page; `catalog.getProductQr` returns the authorized product's QR payload. The web client generates PNG/SVG locally. The camera decoder's reader WASM is bundled and served with the web application.
+
 Stock CSV endpoints are Payload collection endpoints: `/api/warehouse-stock/preview`, `/apply`, `/export`; their data schemas are in the shared contract. They are not oRPC `system` procedures. Payload Admin endpoints and Hono health/media routes also exist outside oRPC.
 
 Contracts contain a mixture of specific schemas and legacy permissive outputs (`z.any`/unions); contract-first does not mean every response is strictly validated. Changed order submit/detail/cancel boundaries use `CustomerOrderDocumentSchema`; persistence shapes remain defined by CMS collections, with generated types.
@@ -44,7 +46,7 @@ CMS stores media under its `media` directory and can return CDN URLs. API uses `
 
 [docker-compose.yml](../docker-compose.yml) defines `migration`, `api`, `cms`, `web`, `cdn` on external `dokploy-network`. It does **not** define a PostgreSQL service. A reachable external database and its provisioning are deployment prerequisites; the hostname used by a connection setting does not create a service.
 
-Migration is a one-shot command and API/CMS depend on its success. CMS PostgreSQL adapter also has `push: false` and `prodMigrations: migrations`. This configuration is not proof of zero-downtime deployment: warehouse-order migration deliberately rejects nonempty order history. See the [runbook](06-admin-and-operations.md).
+Migration is a one-shot command and API/CMS depend on its success. CMS PostgreSQL adapter also has `push: false` and `prodMigrations: migrations`. This configuration is not proof of zero-downtime deployment: the baseline targets a fresh empty database. See the [runbook](06-admin-and-operations.md).
 
 Shared volume mounts differ by service: API `/app/media`, CMS `/app/apps/cms/media`, CDN `/data:ro`. Normal ports are API 5175, CMS 5174, web/CDN container 80; local Vite defaults to 5173.
 

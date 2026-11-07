@@ -18,6 +18,7 @@ export interface Product {
   slug: string
   name: string
   sku: string
+  hasScanCode?: boolean
   productType?: ProductType
   dimensions: ProductDimensions
   dimension: string
@@ -25,6 +26,7 @@ export interface Product {
   color: string
   grade?: string
   category: string
+  categoryId?: string | number | null
   unit?: 'bag' | 'bucket' | 'pack' | 'piece' | 'kg' | 'liter' | 'can' | 'branch' | 'box' | 'roll' | 'm2' | string
   secondary_unit?: 'meter' | 'kg' | 'cm' | 'g' | 'm' | string
   secondaryUnit?: 'meter' | 'kg' | 'cm' | 'g' | 'm' | string

@@ -1,0 +1,3177 @@
+[
+  {
+    "title": "Cyclic dependency detected (4 modules)",
+    "source": "cycles",
+    "description": "The 4 modules apps/api/src, apps/api/src/lib, apps/api/src/routers, apps/api/src/rpc depend on each other through more than one cycle. One of them: apps/api/src -\u003e apps/api/src/lib -\u003e apps/api/src. This can cause initialization issues, make refactoring harder, and indicates tight coupling.",
+    "confidence": 1,
+    "evidence": [
+      {
+        "fact": "apps/api/src",
+        "detail": "module \"apps/api/src\" is part of the cycle",
+        "fact_id": "9fbff803b18e4c3dbc5e8731c676e80d"
+      },
+      {
+        "fact": "apps/api/src/lib",
+        "detail": "module \"apps/api/src/lib\" is part of the cycle",
+        "fact_id": "76c00a7dbd7e7f2069fdc33d9f0182d2"
+      },
+      {
+        "fact": "apps/api/src/routers",
+        "detail": "module \"apps/api/src/routers\" is part of the cycle",
+        "fact_id": "1ae9918b00f7cc8bc59e7a40a6115376"
+      },
+      {
+        "fact": "apps/api/src/rpc",
+        "detail": "module \"apps/api/src/rpc\" is part of the cycle",
+        "fact_id": "4de0534dbb8898a1a1dca06f4d54915e"
+      }
+    ],
+    "suggested_actions": [
+      "Introduce an interface to break the cycle",
+      "Extract shared types to a separate package",
+      "Consider merging tightly coupled modules"
+    ]
+  },
+  {
+    "title": "Architecture pattern: nextjs",
+    "source": "layers",
+    "description": "Recognised nextjs from directory names: 18 of 48 typescript modules classified — 98% of this repository's 49 modules. Of 25 imports between ordered layers, 24 run inward and 1 against it (96% obey the order); the 1 are reported separately below.",
+    "confidence": 0.375,
+    "evidence": [
+      {
+        "fact": "apps/api/src",
+        "detail": "module \"apps/api/src\" maps to layer \"api\"",
+        "fact_id": "9fbff803b18e4c3dbc5e8731c676e80d"
+      },
+      {
+        "fact": "apps/api/src/lib",
+        "detail": "module \"apps/api/src/lib\" maps to layer \"lib\"",
+        "fact_id": "76c00a7dbd7e7f2069fdc33d9f0182d2"
+      },
+      {
+        "fact": "apps/api/src/routers",
+        "detail": "module \"apps/api/src/routers\" maps to layer \"api\"",
+        "fact_id": "1ae9918b00f7cc8bc59e7a40a6115376"
+      },
+      {
+        "fact": "apps/api/src/rpc",
+        "detail": "module \"apps/api/src/rpc\" maps to layer \"api\"",
+        "fact_id": "4de0534dbb8898a1a1dca06f4d54915e"
+      },
+      {
+        "fact": "apps/cms/src/app",
+        "detail": "module \"apps/cms/src/app\" maps to layer \"pages\"",
+        "fact_id": "851f43690886cb94b957579b88a8429e"
+      },
+      {
+        "fact": "apps/cms/src/app/(payload)",
+        "detail": "module \"apps/cms/src/app/(payload)\" maps to layer \"pages\"",
+        "fact_id": "56662c178ff4d2eb64502336b05f66ec"
+      },
+      {
+        "fact": "apps/cms/src/app/(payload)/admin",
+        "detail": "module \"apps/cms/src/app/(payload)/admin\" maps to layer \"pages\"",
+        "fact_id": "88788cb68c4650e0c7c296ec403b99b2"
+      },
+      {
+        "fact": "apps/cms/src/app/(payload)/admin/[[...segments]]",
+        "detail": "module \"apps/cms/src/app/(payload)/admin/[[...segments]]\" maps to layer \"pages\"",
+        "fact_id": "5f72c95ebf7012ad2161a0c51c9db938"
+      },
+      {
+        "fact": "apps/cms/src/app/(payload)/api/[...slug]",
+        "detail": "module \"apps/cms/src/app/(payload)/api/[...slug]\" maps to layer \"pages\"",
+        "fact_id": "5245af6f9a0e3ae56ea12637edaff7fa"
+      },
+      {
+        "fact": "apps/cms/src/collections/products/components",
+        "detail": "module \"apps/cms/src/collections/products/components\" maps to layer \"components\"",
+        "fact_id": "31537deca81090f2172a787947c6ea3b"
+      },
+      {
+        "fact": "apps/cms/src/components/admin",
+        "detail": "module \"apps/cms/src/components/admin\" maps to layer \"components\"",
+        "fact_id": "5319d6c10250d6c8ae3340d4588352d5"
+      },
+      {
+        "fact": "apps/web/src/components/feedback",
+        "detail": "module \"apps/web/src/components/feedback\" maps to layer \"components\"",
+        "fact_id": "c1089c7ac4a78bdacca01bd65237285e"
+      },
+      {
+        "fact": "apps/web/src/components/layout",
+        "detail": "module \"apps/web/src/components/layout\" maps to layer \"components\"",
+        "fact_id": "5105f8c941d3ce9c8eaab600cb3aaec3"
+      },
+      {
+        "fact": "apps/web/src/components/ui",
+        "detail": "module \"apps/web/src/components/ui\" maps to layer \"components\"",
+        "fact_id": "1ff4f9988e9348532e8dbcb7c64f3769"
+      },
+      {
+        "fact": "apps/web/src/hooks",
+        "detail": "module \"apps/web/src/hooks\" maps to layer \"hooks\"",
+        "fact_id": "219ff2e841dbed982af85c24ee0dd86b"
+      },
+      {
+        "fact": "apps/web/src/lib",
+        "detail": "module \"apps/web/src/lib\" maps to layer \"lib\"",
+        "fact_id": "cad5e5bc3ae23eed0e036ea3e1c49808"
+      },
+      {
+        "fact": "apps/web/src/lib/utils",
+        "detail": "module \"apps/web/src/lib/utils\" maps to layer \"lib\"",
+        "fact_id": "951ac3c8ea68b8af0311d224bde64dcb"
+      },
+      {
+        "fact": "apps/web/src/types",
+        "detail": "module \"apps/web/src/types\" maps to layer \"types\"",
+        "fact_id": "ff7ee958eac9f0cd009e270b2a8dac28"
+      }
+    ],
+    "suggested_actions": [
+      "Ensure new code follows the detected layer structure",
+      "Review cross-layer dependencies for violations"
+    ],
+    "informational": true,
+    "metrics": {
+      "cohort_languages": [
+        "typescript"
+      ],
+      "imports_against": 1,
+      "imports_inward": 24,
+      "imports_same_level": 70,
+      "layer_examples": {
+        "api": "apps/api/src",
+        "components": "apps/cms/src/collections/products/components",
+        "hooks": "apps/web/src/hooks",
+        "lib": "apps/api/src/lib",
+        "pages": "apps/cms/src/app",
+        "types": "apps/web/src/types"
+      },
+      "layer_levels": {
+        "api": 3,
+        "components": 2,
+        "hooks": 1,
+        "lib": 0,
+        "pages": 3,
+        "types": 0
+      },
+      "layers_ordered": [
+        "api",
+        "pages",
+        "components",
+        "hooks",
+        "lib",
+        "types"
+      ],
+      "layers_unordered": null,
+      "modules_classified": 18,
+      "modules_graded": 18,
+      "modules_scanned": 48
+    }
+  },
+  {
+    "title": "Layer violation: lib -\u003e api (nextjs)",
+    "source": "layers",
+    "description": "Module \"apps/api/src/lib\" (layer: lib, level 0) imports module \"apps/api/src\" (layer: api, level 3). Inner layers should not depend on outer layers.",
+    "confidence": 0.8,
+    "evidence": [
+      {
+        "file": "apps/api/src/lib/otp.ts",
+        "detail": "import of apps/api/src"
+      },
+      {
+        "file": "apps/api/src/lib/otp.ts",
+        "fact": "apps/api/src/lib -\u003e apps/api/src/payload",
+        "detail": "import edge",
+        "fact_id": "62294c0458c8e167f8ecd0be831f76e1"
+      },
+      {
+        "fact": "apps/api/src/payload",
+        "detail": "import edge target"
+      },
+      {
+        "fact": "apps/api/src/lib",
+        "detail": "importing module",
+        "fact_id": "76c00a7dbd7e7f2069fdc33d9f0182d2"
+      },
+      {
+        "fact": "apps/api/src",
+        "detail": "imported module",
+        "fact_id": "9fbff803b18e4c3dbc5e8731c676e80d"
+      }
+    ],
+    "suggested_actions": [
+      "Introduce an interface/port in the inner layer",
+      "Move shared types to a common package",
+      "Invert the dependency using dependency injection"
+    ]
+  },
+  {
+    "title": "Domain findings do not apply to this repository",
+    "source": "domain",
+    "description": "Three of this explainer's four findings read declarations only Rails writes — associations, controller#action handlers, and a model's table — and this repository declares none of them. That is not a clean result on those three; they were not asked. Outbound integrations, the fourth, is language-agnostic and did run.",
+    "confidence": 1,
+    "evidence": [
+      {
+        "detail": "examined: 0 associations, 0 controller handlers, 0 model tables"
+      }
+    ]
+  },
+  {
+    "title": "High fan-in symbol: apps/web/src/lib/utils.toPersianDigits (25 dependents)",
+    "source": "god-class",
+    "description": "\"apps/web/src/lib/utils.toPersianDigits\" is depended upon by 25 other symbols — well above the repo average. High fan-in concentrates change risk: edits here ripple across many call sites, and it often indicates a missing or overly broad abstraction.",
+    "confidence": 0.95,
+    "evidence": [
+      {
+        "file": "apps/web/src/lib/utils/currency.ts",
+        "symbol": "apps/web/src/lib/utils.toPersianDigits",
+        "detail": "25 symbols depend on this",
+        "line": 10,
+        "end_line": 15,
+        "fact_id": "7d45d44d6bab9d6f7bc310f95c5a9807"
+      },
+      {
+        "symbol": "apps/web/src/features/account.ProfileView",
+        "detail": "depends on apps/web/src/lib/utils.toPersianDigits",
+        "fact_id": "a3258b4a0b203474b1c3597cef99e2b9"
+      },
+      {
+        "symbol": "apps/web/src/features/auth.LoginCard",
+        "detail": "depends on apps/web/src/lib/utils.toPersianDigits",
+        "fact_id": "36633588b7d95f4f47abc215547cfdb8"
+      },
+      {
+        "symbol": "apps/web/src/features/calculator.CartonCalculator",
+        "detail": "depends on apps/web/src/lib/utils.toPersianDigits",
+        "fact_id": "9eadb7bd19731276b65dd862ada8d8d2"
+      },
+      {
+        "symbol": "apps/web/src/features/cart.CartItemRow",
+        "detail": "depends on apps/web/src/lib/utils.toPersianDigits",
+        "fact_id": "624a209e7640b86cbbf71274bcae89ca"
+      },
+      {
+        "symbol": "apps/web/src/features/checkout.PreInvoiceItemCard",
+        "detail": "depends on apps/web/src/lib/utils.toPersianDigits",
+        "fact_id": "704bb04fd6bb36271b65c1f3747c59d7"
+      },
+      {
+        "symbol": "apps/web/src/features/checkout.PreInvoiceModal",
+        "detail": "depends on apps/web/src/lib/utils.toPersianDigits",
+        "fact_id": "36e62e62a9ae86270fc95aaecb9d0f39"
+      },
+      {
+        "symbol": "apps/web/src/features/plans.PlanCard",
+        "detail": "depends on apps/web/src/lib/utils.toPersianDigits",
+        "fact_id": "12aa0a6e74d67f3a38d90c4aa4c5a691"
+      },
+      {
+        "symbol": "apps/web/src/features/plans.PlanModal",
+        "detail": "depends on apps/web/src/lib/utils.toPersianDigits",
+        "fact_id": "befb23cec6def34e6c27f9c5988562c4"
+      }
+    ],
+    "suggested_actions": [
+      "Split the symbol along distinct responsibilities its callers use",
+      "Introduce narrower interfaces so callers depend only on what they need",
+      "Stabilize its public contract to limit churn for dependents"
+    ]
+  },
+  {
+    "title": "High fan-in symbol: apps/cms/src/access.getAdminUser (14 dependents)",
+    "source": "god-class",
+    "description": "\"apps/cms/src/access.getAdminUser\" is depended upon by 14 other symbols — well above the repo average. High fan-in concentrates change risk: edits here ripple across many call sites, and it often indicates a missing or overly broad abstraction.",
+    "confidence": 0.95,
+    "evidence": [
+      {
+        "file": "apps/cms/src/access/roles.ts",
+        "symbol": "apps/cms/src/access.getAdminUser",
+        "detail": "14 symbols depend on this",
+        "line": 16,
+        "end_line": 25,
+        "fact_id": "da0144e186e16d382326387a07f829f7"
+      },
+      {
+        "symbol": "apps/cms/src/access.canCreateOrder",
+        "detail": "depends on apps/cms/src/access.getAdminUser",
+        "fact_id": "642f264382749e370dfc36fa5410d9b6"
+      },
+      {
+        "symbol": "apps/cms/src/access.canManagePlans",
+        "detail": "depends on apps/cms/src/access.getAdminUser",
+        "fact_id": "184391133fbd8457ea86e386ca552846"
+      },
+      {
+        "symbol": "apps/cms/src/access.canManageUsers",
+        "detail": "depends on apps/cms/src/access.getAdminUser",
+        "fact_id": "2ee0556dcc9a3d12ecaa7bb8902a25c4"
+      },
+      {
+        "symbol": "apps/cms/src/access.canManageUsersField",
+        "detail": "depends on apps/cms/src/access.getAdminUser",
+        "fact_id": "7e44461187bfbce8803bae92aed49979"
+      },
+      {
+        "symbol": "apps/cms/src/access.canUpdateOrder",
+        "detail": "depends on apps/cms/src/access.getAdminUser",
+        "fact_id": "c43e203ebd055879fa88127fa67b66d1"
+      },
+      {
+        "symbol": "apps/cms/src/access.isAdminAuthenticated",
+        "detail": "depends on apps/cms/src/access.getAdminUser",
+        "fact_id": "9ea651e61b8919349e4e7312ec049117"
+      },
+      {
+        "symbol": "apps/cms/src/access.isCatalogEditor",
+        "detail": "depends on apps/cms/src/access.getAdminUser",
+        "fact_id": "67aa6c62088f26f9dc9554ac3729232c"
+      },
+      {
+        "symbol": "apps/cms/src/access.isCatalogManager",
+        "detail": "depends on apps/cms/src/access.getAdminUser",
+        "fact_id": "0d23f99242378c498ef50920d16b8e43"
+      }
+    ],
+    "suggested_actions": [
+      "Split the symbol along distinct responsibilities its callers use",
+      "Introduce narrower interfaces so callers depend only on what they need",
+      "Stabilize its public contract to limit churn for dependents"
+    ]
+  },
+  {
+    "title": "High fan-in symbol: apps/web/src/lib/utils.formatToman (13 dependents)",
+    "source": "god-class",
+    "description": "\"apps/web/src/lib/utils.formatToman\" is depended upon by 13 other symbols — well above the repo average. High fan-in concentrates change risk: edits here ripple across many call sites, and it often indicates a missing or overly broad abstraction.",
+    "confidence": 0.95,
+    "evidence": [
+      {
+        "file": "apps/web/src/lib/utils/currency.ts",
+        "symbol": "apps/web/src/lib/utils.formatToman",
+        "detail": "13 symbols depend on this",
+        "line": 26,
+        "end_line": 29,
+        "fact_id": "86fc066d665f656702d006ffb80439f6"
+      },
+      {
+        "symbol": "apps/web/src/features/calculator.CartonCalculator",
+        "detail": "depends on apps/web/src/lib/utils.formatToman",
+        "fact_id": "9eadb7bd19731276b65dd862ada8d8d2"
+      },
+      {
+        "symbol": "apps/web/src/features/cart.CartItemRow",
+        "detail": "depends on apps/web/src/lib/utils.formatToman",
+        "fact_id": "624a209e7640b86cbbf71274bcae89ca"
+      },
+      {
+        "symbol": "apps/web/src/features/checkout.PreInvoiceItemCard",
+        "detail": "depends on apps/web/src/lib/utils.formatToman",
+        "fact_id": "704bb04fd6bb36271b65c1f3747c59d7"
+      },
+      {
+        "symbol": "apps/web/src/features/checkout.PreInvoiceModal",
+        "detail": "depends on apps/web/src/lib/utils.formatToman",
+        "fact_id": "36e62e62a9ae86270fc95aaecb9d0f39"
+      },
+      {
+        "symbol": "apps/web/src/features/plans.PlanCard",
+        "detail": "depends on apps/web/src/lib/utils.formatToman",
+        "fact_id": "12aa0a6e74d67f3a38d90c4aa4c5a691"
+      },
+      {
+        "symbol": "apps/web/src/features/plans.PlanModal",
+        "detail": "depends on apps/web/src/lib/utils.formatToman",
+        "fact_id": "befb23cec6def34e6c27f9c5988562c4"
+      },
+      {
+        "symbol": "apps/web/src/features/products.OrderEntryModal",
+        "detail": "depends on apps/web/src/lib/utils.formatToman",
+        "fact_id": "94f6408ae9f793cc8da9c42944d6d141"
+      },
+      {
+        "symbol": "apps/web/src/features/products.ProductBottomSheet",
+        "detail": "depends on apps/web/src/lib/utils.formatToman",
+        "fact_id": "3db7e0a58ea9357d292920be4ed0c58b"
+      }
+    ],
+    "suggested_actions": [
+      "Split the symbol along distinct responsibilities its callers use",
+      "Introduce narrower interfaces so callers depend only on what they need",
+      "Stabilize its public contract to limit churn for dependents"
+    ]
+  },
+  {
+    "title": "High fan-in symbol: apps/web/src/components/feedback.toast.success (9 dependents)",
+    "source": "god-class",
+    "description": "\"apps/web/src/components/feedback.toast.success\" is depended upon by 9 other symbols — well above the repo average. High fan-in concentrates change risk: edits here ripple across many call sites, and it often indicates a missing or overly broad abstraction.",
+    "confidence": 0.95,
+    "evidence": [
+      {
+        "file": "apps/web/src/components/feedback/toast.tsx",
+        "symbol": "apps/web/src/components/feedback.toast.success",
+        "detail": "9 symbols depend on this",
+        "line": 4,
+        "end_line": 6,
+        "fact_id": "997cb2164efa31e309c5bb4f3475479a"
+      },
+      {
+        "symbol": "apps/web/src/components/feedback.toast",
+        "detail": "depends on apps/web/src/components/feedback.toast.success",
+        "fact_id": "056b195810eb918eeaac31257febf462"
+      },
+      {
+        "symbol": "apps/web/src/features/account.ProfileView",
+        "detail": "depends on apps/web/src/components/feedback.toast.success",
+        "fact_id": "a3258b4a0b203474b1c3597cef99e2b9"
+      },
+      {
+        "symbol": "apps/web/src/features/auth.LoginCard",
+        "detail": "depends on apps/web/src/components/feedback.toast.success",
+        "fact_id": "36633588b7d95f4f47abc215547cfdb8"
+      },
+      {
+        "symbol": "apps/web/src/features/calculator.CartonCalculator",
+        "detail": "depends on apps/web/src/components/feedback.toast.success",
+        "fact_id": "9eadb7bd19731276b65dd862ada8d8d2"
+      },
+      {
+        "symbol": "apps/web/src/features/products.OrderEntryModal",
+        "detail": "depends on apps/web/src/components/feedback.toast.success",
+        "fact_id": "94f6408ae9f793cc8da9c42944d6d141"
+      },
+      {
+        "symbol": "apps/web/src/routes.CartPage",
+        "detail": "depends on apps/web/src/components/feedback.toast.success",
+        "fact_id": "e0ff7837e757621e1e849fc816580cbe"
+      },
+      {
+        "symbol": "apps/web/src/routes/orders.OrderDetailPage",
+        "detail": "depends on apps/web/src/components/feedback.toast.success",
+        "fact_id": "158b62477a363612e342316452f16e8e"
+      },
+      {
+        "symbol": "apps/web/src/routes/orders.OrdersListPage",
+        "detail": "depends on apps/web/src/components/feedback.toast.success",
+        "fact_id": "078e99ed9ebd391659f977db72d85a69"
+      }
+    ],
+    "suggested_actions": [
+      "Split the symbol along distinct responsibilities its callers use",
+      "Introduce narrower interfaces so callers depend only on what they need",
+      "Stabilize its public contract to limit churn for dependents"
+    ]
+  },
+  {
+    "title": "High fan-in symbol: apps/web/src/features/products.normalizeId (9 dependents)",
+    "source": "god-class",
+    "description": "\"apps/web/src/features/products.normalizeId\" is depended upon by 9 other symbols — well above the repo average. High fan-in concentrates change risk: edits here ripple across many call sites, and it often indicates a missing or overly broad abstraction.",
+    "confidence": 0.95,
+    "evidence": [
+      {
+        "file": "apps/web/src/features/products/selection-store.ts",
+        "symbol": "apps/web/src/features/products.normalizeId",
+        "detail": "9 symbols depend on this",
+        "line": 6,
+        "end_line": 9,
+        "fact_id": "22b89ce9a1ee93a184f706684ee5da37"
+      },
+      {
+        "symbol": "apps/web/src/features/products.getStoredState",
+        "detail": "depends on apps/web/src/features/products.normalizeId",
+        "fact_id": "7ec923aba2cd0ef56e1c7fd1f97f749f"
+      },
+      {
+        "symbol": "apps/web/src/features/products.selectionStore.reconcileWithProducts",
+        "detail": "depends on apps/web/src/features/products.normalizeId",
+        "fact_id": "0153ccf2dd9de32d4ff1b3af17877445"
+      },
+      {
+        "symbol": "apps/web/src/features/products.selectionStore.selectProduct",
+        "detail": "depends on apps/web/src/features/products.normalizeId",
+        "fact_id": "879889feabb7a2a95a7b3d4fa1d6aca2"
+      },
+      {
+        "symbol": "apps/web/src/features/products.selectionStore.setBatchSelection",
+        "detail": "depends on apps/web/src/features/products.normalizeId",
+        "fact_id": "af32e37bf2dc8597652486eac9b61b12"
+      },
+      {
+        "symbol": "apps/web/src/features/products.selectionStore.setQuantity",
+        "detail": "depends on apps/web/src/features/products.normalizeId",
+        "fact_id": "5856c139263c717f1b471601c4690fbc"
+      },
+      {
+        "symbol": "apps/web/src/features/products.selectionStore.toggleProduct",
+        "detail": "depends on apps/web/src/features/products.normalizeId",
+        "fact_id": "434d38d315629d96d3e172356004016d"
+      },
+      {
+        "symbol": "apps/web/src/features/products.selectionStore.unselectProduct",
+        "detail": "depends on apps/web/src/features/products.normalizeId",
+        "fact_id": "e761c38d78d9f0d5b85fcb9c507f3f66"
+      },
+      {
+        "symbol": "apps/web/src/features/products.useProductQuantity",
+        "detail": "depends on apps/web/src/features/products.normalizeId",
+        "fact_id": "1ee4f13c5168843affab728044de2f43"
+      }
+    ],
+    "suggested_actions": [
+      "Split the symbol along distinct responsibilities its callers use",
+      "Introduce narrower interfaces so callers depend only on what they need",
+      "Stabilize its public contract to limit churn for dependents"
+    ]
+  },
+  {
+    "title": "High fan-in symbol: apps/web/src/lib/utils.formatPersianDate (9 dependents)",
+    "source": "god-class",
+    "description": "\"apps/web/src/lib/utils.formatPersianDate\" is depended upon by 9 other symbols — well above the repo average. High fan-in concentrates change risk: edits here ripple across many call sites, and it often indicates a missing or overly broad abstraction.",
+    "confidence": 0.95,
+    "evidence": [
+      {
+        "file": "apps/web/src/lib/utils/date.ts",
+        "symbol": "apps/web/src/lib/utils.formatPersianDate",
+        "detail": "9 symbols depend on this",
+        "line": 41,
+        "end_line": 55,
+        "fact_id": "1f43922f4809a6e0ebeda6754697d57e"
+      },
+      {
+        "symbol": "apps/web/src/features/orders.buildFullOrderTimeline",
+        "detail": "depends on apps/web/src/lib/utils.formatPersianDate",
+        "fact_id": "b578d8d1ec639ccf4b680f58786f2010"
+      },
+      {
+        "symbol": "apps/web/src/features/orders.getInitialState",
+        "detail": "depends on apps/web/src/lib/utils.formatPersianDate",
+        "fact_id": "b61edb266c2a2cd8d4fa71bc48b619d4"
+      },
+      {
+        "symbol": "apps/web/src/features/orders.mapDocToOrder",
+        "detail": "depends on apps/web/src/lib/utils.formatPersianDate",
+        "fact_id": "c9ae11c39e739383b878abf40a18e079"
+      },
+      {
+        "symbol": "apps/web/src/features/orders.orderStore.createOrder",
+        "detail": "depends on apps/web/src/lib/utils.formatPersianDate",
+        "fact_id": "949c6144ac4418e280b555313d8b76ee"
+      },
+      {
+        "symbol": "apps/web/src/features/plans.getInitialPlans",
+        "detail": "depends on apps/web/src/lib/utils.formatPersianDate",
+        "fact_id": "24a03f3f8f80d5fa2e93b08d23835738"
+      },
+      {
+        "symbol": "apps/web/src/features/plans.mapApiPlanToPlan",
+        "detail": "depends on apps/web/src/lib/utils.formatPersianDate",
+        "fact_id": "1a80497959072e94eaa5295fea601dc1"
+      },
+      {
+        "symbol": "apps/web/src/features/plans.plansStore.savePlan",
+        "detail": "depends on apps/web/src/lib/utils.formatPersianDate",
+        "fact_id": "97f55ebc35fcc72e91f708cd0897a649"
+      },
+      {
+        "symbol": "apps/web/src/routes/orders.OrderCard",
+        "detail": "depends on apps/web/src/lib/utils.formatPersianDate",
+        "fact_id": "7c8f6184a98a56167923da59dd68e24c"
+      }
+    ],
+    "suggested_actions": [
+      "Split the symbol along distinct responsibilities its callers use",
+      "Introduce narrower interfaces so callers depend only on what they need",
+      "Stabilize its public contract to limit churn for dependents"
+    ]
+  },
+  {
+    "title": "Call-graph hotspot: apps/web/src/features/auth.useAuth (fan-in 5, fan-out 10)",
+    "source": "hotspots",
+    "description": "\"apps/web/src/features/auth.useAuth\" is a pinch point: 5 symbols call into it and it calls out to 10 others, so a large share of call chains pass through it (degree-centrality proxy for betweenness). Such chokepoints are high-risk to change and high-value to test.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "apps/web/src/features/auth/auth-store.ts",
+        "symbol": "apps/web/src/features/auth.useAuth",
+        "detail": "fan-in 5 × fan-out 10 = score 50",
+        "line": 144,
+        "end_line": 186,
+        "fact_id": "16af8c51843c06782977cd8566a763e8"
+      },
+      {
+        "symbol": "apps/web/src/components/layout.AppHeader",
+        "detail": "calls into apps/web/src/features/auth.useAuth",
+        "fact_id": "b109585ca12dd535d0d936e067e15b7d"
+      },
+      {
+        "symbol": "apps/web/src/features/account.ProfileView",
+        "detail": "calls into apps/web/src/features/auth.useAuth",
+        "fact_id": "a3258b4a0b203474b1c3597cef99e2b9"
+      },
+      {
+        "symbol": "apps/web/src/features/auth.LoginCard",
+        "detail": "calls into apps/web/src/features/auth.useAuth",
+        "fact_id": "36633588b7d95f4f47abc215547cfdb8"
+      },
+      {
+        "symbol": "apps/web/src/routes.CartPage",
+        "detail": "calls into apps/web/src/features/auth.useAuth",
+        "fact_id": "e0ff7837e757621e1e849fc816580cbe"
+      },
+      {
+        "symbol": "apps/web/src/routes.RootComponent",
+        "detail": "calls into apps/web/src/features/auth.useAuth",
+        "fact_id": "522f619ed0d0841494ca50acee4c8158"
+      },
+      {
+        "symbol": "@tanstack/react-query.useMutation",
+        "detail": "called by apps/web/src/features/auth.useAuth"
+      },
+      {
+        "symbol": "@tanstack/react-query.useQueryClient",
+        "detail": "called by apps/web/src/features/auth.useAuth"
+      },
+      {
+        "symbol": "apps/web/src/features/auth",
+        "detail": "called by apps/web/src/features/auth.useAuth",
+        "fact_id": "d623d512695925782496cb88865e4ac9"
+      },
+      {
+        "symbol": "apps/web/src/features/auth.authStore.getState",
+        "detail": "called by apps/web/src/features/auth.useAuth",
+        "fact_id": "95bba5d59c8ea3624d6a840107d9ff49"
+      },
+      {
+        "symbol": "apps/web/src/features/auth.authStore.logout",
+        "detail": "called by apps/web/src/features/auth.useAuth",
+        "fact_id": "f68039aae357237b7fcaf9db5c3ed8c7"
+      }
+    ],
+    "suggested_actions": [
+      "Add focused tests around this chokepoint before refactoring",
+      "Consider decomposing it so call paths don't all funnel through one symbol",
+      "Verify it isn't doing orchestration that belongs in callers"
+    ]
+  },
+  {
+    "title": "Call-graph hotspot: apps/web/src/features/products.useProducts (fan-in 4, fan-out 12)",
+    "source": "hotspots",
+    "description": "\"apps/web/src/features/products.useProducts\" is a pinch point: 4 symbols call into it and it calls out to 12 others, so a large share of call chains pass through it (degree-centrality proxy for betweenness). Such chokepoints are high-risk to change and high-value to test.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "apps/web/src/features/products/product-store.ts",
+        "symbol": "apps/web/src/features/products.useProducts",
+        "detail": "fan-in 4 × fan-out 12 = score 48",
+        "line": 86,
+        "end_line": 424,
+        "fact_id": "faf34b46ef795762fe074fde85cf0e14"
+      },
+      {
+        "symbol": "apps/web/src/routes/orders.OrderDetailPage",
+        "detail": "calls into apps/web/src/features/products.useProducts",
+        "fact_id": "158b62477a363612e342316452f16e8e"
+      },
+      {
+        "symbol": "apps/web/src/routes/orders.OrdersListPage",
+        "detail": "calls into apps/web/src/features/products.useProducts",
+        "fact_id": "078e99ed9ebd391659f977db72d85a69"
+      },
+      {
+        "symbol": "apps/web/src/routes/product.ProductListPage",
+        "detail": "calls into apps/web/src/features/products.useProducts",
+        "fact_id": "5373bb4ea3a10165eb56917a8d5ecc5a"
+      },
+      {
+        "symbol": "apps/web/src/routes/product.ProductNewConfigurationPage",
+        "detail": "calls into apps/web/src/features/products.useProducts",
+        "fact_id": "4070692ac2a82b62611b6d0a96db4522"
+      },
+      {
+        "symbol": "@tanstack/react-query.useQuery",
+        "detail": "called by apps/web/src/features/products.useProducts"
+      },
+      {
+        "symbol": "apps/web/src/features/plans.plansStore.getPlans",
+        "detail": "called by apps/web/src/features/products.useProducts",
+        "fact_id": "384ae15c74e5874c033156f4529391d3"
+      },
+      {
+        "symbol": "apps/web/src/features/products",
+        "detail": "called by apps/web/src/features/products.useProducts",
+        "fact_id": "5fbca80d5e02d99963b7405b39fca712"
+      },
+      {
+        "symbol": "apps/web/src/features/products.Number",
+        "detail": "called by apps/web/src/features/products.useProducts"
+      },
+      {
+        "symbol": "apps/web/src/features/products.String",
+        "detail": "called by apps/web/src/features/products.useProducts"
+      }
+    ],
+    "suggested_actions": [
+      "Add focused tests around this chokepoint before refactoring",
+      "Consider decomposing it so call paths don't all funnel through one symbol",
+      "Verify it isn't doing orchestration that belongs in callers"
+    ]
+  },
+  {
+    "title": "Call-graph hotspot: apps/web/src/lib/utils.formatToman (fan-in 13, fan-out 3)",
+    "source": "hotspots",
+    "description": "\"apps/web/src/lib/utils.formatToman\" is a pinch point: 13 symbols call into it and it calls out to 3 others, so a large share of call chains pass through it (degree-centrality proxy for betweenness). Such chokepoints are high-risk to change and high-value to test.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "apps/web/src/lib/utils/currency.ts",
+        "symbol": "apps/web/src/lib/utils.formatToman",
+        "detail": "fan-in 13 × fan-out 3 = score 39",
+        "line": 26,
+        "end_line": 29,
+        "fact_id": "86fc066d665f656702d006ffb80439f6"
+      },
+      {
+        "symbol": "apps/web/src/features/calculator.CartonCalculator",
+        "detail": "calls into apps/web/src/lib/utils.formatToman",
+        "fact_id": "9eadb7bd19731276b65dd862ada8d8d2"
+      },
+      {
+        "symbol": "apps/web/src/features/cart.CartItemRow",
+        "detail": "calls into apps/web/src/lib/utils.formatToman",
+        "fact_id": "624a209e7640b86cbbf71274bcae89ca"
+      },
+      {
+        "symbol": "apps/web/src/features/checkout.PreInvoiceItemCard",
+        "detail": "calls into apps/web/src/lib/utils.formatToman",
+        "fact_id": "704bb04fd6bb36271b65c1f3747c59d7"
+      },
+      {
+        "symbol": "apps/web/src/features/checkout.PreInvoiceModal",
+        "detail": "calls into apps/web/src/lib/utils.formatToman",
+        "fact_id": "36e62e62a9ae86270fc95aaecb9d0f39"
+      },
+      {
+        "symbol": "apps/web/src/features/plans.PlanCard",
+        "detail": "calls into apps/web/src/lib/utils.formatToman",
+        "fact_id": "12aa0a6e74d67f3a38d90c4aa4c5a691"
+      },
+      {
+        "symbol": "apps/web/src/lib/utils",
+        "detail": "called by apps/web/src/lib/utils.formatToman",
+        "fact_id": "951ac3c8ea68b8af0311d224bde64dcb"
+      },
+      {
+        "symbol": "apps/web/src/lib/utils.formatNumber",
+        "detail": "called by apps/web/src/lib/utils.formatToman",
+        "fact_id": "2aeee62321bd42ef81163b9ad0038725"
+      },
+      {
+        "symbol": "apps/web/src/lib/utils.toPersianDigits",
+        "detail": "called by apps/web/src/lib/utils.formatToman",
+        "fact_id": "7d45d44d6bab9d6f7bc310f95c5a9807"
+      }
+    ],
+    "suggested_actions": [
+      "Add focused tests around this chokepoint before refactoring",
+      "Consider decomposing it so call paths don't all funnel through one symbol",
+      "Verify it isn't doing orchestration that belongs in callers"
+    ]
+  },
+  {
+    "title": "Call-graph hotspot: apps/web/src/features/orders.useOrders (fan-in 3, fan-out 10)",
+    "source": "hotspots",
+    "description": "\"apps/web/src/features/orders.useOrders\" is a pinch point: 3 symbols call into it and it calls out to 10 others, so a large share of call chains pass through it (degree-centrality proxy for betweenness). Such chokepoints are high-risk to change and high-value to test.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "apps/web/src/features/orders/order-store.ts",
+        "symbol": "apps/web/src/features/orders.useOrders",
+        "detail": "fan-in 3 × fan-out 10 = score 30",
+        "line": 515,
+        "end_line": 569,
+        "fact_id": "622fbab76bd6f35da8bc75b0d0ca9f47"
+      },
+      {
+        "symbol": "apps/web/src/routes/orders.OrderDetailPage",
+        "detail": "calls into apps/web/src/features/orders.useOrders",
+        "fact_id": "158b62477a363612e342316452f16e8e"
+      },
+      {
+        "symbol": "apps/web/src/routes/orders.OrdersListPage",
+        "detail": "calls into apps/web/src/features/orders.useOrders",
+        "fact_id": "078e99ed9ebd391659f977db72d85a69"
+      },
+      {
+        "symbol": "apps/web/src/routes/product.ProductNewConfigurationPage",
+        "detail": "calls into apps/web/src/features/orders.useOrders",
+        "fact_id": "4070692ac2a82b62611b6d0a96db4522"
+      },
+      {
+        "symbol": "@tanstack/react-query.useMutation",
+        "detail": "called by apps/web/src/features/orders.useOrders"
+      },
+      {
+        "symbol": "@tanstack/react-query.useQuery",
+        "detail": "called by apps/web/src/features/orders.useOrders"
+      },
+      {
+        "symbol": "@tanstack/react-query.useQueryClient",
+        "detail": "called by apps/web/src/features/orders.useOrders"
+      },
+      {
+        "symbol": "apps/web/src/features/orders",
+        "detail": "called by apps/web/src/features/orders.useOrders",
+        "fact_id": "0a8986d63afa96e4280cee415bd3a7a6"
+      },
+      {
+        "symbol": "apps/web/src/features/orders.broadcast",
+        "detail": "called by apps/web/src/features/orders.useOrders",
+        "fact_id": "a2f8219e43185a664160d55b76919311"
+      }
+    ],
+    "suggested_actions": [
+      "Add focused tests around this chokepoint before refactoring",
+      "Consider decomposing it so call paths don't all funnel through one symbol",
+      "Verify it isn't doing orchestration that belongs in callers"
+    ]
+  },
+  {
+    "title": "Call-graph hotspot: apps/web/src/features/products.persistAndNotify (fan-in 7, fan-out 4)",
+    "source": "hotspots",
+    "description": "\"apps/web/src/features/products.persistAndNotify\" is a pinch point: 7 symbols call into it and it calls out to 4 others, so a large share of call chains pass through it (degree-centrality proxy for betweenness). Such chokepoints are high-risk to change and high-value to test.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "apps/web/src/features/products/selection-store.ts",
+        "symbol": "apps/web/src/features/products.persistAndNotify",
+        "detail": "fan-in 7 × fan-out 4 = score 28",
+        "line": 59,
+        "end_line": 76,
+        "fact_id": "9b8997b785f50c9a9fd740feb7a4c43f"
+      },
+      {
+        "symbol": "apps/web/src/features/products.selectionStore.clearSelection",
+        "detail": "calls into apps/web/src/features/products.persistAndNotify",
+        "fact_id": "ed001c95886bf8eb5eed64ac65a00a3c"
+      },
+      {
+        "symbol": "apps/web/src/features/products.selectionStore.reconcileWithProducts",
+        "detail": "calls into apps/web/src/features/products.persistAndNotify",
+        "fact_id": "0153ccf2dd9de32d4ff1b3af17877445"
+      },
+      {
+        "symbol": "apps/web/src/features/products.selectionStore.selectProduct",
+        "detail": "calls into apps/web/src/features/products.persistAndNotify",
+        "fact_id": "879889feabb7a2a95a7b3d4fa1d6aca2"
+      },
+      {
+        "symbol": "apps/web/src/features/products.selectionStore.setBatchSelection",
+        "detail": "calls into apps/web/src/features/products.persistAndNotify",
+        "fact_id": "af32e37bf2dc8597652486eac9b61b12"
+      },
+      {
+        "symbol": "apps/web/src/features/products.selectionStore.setQuantity",
+        "detail": "calls into apps/web/src/features/products.persistAndNotify",
+        "fact_id": "5856c139263c717f1b471601c4690fbc"
+      },
+      {
+        "symbol": "apps/web/src/features/products",
+        "detail": "called by apps/web/src/features/products.persistAndNotify",
+        "fact_id": "5fbca80d5e02d99963b7405b39fca712"
+      },
+      {
+        "symbol": "apps/web/src/features/products.clearTimeout",
+        "detail": "called by apps/web/src/features/products.persistAndNotify"
+      },
+      {
+        "symbol": "apps/web/src/features/products.listener",
+        "detail": "called by apps/web/src/features/products.persistAndNotify"
+      },
+      {
+        "symbol": "apps/web/src/features/products.setTimeout",
+        "detail": "called by apps/web/src/features/products.persistAndNotify"
+      }
+    ],
+    "suggested_actions": [
+      "Add focused tests around this chokepoint before refactoring",
+      "Consider decomposing it so call paths don't all funnel through one symbol",
+      "Verify it isn't doing orchestration that belongs in callers"
+    ]
+  },
+  {
+    "title": "Call-graph hotspot: apps/web/src/lib/utils.formatPersianDate (fan-in 9, fan-out 3)",
+    "source": "hotspots",
+    "description": "\"apps/web/src/lib/utils.formatPersianDate\" is a pinch point: 9 symbols call into it and it calls out to 3 others, so a large share of call chains pass through it (degree-centrality proxy for betweenness). Such chokepoints are high-risk to change and high-value to test.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "apps/web/src/lib/utils/date.ts",
+        "symbol": "apps/web/src/lib/utils.formatPersianDate",
+        "detail": "fan-in 9 × fan-out 3 = score 27",
+        "line": 41,
+        "end_line": 55,
+        "fact_id": "1f43922f4809a6e0ebeda6754697d57e"
+      },
+      {
+        "symbol": "apps/web/src/features/orders.buildFullOrderTimeline",
+        "detail": "calls into apps/web/src/lib/utils.formatPersianDate",
+        "fact_id": "b578d8d1ec639ccf4b680f58786f2010"
+      },
+      {
+        "symbol": "apps/web/src/features/orders.getInitialState",
+        "detail": "calls into apps/web/src/lib/utils.formatPersianDate",
+        "fact_id": "b61edb266c2a2cd8d4fa71bc48b619d4"
+      },
+      {
+        "symbol": "apps/web/src/features/orders.mapDocToOrder",
+        "detail": "calls into apps/web/src/lib/utils.formatPersianDate",
+        "fact_id": "c9ae11c39e739383b878abf40a18e079"
+      },
+      {
+        "symbol": "apps/web/src/features/orders.orderStore.createOrder",
+        "detail": "calls into apps/web/src/lib/utils.formatPersianDate",
+        "fact_id": "949c6144ac4418e280b555313d8b76ee"
+      },
+      {
+        "symbol": "apps/web/src/features/plans.getInitialPlans",
+        "detail": "calls into apps/web/src/lib/utils.formatPersianDate",
+        "fact_id": "24a03f3f8f80d5fa2e93b08d23835738"
+      },
+      {
+        "symbol": "apps/web/src/lib/utils",
+        "detail": "called by apps/web/src/lib/utils.formatPersianDate",
+        "fact_id": "951ac3c8ea68b8af0311d224bde64dcb"
+      },
+      {
+        "symbol": "apps/web/src/lib/utils.toDate",
+        "detail": "called by apps/web/src/lib/utils.formatPersianDate",
+        "fact_id": "02b309629f7264931d96bed08d83d622"
+      },
+      {
+        "symbol": "apps/web/src/lib/utils.toPersianDigits",
+        "detail": "called by apps/web/src/lib/utils.formatPersianDate",
+        "fact_id": "7d45d44d6bab9d6f7bc310f95c5a9807"
+      }
+    ],
+    "suggested_actions": [
+      "Add focused tests around this chokepoint before refactoring",
+      "Consider decomposing it so call paths don't all funnel through one symbol",
+      "Verify it isn't doing orchestration that belongs in callers"
+    ]
+  },
+  {
+    "title": "Call-graph hotspot: apps/web/src/features/cart.useCart (fan-in 5, fan-out 4)",
+    "source": "hotspots",
+    "description": "\"apps/web/src/features/cart.useCart\" is a pinch point: 5 symbols call into it and it calls out to 4 others, so a large share of call chains pass through it (degree-centrality proxy for betweenness). Such chokepoints are high-risk to change and high-value to test.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "apps/web/src/features/cart/cart-store.ts",
+        "symbol": "apps/web/src/features/cart.useCart",
+        "detail": "fan-in 5 × fan-out 4 = score 20",
+        "line": 233,
+        "end_line": 286,
+        "fact_id": "65ef928f76b9e21f37f607193b9ad038"
+      },
+      {
+        "symbol": "apps/web/src/features/calculator.CartonCalculator",
+        "detail": "calls into apps/web/src/features/cart.useCart",
+        "fact_id": "9eadb7bd19731276b65dd862ada8d8d2"
+      },
+      {
+        "symbol": "apps/web/src/features/cart.CartItemRow",
+        "detail": "calls into apps/web/src/features/cart.useCart",
+        "fact_id": "624a209e7640b86cbbf71274bcae89ca"
+      },
+      {
+        "symbol": "apps/web/src/features/products.OrderEntryModal",
+        "detail": "calls into apps/web/src/features/cart.useCart",
+        "fact_id": "94f6408ae9f793cc8da9c42944d6d141"
+      },
+      {
+        "symbol": "apps/web/src/routes.CartPage",
+        "detail": "calls into apps/web/src/features/cart.useCart",
+        "fact_id": "e0ff7837e757621e1e849fc816580cbe"
+      },
+      {
+        "symbol": "apps/web/src/routes/product.ProductListPage",
+        "detail": "calls into apps/web/src/features/cart.useCart",
+        "fact_id": "5373bb4ea3a10165eb56917a8d5ecc5a"
+      },
+      {
+        "symbol": "apps/web/src/features/cart",
+        "detail": "called by apps/web/src/features/cart.useCart",
+        "fact_id": "78cd1dec1787f14653b850cb72bfac0d"
+      },
+      {
+        "symbol": "apps/web/src/features/cart.cartStore.getState",
+        "detail": "called by apps/web/src/features/cart.useCart",
+        "fact_id": "756c1a17a623f11ec684260ad64ee181"
+      },
+      {
+        "symbol": "react.useEffect",
+        "detail": "called by apps/web/src/features/cart.useCart"
+      },
+      {
+        "symbol": "react.useState",
+        "detail": "called by apps/web/src/features/cart.useCart"
+      }
+    ],
+    "suggested_actions": [
+      "Add focused tests around this chokepoint before refactoring",
+      "Consider decomposing it so call paths don't all funnel through one symbol",
+      "Verify it isn't doing orchestration that belongs in callers"
+    ]
+  },
+  {
+    "title": "Call-graph hotspot: apps/web/src/features/orders.orderStore.createOrder (fan-in 3, fan-out 6)",
+    "source": "hotspots",
+    "description": "\"apps/web/src/features/orders.orderStore.createOrder\" is a pinch point: 3 symbols call into it and it calls out to 6 others, so a large share of call chains pass through it (degree-centrality proxy for betweenness). Such chokepoints are high-risk to change and high-value to test.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "apps/web/src/features/orders/order-store.ts",
+        "symbol": "apps/web/src/features/orders.orderStore.createOrder",
+        "detail": "fan-in 3 × fan-out 6 = score 18",
+        "line": 289,
+        "end_line": 375,
+        "fact_id": "949c6144ac4418e280b555313d8b76ee"
+      },
+      {
+        "symbol": "apps/web/src/features/checkout.PreInvoiceModal",
+        "detail": "calls into apps/web/src/features/orders.orderStore.createOrder",
+        "fact_id": "36e62e62a9ae86270fc95aaecb9d0f39"
+      },
+      {
+        "symbol": "apps/web/src/features/orders.orderStore",
+        "detail": "calls into apps/web/src/features/orders.orderStore.createOrder",
+        "fact_id": "794c932adeda5f2a76e66b8ec78a7354"
+      },
+      {
+        "symbol": "apps/web/src/features/orders.useOrders",
+        "detail": "calls into apps/web/src/features/orders.orderStore.createOrder",
+        "fact_id": "622fbab76bd6f35da8bc75b0d0ca9f47"
+      },
+      {
+        "symbol": "apps/web/src/features/cart.cartStore.clearCart",
+        "detail": "called by apps/web/src/features/orders.orderStore.createOrder",
+        "fact_id": "ab52b5fd8f76d26134153f057bbcd804"
+      },
+      {
+        "symbol": "apps/web/src/features/orders",
+        "detail": "called by apps/web/src/features/orders.orderStore.createOrder",
+        "fact_id": "0a8986d63afa96e4280cee415bd3a7a6"
+      },
+      {
+        "symbol": "apps/web/src/features/orders.String",
+        "detail": "called by apps/web/src/features/orders.orderStore.createOrder"
+      },
+      {
+        "symbol": "apps/web/src/features/orders.broadcast",
+        "detail": "called by apps/web/src/features/orders.orderStore.createOrder",
+        "fact_id": "a2f8219e43185a664160d55b76919311"
+      },
+      {
+        "symbol": "apps/web/src/features/orders.buildFullOrderTimeline",
+        "detail": "called by apps/web/src/features/orders.orderStore.createOrder",
+        "fact_id": "b578d8d1ec639ccf4b680f58786f2010"
+      }
+    ],
+    "suggested_actions": [
+      "Add focused tests around this chokepoint before refactoring",
+      "Consider decomposing it so call paths don't all funnel through one symbol",
+      "Verify it isn't doing orchestration that belongs in callers"
+    ]
+  },
+  {
+    "title": "Call-graph hotspot: apps/web/src/features/orders.mapDocToOrder (fan-in 3, fan-out 5)",
+    "source": "hotspots",
+    "description": "\"apps/web/src/features/orders.mapDocToOrder\" is a pinch point: 3 symbols call into it and it calls out to 5 others, so a large share of call chains pass through it (degree-centrality proxy for betweenness). Such chokepoints are high-risk to change and high-value to test.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "apps/web/src/features/orders/order-store.ts",
+        "symbol": "apps/web/src/features/orders.mapDocToOrder",
+        "detail": "fan-in 3 × fan-out 5 = score 15",
+        "line": 175,
+        "end_line": 253,
+        "fact_id": "c9ae11c39e739383b878abf40a18e079"
+      },
+      {
+        "symbol": "apps/web/src/features/orders.orderStore.cancelOrder",
+        "detail": "calls into apps/web/src/features/orders.mapDocToOrder",
+        "fact_id": "2e55813e2649cf82c688ce18412fa616"
+      },
+      {
+        "symbol": "apps/web/src/features/orders.orderStore.fetchOrderById",
+        "detail": "calls into apps/web/src/features/orders.mapDocToOrder",
+        "fact_id": "acda428a0bb0d069eb8fb5c2b3ed5944"
+      },
+      {
+        "symbol": "apps/web/src/features/orders.orderStore.reactivateOrder",
+        "detail": "calls into apps/web/src/features/orders.mapDocToOrder",
+        "fact_id": "90dc18c7ffdc2b3c034c08ed1e194461"
+      },
+      {
+        "symbol": "apps/web/src/features/orders",
+        "detail": "called by apps/web/src/features/orders.mapDocToOrder",
+        "fact_id": "0a8986d63afa96e4280cee415bd3a7a6"
+      },
+      {
+        "symbol": "apps/web/src/features/orders.String",
+        "detail": "called by apps/web/src/features/orders.mapDocToOrder"
+      },
+      {
+        "symbol": "apps/web/src/features/orders.buildFullOrderTimeline",
+        "detail": "called by apps/web/src/features/orders.mapDocToOrder",
+        "fact_id": "b578d8d1ec639ccf4b680f58786f2010"
+      },
+      {
+        "symbol": "apps/web/src/features/orders.encodeURIComponent",
+        "detail": "called by apps/web/src/features/orders.mapDocToOrder"
+      },
+      {
+        "symbol": "apps/web/src/lib/utils.formatPersianDate",
+        "detail": "called by apps/web/src/features/orders.mapDocToOrder",
+        "fact_id": "1f43922f4809a6e0ebeda6754697d57e"
+      }
+    ],
+    "suggested_actions": [
+      "Add focused tests around this chokepoint before refactoring",
+      "Consider decomposing it so call paths don't all funnel through one symbol",
+      "Verify it isn't doing orchestration that belongs in callers"
+    ]
+  },
+  {
+    "title": "Call-graph hotspot: apps/web/src/features/products.formatGrade (fan-in 5, fan-out 3)",
+    "source": "hotspots",
+    "description": "\"apps/web/src/features/products.formatGrade\" is a pinch point: 5 symbols call into it and it calls out to 3 others, so a large share of call chains pass through it (degree-centrality proxy for betweenness). Such chokepoints are high-risk to change and high-value to test.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "apps/web/src/features/products/product-store.ts",
+        "symbol": "apps/web/src/features/products.formatGrade",
+        "detail": "fan-in 5 × fan-out 3 = score 15",
+        "line": 43,
+        "end_line": 69,
+        "fact_id": "1ee1679efa301a4033b69e7c31ed5dda"
+      },
+      {
+        "symbol": "apps/web/src/features/checkout.PreInvoiceItemCard",
+        "detail": "calls into apps/web/src/features/products.formatGrade",
+        "fact_id": "704bb04fd6bb36271b65c1f3747c59d7"
+      },
+      {
+        "symbol": "apps/web/src/features/products.ProductBottomSheet",
+        "detail": "calls into apps/web/src/features/products.formatGrade",
+        "fact_id": "3db7e0a58ea9357d292920be4ed0c58b"
+      },
+      {
+        "symbol": "apps/web/src/features/products.ProductCard",
+        "detail": "calls into apps/web/src/features/products.formatGrade",
+        "fact_id": "0c6e1e16b59b3d61def9a6f3eff078be"
+      },
+      {
+        "symbol": "apps/web/src/features/products.ProductConfigCardComponent",
+        "detail": "calls into apps/web/src/features/products.formatGrade",
+        "fact_id": "773708086948191971846f963c9cf516"
+      },
+      {
+        "symbol": "apps/web/src/features/products.useProducts",
+        "detail": "calls into apps/web/src/features/products.formatGrade",
+        "fact_id": "faf34b46ef795762fe074fde85cf0e14"
+      },
+      {
+        "symbol": "apps/web/src/features/products",
+        "detail": "called by apps/web/src/features/products.formatGrade",
+        "fact_id": "5fbca80d5e02d99963b7405b39fca712"
+      },
+      {
+        "symbol": "apps/web/src/features/products.String",
+        "detail": "called by apps/web/src/features/products.formatGrade"
+      },
+      {
+        "symbol": "apps/web/src/lib/utils.toPersianDigits",
+        "detail": "called by apps/web/src/features/products.formatGrade",
+        "fact_id": "7d45d44d6bab9d6f7bc310f95c5a9807"
+      }
+    ],
+    "suggested_actions": [
+      "Add focused tests around this chokepoint before refactoring",
+      "Consider decomposing it so call paths don't all funnel through one symbol",
+      "Verify it isn't doing orchestration that belongs in callers"
+    ]
+  },
+  {
+    "title": "Call-graph hotspot: apps/web/src/features/orders.buildFullOrderTimeline (fan-in 3, fan-out 4)",
+    "source": "hotspots",
+    "description": "\"apps/web/src/features/orders.buildFullOrderTimeline\" is a pinch point: 3 symbols call into it and it calls out to 4 others, so a large share of call chains pass through it (degree-centrality proxy for betweenness). Such chokepoints are high-risk to change and high-value to test.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "apps/web/src/features/orders/order-store.ts",
+        "symbol": "apps/web/src/features/orders.buildFullOrderTimeline",
+        "detail": "fan-in 3 × fan-out 4 = score 12",
+        "line": 63,
+        "end_line": 173,
+        "fact_id": "b578d8d1ec639ccf4b680f58786f2010"
+      },
+      {
+        "symbol": "apps/web/src/features/orders.mapDocToOrder",
+        "detail": "calls into apps/web/src/features/orders.buildFullOrderTimeline",
+        "fact_id": "c9ae11c39e739383b878abf40a18e079"
+      },
+      {
+        "symbol": "apps/web/src/features/orders.orderStore.createOrder",
+        "detail": "calls into apps/web/src/features/orders.buildFullOrderTimeline",
+        "fact_id": "949c6144ac4418e280b555313d8b76ee"
+      },
+      {
+        "symbol": "apps/web/src/routes/orders.OrderDetailPage",
+        "detail": "calls into apps/web/src/features/orders.buildFullOrderTimeline",
+        "fact_id": "158b62477a363612e342316452f16e8e"
+      },
+      {
+        "symbol": "apps/web/src/features/orders",
+        "detail": "called by apps/web/src/features/orders.buildFullOrderTimeline",
+        "fact_id": "0a8986d63afa96e4280cee415bd3a7a6"
+      },
+      {
+        "symbol": "apps/web/src/features/orders.formatTs",
+        "detail": "called by apps/web/src/features/orders.buildFullOrderTimeline"
+      },
+      {
+        "symbol": "apps/web/src/lib/utils.formatPersianDate",
+        "detail": "called by apps/web/src/features/orders.buildFullOrderTimeline",
+        "fact_id": "1f43922f4809a6e0ebeda6754697d57e"
+      },
+      {
+        "symbol": "apps/web/src/lib/utils.formatPersianTimelineTs",
+        "detail": "called by apps/web/src/features/orders.buildFullOrderTimeline",
+        "fact_id": "e091dc9e13f01d342244c1b07e572d36"
+      }
+    ],
+    "suggested_actions": [
+      "Add focused tests around this chokepoint before refactoring",
+      "Consider decomposing it so call paths don't all funnel through one symbol",
+      "Verify it isn't doing orchestration that belongs in callers"
+    ]
+  },
+  {
+    "title": "Call-graph hotspot: apps/web/src/features/products.selectionStore.setBatchSelection (fan-in 4, fan-out 3)",
+    "source": "hotspots",
+    "description": "\"apps/web/src/features/products.selectionStore.setBatchSelection\" is a pinch point: 4 symbols call into it and it calls out to 3 others, so a large share of call chains pass through it (degree-centrality proxy for betweenness). Such chokepoints are high-risk to change and high-value to test.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "apps/web/src/features/products/selection-store.ts",
+        "symbol": "apps/web/src/features/products.selectionStore.setBatchSelection",
+        "detail": "fan-in 4 × fan-out 3 = score 12",
+        "line": 185,
+        "end_line": 199,
+        "fact_id": "af32e37bf2dc8597652486eac9b61b12"
+      },
+      {
+        "symbol": "apps/web/src/features/checkout.PreInvoiceModal",
+        "detail": "calls into apps/web/src/features/products.selectionStore.setBatchSelection",
+        "fact_id": "36e62e62a9ae86270fc95aaecb9d0f39"
+      },
+      {
+        "symbol": "apps/web/src/features/products.selectionStore",
+        "detail": "calls into apps/web/src/features/products.selectionStore.setBatchSelection",
+        "fact_id": "0b8332c9bbee217627a290f44b4d33de"
+      },
+      {
+        "symbol": "apps/web/src/routes/orders.OrderDetailPage",
+        "detail": "calls into apps/web/src/features/products.selectionStore.setBatchSelection",
+        "fact_id": "158b62477a363612e342316452f16e8e"
+      },
+      {
+        "symbol": "apps/web/src/routes/product.ProductNewConfigurationPage",
+        "detail": "calls into apps/web/src/features/products.selectionStore.setBatchSelection",
+        "fact_id": "4070692ac2a82b62611b6d0a96db4522"
+      },
+      {
+        "symbol": "apps/web/src/features/products",
+        "detail": "called by apps/web/src/features/products.selectionStore.setBatchSelection",
+        "fact_id": "5fbca80d5e02d99963b7405b39fca712"
+      },
+      {
+        "symbol": "apps/web/src/features/products.normalizeId",
+        "detail": "called by apps/web/src/features/products.selectionStore.setBatchSelection",
+        "fact_id": "22b89ce9a1ee93a184f706684ee5da37"
+      },
+      {
+        "symbol": "apps/web/src/features/products.persistAndNotify",
+        "detail": "called by apps/web/src/features/products.selectionStore.setBatchSelection",
+        "fact_id": "9b8997b785f50c9a9fd740feb7a4c43f"
+      }
+    ],
+    "suggested_actions": [
+      "Add focused tests around this chokepoint before refactoring",
+      "Consider decomposing it so call paths don't all funnel through one symbol",
+      "Verify it isn't doing orchestration that belongs in callers"
+    ]
+  },
+  {
+    "title": "Call-graph hotspot: apps/web/src/features/products.selectionStore.setQuantity (fan-in 3, fan-out 3)",
+    "source": "hotspots",
+    "description": "\"apps/web/src/features/products.selectionStore.setQuantity\" is a pinch point: 3 symbols call into it and it calls out to 3 others, so a large share of call chains pass through it (degree-centrality proxy for betweenness). Such chokepoints are high-risk to change and high-value to test.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "apps/web/src/features/products/selection-store.ts",
+        "symbol": "apps/web/src/features/products.selectionStore.setQuantity",
+        "detail": "fan-in 3 × fan-out 3 = score 9",
+        "line": 150,
+        "end_line": 163,
+        "fact_id": "5856c139263c717f1b471601c4690fbc"
+      },
+      {
+        "symbol": "apps/web/src/features/products.ProductConfigCardComponent",
+        "detail": "calls into apps/web/src/features/products.selectionStore.setQuantity",
+        "fact_id": "773708086948191971846f963c9cf516"
+      },
+      {
+        "symbol": "apps/web/src/features/products.selectionStore",
+        "detail": "calls into apps/web/src/features/products.selectionStore.setQuantity",
+        "fact_id": "0b8332c9bbee217627a290f44b4d33de"
+      },
+      {
+        "symbol": "apps/web/src/routes/product.ProductNewConfigurationPage",
+        "detail": "calls into apps/web/src/features/products.selectionStore.setQuantity",
+        "fact_id": "4070692ac2a82b62611b6d0a96db4522"
+      },
+      {
+        "symbol": "apps/web/src/features/products",
+        "detail": "called by apps/web/src/features/products.selectionStore.setQuantity",
+        "fact_id": "5fbca80d5e02d99963b7405b39fca712"
+      },
+      {
+        "symbol": "apps/web/src/features/products.normalizeId",
+        "detail": "called by apps/web/src/features/products.selectionStore.setQuantity",
+        "fact_id": "22b89ce9a1ee93a184f706684ee5da37"
+      },
+      {
+        "symbol": "apps/web/src/features/products.persistAndNotify",
+        "detail": "called by apps/web/src/features/products.selectionStore.setQuantity",
+        "fact_id": "9b8997b785f50c9a9fd740feb7a4c43f"
+      }
+    ],
+    "suggested_actions": [
+      "Add focused tests around this chokepoint before refactoring",
+      "Consider decomposing it so call paths don't all funnel through one symbol",
+      "Verify it isn't doing orchestration that belongs in callers"
+    ]
+  },
+  {
+    "title": "Deep dependency chain: apps/web (depth 9)",
+    "source": "dependency-depth",
+    "description": "Module \"apps/web\" has a longest dependency chain of 9 modules: apps/web -\u003e apps/web/src -\u003e apps/web/src/routes -\u003e apps/web/src/features/checkout -\u003e apps/web/src/features/orders -\u003e apps/web/src/features/cart -\u003e apps/web/src/components/ui -\u003e apps/web/src/hooks -\u003e apps/web/src/lib. Deep chains slow comprehension and widen rebuild/retest impact when a module near the bottom changes.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "fact": "apps/web",
+        "fact_id": "4c20c9f8a5d53ade3471ba45d845f0f6"
+      },
+      {
+        "fact": "apps/web/src",
+        "fact_id": "e6d75257d748431051cc0762c4fe6f51"
+      },
+      {
+        "fact": "apps/web/src/routes",
+        "fact_id": "a9f7e732fa0b5b5c6c8616aad55cb642"
+      },
+      {
+        "fact": "apps/web/src/features/checkout",
+        "fact_id": "31fc9aff6f642409231891467d451e7d"
+      },
+      {
+        "fact": "apps/web/src/features/orders",
+        "fact_id": "0a8986d63afa96e4280cee415bd3a7a6"
+      },
+      {
+        "fact": "apps/web/src/features/cart",
+        "fact_id": "78cd1dec1787f14653b850cb72bfac0d"
+      },
+      {
+        "fact": "apps/web/src/components/ui",
+        "fact_id": "1ff4f9988e9348532e8dbcb7c64f3769"
+      },
+      {
+        "fact": "apps/web/src/hooks",
+        "fact_id": "219ff2e841dbed982af85c24ee0dd86b"
+      },
+      {
+        "fact": "apps/web/src/lib",
+        "fact_id": "cad5e5bc3ae23eed0e036ea3e1c49808"
+      }
+    ],
+    "suggested_actions": [
+      "Flatten the chain by depending on shared abstractions instead of deep transitive modules",
+      "Check whether intermediate modules are pass-through layers that can be removed",
+      "Introduce interfaces to decouple the deepest modules from their consumers"
+    ]
+  },
+  {
+    "title": "Deep dependency chain: apps/web/src (depth 8)",
+    "source": "dependency-depth",
+    "description": "Module \"apps/web/src\" has a longest dependency chain of 8 modules: apps/web/src -\u003e apps/web/src/routes -\u003e apps/web/src/features/checkout -\u003e apps/web/src/features/orders -\u003e apps/web/src/features/cart -\u003e apps/web/src/components/ui -\u003e apps/web/src/hooks -\u003e apps/web/src/lib. Deep chains slow comprehension and widen rebuild/retest impact when a module near the bottom changes.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "fact": "apps/web/src",
+        "fact_id": "e6d75257d748431051cc0762c4fe6f51"
+      },
+      {
+        "fact": "apps/web/src/routes",
+        "fact_id": "a9f7e732fa0b5b5c6c8616aad55cb642"
+      },
+      {
+        "fact": "apps/web/src/features/checkout",
+        "fact_id": "31fc9aff6f642409231891467d451e7d"
+      },
+      {
+        "fact": "apps/web/src/features/orders",
+        "fact_id": "0a8986d63afa96e4280cee415bd3a7a6"
+      },
+      {
+        "fact": "apps/web/src/features/cart",
+        "fact_id": "78cd1dec1787f14653b850cb72bfac0d"
+      },
+      {
+        "fact": "apps/web/src/components/ui",
+        "fact_id": "1ff4f9988e9348532e8dbcb7c64f3769"
+      },
+      {
+        "fact": "apps/web/src/hooks",
+        "fact_id": "219ff2e841dbed982af85c24ee0dd86b"
+      },
+      {
+        "fact": "apps/web/src/lib",
+        "fact_id": "cad5e5bc3ae23eed0e036ea3e1c49808"
+      }
+    ],
+    "suggested_actions": [
+      "Flatten the chain by depending on shared abstractions instead of deep transitive modules",
+      "Check whether intermediate modules are pass-through layers that can be removed",
+      "Introduce interfaces to decouple the deepest modules from their consumers"
+    ]
+  },
+  {
+    "title": "Deep dependency chain: apps/web/src/routes (depth 7)",
+    "source": "dependency-depth",
+    "description": "Module \"apps/web/src/routes\" has a longest dependency chain of 7 modules: apps/web/src/routes -\u003e apps/web/src/features/checkout -\u003e apps/web/src/features/orders -\u003e apps/web/src/features/cart -\u003e apps/web/src/components/ui -\u003e apps/web/src/hooks -\u003e apps/web/src/lib. Deep chains slow comprehension and widen rebuild/retest impact when a module near the bottom changes.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "fact": "apps/web/src/routes",
+        "fact_id": "a9f7e732fa0b5b5c6c8616aad55cb642"
+      },
+      {
+        "fact": "apps/web/src/features/checkout",
+        "fact_id": "31fc9aff6f642409231891467d451e7d"
+      },
+      {
+        "fact": "apps/web/src/features/orders",
+        "fact_id": "0a8986d63afa96e4280cee415bd3a7a6"
+      },
+      {
+        "fact": "apps/web/src/features/cart",
+        "fact_id": "78cd1dec1787f14653b850cb72bfac0d"
+      },
+      {
+        "fact": "apps/web/src/components/ui",
+        "fact_id": "1ff4f9988e9348532e8dbcb7c64f3769"
+      },
+      {
+        "fact": "apps/web/src/hooks",
+        "fact_id": "219ff2e841dbed982af85c24ee0dd86b"
+      },
+      {
+        "fact": "apps/web/src/lib",
+        "fact_id": "cad5e5bc3ae23eed0e036ea3e1c49808"
+      }
+    ],
+    "suggested_actions": [
+      "Flatten the chain by depending on shared abstractions instead of deep transitive modules",
+      "Check whether intermediate modules are pass-through layers that can be removed",
+      "Introduce interfaces to decouple the deepest modules from their consumers"
+    ]
+  },
+  {
+    "title": "Deep dependency chain: apps/web/src/routes/orders (depth 7)",
+    "source": "dependency-depth",
+    "description": "Module \"apps/web/src/routes/orders\" has a longest dependency chain of 7 modules: apps/web/src/routes/orders -\u003e apps/web/src/features/checkout -\u003e apps/web/src/features/orders -\u003e apps/web/src/features/cart -\u003e apps/web/src/components/ui -\u003e apps/web/src/hooks -\u003e apps/web/src/lib. Deep chains slow comprehension and widen rebuild/retest impact when a module near the bottom changes.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "fact": "apps/web/src/routes/orders",
+        "fact_id": "7ba3c380df6b4c1944373a3aa52c7f5f"
+      },
+      {
+        "fact": "apps/web/src/features/checkout",
+        "fact_id": "31fc9aff6f642409231891467d451e7d"
+      },
+      {
+        "fact": "apps/web/src/features/orders",
+        "fact_id": "0a8986d63afa96e4280cee415bd3a7a6"
+      },
+      {
+        "fact": "apps/web/src/features/cart",
+        "fact_id": "78cd1dec1787f14653b850cb72bfac0d"
+      },
+      {
+        "fact": "apps/web/src/components/ui",
+        "fact_id": "1ff4f9988e9348532e8dbcb7c64f3769"
+      },
+      {
+        "fact": "apps/web/src/hooks",
+        "fact_id": "219ff2e841dbed982af85c24ee0dd86b"
+      },
+      {
+        "fact": "apps/web/src/lib",
+        "fact_id": "cad5e5bc3ae23eed0e036ea3e1c49808"
+      }
+    ],
+    "suggested_actions": [
+      "Flatten the chain by depending on shared abstractions instead of deep transitive modules",
+      "Check whether intermediate modules are pass-through layers that can be removed",
+      "Introduce interfaces to decouple the deepest modules from their consumers"
+    ]
+  },
+  {
+    "title": "Deep dependency chain: apps/web/src/routes/product (depth 7)",
+    "source": "dependency-depth",
+    "description": "Module \"apps/web/src/routes/product\" has a longest dependency chain of 7 modules: apps/web/src/routes/product -\u003e apps/web/src/features/checkout -\u003e apps/web/src/features/orders -\u003e apps/web/src/features/cart -\u003e apps/web/src/components/ui -\u003e apps/web/src/hooks -\u003e apps/web/src/lib. Deep chains slow comprehension and widen rebuild/retest impact when a module near the bottom changes.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "fact": "apps/web/src/routes/product",
+        "fact_id": "30b058f629f59d9d9bb1246fd1816a16"
+      },
+      {
+        "fact": "apps/web/src/features/checkout",
+        "fact_id": "31fc9aff6f642409231891467d451e7d"
+      },
+      {
+        "fact": "apps/web/src/features/orders",
+        "fact_id": "0a8986d63afa96e4280cee415bd3a7a6"
+      },
+      {
+        "fact": "apps/web/src/features/cart",
+        "fact_id": "78cd1dec1787f14653b850cb72bfac0d"
+      },
+      {
+        "fact": "apps/web/src/components/ui",
+        "fact_id": "1ff4f9988e9348532e8dbcb7c64f3769"
+      },
+      {
+        "fact": "apps/web/src/hooks",
+        "fact_id": "219ff2e841dbed982af85c24ee0dd86b"
+      },
+      {
+        "fact": "apps/web/src/lib",
+        "fact_id": "cad5e5bc3ae23eed0e036ea3e1c49808"
+      }
+    ],
+    "suggested_actions": [
+      "Flatten the chain by depending on shared abstractions instead of deep transitive modules",
+      "Check whether intermediate modules are pass-through layers that can be removed",
+      "Introduce interfaces to decouple the deepest modules from their consumers"
+    ]
+  },
+  {
+    "title": "Deep dependency chain: apps/web/src/features/checkout (depth 6)",
+    "source": "dependency-depth",
+    "description": "Module \"apps/web/src/features/checkout\" has a longest dependency chain of 6 modules: apps/web/src/features/checkout -\u003e apps/web/src/features/orders -\u003e apps/web/src/features/cart -\u003e apps/web/src/components/ui -\u003e apps/web/src/hooks -\u003e apps/web/src/lib. Deep chains slow comprehension and widen rebuild/retest impact when a module near the bottom changes.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "fact": "apps/web/src/features/checkout",
+        "fact_id": "31fc9aff6f642409231891467d451e7d"
+      },
+      {
+        "fact": "apps/web/src/features/orders",
+        "fact_id": "0a8986d63afa96e4280cee415bd3a7a6"
+      },
+      {
+        "fact": "apps/web/src/features/cart",
+        "fact_id": "78cd1dec1787f14653b850cb72bfac0d"
+      },
+      {
+        "fact": "apps/web/src/components/ui",
+        "fact_id": "1ff4f9988e9348532e8dbcb7c64f3769"
+      },
+      {
+        "fact": "apps/web/src/hooks",
+        "fact_id": "219ff2e841dbed982af85c24ee0dd86b"
+      },
+      {
+        "fact": "apps/web/src/lib",
+        "fact_id": "cad5e5bc3ae23eed0e036ea3e1c49808"
+      }
+    ],
+    "suggested_actions": [
+      "Flatten the chain by depending on shared abstractions instead of deep transitive modules",
+      "Check whether intermediate modules are pass-through layers that can be removed",
+      "Introduce interfaces to decouple the deepest modules from their consumers"
+    ]
+  },
+  {
+    "title": "Deep dependency chain: apps/api (depth 5)",
+    "source": "dependency-depth",
+    "description": "Module \"apps/api\" has a longest dependency chain of 5 modules: apps/api -\u003e {apps/api/src, apps/api/src/lib, apps/api/src/routers, apps/api/src/rpc}. Modules in braces depend on each other in a cycle and count together. Deep chains slow comprehension and widen rebuild/retest impact when a module near the bottom changes.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "fact": "apps/api"
+      },
+      {
+        "fact": "apps/api/src",
+        "fact_id": "9fbff803b18e4c3dbc5e8731c676e80d"
+      },
+      {
+        "fact": "apps/api/src/lib",
+        "fact_id": "76c00a7dbd7e7f2069fdc33d9f0182d2"
+      },
+      {
+        "fact": "apps/api/src/routers",
+        "fact_id": "1ae9918b00f7cc8bc59e7a40a6115376"
+      },
+      {
+        "fact": "apps/api/src/rpc",
+        "fact_id": "4de0534dbb8898a1a1dca06f4d54915e"
+      }
+    ],
+    "suggested_actions": [
+      "Flatten the chain by depending on shared abstractions instead of deep transitive modules",
+      "Check whether intermediate modules are pass-through layers that can be removed",
+      "Introduce interfaces to decouple the deepest modules from their consumers"
+    ]
+  },
+  {
+    "title": "Deep dependency chain: apps/cms/src/app/(payload) (depth 5)",
+    "source": "dependency-depth",
+    "description": "Module \"apps/cms/src/app/(payload)\" has a longest dependency chain of 5 modules: apps/cms/src/app/(payload) -\u003e apps/cms/src -\u003e apps/cms/src/collections/otps -\u003e apps/cms/src/collections/orders -\u003e apps/cms/src/access. Deep chains slow comprehension and widen rebuild/retest impact when a module near the bottom changes.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "fact": "apps/cms/src/app/(payload)",
+        "fact_id": "56662c178ff4d2eb64502336b05f66ec"
+      },
+      {
+        "fact": "apps/cms/src",
+        "fact_id": "5d697a60d131f813c975ecabd5235171"
+      },
+      {
+        "fact": "apps/cms/src/collections/otps",
+        "fact_id": "88b45bd08841241d1ff63ebf753f4459"
+      },
+      {
+        "fact": "apps/cms/src/collections/orders",
+        "fact_id": "977e02efa11b39e3440bcfa1b536495a"
+      },
+      {
+        "fact": "apps/cms/src/access",
+        "fact_id": "624fdafe4dbfdbc8d846b076553f9a18"
+      }
+    ],
+    "suggested_actions": [
+      "Flatten the chain by depending on shared abstractions instead of deep transitive modules",
+      "Check whether intermediate modules are pass-through layers that can be removed",
+      "Introduce interfaces to decouple the deepest modules from their consumers"
+    ]
+  },
+  {
+    "title": "Deep dependency chain: apps/cms/src/app/(payload)/admin/[[...segments]] (depth 5)",
+    "source": "dependency-depth",
+    "description": "Module \"apps/cms/src/app/(payload)/admin/[[...segments]]\" has a longest dependency chain of 5 modules: apps/cms/src/app/(payload)/admin/[[...segments]] -\u003e apps/cms/src -\u003e apps/cms/src/collections/otps -\u003e apps/cms/src/collections/orders -\u003e apps/cms/src/access. Deep chains slow comprehension and widen rebuild/retest impact when a module near the bottom changes.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "fact": "apps/cms/src/app/(payload)/admin/[[...segments]]",
+        "fact_id": "5f72c95ebf7012ad2161a0c51c9db938"
+      },
+      {
+        "fact": "apps/cms/src",
+        "fact_id": "5d697a60d131f813c975ecabd5235171"
+      },
+      {
+        "fact": "apps/cms/src/collections/otps",
+        "fact_id": "88b45bd08841241d1ff63ebf753f4459"
+      },
+      {
+        "fact": "apps/cms/src/collections/orders",
+        "fact_id": "977e02efa11b39e3440bcfa1b536495a"
+      },
+      {
+        "fact": "apps/cms/src/access",
+        "fact_id": "624fdafe4dbfdbc8d846b076553f9a18"
+      }
+    ],
+    "suggested_actions": [
+      "Flatten the chain by depending on shared abstractions instead of deep transitive modules",
+      "Check whether intermediate modules are pass-through layers that can be removed",
+      "Introduce interfaces to decouple the deepest modules from their consumers"
+    ]
+  },
+  {
+    "title": "Deep dependency chain: apps/cms/src/app/(payload)/api/[...slug] (depth 5)",
+    "source": "dependency-depth",
+    "description": "Module \"apps/cms/src/app/(payload)/api/[...slug]\" has a longest dependency chain of 5 modules: apps/cms/src/app/(payload)/api/[...slug] -\u003e apps/cms/src -\u003e apps/cms/src/collections/otps -\u003e apps/cms/src/collections/orders -\u003e apps/cms/src/access. Deep chains slow comprehension and widen rebuild/retest impact when a module near the bottom changes.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "fact": "apps/cms/src/app/(payload)/api/[...slug]",
+        "fact_id": "5245af6f9a0e3ae56ea12637edaff7fa"
+      },
+      {
+        "fact": "apps/cms/src",
+        "fact_id": "5d697a60d131f813c975ecabd5235171"
+      },
+      {
+        "fact": "apps/cms/src/collections/otps",
+        "fact_id": "88b45bd08841241d1ff63ebf753f4459"
+      },
+      {
+        "fact": "apps/cms/src/collections/orders",
+        "fact_id": "977e02efa11b39e3440bcfa1b536495a"
+      },
+      {
+        "fact": "apps/cms/src/access",
+        "fact_id": "624fdafe4dbfdbc8d846b076553f9a18"
+      }
+    ],
+    "suggested_actions": [
+      "Flatten the chain by depending on shared abstractions instead of deep transitive modules",
+      "Check whether intermediate modules are pass-through layers that can be removed",
+      "Introduce interfaces to decouple the deepest modules from their consumers"
+    ]
+  },
+  {
+    "title": "Large public surface: packages/contract/src exports 150 of 150 symbols (100%)",
+    "source": "exported-surface",
+    "description": "Module \"packages/contract/src\" exports 150 of its 150 symbols (100%). A large, near-fully-exported module hides little of its implementation, so consumers can couple to internals and it is hard to change without breaking them. Worth a visibility review — though a deliberate library API may legitimately export most of its surface.",
+    "confidence": 0.6,
+    "evidence": [
+      {
+        "symbol": "packages/contract/src.AppContract",
+        "detail": "exported",
+        "fact_id": "6ebec729d28d8c36ca1e6410c33ae92a"
+      },
+      {
+        "symbol": "packages/contract/src.AvailabilityBadge",
+        "detail": "exported",
+        "fact_id": "28ed5fd94f561b78a0daba844048f6f3"
+      },
+      {
+        "symbol": "packages/contract/src.AvailabilityBadgeSchema",
+        "detail": "exported",
+        "fact_id": "624abee9ea7fa16e10baa963cc1046d2"
+      },
+      {
+        "symbol": "packages/contract/src.Brand",
+        "detail": "exported",
+        "fact_id": "233ee8dc4b2f5f910e1dfe1a3227f206"
+      },
+      {
+        "symbol": "packages/contract/src.BrandSchema",
+        "detail": "exported",
+        "fact_id": "e3ef18f4f320d4f7a0f78e7940db0af7"
+      },
+      {
+        "symbol": "packages/contract/src.CartItemInput",
+        "detail": "exported",
+        "fact_id": "16dd2652c89ebf51c93efd93226d12dd"
+      },
+      {
+        "symbol": "packages/contract/src.CartItemInputSchema",
+        "detail": "exported",
+        "fact_id": "7d3d596b3d7c937c7871c333ddf17c25"
+      },
+      {
+        "symbol": "packages/contract/src.CartonCalculationInput",
+        "detail": "exported",
+        "fact_id": "862381b27e73990c03c600583eb1303b"
+      }
+    ],
+    "suggested_actions": [
+      "Unexport symbols that are only used within the module",
+      "Define a small, intentional public API and hide the rest",
+      "Split the module if it has several independent public responsibilities"
+    ]
+  },
+  {
+    "title": "Large public surface: apps/web/src/types exports 100 of 100 symbols (100%)",
+    "source": "exported-surface",
+    "description": "Module \"apps/web/src/types\" exports 100 of its 100 symbols (100%). A large, near-fully-exported module hides little of its implementation, so consumers can couple to internals and it is hard to change without breaking them. Worth a visibility review — though a deliberate library API may legitimately export most of its surface.",
+    "confidence": 0.6,
+    "evidence": [
+      {
+        "symbol": "apps/web/src/types.B2BCustomer",
+        "detail": "exported",
+        "fact_id": "8b5dc54349e5d53f4f5b62cc1c826998"
+      },
+      {
+        "symbol": "apps/web/src/types.B2BCustomer.company",
+        "detail": "exported",
+        "fact_id": "48b018153299d95fc254b5e33f71e62a"
+      },
+      {
+        "symbol": "apps/web/src/types.B2BCustomer.id",
+        "detail": "exported",
+        "fact_id": "918ebc01de6630634c81c1b5e6daa860"
+      },
+      {
+        "symbol": "apps/web/src/types.B2BCustomer.name",
+        "detail": "exported",
+        "fact_id": "bfe5d98749d2ace4dcef52694142f4c6"
+      },
+      {
+        "symbol": "apps/web/src/types.B2BCustomer.phone",
+        "detail": "exported",
+        "fact_id": "f77fae1a7581ebc5b78d0fa10981e35e"
+      },
+      {
+        "symbol": "apps/web/src/types.B2BCustomer.tier",
+        "detail": "exported",
+        "fact_id": "2cc95425f6c00d9d6375fc2551a10740"
+      },
+      {
+        "symbol": "apps/web/src/types.ORDER_STATUS_MAP",
+        "detail": "exported",
+        "fact_id": "27e707d91357b4b7d7bd01496fafd299"
+      },
+      {
+        "symbol": "apps/web/src/types.Order",
+        "detail": "exported",
+        "fact_id": "0bffd33eb0d516e3abb9a3876199c19b"
+      }
+    ],
+    "suggested_actions": [
+      "Unexport symbols that are only used within the module",
+      "Define a small, intentional public API and hide the rest",
+      "Split the module if it has several independent public responsibilities"
+    ]
+  },
+  {
+    "title": "Large public surface: apps/api/src/lib exports 49 of 54 symbols (91%)",
+    "source": "exported-surface",
+    "description": "Module \"apps/api/src/lib\" exports 49 of its 54 symbols (91%). A large, near-fully-exported module hides little of its implementation, so consumers can couple to internals and it is hard to change without breaking them. Worth a visibility review — though a deliberate library API may legitimately export most of its surface.",
+    "confidence": 0.6,
+    "evidence": [
+      {
+        "symbol": "apps/api/src/lib.JWT_ALGORITHM",
+        "detail": "exported",
+        "fact_id": "32e9c403174767fae2664476bc0b5585"
+      },
+      {
+        "symbol": "apps/api/src/lib.JWT_AUDIENCE",
+        "detail": "exported",
+        "fact_id": "23cbf6540359cf056c0943848f005c63"
+      },
+      {
+        "symbol": "apps/api/src/lib.JWT_DEFAULT_EXPIRY_SECONDS",
+        "detail": "exported",
+        "fact_id": "beabac2bc353e3ed57f79c6e412ac81f"
+      },
+      {
+        "symbol": "apps/api/src/lib.JWT_ISSUER",
+        "detail": "exported",
+        "fact_id": "89db6ba90cc54138377855984a8923ae"
+      },
+      {
+        "symbol": "apps/api/src/lib.JWT_SECRET",
+        "detail": "exported",
+        "fact_id": "973a2992cd0e06a619fa994f0076389b"
+      },
+      {
+        "symbol": "apps/api/src/lib.KavenegarLookupParams",
+        "detail": "exported",
+        "fact_id": "f71d481c0cdc21bc182f9c7a73c26457"
+      },
+      {
+        "symbol": "apps/api/src/lib.KavenegarLookupParams.receptor",
+        "detail": "exported",
+        "fact_id": "b5917b7413d8cb2be11e24fe871fcd4f"
+      },
+      {
+        "symbol": "apps/api/src/lib.KavenegarLookupParams.template",
+        "detail": "exported",
+        "fact_id": "7280633fe2d311fad8890c611b3071a2"
+      }
+    ],
+    "suggested_actions": [
+      "Unexport symbols that are only used within the module",
+      "Define a small, intentional public API and hide the rest",
+      "Split the module if it has several independent public responsibilities"
+    ]
+  },
+  {
+    "title": "Large public surface: apps/api/src/rpc exports 24 of 24 symbols (100%)",
+    "source": "exported-surface",
+    "description": "Module \"apps/api/src/rpc\" exports 24 of its 24 symbols (100%). A large, near-fully-exported module hides little of its implementation, so consumers can couple to internals and it is hard to change without breaking them. Worth a visibility review — though a deliberate library API may legitimately export most of its surface.",
+    "confidence": 0.6,
+    "evidence": [
+      {
+        "symbol": "apps/api/src/rpc.AuthenticatedContext",
+        "detail": "exported",
+        "fact_id": "46ae5aa48a681e4383e373babf880e76"
+      },
+      {
+        "symbol": "apps/api/src/rpc.AuthenticatedContext.user",
+        "detail": "exported",
+        "fact_id": "31fb96ee74cf9c771e4abd3b9888d073"
+      },
+      {
+        "symbol": "apps/api/src/rpc.AuthenticatedUserContext",
+        "detail": "exported",
+        "fact_id": "2c45a6d7b346b5451faa38ee11f066f1"
+      },
+      {
+        "symbol": "apps/api/src/rpc.AuthenticatedUserContext.id",
+        "detail": "exported",
+        "fact_id": "67c91251b8e0206bf0bb416c0a2cb061"
+      },
+      {
+        "symbol": "apps/api/src/rpc.AuthenticatedUserContext.role",
+        "detail": "exported",
+        "fact_id": "5849c24bdbcf3c5fca5caedc8a04a98a"
+      },
+      {
+        "symbol": "apps/api/src/rpc.Context",
+        "detail": "exported",
+        "fact_id": "a92f445137ef73347c178f4c1ba4e6b5"
+      },
+      {
+        "symbol": "apps/api/src/rpc.Context.jwtPayload",
+        "detail": "exported",
+        "fact_id": "0c36a854a6fd268908d8c45d62d75af6"
+      },
+      {
+        "symbol": "apps/api/src/rpc.Context.req",
+        "detail": "exported",
+        "fact_id": "806133fdfa07fe0790fc6afc7a6afb85"
+      }
+    ],
+    "suggested_actions": [
+      "Unexport symbols that are only used within the module",
+      "Define a small, intentional public API and hide the rest",
+      "Split the module if it has several independent public responsibilities"
+    ]
+  },
+  {
+    "title": "Large public surface: apps/cms/src/access exports 21 of 22 symbols (95%)",
+    "source": "exported-surface",
+    "description": "Module \"apps/cms/src/access\" exports 21 of its 22 symbols (95%). A large, near-fully-exported module hides little of its implementation, so consumers can couple to internals and it is hard to change without breaking them. Worth a visibility review — though a deliberate library API may legitimately export most of its surface.",
+    "confidence": 0.6,
+    "evidence": [
+      {
+        "symbol": "apps/cms/src/access.AdminRole",
+        "detail": "exported",
+        "fact_id": "1c4592c0073f2bf4d63e0275f6566596"
+      },
+      {
+        "symbol": "apps/cms/src/access.AdminUser",
+        "detail": "exported",
+        "fact_id": "3f3d7952d4791f89072b6011644fa181"
+      },
+      {
+        "symbol": "apps/cms/src/access.AdminUser._strategy",
+        "detail": "exported",
+        "fact_id": "da478cdf098737ecf0a269f441e60ca9"
+      },
+      {
+        "symbol": "apps/cms/src/access.AdminUser.collection",
+        "detail": "exported",
+        "fact_id": "33e4185322173aeaf327aceafb007eff"
+      },
+      {
+        "symbol": "apps/cms/src/access.AdminUser.email",
+        "detail": "exported",
+        "fact_id": "2fe2d7bbec32b6e4dd342a7e2ab17643"
+      },
+      {
+        "symbol": "apps/cms/src/access.AdminUser.id",
+        "detail": "exported",
+        "fact_id": "a82047b071b03d76880a120289e57efc"
+      },
+      {
+        "symbol": "apps/cms/src/access.AdminUser.isActive",
+        "detail": "exported",
+        "fact_id": "7769b7d06bd95795283c3a30bfc6a5ae"
+      },
+      {
+        "symbol": "apps/cms/src/access.AdminUser.role",
+        "detail": "exported",
+        "fact_id": "30f1041574dfed96f39187a1590275be"
+      }
+    ],
+    "suggested_actions": [
+      "Unexport symbols that are only used within the module",
+      "Define a small, intentional public API and hide the rest",
+      "Split the module if it has several independent public responsibilities"
+    ]
+  },
+  {
+    "title": "Large public surface: apps/web/src/lib exports 21 of 22 symbols (95%)",
+    "source": "exported-surface",
+    "description": "Module \"apps/web/src/lib\" exports 21 of its 22 symbols (95%). A large, near-fully-exported module hides little of its implementation, so consumers can couple to internals and it is hard to change without breaking them. Worth a visibility review — though a deliberate library API may legitimately export most of its surface.",
+    "confidence": 0.6,
+    "evidence": [
+      {
+        "symbol": "apps/web/src/lib.api",
+        "detail": "exported",
+        "fact_id": "b3e624efd0e87cccd8937f4105df57ee"
+      },
+      {
+        "symbol": "apps/web/src/lib.api.getToken",
+        "detail": "exported",
+        "fact_id": "d65ca697672d2eb186d86aefc117b2a3"
+      },
+      {
+        "symbol": "apps/web/src/lib.mutationKeys",
+        "detail": "exported",
+        "fact_id": "1691221b8b4ef94e7edc3bd1d359c5d9"
+      },
+      {
+        "symbol": "apps/web/src/lib.queryKeys",
+        "detail": "exported",
+        "fact_id": "c21d08e92591cb750e7ecabb7d86fb2f"
+      },
+      {
+        "symbol": "apps/web/src/lib.queryKeys.auth.profile",
+        "detail": "exported",
+        "fact_id": "66777b31c09aa1b6487f450ea43a87fa"
+      },
+      {
+        "symbol": "apps/web/src/lib.queryKeys.auth.session",
+        "detail": "exported",
+        "fact_id": "6799e8be0b884d473f23d87cfc36edcd"
+      },
+      {
+        "symbol": "apps/web/src/lib.queryKeys.cart.validate",
+        "detail": "exported",
+        "fact_id": "db343486c87b382e2615421c948ca2d9"
+      },
+      {
+        "symbol": "apps/web/src/lib.queryKeys.orders.detail",
+        "detail": "exported",
+        "fact_id": "8abfafd263fa2e04a970eab2888b9e41"
+      }
+    ],
+    "suggested_actions": [
+      "Unexport symbols that are only used within the module",
+      "Define a small, intentional public API and hide the rest",
+      "Split the module if it has several independent public responsibilities"
+    ]
+  },
+  {
+    "title": "Large public surface: apps/web/src/features/checkout exports 21 of 24 symbols (88%)",
+    "source": "exported-surface",
+    "description": "Module \"apps/web/src/features/checkout\" exports 21 of its 24 symbols (88%). A large, near-fully-exported module hides little of its implementation, so consumers can couple to internals and it is hard to change without breaking them. Worth a visibility review — though a deliberate library API may legitimately export most of its surface.",
+    "confidence": 0.6,
+    "evidence": [
+      {
+        "symbol": "apps/web/src/features/checkout.CartSummary",
+        "detail": "exported",
+        "fact_id": "46cb9880ba7f561dcdbef41d5c2ca513"
+      },
+      {
+        "symbol": "apps/web/src/features/checkout.CartSummaryProps",
+        "detail": "exported",
+        "fact_id": "75c8ded2662d90ac158286b55c7e841d"
+      },
+      {
+        "symbol": "apps/web/src/features/checkout.CartSummaryProps.editOrderId",
+        "detail": "exported",
+        "fact_id": "829b78c1517c955b7bb170deb6cef1cd"
+      },
+      {
+        "symbol": "apps/web/src/features/checkout.CartSummaryProps.onOrderCreated",
+        "detail": "exported",
+        "fact_id": "fab3b9a9e098f27c9dcaf24cd8ee239e"
+      },
+      {
+        "symbol": "apps/web/src/features/checkout.CartSummaryProps.onSaveEditedOrder",
+        "detail": "exported",
+        "fact_id": "c0acf43b3e080431a8ba3587b85308f1"
+      },
+      {
+        "symbol": "apps/web/src/features/checkout.CartSummaryProps.selectedProducts",
+        "detail": "exported",
+        "fact_id": "1ca6cbb1f4dbc3659f1a713385e12b8d"
+      },
+      {
+        "symbol": "apps/web/src/features/checkout.CartTotals",
+        "detail": "exported",
+        "fact_id": "61bb2222557fc62283320a24ea4fb452"
+      },
+      {
+        "symbol": "apps/web/src/features/checkout.CartTotals.hasValidQuantities",
+        "detail": "exported",
+        "fact_id": "d0fe4bc610c6057bb6451e7d91ba8ed3"
+      }
+    ],
+    "suggested_actions": [
+      "Unexport symbols that are only used within the module",
+      "Define a small, intentional public API and hide the rest",
+      "Split the module if it has several independent public responsibilities"
+    ]
+  },
+  {
+    "title": "Large public surface: apps/cms/src/collections/otps exports 18 of 18 symbols (100%)",
+    "source": "exported-surface",
+    "description": "Module \"apps/cms/src/collections/otps\" exports 18 of its 18 symbols (100%). A large, near-fully-exported module hides little of its implementation, so consumers can couple to internals and it is hard to change without breaking them. Worth a visibility review — though a deliberate library API may legitimately export most of its surface.",
+    "confidence": 0.6,
+    "evidence": [
+      {
+        "symbol": "apps/cms/src/collections/otps.IssueOtpResult",
+        "detail": "exported",
+        "fact_id": "8db6f3d25e62f868efc887770aecf002"
+      },
+      {
+        "symbol": "apps/cms/src/collections/otps.IssueOtpResult.code",
+        "detail": "exported",
+        "fact_id": "63db8907fb9e8413b66f91cf39048eec"
+      },
+      {
+        "symbol": "apps/cms/src/collections/otps.IssueOtpResult.cooldownSeconds",
+        "detail": "exported",
+        "fact_id": "b668f1ce1ce80bfa076d48944a45d44d"
+      },
+      {
+        "symbol": "apps/cms/src/collections/otps.IssueOtpResult.expiresInSeconds",
+        "detail": "exported",
+        "fact_id": "71cb6d35d873f74eaf8a0428b0d4771f"
+      },
+      {
+        "symbol": "apps/cms/src/collections/otps.MAX_ATTEMPTS",
+        "detail": "exported",
+        "fact_id": "afaf9e2c125dc762f9e46db7d7319d0e"
+      },
+      {
+        "symbol": "apps/cms/src/collections/otps.OTP_COOLDOWN_SECONDS",
+        "detail": "exported",
+        "fact_id": "8a98d28d253c59f0e71d2da5c8a43bd8"
+      },
+      {
+        "symbol": "apps/cms/src/collections/otps.OTP_EXPIRY_SECONDS",
+        "detail": "exported",
+        "fact_id": "6acd11c19152e206e8a1efe974b939b1"
+      },
+      {
+        "symbol": "apps/cms/src/collections/otps.Otps",
+        "detail": "exported",
+        "fact_id": "006dd350613f622defeb28387b5f6aa7"
+      }
+    ],
+    "suggested_actions": [
+      "Unexport symbols that are only used within the module",
+      "Define a small, intentional public API and hide the rest",
+      "Split the module if it has several independent public responsibilities"
+    ]
+  },
+  {
+    "title": "Large public surface: apps/web/src/hooks exports 16 of 17 symbols (94%)",
+    "source": "exported-surface",
+    "description": "Module \"apps/web/src/hooks\" exports 16 of its 17 symbols (94%). A large, near-fully-exported module hides little of its implementation, so consumers can couple to internals and it is hard to change without breaking them. Worth a visibility review — though a deliberate library API may legitimately export most of its surface.",
+    "confidence": 0.6,
+    "evidence": [
+      {
+        "symbol": "apps/web/src/hooks.CartItemDraft",
+        "detail": "exported",
+        "fact_id": "54234dca59e5ce32c903d34c4f2d1a4e"
+      },
+      {
+        "symbol": "apps/web/src/hooks.CartItemDraft.productId",
+        "detail": "exported",
+        "fact_id": "28285c4459513f7fd691bfe7ee8767cf"
+      },
+      {
+        "symbol": "apps/web/src/hooks.CartItemDraft.requestedSqm",
+        "detail": "exported",
+        "fact_id": "83c7ad0b60fad494a6e18d817ece4e93"
+      },
+      {
+        "symbol": "apps/web/src/hooks.useAuth",
+        "detail": "exported",
+        "fact_id": "7ebfa4218966a50caff34e066fadb101"
+      },
+      {
+        "symbol": "apps/web/src/hooks.useCart",
+        "detail": "exported",
+        "fact_id": "b699bf1989e5f12cb45ef3ac7bb6c3a1"
+      },
+      {
+        "symbol": "apps/web/src/hooks.useCartonCalculation",
+        "detail": "exported",
+        "fact_id": "890dc37ce5e73c4ef97be72197d78d7d"
+      },
+      {
+        "symbol": "apps/web/src/hooks.useCatalog",
+        "detail": "exported",
+        "fact_id": "d4410a7abbde430680b9f40ce0bdd9d3"
+      },
+      {
+        "symbol": "apps/web/src/hooks.useCustomerOrders",
+        "detail": "exported",
+        "fact_id": "6f973e667fdeed5621f155f04dbeba1a"
+      }
+    ],
+    "suggested_actions": [
+      "Unexport symbols that are only used within the module",
+      "Define a small, intentional public API and hide the rest",
+      "Split the module if it has several independent public responsibilities"
+    ]
+  },
+  {
+    "title": "High cyclomatic complexity: apps/web/src/components/ui.Counter (119)",
+    "source": "complexity-outliers",
+    "description": "\"apps/web/src/components/ui.Counter\" has a cyclomatic complexity of 119 — well above the repo average. Highly branched functions are hard to test fully and are frequent defect sites.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "apps/web/src/components/ui/counter.tsx",
+        "symbol": "apps/web/src/components/ui.Counter",
+        "detail": "cyclomatic complexity 119 at line 238",
+        "line": 238,
+        "end_line": 720,
+        "fact_id": "b5691e2d95868e3819d69e8c7eaf4cb3"
+      }
+    ],
+    "suggested_actions": [
+      "Extract guard clauses and nested branches into helper functions",
+      "Replace deep conditionals with table/strategy dispatch where possible",
+      "Add tests covering the distinct branches before refactoring"
+    ]
+  },
+  {
+    "title": "High cyclomatic complexity: apps/web/src/features/products.useProducts (115)",
+    "source": "complexity-outliers",
+    "description": "\"apps/web/src/features/products.useProducts\" has a cyclomatic complexity of 115 — well above the repo average. Highly branched functions are hard to test fully and are frequent defect sites.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "apps/web/src/features/products/product-store.ts",
+        "symbol": "apps/web/src/features/products.useProducts",
+        "detail": "cyclomatic complexity 115 at line 86",
+        "line": 86,
+        "end_line": 424,
+        "fact_id": "faf34b46ef795762fe074fde85cf0e14"
+      }
+    ],
+    "suggested_actions": [
+      "Extract guard clauses and nested branches into helper functions",
+      "Replace deep conditionals with table/strategy dispatch where possible",
+      "Add tests covering the distinct branches before refactoring"
+    ]
+  },
+  {
+    "title": "High cyclomatic complexity: apps/web/src/components/ui.CodeSlots (110)",
+    "source": "complexity-outliers",
+    "description": "\"apps/web/src/components/ui.CodeSlots\" has a cyclomatic complexity of 110 — well above the repo average. Highly branched functions are hard to test fully and are frequent defect sites.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "apps/web/src/components/ui/code-slots.tsx",
+        "symbol": "apps/web/src/components/ui.CodeSlots",
+        "detail": "cyclomatic complexity 110 at line 132",
+        "line": 132,
+        "end_line": 623,
+        "fact_id": "cc1346eb9ce679c756a7f8086e7347c9"
+      }
+    ],
+    "suggested_actions": [
+      "Extract guard clauses and nested branches into helper functions",
+      "Replace deep conditionals with table/strategy dispatch where possible",
+      "Add tests covering the distinct branches before refactoring"
+    ]
+  },
+  {
+    "title": "High cyclomatic complexity: apps/web/src/routes/orders.OrderDetailPage (81)",
+    "source": "complexity-outliers",
+    "description": "\"apps/web/src/routes/orders.OrderDetailPage\" has a cyclomatic complexity of 81 — well above the repo average. Highly branched functions are hard to test fully and are frequent defect sites.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "apps/web/src/routes/orders/$id.tsx",
+        "symbol": "apps/web/src/routes/orders.OrderDetailPage",
+        "detail": "cyclomatic complexity 81 at line 69",
+        "line": 69,
+        "end_line": 742,
+        "fact_id": "158b62477a363612e342316452f16e8e"
+      }
+    ],
+    "suggested_actions": [
+      "Extract guard clauses and nested branches into helper functions",
+      "Replace deep conditionals with table/strategy dispatch where possible",
+      "Add tests covering the distinct branches before refactoring"
+    ]
+  },
+  {
+    "title": "High cyclomatic complexity: apps/web/src/components/ui.SlideCommit (76)",
+    "source": "complexity-outliers",
+    "description": "\"apps/web/src/components/ui.SlideCommit\" has a cyclomatic complexity of 76 — well above the repo average. Highly branched functions are hard to test fully and are frequent defect sites.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "apps/web/src/components/ui/slide-commit.tsx",
+        "symbol": "apps/web/src/components/ui.SlideCommit",
+        "detail": "cyclomatic complexity 76 at line 157",
+        "line": 157,
+        "end_line": 618,
+        "fact_id": "990c8d3b1d9efdea5cd021e3f49c7213"
+      }
+    ],
+    "suggested_actions": [
+      "Extract guard clauses and nested branches into helper functions",
+      "Replace deep conditionals with table/strategy dispatch where possible",
+      "Add tests covering the distinct branches before refactoring"
+    ]
+  },
+  {
+    "title": "High cyclomatic complexity: apps/cms/src.runSeed (73)",
+    "source": "complexity-outliers",
+    "description": "\"apps/cms/src.runSeed\" has a cyclomatic complexity of 73 — well above the repo average. Highly branched functions are hard to test fully and are frequent defect sites.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "apps/cms/src/seed.ts",
+        "symbol": "apps/cms/src.runSeed",
+        "detail": "cyclomatic complexity 73 at line 841",
+        "line": 841,
+        "end_line": 1419,
+        "fact_id": "fc9982a1cb4848cb1c08941b22b3545f"
+      }
+    ],
+    "suggested_actions": [
+      "Extract guard clauses and nested branches into helper functions",
+      "Replace deep conditionals with table/strategy dispatch where possible",
+      "Add tests covering the distinct branches before refactoring"
+    ]
+  },
+  {
+    "title": "High cyclomatic complexity: apps/web/src/features/orders.mapDocToOrder (57)",
+    "source": "complexity-outliers",
+    "description": "\"apps/web/src/features/orders.mapDocToOrder\" has a cyclomatic complexity of 57 — well above the repo average. Highly branched functions are hard to test fully and are frequent defect sites.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "apps/web/src/features/orders/order-store.ts",
+        "symbol": "apps/web/src/features/orders.mapDocToOrder",
+        "detail": "cyclomatic complexity 57 at line 175",
+        "line": 175,
+        "end_line": 253,
+        "fact_id": "c9ae11c39e739383b878abf40a18e079"
+      }
+    ],
+    "suggested_actions": [
+      "Extract guard clauses and nested branches into helper functions",
+      "Replace deep conditionals with table/strategy dispatch where possible",
+      "Add tests covering the distinct branches before refactoring"
+    ]
+  },
+  {
+    "title": "High cyclomatic complexity: apps/web/src/components/ui.HoldButton (54)",
+    "source": "complexity-outliers",
+    "description": "\"apps/web/src/components/ui.HoldButton\" has a cyclomatic complexity of 54 — well above the repo average. Highly branched functions are hard to test fully and are frequent defect sites.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "apps/web/src/components/ui/hold-button.tsx",
+        "symbol": "apps/web/src/components/ui.HoldButton",
+        "detail": "cyclomatic complexity 54 at line 109",
+        "line": 109,
+        "end_line": 403,
+        "fact_id": "c0ad42a11cef257d8f5b0988d57a31bf"
+      }
+    ],
+    "suggested_actions": [
+      "Extract guard clauses and nested branches into helper functions",
+      "Replace deep conditionals with table/strategy dispatch where possible",
+      "Add tests covering the distinct branches before refactoring"
+    ]
+  },
+  {
+    "title": "High cyclomatic complexity: apps/cms/src/collections/orders.prepareOrderBeforeValidate (51)",
+    "source": "complexity-outliers",
+    "description": "\"apps/cms/src/collections/orders.prepareOrderBeforeValidate\" has a cyclomatic complexity of 51 — well above the repo average. Highly branched functions are hard to test fully and are frequent defect sites.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "apps/cms/src/collections/orders/_prepare-order.before-validate.ts",
+        "symbol": "apps/cms/src/collections/orders.prepareOrderBeforeValidate",
+        "detail": "cyclomatic complexity 51 at line 3",
+        "line": 3,
+        "end_line": 191,
+        "fact_id": "685525d10952efc3030d9b5374a50f31"
+      }
+    ],
+    "suggested_actions": [
+      "Extract guard clauses and nested branches into helper functions",
+      "Replace deep conditionals with table/strategy dispatch where possible",
+      "Add tests covering the distinct branches before refactoring"
+    ]
+  },
+  {
+    "title": "High cyclomatic complexity: apps/web/src/routes/orders.OrdersListPage (50)",
+    "source": "complexity-outliers",
+    "description": "\"apps/web/src/routes/orders.OrdersListPage\" has a cyclomatic complexity of 50 — well above the repo average. Highly branched functions are hard to test fully and are frequent defect sites.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "apps/web/src/routes/orders/index.tsx",
+        "symbol": "apps/web/src/routes/orders.OrdersListPage",
+        "detail": "cyclomatic complexity 50 at line 231",
+        "line": 231,
+        "end_line": 548,
+        "fact_id": "078e99ed9ebd391659f977db72d85a69"
+      }
+    ],
+    "suggested_actions": [
+      "Extract guard clauses and nested branches into helper functions",
+      "Replace deep conditionals with table/strategy dispatch where possible",
+      "Add tests covering the distinct branches before refactoring"
+    ]
+  },
+  {
+    "title": "High cyclomatic complexity: apps/cms/src/collections/products.syncSlugAndDimensions (48)",
+    "source": "complexity-outliers",
+    "description": "\"apps/cms/src/collections/products.syncSlugAndDimensions\" has a cyclomatic complexity of 48 — well above the repo average. Highly branched functions are hard to test fully and are frequent defect sites.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "apps/cms/src/collections/products/_sync-slug-and-dimensions.before-validate.ts",
+        "symbol": "apps/cms/src/collections/products.syncSlugAndDimensions",
+        "detail": "cyclomatic complexity 48 at line 16",
+        "line": 16,
+        "end_line": 149,
+        "fact_id": "c5a64fa85a89d4b23f04bf39b9969c04"
+      }
+    ],
+    "suggested_actions": [
+      "Extract guard clauses and nested branches into helper functions",
+      "Replace deep conditionals with table/strategy dispatch where possible",
+      "Add tests covering the distinct branches before refactoring"
+    ]
+  },
+  {
+    "title": "High cyclomatic complexity: apps/web/src/features/plans.PlanModal (47)",
+    "source": "complexity-outliers",
+    "description": "\"apps/web/src/features/plans.PlanModal\" has a cyclomatic complexity of 47 — well above the repo average. Highly branched functions are hard to test fully and are frequent defect sites.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "apps/web/src/features/plans/plan-modal.tsx",
+        "symbol": "apps/web/src/features/plans.PlanModal",
+        "detail": "cyclomatic complexity 47 at line 17",
+        "line": 17,
+        "end_line": 447,
+        "fact_id": "befb23cec6def34e6c27f9c5988562c4"
+      }
+    ],
+    "suggested_actions": [
+      "Extract guard clauses and nested branches into helper functions",
+      "Replace deep conditionals with table/strategy dispatch where possible",
+      "Add tests covering the distinct branches before refactoring"
+    ]
+  },
+  {
+    "title": "High cyclomatic complexity: apps/web/src/components/ui.ImageViewerModal (44)",
+    "source": "complexity-outliers",
+    "description": "\"apps/web/src/components/ui.ImageViewerModal\" has a cyclomatic complexity of 44 — well above the repo average. Highly branched functions are hard to test fully and are frequent defect sites.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "apps/web/src/components/ui/image-viewer-modal.tsx",
+        "symbol": "apps/web/src/components/ui.ImageViewerModal",
+        "detail": "cyclomatic complexity 44 at line 12",
+        "line": 12,
+        "end_line": 449,
+        "fact_id": "c91d8dcd4f70ddfedada92ba135b14d3"
+      }
+    ],
+    "suggested_actions": [
+      "Extract guard clauses and nested branches into helper functions",
+      "Replace deep conditionals with table/strategy dispatch where possible",
+      "Add tests covering the distinct branches before refactoring"
+    ]
+  },
+  {
+    "title": "High cyclomatic complexity: apps/cms/src.PayloadConfig (42)",
+    "source": "complexity-outliers",
+    "description": "\"apps/cms/src.PayloadConfig\" has a cyclomatic complexity of 42 — well above the repo average. Highly branched functions are hard to test fully and are frequent defect sites.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "apps/cms/src/payload.config.ts",
+        "symbol": "apps/cms/src.PayloadConfig",
+        "detail": "cyclomatic complexity 42 at line 38",
+        "line": 38,
+        "end_line": 387,
+        "fact_id": "5d9d845d0923e84e051f1da38972be2e"
+      }
+    ],
+    "suggested_actions": [
+      "Extract guard clauses and nested branches into helper functions",
+      "Replace deep conditionals with table/strategy dispatch where possible",
+      "Add tests covering the distinct branches before refactoring"
+    ]
+  },
+  {
+    "title": "High cyclomatic complexity: apps/web/src/routes/product.ProductListPage (40)",
+    "source": "complexity-outliers",
+    "description": "\"apps/web/src/routes/product.ProductListPage\" has a cyclomatic complexity of 40 — well above the repo average. Highly branched functions are hard to test fully and are frequent defect sites.",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "file": "apps/web/src/routes/product/index.tsx",
+        "symbol": "apps/web/src/routes/product.ProductListPage",
+        "detail": "cyclomatic complexity 40 at line 45",
+        "line": 45,
+        "end_line": 521,
+        "fact_id": "5373bb4ea3a10165eb56917a8d5ecc5a"
+      }
+    ],
+    "suggested_actions": [
+      "Extract guard clauses and nested branches into helper functions",
+      "Replace deep conditionals with table/strategy dispatch where possible",
+      "Add tests covering the distinct branches before refactoring"
+    ]
+  },
+  {
+    "title": "Most depended-upon package: apps/cms/src/access (Ca=12)",
+    "source": "package-metrics",
+    "description": "\"apps/cms/src/access\" is depended upon by 12 other packages — a change-risk concentrator. Edits ripple across dependents, so keep its public contract stable.",
+    "confidence": 0.6,
+    "evidence": [
+      {
+        "fact": "apps/cms/src/access",
+        "detail": "Ca=12 I=0.00",
+        "fact_id": "624fdafe4dbfdbc8d846b076553f9a18"
+      }
+    ],
+    "suggested_actions": [
+      "Stabilize the package's public contract; split it if it spans multiple responsibilities"
+    ]
+  },
+  {
+    "title": "Dead code candidate: function apps/cms/src/collections/otps.invalidateOtpCommand",
+    "source": "dead-code",
+    "description": "function \"apps/cms/src/collections/otps.invalidateOtpCommand\" is isolated — nothing in the snapshot graph references it (medium confidence). References are matched by short name and biased conservative, so verify against dynamic/reflective dispatch and consumers outside the snapshot before removing.",
+    "confidence": 0.6,
+    "evidence": [
+      {
+        "file": "apps/cms/src/collections/otps/_otp-service.ts",
+        "symbol": "apps/cms/src/collections/otps.invalidateOtpCommand",
+        "detail": "function · isolated · apps/cms/src/collections/otps/_otp-service.ts:192",
+        "line": 192,
+        "end_line": 218,
+        "fact_id": "c9275907450bf7164e76cdeae57d764c"
+      },
+      {
+        "symbol": "apps/cms/src/collections/otps.invalidateOtpCommand",
+        "detail": "exported — may be used outside this snapshot; verify before removal",
+        "fact_id": "c9275907450bf7164e76cdeae57d764c"
+      }
+    ],
+    "suggested_actions": [
+      "Confirm no dynamic/reflective or out-of-snapshot callers, then remove the symbol"
+    ]
+  },
+  {
+    "title": "Dead code candidate: class .github/check-runtime-packaging.RuntimePackagingTests",
+    "source": "dead-code",
+    "description": "class \".github/check-runtime-packaging.RuntimePackagingTests\" is unreferenced — nothing in the snapshot graph references it (medium confidence). References are matched by short name and biased conservative, so verify against dynamic/reflective dispatch and consumers outside the snapshot before removing.",
+    "confidence": 0.6,
+    "evidence": [
+      {
+        "file": ".github/check-runtime-packaging.py",
+        "symbol": ".github/check-runtime-packaging.RuntimePackagingTests",
+        "detail": "class · unreferenced · .github/check-runtime-packaging.py:10",
+        "line": 10,
+        "end_line": 57,
+        "fact_id": "68b5cd1d6de49c6e4722e7be2db5c45d"
+      },
+      {
+        "symbol": ".github/check-runtime-packaging.RuntimePackagingTests",
+        "detail": "exported — may be used outside this snapshot; verify before removal",
+        "fact_id": "68b5cd1d6de49c6e4722e7be2db5c45d"
+      }
+    ],
+    "suggested_actions": [
+      "Confirm no dynamic/reflective or out-of-snapshot callers, then remove the symbol"
+    ]
+  },
+  {
+    "title": "Dead code candidate: function apps/api/src.handlePayloadError",
+    "source": "dead-code",
+    "description": "function \"apps/api/src.handlePayloadError\" is unreferenced — nothing in the snapshot graph references it (medium confidence). References are matched by short name and biased conservative, so verify against dynamic/reflective dispatch and consumers outside the snapshot before removing.",
+    "confidence": 0.6,
+    "evidence": [
+      {
+        "file": "apps/api/src/payload.ts",
+        "symbol": "apps/api/src.handlePayloadError",
+        "detail": "function · unreferenced · apps/api/src/payload.ts:11",
+        "line": 11,
+        "end_line": 35,
+        "fact_id": "6bd8ff8e61b9a0d488256d98ef241541"
+      },
+      {
+        "symbol": "apps/api/src.handlePayloadError",
+        "detail": "exported — may be used outside this snapshot; verify before removal",
+        "fact_id": "6bd8ff8e61b9a0d488256d98ef241541"
+      }
+    ],
+    "suggested_actions": [
+      "Confirm no dynamic/reflective or out-of-snapshot callers, then remove the symbol"
+    ]
+  },
+  {
+    "title": "Dead code candidate: function apps/api/src/lib.decodeToken",
+    "source": "dead-code",
+    "description": "function \"apps/api/src/lib.decodeToken\" is unreferenced — nothing in the snapshot graph references it (medium confidence). References are matched by short name and biased conservative, so verify against dynamic/reflective dispatch and consumers outside the snapshot before removing.",
+    "confidence": 0.6,
+    "evidence": [
+      {
+        "file": "apps/api/src/lib/jwt.ts",
+        "symbol": "apps/api/src/lib.decodeToken",
+        "detail": "function · unreferenced · apps/api/src/lib/jwt.ts:86",
+        "line": 86,
+        "end_line": 93,
+        "fact_id": "494f8e53d312532facad63f33edf71dd"
+      },
+      {
+        "symbol": "apps/api/src/lib.decodeToken",
+        "detail": "exported — may be used outside this snapshot; verify before removal",
+        "fact_id": "494f8e53d312532facad63f33edf71dd"
+      }
+    ],
+    "suggested_actions": [
+      "Confirm no dynamic/reflective or out-of-snapshot callers, then remove the symbol"
+    ]
+  },
+  {
+    "title": "Dead code candidate: function apps/cms.NextConfig",
+    "source": "dead-code",
+    "description": "function \"apps/cms.NextConfig\" is unreferenced — nothing in the snapshot graph references it (medium confidence). References are matched by short name and biased conservative, so verify against dynamic/reflective dispatch and consumers outside the snapshot before removing.",
+    "confidence": 0.6,
+    "evidence": [
+      {
+        "file": "apps/cms/next.config.ts",
+        "symbol": "apps/cms.NextConfig",
+        "detail": "function · unreferenced · apps/cms/next.config.ts:32",
+        "line": 32,
+        "end_line": 32,
+        "fact_id": "a1b52667493df42141becc680025d0cc"
+      },
+      {
+        "symbol": "apps/cms.NextConfig",
+        "detail": "exported — may be used outside this snapshot; verify before removal",
+        "fact_id": "a1b52667493df42141becc680025d0cc"
+      }
+    ],
+    "suggested_actions": [
+      "Confirm no dynamic/reflective or out-of-snapshot callers, then remove the symbol"
+    ]
+  },
+  {
+    "title": "Dead code candidate: function apps/cms/src.payloadAuth",
+    "source": "dead-code",
+    "description": "function \"apps/cms/src.payloadAuth\" is unreferenced — nothing in the snapshot graph references it (medium confidence). References are matched by short name and biased conservative, so verify against dynamic/reflective dispatch and consumers outside the snapshot before removing.",
+    "confidence": 0.6,
+    "evidence": [
+      {
+        "file": "apps/cms/src/payload.ts",
+        "symbol": "apps/cms/src.payloadAuth",
+        "detail": "function · unreferenced · apps/cms/src/payload.ts:93",
+        "line": 93,
+        "end_line": 136,
+        "fact_id": "e96326a10b3b6859d87baca960443159"
+      },
+      {
+        "symbol": "apps/cms/src.payloadAuth",
+        "detail": "exported — may be used outside this snapshot; verify before removal",
+        "fact_id": "e96326a10b3b6859d87baca960443159"
+      }
+    ],
+    "suggested_actions": [
+      "Confirm no dynamic/reflective or out-of-snapshot callers, then remove the symbol"
+    ]
+  },
+  {
+    "title": "Dead code candidate: function apps/cms/src/access.isAdminAuthenticated",
+    "source": "dead-code",
+    "description": "function \"apps/cms/src/access.isAdminAuthenticated\" is unreferenced — nothing in the snapshot graph references it (medium confidence). References are matched by short name and biased conservative, so verify against dynamic/reflective dispatch and consumers outside the snapshot before removing.",
+    "confidence": 0.6,
+    "evidence": [
+      {
+        "file": "apps/cms/src/access/roles.ts",
+        "symbol": "apps/cms/src/access.isAdminAuthenticated",
+        "detail": "function · unreferenced · apps/cms/src/access/roles.ts:27",
+        "line": 27,
+        "end_line": 30,
+        "fact_id": "9ea651e61b8919349e4e7312ec049117"
+      },
+      {
+        "symbol": "apps/cms/src/access.isAdminAuthenticated",
+        "detail": "exported — may be used outside this snapshot; verify before removal",
+        "fact_id": "9ea651e61b8919349e4e7312ec049117"
+      }
+    ],
+    "suggested_actions": [
+      "Confirm no dynamic/reflective or out-of-snapshot callers, then remove the symbol"
+    ]
+  },
+  {
+    "title": "Dead code candidate: function apps/cms/src/access.isCatalogEditor",
+    "source": "dead-code",
+    "description": "function \"apps/cms/src/access.isCatalogEditor\" is unreferenced — nothing in the snapshot graph references it (medium confidence). References are matched by short name and biased conservative, so verify against dynamic/reflective dispatch and consumers outside the snapshot before removing.",
+    "confidence": 0.6,
+    "evidence": [
+      {
+        "file": "apps/cms/src/access/roles.ts",
+        "symbol": "apps/cms/src/access.isCatalogEditor",
+        "detail": "function · unreferenced · apps/cms/src/access/roles.ts:48",
+        "line": 48,
+        "end_line": 56,
+        "fact_id": "67aa6c62088f26f9dc9554ac3729232c"
+      },
+      {
+        "symbol": "apps/cms/src/access.isCatalogEditor",
+        "detail": "exported — may be used outside this snapshot; verify before removal",
+        "fact_id": "67aa6c62088f26f9dc9554ac3729232c"
+      }
+    ],
+    "suggested_actions": [
+      "Confirm no dynamic/reflective or out-of-snapshot callers, then remove the symbol"
+    ]
+  },
+  {
+    "title": "Dead code candidate: function apps/cms/src/collections/otps.issueOtpCommand",
+    "source": "dead-code",
+    "description": "function \"apps/cms/src/collections/otps.issueOtpCommand\" is unreferenced — nothing in the snapshot graph references it (medium confidence). References are matched by short name and biased conservative, so verify against dynamic/reflective dispatch and consumers outside the snapshot before removing.",
+    "confidence": 0.6,
+    "evidence": [
+      {
+        "file": "apps/cms/src/collections/otps/_otp-service.ts",
+        "symbol": "apps/cms/src/collections/otps.issueOtpCommand",
+        "detail": "function · unreferenced · apps/cms/src/collections/otps/_otp-service.ts:31",
+        "line": 31,
+        "end_line": 94,
+        "fact_id": "2d107577dca815912c0a6a6449ac6a23"
+      },
+      {
+        "symbol": "apps/cms/src/collections/otps.issueOtpCommand",
+        "detail": "exported — may be used outside this snapshot; verify before removal",
+        "fact_id": "2d107577dca815912c0a6a6449ac6a23"
+      }
+    ],
+    "suggested_actions": [
+      "Confirm no dynamic/reflective or out-of-snapshot callers, then remove the symbol"
+    ]
+  },
+  {
+    "title": "Dead code candidate: function apps/cms/src/collections/otps.verifyOtpCommand",
+    "source": "dead-code",
+    "description": "function \"apps/cms/src/collections/otps.verifyOtpCommand\" is unreferenced — nothing in the snapshot graph references it (medium confidence). References are matched by short name and biased conservative, so verify against dynamic/reflective dispatch and consumers outside the snapshot before removing.",
+    "confidence": 0.6,
+    "evidence": [
+      {
+        "file": "apps/cms/src/collections/otps/_otp-service.ts",
+        "symbol": "apps/cms/src/collections/otps.verifyOtpCommand",
+        "detail": "function · unreferenced · apps/cms/src/collections/otps/_otp-service.ts:102",
+        "line": 102,
+        "end_line": 187,
+        "fact_id": "8030839e7df71fc42dcc51ee22c9fbe4"
+      },
+      {
+        "symbol": "apps/cms/src/collections/otps.verifyOtpCommand",
+        "detail": "exported — may be used outside this snapshot; verify before removal",
+        "fact_id": "8030839e7df71fc42dcc51ee22c9fbe4"
+      }
+    ],
+    "suggested_actions": [
+      "Confirm no dynamic/reflective or out-of-snapshot callers, then remove the symbol"
+    ]
+  },
+  {
+    "title": "Dead code candidate: function apps/web.ViteConfig",
+    "source": "dead-code",
+    "description": "function \"apps/web.ViteConfig\" is unreferenced — nothing in the snapshot graph references it (medium confidence). References are matched by short name and biased conservative, so verify against dynamic/reflective dispatch and consumers outside the snapshot before removing.",
+    "confidence": 0.6,
+    "evidence": [
+      {
+        "file": "apps/web/vite.config.ts",
+        "symbol": "apps/web.ViteConfig",
+        "detail": "function · unreferenced · apps/web/vite.config.ts:66",
+        "line": 66,
+        "end_line": 107,
+        "fact_id": "da6b7522bbbff63db6221d4f869e70b2"
+      },
+      {
+        "symbol": "apps/web.ViteConfig",
+        "detail": "exported — may be used outside this snapshot; verify before removal",
+        "fact_id": "da6b7522bbbff63db6221d4f869e70b2"
+      }
+    ],
+    "suggested_actions": [
+      "Confirm no dynamic/reflective or out-of-snapshot callers, then remove the symbol"
+    ]
+  },
+  {
+    "title": "Dead code candidate: function apps/web/src/lib/utils.formatPersianDateTime",
+    "source": "dead-code",
+    "description": "function \"apps/web/src/lib/utils.formatPersianDateTime\" is unreferenced — nothing in the snapshot graph references it (medium confidence). References are matched by short name and biased conservative, so verify against dynamic/reflective dispatch and consumers outside the snapshot before removing.",
+    "confidence": 0.6,
+    "evidence": [
+      {
+        "file": "apps/web/src/lib/utils/date.ts",
+        "symbol": "apps/web/src/lib/utils.formatPersianDateTime",
+        "detail": "function · unreferenced · apps/web/src/lib/utils/date.ts:78",
+        "line": 78,
+        "end_line": 86,
+        "fact_id": "4b935be136a706176317838fdcaed802"
+      },
+      {
+        "symbol": "apps/web/src/lib/utils.formatPersianDateTime",
+        "detail": "exported — may be used outside this snapshot; verify before removal",
+        "fact_id": "4b935be136a706176317838fdcaed802"
+      }
+    ],
+    "suggested_actions": [
+      "Confirm no dynamic/reflective or out-of-snapshot callers, then remove the symbol"
+    ]
+  },
+  {
+    "title": "Dead code candidate: function apps/web/src/lib/utils.formatPlanRemainingTime",
+    "source": "dead-code",
+    "description": "function \"apps/web/src/lib/utils.formatPlanRemainingTime\" is unreferenced — nothing in the snapshot graph references it (medium confidence). References are matched by short name and biased conservative, so verify against dynamic/reflective dispatch and consumers outside the snapshot before removing.",
+    "confidence": 0.6,
+    "evidence": [
+      {
+        "file": "apps/web/src/lib/utils/date.ts",
+        "symbol": "apps/web/src/lib/utils.formatPlanRemainingTime",
+        "detail": "function · unreferenced · apps/web/src/lib/utils/date.ts:114",
+        "line": 114,
+        "end_line": 162,
+        "fact_id": "66753e7560282826540bbd317a42f86a"
+      },
+      {
+        "symbol": "apps/web/src/lib/utils.formatPlanRemainingTime",
+        "detail": "exported — may be used outside this snapshot; verify before removal",
+        "fact_id": "66753e7560282826540bbd317a42f86a"
+      }
+    ],
+    "suggested_actions": [
+      "Confirm no dynamic/reflective or out-of-snapshot callers, then remove the symbol"
+    ]
+  },
+  {
+    "title": "Dead code candidate: function apps/web/src/lib/utils.formatSquareMeters",
+    "source": "dead-code",
+    "description": "function \"apps/web/src/lib/utils.formatSquareMeters\" is unreferenced — nothing in the snapshot graph references it (medium confidence). References are matched by short name and biased conservative, so verify against dynamic/reflective dispatch and consumers outside the snapshot before removing.",
+    "confidence": 0.6,
+    "evidence": [
+      {
+        "file": "apps/web/src/lib/utils/currency.ts",
+        "symbol": "apps/web/src/lib/utils.formatSquareMeters",
+        "detail": "function · unreferenced · apps/web/src/lib/utils/currency.ts:34",
+        "line": 34,
+        "end_line": 37,
+        "fact_id": "2d12fe960cd6eb60e4968c955b0082af"
+      },
+      {
+        "symbol": "apps/web/src/lib/utils.formatSquareMeters",
+        "detail": "exported — may be used outside this snapshot; verify before removal",
+        "fact_id": "2d12fe960cd6eb60e4968c955b0082af"
+      }
+    ],
+    "suggested_actions": [
+      "Confirm no dynamic/reflective or out-of-snapshot callers, then remove the symbol"
+    ]
+  },
+  {
+    "title": "Additional dead-code candidates: 119 more (see find_orphans)",
+    "source": "dead-code",
+    "description": "0 further high/medium-confidence orphan(s) were omitted from individual insights and 119 low-confidence orphan(s) (methods/types/consts/vars — usage not edge-tracked) were not surfaced individually. Use the find_orphans tool (output_mode=full) for the complete list.",
+    "confidence": 0.4,
+    "evidence": null,
+    "suggested_actions": [
+      "Run find_orphans with confidence=high and visibility=unexported for the safest cleanup set"
+    ]
+  },
+  {
+    "title": "Performance risk (nested-loop, depth 2): apps/web/src/components/ui.Counter",
+    "source": "performance",
+    "description": "Loops nest 2 deep. That is a count of nested loops, not a complexity: they multiply only when each walks an independent collection. A walk from parents to their children, a loop over a fixed list, or a callee finishing its caller's traversal nests without multiplying. Check which loops here do.",
+    "confidence": 0.8,
+    "evidence": [
+      {
+        "file": "apps/web/src/components/ui/counter.tsx",
+        "symbol": "apps/web/src/components/ui.Counter",
+        "detail": "Loops nest 2 deep. That is a count of nested loops, not a complexity: they multiply only when each walks an independent collection. A walk from parents to their children, a loop over a fixed list, or a callee finishing its caller's traversal nests without multiplying. Check which loops here do.",
+        "line": 238,
+        "end_line": 720,
+        "fact_id": "b5691e2d95868e3819d69e8c7eaf4cb3"
+      },
+      {
+        "symbol": "apps/web/src/components/ui.Counter",
+        "detail": "loop_depth=2, loop_count=27, cyclomatic=119",
+        "fact_id": "b5691e2d95868e3819d69e8c7eaf4cb3"
+      }
+    ],
+    "suggested_actions": [
+      "Confirm the hot path with a profiler or benchmark before optimizing",
+      "Batch or hoist per-iteration I/O out of loops; add memoization or an iterative rewrite for recursion"
+    ]
+  },
+  {
+    "title": "Performance risk (nested-loop, depth 2): apps/web/src/features/plans.PlanCard",
+    "source": "performance",
+    "description": "Loops nest 2 deep. That is a count of nested loops, not a complexity: they multiply only when each walks an independent collection. A walk from parents to their children, a loop over a fixed list, or a callee finishing its caller's traversal nests without multiplying. Check which loops here do.",
+    "confidence": 0.8,
+    "evidence": [
+      {
+        "file": "apps/web/src/features/plans/plan-card.tsx",
+        "symbol": "apps/web/src/features/plans.PlanCard",
+        "detail": "Loops nest 2 deep. That is a count of nested loops, not a complexity: they multiply only when each walks an independent collection. A walk from parents to their children, a loop over a fixed list, or a callee finishing its caller's traversal nests without multiplying. Check which loops here do.",
+        "line": 12,
+        "end_line": 169,
+        "fact_id": "12aa0a6e74d67f3a38d90c4aa4c5a691"
+      },
+      {
+        "symbol": "apps/web/src/features/plans.PlanCard",
+        "detail": "loop_depth=2, loop_count=4, cyclomatic=24",
+        "fact_id": "12aa0a6e74d67f3a38d90c4aa4c5a691"
+      }
+    ],
+    "suggested_actions": [
+      "Confirm the hot path with a profiler or benchmark before optimizing",
+      "Batch or hoist per-iteration I/O out of loops; add memoization or an iterative rewrite for recursion"
+    ]
+  },
+  {
+    "title": "Performance risk (nested-loop, depth 2): apps/web/src/features/plans.getInitialPlans",
+    "source": "performance",
+    "description": "Loops nest 2 deep. That is a count of nested loops, not a complexity: they multiply only when each walks an independent collection. A walk from parents to their children, a loop over a fixed list, or a callee finishing its caller's traversal nests without multiplying. Check which loops here do.",
+    "confidence": 0.8,
+    "evidence": [
+      {
+        "file": "apps/web/src/features/plans/plans-store.ts",
+        "symbol": "apps/web/src/features/plans.getInitialPlans",
+        "detail": "Loops nest 2 deep. That is a count of nested loops, not a complexity: they multiply only when each walks an independent collection. A walk from parents to their children, a loop over a fixed list, or a callee finishing its caller's traversal nests without multiplying. Check which loops here do.",
+        "line": 9,
+        "end_line": 40,
+        "fact_id": "24a03f3f8f80d5fa2e93b08d23835738"
+      },
+      {
+        "symbol": "apps/web/src/features/plans.getInitialPlans",
+        "detail": "loop_depth=2, loop_count=3, cyclomatic=18",
+        "fact_id": "24a03f3f8f80d5fa2e93b08d23835738"
+      }
+    ],
+    "suggested_actions": [
+      "Confirm the hot path with a profiler or benchmark before optimizing",
+      "Batch or hoist per-iteration I/O out of loops; add memoization or an iterative rewrite for recursion"
+    ]
+  },
+  {
+    "title": "Performance risk (nested-loop, depth 2): apps/web/src/features/products.useProducts",
+    "source": "performance",
+    "description": "Loops nest 2 deep. That is a count of nested loops, not a complexity: they multiply only when each walks an independent collection. A walk from parents to their children, a loop over a fixed list, or a callee finishing its caller's traversal nests without multiplying. Check which loops here do.",
+    "confidence": 0.8,
+    "evidence": [
+      {
+        "file": "apps/web/src/features/products/product-store.ts",
+        "symbol": "apps/web/src/features/products.useProducts",
+        "detail": "Loops nest 2 deep. That is a count of nested loops, not a complexity: they multiply only when each walks an independent collection. A walk from parents to their children, a loop over a fixed list, or a callee finishing its caller's traversal nests without multiplying. Check which loops here do.",
+        "line": 86,
+        "end_line": 424,
+        "fact_id": "faf34b46ef795762fe074fde85cf0e14"
+      },
+      {
+        "symbol": "apps/web/src/features/products.useProducts",
+        "detail": "loop_depth=2, loop_count=14, cyclomatic=115",
+        "fact_id": "faf34b46ef795762fe074fde85cf0e14"
+      }
+    ],
+    "suggested_actions": [
+      "Confirm the hot path with a profiler or benchmark before optimizing",
+      "Batch or hoist per-iteration I/O out of loops; add memoization or an iterative rewrite for recursion"
+    ]
+  },
+  {
+    "title": "Performance risk (nested-loop, depth 2): apps/web/src/routes/orders.OrderDetailPage",
+    "source": "performance",
+    "description": "Loops nest 2 deep. That is a count of nested loops, not a complexity: they multiply only when each walks an independent collection. A walk from parents to their children, a loop over a fixed list, or a callee finishing its caller's traversal nests without multiplying. Check which loops here do.",
+    "confidence": 0.8,
+    "evidence": [
+      {
+        "file": "apps/web/src/routes/orders/$id.tsx",
+        "symbol": "apps/web/src/routes/orders.OrderDetailPage",
+        "detail": "Loops nest 2 deep. That is a count of nested loops, not a complexity: they multiply only when each walks an independent collection. A walk from parents to their children, a loop over a fixed list, or a callee finishing its caller's traversal nests without multiplying. Check which loops here do.",
+        "line": 69,
+        "end_line": 742,
+        "fact_id": "158b62477a363612e342316452f16e8e"
+      },
+      {
+        "symbol": "apps/web/src/routes/orders.OrderDetailPage",
+        "detail": "loop_depth=2, loop_count=7, cyclomatic=81",
+        "fact_id": "158b62477a363612e342316452f16e8e"
+      }
+    ],
+    "suggested_actions": [
+      "Confirm the hot path with a profiler or benchmark before optimizing",
+      "Batch or hoist per-iteration I/O out of loops; add memoization or an iterative rewrite for recursion"
+    ]
+  },
+  {
+    "title": "Performance risk (nested-loop, depth 2): apps/web/src/routes/orders.OrdersListPage",
+    "source": "performance",
+    "description": "Loops nest 2 deep. That is a count of nested loops, not a complexity: they multiply only when each walks an independent collection. A walk from parents to their children, a loop over a fixed list, or a callee finishing its caller's traversal nests without multiplying. Check which loops here do.",
+    "confidence": 0.8,
+    "evidence": [
+      {
+        "file": "apps/web/src/routes/orders/index.tsx",
+        "symbol": "apps/web/src/routes/orders.OrdersListPage",
+        "detail": "Loops nest 2 deep. That is a count of nested loops, not a complexity: they multiply only when each walks an independent collection. A walk from parents to their children, a loop over a fixed list, or a callee finishing its caller's traversal nests without multiplying. Check which loops here do.",
+        "line": 231,
+        "end_line": 548,
+        "fact_id": "078e99ed9ebd391659f977db72d85a69"
+      },
+      {
+        "symbol": "apps/web/src/routes/orders.OrdersListPage",
+        "detail": "loop_depth=2, loop_count=10, cyclomatic=50",
+        "fact_id": "078e99ed9ebd391659f977db72d85a69"
+      }
+    ],
+    "suggested_actions": [
+      "Confirm the hot path with a profiler or benchmark before optimizing",
+      "Batch or hoist per-iteration I/O out of loops; add memoization or an iterative rewrite for recursion"
+    ]
+  },
+  {
+    "title": "Performance risk (nested-loop, depth 2): apps/web/src/routes/product.ProductNewConfigurationPage",
+    "source": "performance",
+    "description": "Loops nest 2 deep. That is a count of nested loops, not a complexity: they multiply only when each walks an independent collection. A walk from parents to their children, a loop over a fixed list, or a callee finishing its caller's traversal nests without multiplying. Check which loops here do.",
+    "confidence": 0.8,
+    "evidence": [
+      {
+        "file": "apps/web/src/routes/product/new.tsx",
+        "symbol": "apps/web/src/routes/product.ProductNewConfigurationPage",
+        "detail": "Loops nest 2 deep. That is a count of nested loops, not a complexity: they multiply only when each walks an independent collection. A walk from parents to their children, a loop over a fixed list, or a callee finishing its caller's traversal nests without multiplying. Check which loops here do.",
+        "line": 31,
+        "end_line": 298,
+        "fact_id": "4070692ac2a82b62611b6d0a96db4522"
+      },
+      {
+        "symbol": "apps/web/src/routes/product.ProductNewConfigurationPage",
+        "detail": "loop_depth=2, loop_count=8, cyclomatic=40",
+        "fact_id": "4070692ac2a82b62611b6d0a96db4522"
+      }
+    ],
+    "suggested_actions": [
+      "Confirm the hot path with a profiler or benchmark before optimizing",
+      "Batch or hoist per-iteration I/O out of loops; add memoization or an iterative rewrite for recursion"
+    ]
+  },
+  {
+    "title": "Performance risk (recursion, O(?) — recursive): apps/web/src/features/products.resolveMediaUrl",
+    "source": "performance",
+    "description": "Directly recursive (calls itself); depth is bounded by input shape — verify a base case and stack-depth limits. Big-O is a deterministic estimate of structural worst case from parser facts, not a proof — treat as a lead to verify.",
+    "confidence": 0.5,
+    "evidence": [
+      {
+        "file": "apps/web/src/features/products/product-store.ts",
+        "symbol": "apps/web/src/features/products.resolveMediaUrl",
+        "detail": "Directly recursive (calls itself); depth is bounded by input shape — verify a base case and stack-depth limits.",
+        "line": 13,
+        "end_line": 41,
+        "fact_id": "e6ded34e069ffd2eed6ada903c39cb4a"
+      }
+    ],
+    "suggested_actions": [
+      "Confirm the hot path with a profiler or benchmark before optimizing",
+      "Batch or hoist per-iteration I/O out of loops; add memoization or an iterative rewrite for recursion"
+    ]
+  },
+  {
+    "title": "Performance risk (compounded, depth 2): apps/web/src/features/orders.orderStore.cancelOrder",
+    "source": "performance",
+    "description": "A loop here calls a function that itself loops: 2 levels of nesting across the call graph. That is a count of nested loops, not a complexity: they multiply only when each walks an independent collection. A walk from parents to their children, a loop over a fixed list, or a callee finishing its caller's traversal nests without multiplying. Check which loops here do.",
+    "confidence": 0.55,
+    "evidence": [
+      {
+        "file": "apps/web/src/features/orders/order-store.ts",
+        "symbol": "apps/web/src/features/orders.orderStore.cancelOrder",
+        "detail": "A loop here calls a function that itself loops: 2 levels of nesting across the call graph. That is a count of nested loops, not a complexity: they multiply only when each walks an independent collection. A walk from parents to their children, a loop over a fixed list, or a callee finishing its caller's traversal nests without multiplying. Check which loops here do.",
+        "line": 419,
+        "end_line": 442,
+        "fact_id": "2e55813e2649cf82c688ce18412fa616"
+      },
+      {
+        "symbol": "apps/web/src/features/orders.orderStore.cancelOrder",
+        "detail": "apps/web/src/features/orders.mapDocToOrder (loop_depth=1)",
+        "fact_id": "2e55813e2649cf82c688ce18412fa616"
+      }
+    ],
+    "suggested_actions": [
+      "Confirm the hot path with a profiler or benchmark before optimizing",
+      "Batch or hoist per-iteration I/O out of loops; add memoization or an iterative rewrite for recursion"
+    ]
+  },
+  {
+    "title": "Performance risk (compounded, depth 2): apps/web/src/features/orders.orderStore.reactivateOrder",
+    "source": "performance",
+    "description": "A loop here calls a function that itself loops: 2 levels of nesting across the call graph. That is a count of nested loops, not a complexity: they multiply only when each walks an independent collection. A walk from parents to their children, a loop over a fixed list, or a callee finishing its caller's traversal nests without multiplying. Check which loops here do.",
+    "confidence": 0.55,
+    "evidence": [
+      {
+        "file": "apps/web/src/features/orders/order-store.ts",
+        "symbol": "apps/web/src/features/orders.orderStore.reactivateOrder",
+        "detail": "A loop here calls a function that itself loops: 2 levels of nesting across the call graph. That is a count of nested loops, not a complexity: they multiply only when each walks an independent collection. A walk from parents to their children, a loop over a fixed list, or a callee finishing its caller's traversal nests without multiplying. Check which loops here do.",
+        "line": 444,
+        "end_line": 480,
+        "fact_id": "90dc18c7ffdc2b3c034c08ed1e194461"
+      },
+      {
+        "symbol": "apps/web/src/features/orders.orderStore.reactivateOrder",
+        "detail": "apps/web/src/features/orders.mapDocToOrder (loop_depth=1)",
+        "fact_id": "90dc18c7ffdc2b3c034c08ed1e194461"
+      }
+    ],
+    "suggested_actions": [
+      "Confirm the hot path with a profiler or benchmark before optimizing",
+      "Batch or hoist per-iteration I/O out of loops; add memoization or an iterative rewrite for recursion"
+    ]
+  },
+  {
+    "title": "Performance risk (call-in-loop, O(n)): apps/cms/src/collections/orders.applyReservationBeforeChange",
+    "source": "performance",
+    "description": "Calls db.execute inside a loop — a likely N+1 / per-iteration I/O pattern; batch or hoist out of the loop. Big-O is a deterministic estimate of structural worst case from parser facts, not a proof — treat as a lead to verify.",
+    "confidence": 0.6,
+    "evidence": [
+      {
+        "file": "apps/cms/src/collections/orders/_apply-reservation.before-change.ts",
+        "symbol": "apps/cms/src/collections/orders.applyReservationBeforeChange",
+        "detail": "Calls db.execute inside a loop — a likely N+1 / per-iteration I/O pattern; batch or hoist out of the loop.",
+        "line": 42,
+        "end_line": 139,
+        "fact_id": "b7ec2c120794330f7f328e0e350b6ec5"
+      },
+      {
+        "symbol": "apps/cms/src/collections/orders.applyReservationBeforeChange",
+        "detail": "call_in_loop=db.execute",
+        "fact_id": "b7ec2c120794330f7f328e0e350b6ec5"
+      }
+    ],
+    "suggested_actions": [
+      "Confirm the hot path with a profiler or benchmark before optimizing",
+      "Batch or hoist per-iteration I/O out of loops; add memoization or an iterative rewrite for recursion"
+    ]
+  }
+]

@@ -1,0 +1,134 @@
+{
+  "snapshot_id": "sha256:1577889defe41e96cf41ad603ed7651c459e2410828f08972664a663fcf79fa9",
+  "format_version": 1,
+  "enola_version": "0.4.38",
+  "extractor_version": "v500",
+  "generated_at": "2026-11-07T06:40:00Z",
+  "duration": "952.113584ms",
+  "repo_path": "/Users/mm25zamanian/Codes/persianpartshop.ir",
+  "git": {
+    "ref": "main",
+    "commit": "8c39a55c27629c3512c8f6faa62d147bee1aee9e",
+    "dirty": true,
+    "remote": "github.com/gecut/persianpartshop.ir"
+  },
+  "extractors": [
+    "manifests",
+    "mdintent",
+    "python",
+    "typescript"
+  ],
+  "explainers": [
+    "cycles",
+    "layers",
+    "crossrepo",
+    "coverage",
+    "unused-routes",
+    "domain",
+    "query-loops",
+    "dead-methods",
+    "entry-points",
+    "messaging-coverage",
+    "god-class",
+    "hotspots",
+    "dependency-depth",
+    "exported-surface",
+    "complexity-outliers",
+    "intent",
+    "constraints",
+    "vendored-candidates",
+    "import-closure",
+    "package-metrics",
+    "dead-code",
+    "performance",
+    "packwerk"
+  ],
+  "renderers": [
+    "llm_context",
+    "flows",
+    "docs"
+  ],
+  "config_hash": "sha256:0bd4dd70eadd883034fcb98b5d4c9bf19bf25984306c3557610420f86875a2cd",
+  "ignore_glob_hash": "sha256:83dbf7e109a97f4fbe4c6255c5ea1648b57ede0e31e953295664e95171114a16",
+  "output_hashes": {
+    "docs.jsonl": "sha256:a7e516e62b037b64ce7703c3632921e5b878e9f6cf93ae21ad86976573ef6840",
+    "facts.jsonl": "sha256:f497122032cdec69486cf12ede0406e647ca1549597ddabda36ee900aaad2c79",
+    "flows.json": "sha256:b526d4b920a834b90908c2fd8b755e53426f63e6a9bb058dae9ab3e67bc8cc0e",
+    "insights.json": "sha256:709e8959108670d88bc8b97c769adce014b3a177fc256374c0851cc93cf4e607",
+    "llm_context.md": "sha256:17f10a34279e096897b379badf0f21efde3f4ce57fc68c369ccdccc795fd816b"
+  },
+  "fact_count": 4755,
+  "insight_count": 84,
+  "quality": {
+    "files_seen": 443,
+    "files_parsed": 351,
+    "files_skipped": 9,
+    "dirs_skipped": 9,
+    "skipped_sample": [
+      ".agents/skills/nexload-cto-review/evals/fixtures/approved-clean-package/test/cache.test.ts (glob: **/*.test.ts)",
+      ".agents/skills/nexload-cto-review/evals/fixtures/change-with-existing-debt/target/ (glob: **/target/**)",
+      ".git/ (glob: **/.git/**)",
+      "apps/api/node_modules/ (glob: **/node_modules/**)",
+      "apps/cms/.next/ (glob: **/.next/**)",
+      "apps/cms/node_modules/ (glob: **/node_modules/**)",
+      "apps/cms/src/_schema-inspect.test.ts (glob: **/*.test.ts)",
+      "apps/cms/src/_sdk.test.ts (glob: **/*.test.ts)",
+      "apps/cms/src/_seed-target.test.ts (glob: **/*.test.ts)",
+      "apps/cms/src/collections/media/_media.test.ts (glob: **/*.test.ts)",
+      "apps/cms/src/collections/orders/_reservation.integration.test.ts (glob: **/*.test.ts)",
+      "apps/cms/src/collections/orders/_reservation.test.ts (glob: **/*.test.ts)",
+      "apps/cms/src/collections/products/_access.test.ts (glob: **/*.test.ts)",
+      "apps/cms/src/collections/products/_products.test.ts (glob: **/*.test.ts)",
+      "apps/web/dist/ (glob: **/dist/**)",
+      "apps/web/node_modules/ (glob: **/node_modules/**)",
+      "node_modules/ (glob: **/node_modules/**)",
+      "packages/contract/node_modules/ (glob: **/node_modules/**)"
+    ],
+    "parse_errors": 0,
+    "heuristic_insights": 82,
+    "coverage": {
+      "services_total": 0,
+      "coverage_gaps": 0,
+      "unresolved_edges": 0,
+      "extractors_reporting": 2,
+      "extraction_unresolved": 259
+    },
+    "census": {
+      "files_walked": 452,
+      "parsed": 351,
+      "excluded_by_ignore": 9,
+      "excluded_by_kind": 79,
+      "excluded_kinds": {
+        "(no extension)": 3,
+        ".css": 10,
+        ".dockerignore": 1,
+        ".env": 2,
+        ".example": 3,
+        ".gitignore": 1,
+        ".gitkeep": 5,
+        ".jpg": 17,
+        ".json": 18,
+        ".npmrc": 1,
+        ".png": 4,
+        ".svg": 1,
+        ".tsbuildinfo": 2,
+        ".ttf": 1,
+        ".webp": 5,
+        ".woff2": 1,
+        ".yaml": 2,
+        ".yml": 2
+      },
+      "skipped_with_cause": 13,
+      "top_skip_causes": [
+        {
+          "cause": "claimed by manifests, no facts emitted",
+          "count": 12
+        },
+        {
+          "cause": "claimed by typescript, no facts emitted",
+          "count": 1
+        }
+      ]
+    }
+  }
+}

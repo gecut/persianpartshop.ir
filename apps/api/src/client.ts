@@ -5,6 +5,7 @@ import { appContract } from '@persianpart/contract'
 
 export function createApiClient(options: {
   baseURL?: string
+  fetch?: typeof globalThis.fetch
   getToken?: () => string | null
   onAuthError?: (error: any) => void
 }) {
@@ -25,7 +26,7 @@ export function createApiClient(options: {
       return {}
     },
     fetch: async (url, init) => {
-      const response = await globalThis.fetch(url, init)
+      const response = await (options.fetch ?? globalThis.fetch)(url, init)
       if (response.status === 401) {
         try {
           const clone = response.clone()

@@ -36,6 +36,8 @@ Sources: [admin collection](../apps/cms/src/collections/admins/admins.collection
 
 Order access is owner-scoped; unauthorized order lookup returns `NOT_FOUND` to avoid enumeration. Submit/availability require authentication, ordering permission and allowed categories. `hideExactStock` converts catalog quantities to availability hints and also disables ordering. `disableOrdering` independently blocks ordering. A failed customer-permission lookup returns an error instead of permissive defaults for a known customer ID.
 
+`canUseProductQr` enables QR lookup and QR payload retrieval for the authenticated customer account. Both operations check the current permission and the product's active status and allowed category. QR access does not grant ordering. The CMS field is editable only by authorized user managers; customers cannot grant it to themselves. The raw scan code is removed from ordinary catalog, populated plan and order responses.
+
 Catalog/shopping mappings remove wholesale base price and apply customer markup. Order mapping strips specified internal fields; this is not proof that every field on every API/REST path is confidential. In particular:
 
 - Product collection `read: () => true` and no base-price read guard mean direct CMS reads are not covered by customer DTO sanitization.

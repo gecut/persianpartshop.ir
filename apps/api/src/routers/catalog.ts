@@ -1,6 +1,7 @@
 import { attachWarehouseStock } from './warehouse-stock.helpers'
 import { sdk } from '../payload'
-import { base, adminOnly } from '../rpc/base'
+import { base, customerOnly, adminOnly } from '../rpc/base'
+import { ORPCError } from '@orpc/server'
 import type { Product, Category, Brand, Tag, Dimension } from '@persianpart/cms/types'
 import { calculateCartonMetrics } from './catalog.helpers'
 import {
@@ -129,6 +130,29 @@ const getById = base.catalog.getById.handler(async ({ input, context, errors }) 
   return applyProductPricing((await attachWarehouseStock([prod]))[0]!, userPerms.markupPercent, userPerms.hideExactStock)
 })
 
+async function qrProduct(userId: string | number, where: Record<string, unknown>) {
+  const permissions = await getUserPermissions(userId)
+  if (!permissions.canUseProductQr) throw new ORPCError('FORBIDDEN', { message: 'دسترسی اسکن محصول فعال نیست.' })
+  const result = await sdk.find({ collection: 'products', where: { ...where, isActive: { equals: true } }, limit: 1, depth: 2 })
+  const product = result.docs[0] as Product | undefined
+  const category = typeof product?.category === 'object' ? product.category?.id : product?.category
+  if (!product || (permissions.allowedCategoryIds.length > 0 && (!category || !permissions.allowedCategoryIds.includes(Number(category))))) {
+    throw new ORPCError('NOT_FOUND', { message: 'محصول مورد نظر یافت نشد.' })
+  }
+  return { product, permissions }
+}
+
+const getByScanCode = customerOnly.catalog.getByScanCode.handler(async ({ input, context }) => {
+  const { product, permissions } = await qrProduct(context.user.id, { scanCode: { equals: input.scanCode } })
+  return applyProductPricing((await attachWarehouseStock([product]))[0]!, permissions.markupPercent, permissions.hideExactStock)
+})
+
+const getProductQr = customerOnly.catalog.getProductQr.handler(async ({ input, context }) => {
+  const { product } = await qrProduct(context.user.id, { id: { equals: input.id } })
+  if (!product.scanCode) throw new ORPCError('NOT_FOUND', { message: 'کد اسکن محصول ثبت نشده است.' })
+  return { scanCode: product.scanCode }
+})
+
 const categories = base.catalog.categories.handler(async ({ input, context }) => {
   const isAdmin = context?.user?.role === 'admin' || context?.user?.role === 'superadmin'
   const userPerms = await getUserPermissions(context?.user?.id)
@@ -219,6 +243,8 @@ const calculateCartons = base.catalog.calculateCartons.handler(async ({ input, c
 export const catalog = base.catalog.router({
   list,
   getById,
+  getByScanCode,
+  getProductQr,
   categories,
   brands,
   tags,

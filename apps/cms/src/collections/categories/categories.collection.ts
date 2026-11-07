@@ -29,17 +29,6 @@ export const Categories: CollectionConfig = {
       },
     },
     {
-      name: 'slug',
-      type: 'text',
-      required: true,
-      unique: true,
-      label: 'اسلاگ URL',
-      admin: {
-        position: 'sidebar',
-        description: 'شناسه انگلیسی یکتا در آدرس اینترنتی.',
-      },
-    },
-    {
       name: 'ordering',
       type: 'number',
       defaultValue: 0,
@@ -67,6 +56,16 @@ export const Categories: CollectionConfig = {
       admin: {
         position: 'sidebar',
         description: 'نمایش این دسته‌بندی در سایت.',
+      },
+    },
+    {
+      name: 'slug',
+      type: 'text',
+      required: true,
+      unique: true,
+      label: 'شناسه فنی',
+      admin: {
+        description: 'شناسه انگلیسی یکتا در آدرس اینترنتی.',
       },
     },
   ],

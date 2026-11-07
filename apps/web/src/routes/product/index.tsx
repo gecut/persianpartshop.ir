@@ -1,3 +1,8 @@
+import { DataStatus } from '../../components/feedback/data-status'
+import { api } from '../../lib/api-client'
+import { useQuery } from '@tanstack/react-query'
+import { queryKeys } from '../../lib/query-keys'
+import { useSessionValue } from '../../hooks/use-session-value'
 import {
   useState,
   useMemo,
@@ -10,12 +15,13 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { cn, SearchField, Button } from "@heroui/react";
 import { AnimatePresence, motion } from "framer-motion";
-import { useProducts } from "../../features/products/product-store";
+import { useProducts, mapCatalogProduct } from "../../features/products/product-store";
 import { ProductCard } from "../../features/products/product-card";
 import { ProductBottomSheet } from "../../features/products/product-bottom-sheet";
+import { ProductQrScanner } from "../../features/products/product-qr-scanner";
 import { FilterDrawer } from "../../features/products/filter-drawer";
 import type { Product } from "../../types";
-import { useAuth } from "../../features/auth/auth-store";
+import { useAuth, isProductAllowedForUser } from "../../features/auth/auth-store";
 import { useCart } from "../../features/cart/cart-store";
 import { selectionStore, useProductSelection } from "../../features/products/selection-store";
 import { toPersianDigits } from "../../lib/utils/currency";
@@ -29,6 +35,7 @@ import {
 } from "../../components/ui/icons";
 
 export const Route = createFileRoute("/product/")({
+  validateSearch: (search: Record<string, unknown>): { productId?: number; productname?: string } => ({ ...search, productId: (typeof search.productId === 'string' || typeof search.productId === 'number') && /^[1-9]\d*$/.test(String(search.productId)) ? Number(search.productId) : undefined }),
   component: ProductListPage,
 });
 
@@ -47,6 +54,7 @@ const PRODUCT_DIMENSIONS = [
 
 function ProductListPage() {
   const navigate = useNavigate();
+  const { productId } = Route.useSearch();
   const productHook = useProducts();
   const {
     products,
@@ -57,6 +65,7 @@ function ProductListPage() {
     resetFilters,
     activeFilterCount,
     isLoading,
+    error, isFetching, refetch,
   } = productHook;
   const { user } = useAuth();
   const isOrderingDisabled = Boolean(user?.disableOrdering) || Boolean(user?.hideExactStock);
@@ -93,21 +102,24 @@ function ProductListPage() {
   }, [isLoading, allProducts, reconcileWithProducts]);
 
   // Count only valid selected products
-  const selectedCount = useMemo(() => {
-    if (!allProducts || allProducts.length === 0) {
-      return selectedIds.length;
-    }
-    const productSet = new Set(
-      allProducts.map((p) => String(p.id).replace(/["']/g, "").trim()),
-    );
-    return selectedIds.filter((id) =>
-      productSet.has(String(id).replace(/["']/g, "").trim()),
-    ).length;
-  }, [allProducts, selectedIds]);
+  const selectedCount = selectedIds.length;
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [activeBottomSheetProduct, setActiveBottomSheetProduct] =
     useState<Product | null>(null);
+
+  const sharedProduct = useQuery({
+    queryKey: queryKeys.products.detail(productId ?? ''),
+    queryFn: async () => {
+      const raw = await api.catalog.getById({ id: Number(productId) });
+      const mapped = mapCatalogProduct(raw);
+      if (!isProductAllowedForUser(mapped, user)) throw new Error('این محصول در دسترس حساب شما نیست.');
+      return mapped;
+    },
+    enabled: !!productId,
+  });
+  useEffect(() => { if (productId && sharedProduct.data) setActiveBottomSheetProduct(sharedProduct.data) }, [productId, sharedProduct.data]);
 
   const handleOpenBottomSheet = useCallback((product: Product) => {
     setActiveBottomSheetProduct(product);
@@ -115,7 +127,8 @@ function ProductListPage() {
 
   const handleCloseBottomSheet = useCallback(() => {
     setActiveBottomSheetProduct(null);
-  }, []);
+    if (productId) void navigate({ to: '/product', search: previous => ({ ...previous, productId: undefined }), replace: true, resetScroll: false });
+  }, [navigate, productId]);
 
   const handleToggleSelect = useCallback(
     (product: Product) => {
@@ -132,12 +145,15 @@ function ProductListPage() {
   const observerTargetRef = useRef<HTMLDivElement | null>(null);
   const [scrollMargin, setScrollMargin] = useState(0);
 
-  const [displayCount, setDisplayCount] = useState(PRODUCT_PAGE_SIZE);
+  const [displayCount, setDisplayCount] = useSessionValue<number>(`product-count:${JSON.stringify(filters)}`, PRODUCT_PAGE_SIZE);
 
   // Reset to 24 when filters change
+  const filterSignature = JSON.stringify(filters);
+  const previousFilters = useRef(filterSignature);
   useEffect(() => {
-    setDisplayCount(PRODUCT_PAGE_SIZE);
-  }, [filters]);
+    if (previousFilters.current !== filterSignature) setDisplayCount(PRODUCT_PAGE_SIZE);
+    previousFilters.current = filterSignature;
+  }, [filterSignature, setDisplayCount]);
 
   const visibleProducts = useMemo(() => {
     return products.slice(0, displayCount);
@@ -206,6 +222,8 @@ function ProductListPage() {
 
   return (
     <div className="w-full px-4 py-3 space-y-3 text-start pb-8 bg-background">
+      {error && <DataStatus error={error} hasData={allProducts.length > 0} fetching={isFetching} onRetry={() => void refetch()} />}
+      {productId && (sharedProduct.isPending || sharedProduct.error) && <DataStatus error={sharedProduct.error} fetching={sharedProduct.isFetching} onRetry={() => void sharedProduct.refetch()} />}
       {/* 1. Search Bar & Advanced Filters Trigger */}
       <div className="flex items-center gap-2">
         <div className="relative flex-1 text-base">
@@ -231,6 +249,7 @@ function ProductListPage() {
             </Button>
           )}
         </div>
+        {user?.canUseProductQr && <Button type="button" isIconOnly variant="ghost" onPress={() => setIsScannerOpen(true)} aria-label="اسکن محصول" className="size-12 shrink-0 rounded-2xl bg-muted/5 text-muted hover:bg-default/20 hover:text-foreground"><svg aria-hidden="true" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M4 9V5a1 1 0 0 1 1-1h4M15 4h4a1 1 0 0 1 1 1v4M20 15v4a1 1 0 0 1-1 1h-4M9 20H5a1 1 0 0 1-1-1v-4"/><path d="M8 8h3v3H8zM15 8h1v1h-1zM8 15h1v1H8zM14 14h2v2h-2z"/></svg></Button>}
         <Button
           type="button"
           onClick={() => setIsFilterOpen(true)}
@@ -377,7 +396,7 @@ function ProductListPage() {
             <ProductCardSkeleton key={idx} viewMode="list" />
           ))}
         </div>
-      ) : products.length === 0 ? (
+      ) : (error || !navigator.onLine) && !allProducts.length ? null : products.length === 0 ? (
         <div className="bg-muted/5 rounded-2xl p-8 text-center my-4 space-y-2.5">
           <div className="size-12 rounded-2xl bg-default/20 text-muted flex items-center justify-center mx-auto">
             <BoxIcon size={24} />
@@ -467,6 +486,7 @@ function ProductListPage() {
       )}
 
       {/* Product Bottom Sheet */}
+      {isScannerOpen && <ProductQrScanner onClose={() => setIsScannerOpen(false)} onProduct={(product) => { setIsScannerOpen(false); requestAnimationFrame(() => setActiveBottomSheetProduct(product)); }} />}
       <ProductBottomSheet
         product={activeBottomSheetProduct}
         isOpen={Boolean(activeBottomSheetProduct)}

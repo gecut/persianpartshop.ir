@@ -1,3 +1,4 @@
+import { writeActivity } from './write-activity'
 import { createApiClient } from '@persianpart/api/client'
 import type { AppRouter, ApiClient } from '@persianpart/api'
 
@@ -16,6 +17,31 @@ export function setAuthErrorHandler(fn: (err: any) => void) {
 
 export const api = createApiClient({
   baseURL: import.meta.env.VITE_API_URL || defaultBaseUrl,
+  fetch: async (input, init) => {
+    const token = localStorage.getItem('persianpart_token')
+    const path = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url
+    const isWrite = /\/(?:order\/(?:submit|cancel)|shopping\/createOrder|user\/update|auth\/(?:verifyOtp|requestOtp))/.test(path)
+    const finish = isWrite ? writeActivity.begin() : () => {}
+    const controller = new AbortController()
+    const abort = () => controller.abort(init?.signal?.reason)
+    if (init?.signal?.aborted) abort()
+    init?.signal?.addEventListener('abort', abort, { once: true })
+    const timeout = setTimeout(() => controller.abort(new DOMException('زمان انتظار پایان یافت', 'TimeoutError')), 30_000)
+    try {
+      const response = await fetch(input, { ...init, signal: controller.signal })
+      await response.clone().arrayBuffer()
+      if (token !== localStorage.getItem('persianpart_token')) throw new DOMException('حساب کاربری تغییر کرده است', 'AbortError')
+      if (/\/order\/submit/.test(path) && response.ok) writeActivity.clearUncertainOrder()
+      return response
+    } catch (error) {
+      if (/\/order\/submit/.test(path)) writeActivity.markUncertainOrder()
+      throw error
+    } finally {
+      clearTimeout(timeout)
+      init?.signal?.removeEventListener('abort', abort)
+      finish()
+    }
+  },
   
   getToken: () => {
     if (typeof window !== 'undefined') {

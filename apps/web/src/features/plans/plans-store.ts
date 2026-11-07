@@ -7,37 +7,6 @@ import { authStore, isProductAllowedForUser } from '../auth/auth-store'
 
 const STORAGE_KEY = 'persianpart_plans_v1'
 
-function getInitialPlans(): Plan[] {
-  if (typeof window === 'undefined') return []
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY)
-    if (saved) {
-      const parsed = JSON.parse(saved)
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        const mapped = parsed
-          .filter((p) => {
-            if (p.id?.startsWith('demo-')) return false
-            if (p.isActive === false) return false
-            return true
-          })
-          .map((p) => {
-            const mapped = { ...p }
-            if (mapped.createdAt && (mapped.createdAt.includes('2026') || mapped.createdAt.includes('2025') || mapped.createdAt.includes('2024') || mapped.createdAt.startsWith('20'))) {
-              mapped.createdAt = formatPersianDate(mapped.createdAt)
-            }
-            if (mapped.hasTimer === undefined) {
-              mapped.hasTimer = true
-            }
-            return mapped
-          })
-        return mapped
-      }
-    }
-  } catch {
-    // fallback
-  }
-  return []
-}
 
 function mapApiPlanToPlan(p: any): Plan {
   const firstUser = Array.isArray(p.users) && p.users.length > 0 ? p.users[0] : null
@@ -100,7 +69,10 @@ function mapApiPlanToPlan(p: any): Plan {
   }
 }
 
-let currentPlans: Plan[] = getInitialPlans()
+let currentPlans: Plan[] = []
+// Personalized plans are fetched per session, never restored from a shared key.
+try { localStorage.removeItem(STORAGE_KEY) } catch { /* Private storage may be unavailable. */ }
+window.addEventListener('persianpart:account-change', () => { currentPlans = []; currentCustomers = []; broadcast() })
 let currentCustomers: B2BCustomer[] = []
 let isLoadingPlans = false
 const listeners = new Set<() => void>()
@@ -108,7 +80,7 @@ const listeners = new Set<() => void>()
 function broadcast() {
   if (typeof window !== 'undefined') {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(currentPlans))
+      localStorage.removeItem(STORAGE_KEY)
     } catch {
       // ignore
     }
@@ -275,7 +247,7 @@ import { queryKeys, mutationKeys } from '../../lib/query-keys'
 export function usePlans() {
   const queryClient = useQueryClient()
 
-  const { data: plansData = plansStore.getPlans(), isLoading: isLoadingPlans, refetch: refetchPlans } = useQuery<Plan[]>({
+  const { data: plansData = plansStore.getPlans(), isLoading: isLoadingPlans, error, isFetching, refetch: refetchPlans } = useQuery<Plan[]>({
     queryKey: queryKeys.plans.list(),
     queryFn: async () => {
       const res = await api.plan.list({})
@@ -328,6 +300,8 @@ export function usePlans() {
     customers,
     allProducts,
     isLoading: isLoadingPlans,
+    error,
+    isFetching,
     refresh: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.plans.all })
       return refetchPlans()

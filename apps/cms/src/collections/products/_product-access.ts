@@ -1,4 +1,4 @@
-import type { Access, FieldAccess } from 'payload'
+import type { FieldAccess } from 'payload'
 import { getAdminUser } from '../../access/roles'
 
 /**
@@ -26,13 +26,5 @@ export const canUpdateOperationalPrice: FieldAccess = ({ req: { user } }) => {
  * balances use controlled reserve/restore/import operations instead.
  */
 export const canUpdateOperationalInventory: FieldAccess = ({ req: { user } }) => {
-  return isOperationalStaff(user)
-}
-
-/**
- * Access rule for import/export collection operations:
- * Only operational staff (superadmin, manager) can trigger imports/exports.
- */
-export const isImportExportAuthorized: Access = ({ req: { user } }) => {
   return isOperationalStaff(user)
 }

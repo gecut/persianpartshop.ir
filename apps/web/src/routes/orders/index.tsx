@@ -1,3 +1,5 @@
+import { DataStatus } from '../../components/feedback/data-status'
+import { useSessionValue } from '../../hooks/use-session-value'
 import { summarizeQuantities } from '../../lib/utils/unit'
 import { prepareReorderDraft } from '../../features/products/selection-store'
 import React, {
@@ -216,23 +218,25 @@ const OrderCard = React.memo(function OrderCard({
 
 function OrdersListPage() {
   const navigate = useNavigate();
-  const { orders, isLoading } = useOrders();
+  const { orders, isLoading, error, isFetching, refetch } = useOrders();
   const { allProducts } = useProducts();
-  const [selectedStatusTab, setSelectedStatusTab] = useState<
+  const [selectedStatusTab, setSelectedStatusTab] = useSessionValue<
     "all" | OrderStatus
-  >("all");
+  >("orders-tab", "all");
   const [reorderOrder, setReorderOrder] = useState<Order | null>(null);
 
   const INITIAL_BATCH_SIZE = 10;
   const BATCH_STEP = 10;
   const LOAD_MORE_DELAY_MS = 300;
-  const [displayLimit, setDisplayLimit] = useState(INITIAL_BATCH_SIZE);
+  const [displayLimit, setDisplayLimit] = useSessionValue<number>("orders-count", INITIAL_BATCH_SIZE);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const observerTargetRef = useRef<HTMLDivElement | null>(null);
 
+  const previousTab = useRef(selectedStatusTab);
   useEffect(() => {
-    setDisplayLimit(INITIAL_BATCH_SIZE);
-  }, [selectedStatusTab]);
+    if (previousTab.current !== selectedStatusTab) setDisplayLimit(INITIAL_BATCH_SIZE);
+    previousTab.current = selectedStatusTab;
+  }, [selectedStatusTab, setDisplayLimit]);
 
   const filteredOrders =
     selectedStatusTab === "all"
@@ -453,13 +457,14 @@ function OrdersListPage() {
       </div>
 
       {/* Orders List */}
+      <DataStatus error={error} hasData={orders.length > 0} fetching={isFetching} onRetry={() => void refetch()} />
       {isLoading ? (
         <div className="space-y-2.5">
           <OrderCardSkeleton />
           <OrderCardSkeleton />
           <OrderCardSkeleton />
         </div>
-      ) : filteredOrders.length === 0 ? (
+      ) : (error || !navigator.onLine) && !orders.length ? null : filteredOrders.length === 0 ? (
         <div className="bg-muted/5 rounded-2xl p-8 text-center space-y-2.5">
           <div className="w-12 h-12 rounded-2xl bg-muted/10 text-muted flex items-center justify-center mx-auto">
             <PackageIcon size={24} />

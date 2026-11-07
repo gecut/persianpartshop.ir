@@ -1,0 +1,38 @@
+.panel { margin-block: 0 32px; border: 1px solid var(--theme-elevation-150); border-radius: 12px; background: var(--theme-elevation-0); overflow: hidden; }
+.header { padding: 28px 32px 0; }
+.header h2 { margin: 0; font-size: 1.2rem; font-weight: 650; }
+.header p { margin: 8px 0 0; color: var(--theme-elevation-600); font-size: .875rem; line-height: 1.8; }
+.body { display: flex; flex-direction: column; gap: 24px; padding: 28px 32px 32px; }
+.controls { display: flex; gap: 20px; flex-wrap: wrap; }
+.field { display: grid; gap: 10px; flex: 1 1 220px; max-width: 360px; font-size: .875rem; font-weight: 600; }
+.field select, .manual textarea, .export input { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid var(--theme-elevation-250); border-radius: 6px; color: var(--theme-text); background: var(--theme-input-bg); font: inherit; }
+.upload { display: flex; align-items: center; flex-wrap: wrap; gap: 20px; padding: 24px; border: 1px dashed var(--theme-elevation-300); border-radius: 8px; background: var(--theme-elevation-50); }
+.upload > div { flex: 1 1 250px; }
+.upload strong { font-size: .9rem; }
+.upload p { margin: 6px 0 0; color: var(--theme-elevation-600); font-size: .8rem; line-height: 1.8; }
+.fileInput { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); }
+.filename { color: var(--theme-elevation-700); font-size: .8rem; overflow-wrap: anywhere; }
+.primary, .secondary { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; padding: 10px 18px; border: 1px solid var(--theme-elevation-800); border-radius: 6px; font: inherit; font-size: .875rem; font-weight: 600; text-decoration: none; cursor: pointer; }
+.primary { color: var(--theme-elevation-0); background: var(--theme-elevation-800); }
+.secondary { color: var(--theme-text); background: var(--theme-elevation-0); border-color: var(--theme-elevation-300); }
+.primary:hover:not(:disabled), .secondary:hover:not(:disabled) { opacity: .8; }
+.primary:disabled, .secondary:disabled { opacity: .45; cursor: not-allowed; }
+.primary:focus-visible, .secondary:focus-visible, .field select:focus-visible, .manual summary:focus-visible, .manual textarea:focus-visible, .export summary:focus-visible, .export input:focus-visible { outline: 2px solid var(--theme-elevation-800); outline-offset: 2px; }
+.hint { margin: -12px 0 0; color: var(--theme-elevation-600); font-size: .8rem; line-height: 1.9; }
+.manual, .export { color: var(--theme-elevation-700); font-size: .85rem; }
+.manual summary, .export summary { width: fit-content; cursor: pointer; }
+.manual textarea { display: block; margin-block-start: 14px; resize: vertical; }
+.exportControls { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-block-start: 16px; }
+.export input { width: 90px; }
+.exportControls span { color: var(--theme-elevation-600); font-size: .8rem; }
+.actions { display: flex; }
+.preview { border: 1px solid var(--theme-elevation-200); border-radius: 8px; overflow: hidden; }
+.previewHeader { padding: 20px; background: var(--theme-elevation-50); }
+.previewHeader p { margin: 8px 0 0; color: var(--theme-elevation-600); font-size: .8rem; line-height: 1.8; }
+.tableWrap { overflow: auto; max-height: 260px; }
+.tableWrap table { width: 100%; border-collapse: collapse; text-align: start; font-size: .875rem; }
+.tableWrap th, .tableWrap td { padding: 12px 20px; border-top: 1px solid var(--theme-elevation-150); text-align: start; }
+.confirm { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; padding: 20px; border-top: 1px solid var(--theme-elevation-200); font-size: .8rem; line-height: 1.8; }
+.status, .error { margin: 0; padding: 12px 16px; border-radius: 6px; background: var(--theme-elevation-100); }
+.error { color: var(--theme-error-500); background: var(--theme-error-50); }
+@media (max-width: 600px) { .header { padding: 24px 20px 0; } .body { padding: 24px 20px; } .field { max-width: none; } .upload { align-items: stretch; flex-direction: column; gap: 16px; } .upload > div { flex: auto; } .actions, .confirm { align-items: stretch; flex-direction: column; } }

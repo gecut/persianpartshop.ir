@@ -11,7 +11,7 @@ export const WarehouseStock: CollectionConfig = {
   access: { read: readWarehouses, create: manageWarehouses, update: () => false, delete: () => false },
   indexes: [{ fields: ['warehouse', 'product'], unique: true }],
   fields: [
-    { name: 'stockCartons', label: 'بسته / واحد قابل فروش', type: 'number', virtual: true, admin: { readOnly: true }, hooks: { afterRead: [async ({ siblingData, req }) => {
+    { name: 'stockCartons', label: 'بسته / واحد قابل فروش', type: 'number', virtual: true, admin: { readOnly: true, description: 'این مقدار از موجودی و بسته‌بندی محصول محاسبه می‌شود.' }, hooks: { afterRead: [async ({ siblingData, req }) => {
       const id = typeof siblingData.product === 'object' ? siblingData.product?.id : siblingData.product
       if (!id) return 0
       const product = await req.payload.findByID({ collection: 'products', id, depth: 0, req })
@@ -19,7 +19,7 @@ export const WarehouseStock: CollectionConfig = {
     }] } },
     { name: 'warehouse', label: 'انبار', type: 'relationship', relationTo: 'warehouses', required: true, index: true },
     { name: 'product', label: 'محصول', type: 'relationship', relationTo: 'products', required: true, index: true },
-    { name: 'inventorySqm', label: 'موجودی قابل فروش در واحد اصلی کالا', type: 'number', required: true, min: 0, defaultValue: 0 },
+    { name: 'inventorySqm', label: 'موجودی قابل فروش در واحد اصلی کالا', type: 'number', required: true, min: 0, defaultValue: 0, admin: { description: 'برای کاشی مترمربع و برای سایر کالاها تعداد واحد فروش است. اصلاح موجودی از مسیر کنترل‌شده انبار انجام می‌شود.' } },
     { name: 'revision', type: 'number', required: true, min: 0, defaultValue: 0, admin: { hidden: true } },
   ],
   hooks: {

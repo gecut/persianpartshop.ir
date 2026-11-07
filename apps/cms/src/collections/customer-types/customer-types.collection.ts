@@ -48,17 +48,6 @@ export const CustomerTypes: CollectionConfig = {
       },
     },
     {
-      name: 'slug',
-      type: 'text',
-      required: true,
-      unique: true,
-      label: 'اسلاگ URL',
-      admin: {
-        position: 'sidebar',
-        description: 'شناسه انگلیسی یکتای رده.',
-      },
-    },
-    {
       name: 'isActive',
       type: 'checkbox',
       defaultValue: true,
@@ -66,6 +55,16 @@ export const CustomerTypes: CollectionConfig = {
       admin: {
         position: 'sidebar',
         description: 'فعال بودن این رده مشتری در سیستم.',
+      },
+    },
+    {
+      name: 'slug',
+      type: 'text',
+      required: true,
+      unique: true,
+      label: 'شناسه فنی',
+      admin: {
+        description: 'شناسه انگلیسی یکتای رده.',
       },
     },
   ],

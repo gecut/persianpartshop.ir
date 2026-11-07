@@ -289,7 +289,7 @@ export const orderStore = {
         return order
       }
     } catch (err) {
-      console.warn('fetchOrderById error:', err)
+      throw err
     }
     return null
   },
@@ -367,7 +367,7 @@ import { queryKeys, mutationKeys } from '../../lib/query-keys'
 export function useOrders() {
   const queryClient = useQueryClient()
 
-  const { data: orders = orderStore.getOrders(), isLoading, refetch } = useQuery({
+  const { data: orders = orderStore.getOrders(), isLoading, error, isFetching, refetch } = useQuery({
     queryKey: queryKeys.orders.list(),
     queryFn: async () => {
       ensureOwner()
@@ -399,6 +399,8 @@ export function useOrders() {
   return {
     orders,
     isLoading,
+    error,
+    isFetching,
     refetch,
     getOrderById: orderStore.getOrderById,
     fetchOrderById: orderStore.fetchOrderById,

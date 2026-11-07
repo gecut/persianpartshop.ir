@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { Product } from "../../types";
+import type { ScannedCatalogProduct } from "@persianpart/contract";
 import { api } from "../../lib/api-client";
 import { toPersianDigits } from "../../lib/utils/currency";
 import { useQueryStates } from "nuqs";
@@ -9,7 +10,7 @@ import { queryKeys } from "../../lib/query-keys";
 
 export type { SortOption };
 
-export function resolveMediaUrl(media: any): string {
+export function resolveMediaUrl(media: unknown): string {
   if (!media) return "";
   if (typeof media === "string") {
     if (
@@ -28,18 +29,19 @@ export function resolveMediaUrl(media: any): string {
     }
     return "";
   }
-  if (typeof media === "object") {
-    if (media.url && typeof media.url === "string") return media.url;
-    if (media.thumbnailURL && typeof media.thumbnailURL === "string")
-      return media.thumbnailURL;
-    if (media.filename && typeof media.filename === "string") {
+  if (typeof media === "object" && media !== null) {
+    const item = media as Record<string, unknown>;
+    if (item.url && typeof item.url === "string") return item.url;
+    if (item.thumbnailURL && typeof item.thumbnailURL === "string")
+      return item.thumbnailURL;
+    if (item.filename && typeof item.filename === "string") {
       const cdnUrl = import.meta.env.VITE_CDN_URL;
       if (cdnUrl) {
-        return `${cdnUrl}/${encodeURIComponent(media.filename)}`;
+        return `${cdnUrl}/${encodeURIComponent(item.filename)}`;
       }
-      return `/api/media/file/${media.filename}`;
+      return `/api/media/file/${item.filename}`;
     }
-    if (media.image) return resolveMediaUrl(media.image);
+    if (item.image) return resolveMediaUrl(item.image);
   }
   return "";
 }
@@ -89,6 +91,127 @@ export interface FilterState {
   sortBy: SortOption;
 }
 
+function getDescriptionText(value: unknown): string | undefined {
+  if (typeof value === 'string') return value || undefined
+  if (!value || typeof value !== 'object') return undefined
+  const node = value as Record<string, unknown>
+  const parts = [typeof node.text === 'string' ? node.text : '', getDescriptionText(node.root)]
+  if (Array.isArray(node.children)) parts.push(...node.children.map(getDescriptionText))
+  return parts.filter(Boolean).join(' ') || undefined
+}
+
+type CatalogProductInput = ScannedCatalogProduct & { brandName?: string; categoryName?: string; categoryId?: string | number | null; secondaryUnit?: string | null; inStock?: boolean }
+
+export function mapCatalogProduct(item: CatalogProductInput): Product {
+  const isOther = item.productType === "other";
+  const dimObj = typeof item.dimension === "object" ? item.dimension : null;
+  const width = isOther ? 0 : Number(dimObj?.width || item.width || 60);
+  const height = isOther ? 0 : Number(dimObj?.height || item.height || 120);
+  const dimStr = isOther
+    ? item.weight
+      ? `${item.weight} کیلوگرم`
+      : ""
+    : dimObj?.name || `${width}×${height}`;
+
+  const brandName =
+    typeof item.brand === "object" && item.brand !== null
+      ? item.brand.name
+      : item.brandName || "پرشین پارت";
+  const categoryName =
+    typeof item.category === "object" && item.category !== null
+      ? item.category.name
+      : item.categoryName || "عمومی";
+  const basePrice =
+    Number(item.finalCustomerPricePerSqm ?? 0);
+  const rawGallery = Array.isArray(item.gallery) ? item.gallery : [];
+  const galleryUrls = rawGallery
+    .map((g) => resolveMediaUrl(g.image))
+    .filter(Boolean);
+
+  const rawCoverUrl = resolveMediaUrl(item.cover);
+  const primaryImage =
+    rawCoverUrl || galleryUrls[0] || "/assets/images/placeholder.svg";
+  const imagesList = [
+    primaryImage,
+    ...galleryUrls.filter((u: string) => u !== primaryImage),
+  ];
+
+  const finalPrice = basePrice;
+  const discountPercent: number | undefined = undefined;
+  const originalPricePerSqm: number | undefined = undefined;
+  const discountPlanTitle: string | undefined = undefined;
+
+  return {
+    id: String(item.id),
+    slug: item.slug || `product-${item.id}`,
+    name: item.name,
+    sku: item.sku,
+    hasScanCode: Boolean(item.hasScanCode),
+    productType: item.productType || (isOther ? "other" : "tile"),
+    dimensions: { width, height },
+    dimension: dimStr,
+    brand: brandName,
+    color: item.color || "استاندارد",
+    grade: item.grade ? formatGrade(item.grade) : undefined,
+    category: categoryName,
+    categoryId: typeof item.category === 'object' && item.category !== null ? item.category.id : item.categoryId ?? item.category,
+    unit: item.unit || (isOther ? "bag" : "m2"),
+    secondary_unit: item.secondary_unit || item.secondaryUnit || undefined,
+    secondaryUnit: item.secondary_unit || item.secondaryUnit || undefined,
+    weight:
+      item.weight != null
+        ? Number(item.weight)
+        : undefined,
+    itemsPerPack:
+      item.itemsPerPack != null
+        ? Number(item.itemsPerPack)
+        : undefined,
+    approxCoverage: item.approxCoverage || undefined,
+    finalCustomerPricePerSqm: finalPrice,
+    pricePerM2: finalPrice,
+    originalPricePerSqm,
+    discountPercent,
+    discountPlanTitle,
+    sqmPerCarton: isOther ? 1 : (item.sqmPerCarton || 1.44),
+    areaPerCarton: isOther ? 1 : (item.sqmPerCarton || 1.44),
+    piecesPerCarton: item.piecesPerCarton || 1,
+    tilesPerCarton: item.piecesPerCarton || 1,
+    cartonWeightKg:
+      item.weight != null ? Number(item.weight) : 28,
+    hideExactStock: Boolean(item.hideExactStock),
+    inventorySqm:
+      item.availability === "out_of_stock"
+        ? 0
+        : Number(item.inventorySqm || 0),
+    stockCartons:
+      item.availability === "out_of_stock"
+        ? 0
+        : Number(item.stockCartons || 0),
+    inStock:
+      item.availability !== "out_of_stock" &&
+      (item.hideExactStock
+        ? Boolean(Number(item.stockCartons || 0) > 0 || Number(item.inventorySqm || 0) > 0 || item.inStock)
+        : Number(item.inventorySqm || 0) > 0),
+    stockStatus:
+      item.availability === "out_of_stock" ||
+      Number(item.inventorySqm || 0) <= 0
+        ? "out_of_stock"
+        : item.hideExactStock
+          ? "in_stock"
+          : item.availability === "limited" ||
+              Number(item.inventorySqm || 0) < 50
+            ? "low_stock"
+            : "in_stock",
+    description: getDescriptionText(item.richDescription),
+    applications: ["خودرو سواری", "سفارش عمده"],
+    tags: Array.isArray(item.tags)
+      ? item.tags.flatMap((t) => typeof t === "object" ? [t.name] : typeof t === "string" ? [t] : [])
+      : [],
+    images: imagesList,
+    gallery: galleryUrls.length > 0 ? galleryUrls : [primaryImage],
+  };
+}
+
 export function useProducts() {
   const [queryFilters, setQueryFilters] = useQueryStates(productFilterParsers, {
     shallow: true,
@@ -134,6 +257,8 @@ export function useProducts() {
     data: rawProducts = [],
     isLoading,
     isError,
+    error,
+    isFetching,
     refetch,
   } = useQuery({
     queryKey: queryKeys.products.list({ page: 1, limit: 500 }),
@@ -142,6 +267,8 @@ export function useProducts() {
       return res.items || [];
     },
     staleTime: 60 * 1000,
+    refetchInterval: 60 * 1000,
+    refetchIntervalInBackground: false,
   });
 
   const isLiveConnected = !isError;
@@ -162,116 +289,7 @@ export function useProducts() {
     [queryFilters, viewMode],
   );
 
-  const productsList = useMemo<Product[]>(() => {
-    if (!rawProducts || rawProducts.length === 0) return [];
-    return rawProducts.map((item: any) => {
-      const isOther = (item as any).productType === "other";
-      const dimObj = typeof item.dimension === "object" ? item.dimension : null;
-      const width = isOther ? 0 : Number(dimObj?.width || item.width || 60);
-      const height = isOther ? 0 : Number(dimObj?.height || item.height || 120);
-      const dimStr = isOther
-        ? (item as any).weight
-          ? `${(item as any).weight} کیلوگرم`
-          : ""
-        : dimObj?.name || `${width}×${height}`;
-
-      const brandName =
-        typeof item.brand === "object" && item.brand !== null
-          ? item.brand.name
-          : item.brandName || "پرشین پارت";
-      const categoryName =
-        typeof item.category === "object" && item.category !== null
-          ? item.category.name
-          : item.categoryName || "عمومی";
-      const basePrice =
-        Number(item.finalCustomerPricePerSqm ?? 0);
-      const rawGallery = Array.isArray(item.gallery) ? item.gallery : [];
-      const galleryUrls = rawGallery
-        .map((g: any) => resolveMediaUrl(g?.image || g))
-        .filter(Boolean);
-
-      const rawCoverUrl = resolveMediaUrl(item.cover);
-      const primaryImage =
-        rawCoverUrl || galleryUrls[0] || "/assets/images/placeholder.svg";
-      const imagesList = [
-        primaryImage,
-        ...galleryUrls.filter((u: string) => u !== primaryImage),
-      ];
-
-      const finalPrice = basePrice;
-      const discountPercent: number | undefined = undefined;
-      const originalPricePerSqm: number | undefined = undefined;
-      const discountPlanTitle: string | undefined = undefined;
-
-      return {
-        id: String(item.id),
-        slug: item.slug || `product-${item.id}`,
-        name: item.name,
-        sku: item.sku,
-        productType: (item as any).productType || (isOther ? "other" : "tile"),
-        dimensions: { width, height },
-        dimension: dimStr,
-        brand: brandName,
-        color: item.color || "استاندارد",
-        grade: item.grade ? formatGrade(item.grade) : undefined,
-        category: categoryName,
-        unit: (item as any).unit || (isOther ? "bag" : "m2"),
-        secondary_unit: (item as any).secondary_unit || (item as any).secondaryUnit || undefined,
-        secondaryUnit: (item as any).secondary_unit || (item as any).secondaryUnit || undefined,
-        weight:
-          (item as any).weight != null
-            ? Number((item as any).weight)
-            : undefined,
-        itemsPerPack:
-          (item as any).itemsPerPack != null
-            ? Number((item as any).itemsPerPack)
-            : undefined,
-        approxCoverage: (item as any).approxCoverage || undefined,
-        finalCustomerPricePerSqm: finalPrice,
-        pricePerM2: finalPrice,
-        originalPricePerSqm,
-        discountPercent,
-        discountPlanTitle,
-        sqmPerCarton: isOther ? 1 : (item.sqmPerCarton || 1.44),
-        areaPerCarton: isOther ? 1 : (item.sqmPerCarton || 1.44),
-        piecesPerCarton: item.piecesPerCarton || 1,
-        tilesPerCarton: item.piecesPerCarton || 1,
-        cartonWeightKg:
-          (item as any).weight != null ? Number((item as any).weight) : 28,
-        hideExactStock: Boolean((item as any).hideExactStock),
-        inventorySqm:
-          item.availability === "out_of_stock"
-            ? 0
-            : Number((item as any).inventorySqm || 0),
-        stockCartons:
-          item.availability === "out_of_stock"
-            ? 0
-            : Number((item as any).stockCartons || 0),
-        inStock:
-          item.availability !== "out_of_stock" &&
-          ((item as any).hideExactStock
-            ? Boolean(Number((item as any).stockCartons || 0) > 0 || Number((item as any).inventorySqm || 0) > 0 || (item as any).inStock)
-            : Number((item as any).inventorySqm || 0) > 0),
-        stockStatus:
-          item.availability === "out_of_stock" ||
-          Number((item as any).inventorySqm || 0) <= 0
-            ? "out_of_stock"
-            : (item as any).hideExactStock
-              ? "in_stock"
-              : item.availability === "limited" ||
-                  Number((item as any).inventorySqm || 0) < 50
-                ? "low_stock"
-                : "in_stock",
-        description: item.richDescription || undefined,
-        applications: ["خودرو سواری", "سفارش عمده"],
-        tags: Array.isArray(item.tags)
-          ? item.tags.map((t: any) => (typeof t === "object" ? t.name : t))
-          : [],
-        images: imagesList,
-        gallery: galleryUrls.length > 0 ? galleryUrls : [primaryImage],
-      };
-    });
-  }, [rawProducts]);
+  const productsList = useMemo<Product[]>(() => rawProducts.map(mapCatalogProduct), [rawProducts]);
 
   const activeFilterCount = useMemo(() => {
     let count = 0;
@@ -477,6 +495,8 @@ export function useProducts() {
     isLoading,
     activeFilterCount,
     isLiveConnected,
+    error,
+    isFetching,
     refetch,
     setFilter,
     toggleArrayFilter,

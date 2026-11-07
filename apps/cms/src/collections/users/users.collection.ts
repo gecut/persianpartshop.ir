@@ -194,21 +194,6 @@ export const Users: CollectionConfig = {
     ],
   },
   fields: [
-    // --- فیلدهای سایدبار (وضعیت، رده و دسترسی) ---
-    {
-      name: "customerType",
-      type: "relationship",
-      relationTo: "customer-types",
-      required: true,
-      label: "رده مشتری",
-      access: {
-        update: canManageUsersField,
-      },
-      admin: {
-        position: "sidebar",
-        description: "تعیین‌کننده درصد تخفیف و رده قیمت کاتالوگ.",
-      },
-    },
     {
       name: "status",
       type: "select",
@@ -227,6 +212,21 @@ export const Users: CollectionConfig = {
         { label: "مسدود", value: "suspended" },
       ],
     },
+    // --- فیلدهای سایدبار (وضعیت، رده و دسترسی) ---
+    {
+      name: "customerType",
+      type: "relationship",
+      relationTo: "customer-types",
+      required: true,
+      label: "رده مشتری",
+      access: {
+        update: canManageUsersField,
+      },
+      admin: {
+        position: "sidebar",
+        description: "تعیین‌کننده درصد تخفیف و رده قیمت کاتالوگ.",
+      },
+    },
     {
       name: "isBanned",
       type: "checkbox",
@@ -235,69 +235,6 @@ export const Users: CollectionConfig = {
         hidden: true,
       },
     },
-    {
-      name: "banReason",
-      type: "textarea",
-      label: "علت مسدودی",
-      access: {
-        update: canManageUsersField,
-      },
-      admin: {
-        position: "sidebar",
-        condition: (data) =>
-          data?.status === "suspended" || Boolean(data?.isBanned),
-        description: "پیام خطا هنگام ورود",
-      },
-    },
-    {
-      name: "allowedCategories",
-      type: "relationship",
-      relationTo: "categories",
-      hasMany: true,
-      label: "دسته‌بندی‌های مجاز",
-      access: {
-        update: canManageUsersField,
-      },
-      admin: {
-        position: "sidebar",
-        description: "خالی = دسترسی کامل به کاتالوگ",
-      },
-    },
-    {
-      name: "hideExactStock",
-      type: "checkbox",
-      defaultValue: false,
-      label: "موجودی به‌صورت موجود/ناموجود",
-      access: {
-        update: canManageUsersField,
-      },
-      admin: {
-        position: "sidebar",
-        description: "مخفی‌سازی عدد موجودی (با فعال‌سازی، ثبت سفارش برای مشتری غیرفعال می‌شود)",
-      },
-    },
-    {
-      name: "disableOrdering",
-      type: "checkbox",
-      defaultValue: false,
-      label: "فقط مشاهده کاتالوگ (غیرفعال‌سازی ثبت سفارش)",
-      access: {
-        update: canManageUsersField,
-      },
-      admin: {
-        position: "sidebar",
-      },
-    },
-    {
-      name: "notes",
-      type: "textarea",
-      label: "یادداشت داخلی",
-      admin: {
-        position: "sidebar",
-        description: "یادداشت‌های اختصاصی مدیران فروش درباره سابقه مشتری.",
-      },
-    },
-
     // --- فیلدهای محتوای اصلی (تب‌بندی شده) ---
     {
       type: "tabs",
@@ -563,7 +500,79 @@ export const Users: CollectionConfig = {
             },
           ],
         },
+        { label: 'دسترسی و فروش', fields: [
+          {
+      name: "allowedCategories",
+      type: "relationship",
+      relationTo: "categories",
+      hasMany: true,
+      label: "دسته‌بندی‌های مجاز",
+      access: {
+        update: canManageUsersField,
+      },
+      admin: {
+        description: "خالی = دسترسی کامل به کاتالوگ",
+      },
+    },
+          {
+      name: "hideExactStock",
+      type: "checkbox",
+      defaultValue: false,
+      label: "موجودی به‌صورت موجود/ناموجود",
+      access: {
+        update: canManageUsersField,
+      },
+      admin: {
+        description: "مخفی‌سازی عدد موجودی (با فعال‌سازی، ثبت سفارش برای مشتری غیرفعال می‌شود)",
+      },
+    },
+          {
+      name: "canUseProductQr",
+      type: "checkbox",
+      defaultValue: false,
+      label: "اسکن و دریافت QR محصولات",
+      access: { update: canManageUsersField, create: canManageUsersField },
+      admin: { description: "اجازهٔ اسکن و دریافت QR محصولات قابل مشاهده." },
+    },
+          {
+      name: "disableOrdering",
+      type: "checkbox",
+      defaultValue: false,
+      label: "فقط مشاهده کاتالوگ (غیرفعال‌سازی ثبت سفارش)",
+      access: {
+        update: canManageUsersField,
+      },
+      admin: {
+      },
+    },
+        ] },
+        { label: 'یادداشت داخلی', fields: [
+          {
+      name: "notes",
+      type: "textarea",
+      label: "یادداشت داخلی",
+      admin: {
+        description: "یادداشت‌های اختصاصی مدیران فروش درباره سابقه مشتری.",
+      },
+    },
+        ] },
+        { label: 'وضعیت حساب', fields: [
+          {
+      name: "banReason",
+      type: "textarea",
+      label: "علت مسدودی",
+      access: {
+        update: canManageUsersField,
+      },
+      admin: {
+        condition: (data) =>
+          data?.status === "suspended" || Boolean(data?.isBanned),
+        description: "پیام خطا هنگام ورود",
+      },
+    },
+        ] },
       ],
     },
+
   ],
 };

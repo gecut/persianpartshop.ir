@@ -17,9 +17,9 @@ export const Warehouses: CollectionConfig = {
   admin: { useAsTitle: 'name', group: 'کاتالوگ و انبارداری' },
   access: { read: readWarehouses, create: manageWarehouses, update: manageWarehouses, delete: () => false },
   fields: [
-    { name: 'code', label: 'کد انبار', type: 'text', required: true, unique: true },
+    { name: 'code', label: 'کد انبار', type: 'text', required: true, unique: true, admin: { description: 'پس از ایجاد انبار قابل تغییر نیست.' } },
     { name: 'name', label: 'نام انبار', type: 'text', required: true },
-    { name: 'isActive', label: 'فعال', type: 'checkbox', required: true, defaultValue: true },
+    { name: 'isActive', label: 'انبار فعال', type: 'checkbox', required: true, defaultValue: true, admin: { position: 'sidebar' } },
   ],
   hooks: {
     beforeDelete: [() => { throw new Error('انبار را به‌جای حذف، غیرفعال کنید.') }],

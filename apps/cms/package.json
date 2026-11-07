@@ -34,7 +34,7 @@
     "migrate:down": "cross-env NODE_OPTIONS=--no-deprecation payload migrate:down",
     "migrate:fresh": "cross-env NODE_OPTIONS=--no-deprecation payload migrate:fresh",
     "seed": "cross-env NODE_OPTIONS=--no-deprecation node --import tsx src/seed.ts",
-    "test:hardening": "tsx --test src/_sdk.test.ts src/_seed-target.test.ts src/collections/orders/_reservation.test.ts src/collections/products/_products.test.ts src/collections/products/_access.test.ts src/collections/warehouse-stock/_stock-operations.test.ts",
+    "test:hardening": "tsx --test src/_sdk.test.ts src/_seed-target.test.ts src/collections/orders/_reservation.test.ts src/collections/products/_products.test.ts src/collections/products/_access.test.ts src/collections/warehouse-stock/_stock-operations.test.ts src/collections/warehouse-stock/_import-csv.test.ts",
     "test:hardening:postgres": "tsx --test src/collections/orders/_reservation.integration.test.ts",
     "test:hardening:migrations": "tsx --test --test-force-exit src/_schema-inspect.test.ts"
   },
@@ -43,7 +43,6 @@
     "@payloadcms/db-postgres": "^3.90.2",
     "@payloadcms/db-sqlite": "^3.90.2",
     "@payloadcms/next": "^3.90.2",
-    "@payloadcms/plugin-import-export": "3.90.2",
     "@payloadcms/richtext-lexical": "^3.90.2",
     "@payloadcms/sdk": "^3.91.0",
     "@payloadcms/translations": "^3.90.2",

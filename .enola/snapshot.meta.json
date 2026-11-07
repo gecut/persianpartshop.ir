@@ -1,0 +1,2498 @@
+{
+  "repo_path": "/Users/mm25zamanian/Codes/persianpartshop.ir",
+  "repo_label": "persianpartshop.ir",
+  "generated_at": "2026-11-07T07:36:03Z",
+  "duration": "8.236018541s",
+  "extractors": [
+    "manifests",
+    "mdintent",
+    "python",
+    "typescript"
+  ],
+  "explainers": [
+    "cycles",
+    "layers",
+    "crossrepo",
+    "coverage",
+    "unused-routes",
+    "domain",
+    "query-loops",
+    "dead-methods",
+    "entry-points",
+    "messaging-coverage",
+    "god-class",
+    "hotspots",
+    "dependency-depth",
+    "exported-surface",
+    "complexity-outliers",
+    "intent",
+    "constraints",
+    "vendored-candidates",
+    "import-closure",
+    "package-metrics",
+    "dead-code",
+    "performance",
+    "packwerk"
+  ],
+  "renderers": [
+    "llm_context",
+    "flows",
+    "docs"
+  ],
+  "file_hashes": [
+    {
+      "path": ".agents/skills/nexload-code/evals/fixtures/metrics-parser.md",
+      "hash": "de4b2af8fd3d9d3c68a9030509b6230558a9fbf330e95db10d7e4475ff7c829f",
+      "mod_time": "2026-11-07T06:41:53Z"
+    },
+    {
+      "path": "apps/web/src/components/ui/hold-button.tsx",
+      "hash": "6a699d857325d208da7bd3797969fe75b9b0113ef3c47078011c855f62755059",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/web/src/hooks/useRafThrottle.ts",
+      "hash": "f1f1efbdd9b4843f12773e2553a2600d393df977172ee3c6b262cfcafda46dbb",
+      "mod_time": "2026-10-28T20:59:32Z"
+    },
+    {
+      "path": "packages/contract/tsconfig.json",
+      "hash": "3735fa23d934193dadebf3445065c675aa41a6e669752a1346fbe0737ff0515c",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": ".agents/skills/nexload-code/references/clean-code.md",
+      "hash": "4bf810b12330ed1c4994a3b20ecd35155887d2aac2b083d6cdda75b79935f31b",
+      "mod_time": "2026-11-07T06:41:53Z"
+    },
+    {
+      "path": ".agents/skills/nexload-react/evals/trigger-evals.json",
+      "hash": "6a309ec55877ff5dce370118b0258a998f306f521bc2f8e8f6d26141b84af448",
+      "mod_time": "2026-11-07T06:41:56Z"
+    },
+    {
+      "path": ".agents/skills/nexload-react/references/payload-admin-and-verification.md",
+      "hash": "af2e45334f437556711ad40b81881eacfa661dfd139ca8fc8f5966e57f09aff5",
+      "mod_time": "2026-11-07T06:41:56Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/data/stacks/nextjs.csv",
+      "hash": "ecd2c27b2ea0127d203ae726060efcdd7335b5e83f96b99e4f3befbbfeebd5a4",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/approved-clean-package/src/index.ts",
+      "hash": "18b355bd4831da85ef8aa2e28a0ce2237c31cca2a1aa48d6bd4466623a677069",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/data/app-interface.csv",
+      "hash": "331e7cf2c0b222d80c566c5f255c63cb339f65bfd02e471a720f28e4864a9f08",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/data/stacks/nuxt-ui.csv",
+      "hash": "c36ee8470926b4a0748d241363c71664c9969c2edbc62f7f72de0db73880fac6",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": "apps/web/public/api/media/file/tile-calacatta-gold-1.jpg",
+      "hash": "ad947068be414cdbf57ca31ea4343f7a22436f65d24007b24783f2097086abf5",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/web/src/components/ui/throttled-slider.tsx",
+      "hash": "d5639724a46a2ceee6fcf7e6f8c0cf3cdf52601d55e513ef0065042f8b398f01",
+      "mod_time": "2026-10-28T21:00:34Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/data/motion.csv",
+      "hash": "381affe8df8ea1f66fbbda2598827f9f54299107bbe6a1b4e9b68f6b62091ceb",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": "apps/cms/src/collections/tags/tags.collection.ts",
+      "hash": "98a656b3b7796404221b17c292e3b2d3eecb072fdafa6ac74bc41ae391a3d1ee",
+      "mod_time": "2026-10-27T13:17:43Z"
+    },
+    {
+      "path": "apps/cms/src/seed.ts",
+      "hash": "43a8c7b681ef45e03f678b6ac7419ae10b06ca3cbafc1d36eea881ea33612c5c",
+      "mod_time": "2026-10-28T13:04:32Z"
+    },
+    {
+      "path": "apps/cms/next.config.ts",
+      "hash": "936f8a9f1bff49b2f1af1f1e165611fe6460d9f1d96ce59ed1f1d709118ab5e9",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/web/src/features/checkout/pre-invoice-modal.tsx",
+      "hash": "4ddbb3d4d70947bfcecfd1758f9e0907e5cb3a70c76cd55e28681b4eae47c554",
+      "mod_time": "2026-10-28T21:10:54Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/data/stacks/swiftui.csv",
+      "hash": "bdd9231ff3ad658f4e7c063e1eb49df2fd09ac8d90631a86df899b39833b9623",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": "apps/cms/src/access/roles.ts",
+      "hash": "1185f6cefe815a715080bb518db4ff526bc2c56bc9f80087074180e40ae0cd41",
+      "mod_time": "2026-10-27T11:23:59Z"
+    },
+    {
+      "path": "apps/web/public/assets/images/3d-percent-badge-cyan.webp",
+      "hash": "f0a9810f02b807818cad7a17d2e417d288121fcecd5fc408afc995af06628e3d",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/browser-runtime-boundary/README.md",
+      "hash": "7df1cb250a5bdae9a7e124be726ae5d51cefc4f2366a766f4164714a520e69d3",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": ".agents/skills/nexload-design/evals/fixtures/editorial-hero.css",
+      "hash": "8832dba5ec2c8fc3582594a12dd766d64e2fbcf0af1887156d96045ecb43a7dc",
+      "mod_time": "2026-11-07T06:41:56Z"
+    },
+    {
+      "path": "apps/api/src/rpc/handler.ts",
+      "hash": "0a6264bcc984710881ca1bed3e51820807774915bf4d39e0babe2fa5d52263b2",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/cms/src/collections/otps/_otp-service.ts",
+      "hash": "bb31362cd6c02ce5bbc896f131083b9ce5c34fff81f5386e0809d4c745dae3e0",
+      "mod_time": "2026-10-27T13:19:18Z"
+    },
+    {
+      "path": "apps/web/public/api/media/file/tile-cement-grey.jpg",
+      "hash": "47669557b10d12c46717ee9a649b79c261de285f00da0417fb39ddd5703cfa35",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/web/src/features/orders/order-timeline.tsx",
+      "hash": "f225604e7fc73c9569e8ccd6d68cf4bb1796b0eb7af960913fdda0982a7f46c4",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/approved-valid-abstraction/README.md",
+      "hash": "dc8cefe31c899c8406fafc2992900169dcd3752b01ecd11c5054593355965b1e",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": ".agents/skills/nexload-reasoning-execution/references/claim-verification.md",
+      "hash": "4b132e1f85fe013d3396ca558dab061bf5157393160d5a49572ade0043e0b629",
+      "mod_time": "2026-11-07T06:41:56Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/data/stacks/vue.csv",
+      "hash": "b655f1ebb9dff2652d15981f31b1784c8a6d4759efd2815a14f3088257569f95",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": "apps/cms/package.json",
+      "hash": "82de6f0c49c736ebeae8d108fd5efea0b5a1a386aac57542a34da83ef64887d3",
+      "mod_time": "2026-10-27T11:41:36Z"
+    },
+    {
+      "path": "apps/cms/src/collections/plans/plans.collection.ts",
+      "hash": "4a4e994e895fe8c1206ee238d0cf93de46dd2f6f9577bd5b69f10e54f0d6da4a",
+      "mod_time": "2026-10-27T13:19:00Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/stale-verification/src/index.ts",
+      "hash": "279c70ff2d1945041750cf7a09eae1733f67cb7df0f194633967dd10a3756ff8",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": ".agents/skills/tanstack-query-best-practices/rules/pf-intent-prefetch.md",
+      "hash": "1e80133dded98ed5018fc38db3de6589a14b47cb7f98ce5c157acd2823127d6d",
+      "mod_time": "2026-11-07T06:42:36Z"
+    },
+    {
+      "path": ".agents/skills/bun-hono-integration/SKILL.md",
+      "hash": "597e084e723f98210080546eed12637b3ad5e9ebdd8c9944f71ce3bd302f4c2e",
+      "mod_time": "2026-11-07T07:25:32Z"
+    },
+    {
+      "path": "AGENTS.md",
+      "hash": "144a8aefb0b5d5d6e74df010a0eb7b44f9ef88dde293465989619436feaee505",
+      "mod_time": "2026-11-07T06:29:15Z"
+    },
+    {
+      "path": "apps/cms/src/collections/tags/index.ts",
+      "hash": "2b4d790166273db98372d5e3026547f84a2629c0d658e4d0ff4c8d95658465f5",
+      "mod_time": "2026-10-27T09:03:50Z"
+    },
+    {
+      "path": "apps/web/src/types/index.ts",
+      "hash": "56551e6a523b0e17280c28ddb6c54446c9617c97770c7c1623fcb2f97b3b1c03",
+      "mod_time": "2026-10-27T07:14:21Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/evals.json",
+      "hash": "b5bd61c308b1e20bcd0089fff285b2f98567d645d5659b68872528a2e61a3d85",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/missing-decisive-evidence/package.json",
+      "hash": "1359d8ed4eb94bfe42a3a89b16a909033c47a122f4ad891eb2ced937203ca940",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": ".agents/skills/tanstack-query-best-practices/rules/qk-factory-pattern.md",
+      "hash": "59deab3ffa4e4def16a8aff217afd573b1e64a8f965e5dfb19a163999f6f0b63",
+      "mod_time": "2026-11-07T06:42:36Z"
+    },
+    {
+      "path": "apps/cms/src/collections/media/media.collection.ts",
+      "hash": "740b757f460ee59ead7d10dd197afc9d8f8d30f8bf85edc20ae7f5e858b327ed",
+      "mod_time": "2026-10-28T20:18:50Z"
+    },
+    {
+      "path": "packages/.gitkeep",
+      "hash": "1a38dbd2471397e149e7c413685babdd7e65200a20f093a70a10605abacae572",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/scripts/validate_data.py",
+      "hash": "718ad4cbb227436015c9c2bc80fc583d6ed738b01c1a940ef85e350780d99f58",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": "apps/cms/src/migrations/20261027_113124_baseline.ts",
+      "hash": "2b87a08f07c374bd4d26c50fae07e2e3db2be1d1b940613dfd3b80a4430aba21",
+      "mod_time": "2026-10-27T11:31:24Z"
+    },
+    {
+      "path": "apps/web/src/features/plans/plan-card.tsx",
+      "hash": "0502ac448d98afebe95a2d738b72bae28482e02b00f4d68dcbdbc32c1ea2e3df",
+      "mod_time": "2026-10-27T07:14:21Z"
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "hash": "4e86ac003e1071b86044378e415ff871a193a3399e9bd40e8b6605ed5a1d78d8",
+      "mod_time": "2026-10-27T10:52:15Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/data/data-provenance.json",
+      "hash": "e82fb33ed49375a300e93d9c11ccd1c1493c999e84ee7ee295e527634786e2e0",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/data/stacks/react-native.csv",
+      "hash": "ba31dd9c0c04da6bc02a74448bf121f9c0728ae5ba3b4d47b487778b0a1135b5",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": "apps/api/src/lib/otp.ts",
+      "hash": "789b02e683e18cb824aab829a6771ac3334a6eb7181a5c131b7d54d6b93f5061",
+      "mod_time": "2026-10-27T13:24:58Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/references/scope-evidence-and-review-contract.md",
+      "hash": "6c2a4d9208491b5a7037ac8c4ce16b3c6a1e8d5d1013c904ebfbf34e689c76e0",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/data/stacks/javafx.csv",
+      "hash": "2e819b8d5abdd23ad4dae0991650fdb57af497aabd68b37463aa9c442944c869",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": "apps/api/src/routers/plan.ts",
+      "hash": "962e1572d42a06e3beb7e4901141fb44ff6a0d887cc46a558d91e40e26cb4907",
+      "mod_time": "2026-10-27T11:07:48Z"
+    },
+    {
+      "path": "apps/api/src/server.ts",
+      "hash": "c6aa27258373cc1ab321ffa229e4308e09daeaf8808bbcd280c833c3dda04dc3",
+      "mod_time": "2026-10-28T20:13:59Z"
+    },
+    {
+      "path": "apps/web/src/features/auth/login-card.tsx",
+      "hash": "cfaf8907b98f5cc5bce4b9df599a909af413040533e74ac968f17ee405e22428",
+      "mod_time": "2026-10-27T07:14:21Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/approved-clean-package/package.json",
+      "hash": "0573ace296b13ddceb19d150d8dbdf9201d5487e11ecfd92289a90b7d8364535",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/data/google-fonts.csv",
+      "hash": "1c8c3b2ea1faf6a1012da463756def8b3889db33f2226f0343bb4daa80307d03",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/scripts/tests/fixtures/catalogs/google-existing.csv",
+      "hash": "4e0761b839dc6b2187a370e82eddc0aed8a7ff10c09e28dd814bb3656dac595b",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": "apps/cms/.env.example",
+      "hash": "9f98853d2dfa1d979239fa6e2c644e62112a714500cff24de96fdaeebd050db5",
+      "mod_time": "2026-10-28T07:10:48Z"
+    },
+    {
+      "path": "apps/cms/src/collections/products/components/ProductPreview.tsx",
+      "hash": "c1c742f9be69a2add7c4e5fbda9c416d5c4d6038e67a5225cc25e61426116bb4",
+      "mod_time": "2026-10-27T12:20:10Z"
+    },
+    {
+      "path": "apps/web/src/types/plan.ts",
+      "hash": "bae0ab81c60e5225dbe78fa3941d9576274be4608fe03277bd49e2f8bd38762a",
+      "mod_time": "2026-10-27T07:14:21Z"
+    },
+    {
+      "path": ".agents/skills/nexload-code/evals/fixtures/behavior-correctness.md",
+      "hash": "ffa89bcf310be44ad29bb6fe87dedd24076ddec637753b32e1b526a3a7691fa6",
+      "mod_time": "2026-11-07T06:41:53Z"
+    },
+    {
+      "path": ".agents/skills/nexload-code/references/dependencies-verification.md",
+      "hash": "b9082baf6cc4a219e2a2d8d3668b95319bc697130cae767c04cbb09aeb8a0a08",
+      "mod_time": "2026-11-07T06:41:53Z"
+    },
+    {
+      "path": ".agents/skills/tanstack-query-best-practices/rules/err-fallback-data.md",
+      "hash": "6d9f1c6ec7d0b06393644d12659ff1686fed02e31a0fdc8b9b671cb4d537559b",
+      "mod_time": "2026-11-07T06:42:36Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/data/stacks/uwp.csv",
+      "hash": "c409f08c1fbba1f1029f1acaa554e7b4471cc85517a5751c9f2e62465badcd5c",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/scripts/tests/fixtures/catalogs/phosphor-react-exports.json",
+      "hash": "d79f2ee0afdbc2f87776733e145df3538a16a25d7c2fba0056bb48295dad0ded",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": "apps/cms/src/collections/customer-types/customer-types.collection.ts",
+      "hash": "35d4681caeaa87a978bb60ea8f92f48d59c5e0e08d5bda5aade4a29e27a0bb0f",
+      "mod_time": "2026-10-27T13:18:41Z"
+    },
+    {
+      "path": ".agents/skills/nexload-react/evals/fixtures/product-list.tsx",
+      "hash": "74060a3628a8923c0b2a1b5b74d78b649958ac606a966a06b1a5bddef8f609a5",
+      "mod_time": "2026-11-07T06:41:56Z"
+    },
+    {
+      "path": "apps/web/vite.config.ts",
+      "hash": "7b9d9457205ba6f54237c73bf1fe037e121eaccf13d4a42ec4b457f4e230bb21",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": ".agents/skills/tanstack-query-best-practices/rules/cache-invalidation.md",
+      "hash": "ffa153b567a74d28811e8a2960a0adb42ad59eb30925bcbd7cc0f3a0877fdbe5",
+      "mod_time": "2026-11-07T06:42:36Z"
+    },
+    {
+      "path": "apps/web/src/features/cart/cart-item-row.tsx",
+      "hash": "83e434af9a654f283174e194bda43a6cc3c48657a770bda699cafcb6385120fc",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/web/src/features/orders/order-store.ts",
+      "hash": "f64b5a24a2f082b3f4a114fef1d1c72ce5236c89a4261ead6681983e531dfbcd",
+      "mod_time": "2026-10-28T20:07:30Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/approved-valid-abstraction/src/node/index.ts",
+      "hash": "e1d1b83294b18348a223fb21dd83f2776e9d441fcaf23fde0e4104d84130e638",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": ".agents/skills/nexload-reasoning-investigation/evals/evals.json",
+      "hash": "52d1643576f2206c5c1ae37e750adde4d86330515a8c77447638f0257dcc7fc4",
+      "mod_time": "2026-11-07T07:29:54Z"
+    },
+    {
+      "path": ".agents/skills/tanstack-query-best-practices/rules/mut-rollback-context.md",
+      "hash": "4559f958463e97dfef011568e9b536ff4d2f4815063f87ef2864aec3807d7075",
+      "mod_time": "2026-11-07T06:42:36Z"
+    },
+    {
+      "path": ".agents/skills/tanstack-query-best-practices/rules/network-mode.md",
+      "hash": "5c49f1335aaa233f615702652f9b933419a2c47e6abc6be247fd4da586cce3a7",
+      "mod_time": "2026-11-07T06:42:36Z"
+    },
+    {
+      "path": ".agents/skills/nexload-code/references/module-state-abstractions.md",
+      "hash": "040f45014fec3438d8323604ef35e2978bcdb7fbd4c582f17463761d3c0d257a",
+      "mod_time": "2026-11-07T06:41:53Z"
+    },
+    {
+      "path": "apps/cms/src/payload-types.ts",
+      "hash": "10a893ea900b9f4cf37363e169c8511a69260147c60b07e2c878a8e2633ca390",
+      "mod_time": "2026-10-28T13:04:50Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/misleading-repository-docs/README.md",
+      "hash": "7bdb211ca470d45650e13755e7bc46c76033185c0672867d7cb99edd9ed8797f",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": ".agents/skills/tanstack-query-best-practices/rules/err-error-boundaries.md",
+      "hash": "c323c6029c131c8ccbd7fe0b7a89c9877c63e7b4f9134cd1bc95c2b3447a4f47",
+      "mod_time": "2026-11-07T06:42:36Z"
+    },
+    {
+      "path": "apps/cms/src/collections/admins/_is-active.before-login.ts",
+      "hash": "f0e3b7322028b2ef95a70ffec284bad4aca35017178ce79343fe5aafe7f5f8b6",
+      "mod_time": "2026-10-27T08:47:42Z"
+    },
+    {
+      "path": "apps/cms/tsconfig.tsbuildinfo",
+      "hash": "76a6c7ed759276677e4aeeab9036c0ba1306f1302727c5f413efb89b8fd0ac5b",
+      "mod_time": "2026-10-29T07:29:44Z"
+    },
+    {
+      "path": ".agents/skills/nexload-code/evals/fixtures/webhook-handler.md",
+      "hash": "0a6dfb8173261d16aeb3e4743479b1445c5843e838c5ee4041f00c3ef092891e",
+      "mod_time": "2026-11-07T06:41:53Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/conflicting-authorities/REVIEW_REQUEST.md",
+      "hash": "ad6cc69eed865f9da6324f33079614859447d1c90b37882bbbb3a115f90741ae",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": ".agents/skills/tanstack-query-best-practices/rules/inf-max-pages.md",
+      "hash": "c10943df57ea536ec01a07f316249613b6b920254428b7399f66623d14ee1f6e",
+      "mod_time": "2026-11-07T06:42:36Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/data/stacks/angular.csv",
+      "hash": "704be83f2bad30c7e6de01afb113ffa01e0c458762f48b7102f31ba2367b5553",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": "apps/cms/.env",
+      "hash": "309118e1cbd0776cd491985c54471135ac2e66128bb1083fcc1b6691a9b5ddfb",
+      "mod_time": "2026-10-27T11:58:55Z"
+    },
+    {
+      "path": "apps/api/AGENTS.md",
+      "hash": "63f2c50380ed6303237cce215ce27af1d620d094c215e28d1b1538a3c070e3bb",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/api/tsconfig.tsbuildinfo",
+      "hash": "c72a81d3fb27caedaed85ad46ba81d6d57cd295174c9da8b8afb6ecac50348ec",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/web/src/components/ui/badge.tsx",
+      "hash": "3189c4e52890686a4ae3ba75647c1c6f84133f5f4babf6c213536158aa91a8f1",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": ".agents/skills/payload/reference/FIELD-TYPE-GUARDS.md",
+      "hash": "cb8a4eecb78a0cb5eb151345ff8079f33b05a5bb9ce4f182c598416e3bab3951",
+      "mod_time": "2026-11-07T06:42:01Z"
+    },
+    {
+      "path": "apps/web/src/main.tsx",
+      "hash": "bdd48fce668db74e159d16400f114cc3518d6d198fe9b8c661a6b6fba01934fb",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": ".agents/skills/payload/README.md",
+      "hash": "8ae8f66133c15ac2e215c08a85f02c9584b9abb534b3708c646f855b030878d6",
+      "mod_time": "2026-11-07T06:42:01Z"
+    },
+    {
+      "path": "packages/contract/src/common.ts",
+      "hash": "e6b66abdc87d6968f3459d9ef47dda8a21fd1826b6698b4dbf27a80c18336c5d",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/speculative-plugin-system/src/registry.ts",
+      "hash": "49ccce0fca528026e7cae51b6ac61a8aa833653147b50f8ba220a62492add61c",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": ".agents/skills/nexload-design/references/tokens-and-semantic-roles.md",
+      "hash": "0d783c189fbd3536ad11588e4ec0accfbeb2952fa7a5a8ede53afc010d0f7e4c",
+      "mod_time": "2026-11-07T06:41:56Z"
+    },
+    {
+      "path": ".agents/skills/nexload-react/references/component-contracts-and-locality.md",
+      "hash": "2eef3dc5348968b7e7d88269e107765c350c84fbea8440044dadb575984dea50",
+      "mod_time": "2026-11-07T06:41:56Z"
+    },
+    {
+      "path": ".agents/skills/nexload-reasoning/references/routing-matrix.md",
+      "hash": "13e96c58ee868532298a0bc109fbe2bd475091f37221fc4d5fd0966f21ff66b9",
+      "mod_time": "2026-11-07T07:28:16Z"
+    },
+    {
+      "path": "apps/web/public/api/media/file/tile-travertine-beige-1.jpg",
+      "hash": "dc4de38deee5c7b803fc2618075bca401c721e5e53a7cb8ff557fc36786cd4ec",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": ".agents/skills/nexload-code/evals/trigger-evals.json",
+      "hash": "d07143efd0240b0b2c2ddb4fbea8ae47b544a80bd0e8a5bf0738f16302687ffe",
+      "mod_time": "2026-11-07T06:41:53Z"
+    },
+    {
+      "path": "apps/web/src/features/products/product-store.ts",
+      "hash": "b987e48440bbb4947b348bdf57f748cdf38ec882bba0af36540c7ee4aabadc75",
+      "mod_time": "2026-10-28T20:05:58Z"
+    },
+    {
+      "path": "apps/web/src/hooks/index.ts",
+      "hash": "8ab489964fea1098e1304335f3cb4dc4d18c08f3b43a784374a46763910502da",
+      "mod_time": "2026-10-28T21:00:03Z"
+    },
+    {
+      "path": "apps/web/src/routes/product/new.tsx",
+      "hash": "8cc19a976950de1f4fff2de197004b74fcf925def9ebb0fedb7ff919f0913dca",
+      "mod_time": "2026-10-28T21:03:35Z"
+    },
+    {
+      "path": ".agents/skills/design-taste-frontend/SKILL.md",
+      "hash": "aa194351b246b8b4799099d4ed7b033d29eab6e6e3d58d8d2172978be7b3ec89",
+      "mod_time": "2026-11-07T07:01:07Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/data/stacks/avalonia.csv",
+      "hash": "442fca14675a020683473e7e49f08abb27b9df0765c80efe54aef61f1a4ac258",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/data/stacks/shadcn.csv",
+      "hash": "e56cfde5b74907836ac3582a4779d5b7f3d206a702ab81b8669a1b668c3eeb51",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": "apps/cms/src/collections/orders/_prepare-order.before-validate.ts",
+      "hash": "a9a82a7e98366b8f2999531c30ff06fcbaa2344bcec7dee6b151968e9c7145eb",
+      "mod_time": "2026-10-27T11:13:05Z"
+    },
+    {
+      "path": "apps/web/src/styles/globals.css",
+      "hash": "2a84cee30f8c2b5b0402ba0c90c818eb5db789f57bcb4434f33f3fe6c52a465b",
+      "mod_time": "2026-10-27T07:14:21Z"
+    },
+    {
+      "path": "packages/contract/src/order.ts",
+      "hash": "7b1edd905e533fa76f8340c07d1e4d296750ce9931250cd1ae7a86f42c306981",
+      "mod_time": "2026-10-28T12:58:37Z"
+    },
+    {
+      "path": ".agents/skills/tanstack-query-best-practices/rules/ssr-hydration-boundary.md",
+      "hash": "a7fb653a346b535435cacc42d2cc74bfc622d80fbf9822bc08f1c8b3f4ca18b4",
+      "mod_time": "2026-11-07T06:42:36Z"
+    },
+    {
+      "path": ".github/check-runtime-packaging.py",
+      "hash": "d78c0bdeca6cb7d8e55b276f860b02649af67253e93c77129f922afb9120d5e9",
+      "mod_time": "2026-10-28T09:22:59Z"
+    },
+    {
+      "path": "apps/cms/src/collections/orders/orders.collection.ts",
+      "hash": "155dfb2e92cc1049b196dc9b21069c69f96dffcc541da50e8fa98002e353e8f4",
+      "mod_time": "2026-10-27T13:15:43Z"
+    },
+    {
+      "path": "apps/cms/src/components/admin/Logo.tsx",
+      "hash": "b79cddeae4e98363e8f6abad214b34693f4af0eb0b7cc787f7e97de6677441ff",
+      "mod_time": "2026-10-27T14:44:03Z"
+    },
+    {
+      "path": "apps/web/src/components/ui/skeleton.tsx",
+      "hash": "e1ebfe5cfec2237b1598fb86e8e4ca7886138d2d17470f3e146131a8e45acfe1",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/web/src/features/plans/plan-modal.tsx",
+      "hash": "81d7df49d95d4381ed0a7f457023a63bf3f226d4141076592709844a7b4f7e1f",
+      "mod_time": "2026-10-27T07:14:21Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/data/catalog-summary.json",
+      "hash": "65fe0b64480a8a827738297d0a64ca55c627d4afcb774fe4555c59cea8dd6905",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": "apps/api/src/routers/catalog.helpers.ts",
+      "hash": "4f2b443433d403ad0f8838850f9991c01c0d0c0ffd98bbb27e122b46977f3b59",
+      "mod_time": "2026-10-27T11:08:46Z"
+    },
+    {
+      "path": "apps/api/src/routers/order.helpers.ts",
+      "hash": "8e35b8e5142c902e7a4a2530085054a88a9c587b470faba7a5ac6319ec8c4f46",
+      "mod_time": "2026-10-27T07:14:21Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/browser-runtime-boundary/src/index.ts",
+      "hash": "eb0ff8ccdf00b407ecda4bfa0c1aced50d9ffb7d325df4322bb92a64a26500c1",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": ".agents/skills/payload/reference/HOOKS.md",
+      "hash": "c77dddf075e571818b87e1bd4056c634aae4fbf19bec36624dd11afd91aca6ef",
+      "mod_time": "2026-11-07T06:42:01Z"
+    },
+    {
+      "path": "apps/cms/src/collections/categories/index.ts",
+      "hash": "8725bbee0fcd6a61426c61c9a614bd4fef95ecb7debc01e6df8eac012a2107dd",
+      "mod_time": "2026-10-27T09:02:37Z"
+    },
+    {
+      "path": "apps/cms/src/collections/products/index.ts",
+      "hash": "d38313721195688dc74b6f9969aeb98cafc889adf28e61801a692ae661a65a07",
+      "mod_time": "2026-10-27T09:04:04Z"
+    },
+    {
+      "path": "apps/web/public/api/media/file/tile-wood-honey-1.jpg",
+      "hash": "3fae3bb9a3ea28b79a570fedbdc36db3461c583e8374e4ff49151be0ba6ef37f",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/web/src/routes/orders/$id.tsx",
+      "hash": "ec21f3940271acd5172bba9d8e68306396a291bce82ea9c0f016b447c737bda1",
+      "mod_time": "2026-10-27T07:14:21Z"
+    },
+    {
+      "path": "apps/cms/src/app/(payload)/layout.tsx",
+      "hash": "5083342677b2840ce3e1b531f5fd5f79533e8a3336c9f802b879df873a101a10",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/cms/src/sdk.ts",
+      "hash": "4f1ee7f108ad057d22cac701a7e46b3b3a55a635f041b5384b2c1d713fd0bb1a",
+      "mod_time": "2026-10-27T09:49:02Z"
+    },
+    {
+      "path": "apps/web/public/api/media/file/tile-wood-walnut-1.jpg",
+      "hash": "23b1ce899711fef195b3604d74176aa653662ffacee2b0c4c37d80d082cfb9a7",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/web/src/components/layout/app-header.tsx",
+      "hash": "8bfdbb9e9daaa514569952be8aa4022c29147dca46487b7127218e6865c4611b",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/data/stacks/flutter.csv",
+      "hash": "64dba0ac17349f28bce517a0f5f48c54d9ed2e487ec0c0258303463b382f41a0",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": ".gitignore",
+      "hash": "89230cdfcba1d9240690459f138a6fbbb100fe2aa08f3b718e2cc448913e2bfc",
+      "mod_time": "2026-10-27T07:14:21Z"
+    },
+    {
+      "path": "apps/web/src/hooks/useDebounce.ts",
+      "hash": "e1824cd79e62236a42ad676dfe01d63b6a15a7c04a93d5850e8d30b00a4d4594",
+      "mod_time": "2026-10-28T20:45:41Z"
+    },
+    {
+      "path": ".agents/skills/payload/SKILL.md",
+      "hash": "050fc66234ef54906e34a1c0f5209ad7558f9adc59a7a0efd4db342f81427e20",
+      "mod_time": "2026-11-07T06:42:01Z"
+    },
+    {
+      "path": ".agents/skills/tanstack-query-best-practices/rules/qk-array-structure.md",
+      "hash": "b870e3c29c4af8e1aaf97110d0a9e5f6496ede75882e7909ee33f83b1bbd89e8",
+      "mod_time": "2026-11-07T06:42:36Z"
+    },
+    {
+      "path": "apps/cms/src/collections/admins/index.ts",
+      "hash": "3191e4ff421b8583fa72274f372b8b527c690aaebcb1e3ee6068c2d41f5911c6",
+      "mod_time": "2026-10-27T09:01:18Z"
+    },
+    {
+      "path": "apps/cms/src/collections/brands/brands.collection.ts",
+      "hash": "c2897495256152805d2ff8f6c00821fddad11d4e5eb40e9d4baf1a649af08d86",
+      "mod_time": "2026-10-27T13:17:14Z"
+    },
+    {
+      "path": "apps/cms/tsconfig.json",
+      "hash": "b37c7d757f6e71789fa4f51a29cfbbe85aa8c0f447dd07c51be5e1c920ce6951",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": ".agents/brain/warehouse-separation-plan.md",
+      "hash": "0c514a98f9cc44e7b06fb05385fcd4e7d70e244348f50d68fc3db78e82d8e538",
+      "mod_time": "2026-11-07T07:32:32Z"
+    },
+    {
+      "path": ".agents/skills/payload/reference/ACCESS-CONTROL.md",
+      "hash": "b2450eae4441a156177215366e9fc49c31966f9d06c7ec8cafd67883f553fbdb",
+      "mod_time": "2026-11-07T06:42:01Z"
+    },
+    {
+      "path": ".agents/skills/tailwind-css-v4/SKILL.md",
+      "hash": "81c33d45a8c512358ca1664c114a64259d1d0288cddebc2caa8b2d213796be27",
+      "mod_time": "2026-11-07T07:25:09Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/data/stacks/uno.csv",
+      "hash": "a0474363e4225b5367214d5675fd3e075f137026f9500f0d04357882ef4f6d48",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": "apps/cms/src/components/admin/LoginFooter.tsx",
+      "hash": "9bceb0163ad46b8dc9f235cfea84bdd9e57aad1ce4e561c3abe926f63c4e6f1f",
+      "mod_time": "2026-10-27T14:44:26Z"
+    },
+    {
+      "path": "apps/web/public/api/media/file/tile-terrazzo-milano-1.jpg",
+      "hash": "723ea9b5f86c57276e1a3a6dd58d6740f039befad146f301da2dfb0f83e37835",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/web/src/features/account/profile-view.tsx",
+      "hash": "24536e2e0271e6dd499b591ef52c08cf099d82879880b5b708707a340d20e85c",
+      "mod_time": "2026-10-27T07:14:21Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/conflicting-authorities/package.json",
+      "hash": "8bb029756c96047517d29be4134588c1c5146d796dca1864c3cfeee247eb4bbb",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/stale-verification/package.json",
+      "hash": "eb544af3153f844503fa9707969c68ce40e35ee9b7fe0872aa84f7fba3c6c586",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": "apps/web/src/hooks/useCart.ts",
+      "hash": "3ea6f8d638e383b6b8603e23bd53e6cba3d29e201739129bb520a283bd643047",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/references/priority-verdict-and-output.md",
+      "hash": "eba1bd9caccce084aa88963e38823ec24ede236d8b581e5c64119a3bf0d1404b",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": ".agents/skills/tanstack-query-best-practices/rules/cache-gc-time.md",
+      "hash": "d25ac7d7c3f5f5a646e0c15b76724bfa910746623df2045429ef3d8c898ef816",
+      "mod_time": "2026-11-07T06:42:36Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/data/stacks/html-tailwind.csv",
+      "hash": "d05a581d20af57b8ca0104a6d31d90a07c437d500662a96c3029fc2f9a4678ee",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/scripts/tests/fixtures/catalogs/google-overrides.json",
+      "hash": "6243a48a4619986768c4628e2d0c98ff195beba71ba9be5df8f0c52fc6d90c0b",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/scripts/tests/fixtures/catalogs/phosphor-core.json",
+      "hash": "ae4d0bb076240824e1b643c2270d1f8cc0952a69502ec1e622b7dedd85b930bb",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": ".env.example",
+      "hash": "2f9947ba521f6c8cb9813e6c716466d3006240e960f29aff9b1e57c1d487518f",
+      "mod_time": "2026-10-28T20:02:52Z"
+    },
+    {
+      "path": "apps/web/public/api/media/file/image.png",
+      "hash": "e96167c4136618d6ba348f41eeec8c6c524b1bb5440137369d871dae7d83bee0",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/data/stacks/react.csv",
+      "hash": "2d2b9c198e875106a30f7ee68341a9ee0033cad60a7e130cf23152783e08aeda",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/data/styles.csv",
+      "hash": "a93a4d9d7025856575d7b7583bda020be9043013432c5af7c58af9dbdfb206b7",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": "apps/cms/src/collections/products/_inventory-math.ts",
+      "hash": "ea515663a3608b4f7a4536d8c4cf76843f89ba5486a34cb12126371870599009",
+      "mod_time": "2026-10-28T13:02:14Z"
+    },
+    {
+      "path": "apps/web/src/hooks/useOrders.ts",
+      "hash": "2ddb1ac8577a7314ca20b4c5e4bf57c05859c1fed7bc440141a87f164f204003",
+      "mod_time": "2026-10-28T13:00:42Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/SKILL.md",
+      "hash": "5905a2b470ca86077daf03f3c13361b949a702ae9f98399515abc55882cb9aa3",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/browser-runtime-boundary/src/browser.ts",
+      "hash": "72de18ea190e89db305580e3b39b921fc322088fc18cad06c4edc63a447bf44b",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": ".agents/skills/nexload-reasoning-execution/evals/evals.json",
+      "hash": "c8633a8582e053268b37017867404550032c16a6c41d7f831d26f4b79b332105",
+      "mod_time": "2026-11-07T07:31:16Z"
+    },
+    {
+      "path": "apps/cms/src/collections/orders/_apply-reservation.before-change.ts",
+      "hash": "2d62091de431ca8eb944a58589ed9bbde57eedfe22c53e3f48191393db0f1950",
+      "mod_time": "2026-10-28T13:04:59Z"
+    },
+    {
+      "path": "apps/web/public/api/media/file/tile-wood-honey.jpg",
+      "hash": "3fae3bb9a3ea28b79a570fedbdc36db3461c583e8374e4ff49151be0ba6ef37f",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": ".agents/skills/nexload-code/SKILL.md",
+      "hash": "0cb4f9a9cdb31fe447a4990bedcf0a13afcaae4c6e67fd89550590a1ae2df7da",
+      "mod_time": "2026-11-07T07:01:07Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/speculative-plugin-system/README.md",
+      "hash": "ee076df840a94fc196b3609f1d45665d1dc1b6691f452b7822b87392105e1a34",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": "apps/web/src/components/ui/icons.tsx",
+      "hash": "800e7bc2cf911c87ccfbd57344cb3c8c0c61e55c374dea64ca6e5c24edce5ab3",
+      "mod_time": "2026-10-27T07:14:21Z"
+    },
+    {
+      "path": "apps/web/src/features/calculator/carton-calculator.tsx",
+      "hash": "7235cf3210dfda106f04c39b43b50290715c6383a7b29528b2c61dbdce2f1e34",
+      "mod_time": "2026-10-27T07:14:21Z"
+    },
+    {
+      "path": "apps/cms/src/_seed-target.ts",
+      "hash": "c71645bab6a4a5f5a20c774bb7fb4fa7c820b9fd0d000176720b4b5a0c62f706",
+      "mod_time": "2026-10-27T11:57:01Z"
+    },
+    {
+      "path": "packages/contract/src/plan.ts",
+      "hash": "42d09e9ff0cf1f0e8e724cf3c0a1a986a0d082b3f18d4fe44f46e9e2a2d9a5cb",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": ".agents/skills/nexload-design/evals/fixtures/account-actions.css",
+      "hash": "2b12ef179d246b3020870e05fb5e6621cca56fb374d20ef91d718eb2e315ee2d",
+      "mod_time": "2026-11-07T06:41:56Z"
+    },
+    {
+      "path": ".agents/skills/tanstack-query-best-practices/rules/perf-notify-change-props.md",
+      "hash": "9f853697a869103978005df0b694fce00bc80b42a0ab46e6d8efecd2c0032d01",
+      "mod_time": "2026-11-07T06:42:36Z"
+    },
+    {
+      "path": ".agents/skills/tanstack-query-best-practices/rules/ssr-client-per-request.md",
+      "hash": "ca2f083ae67dcaebaee376a3c65b514849263d8a43fd618af5fe68e00923659c",
+      "mod_time": "2026-11-07T06:42:36Z"
+    },
+    {
+      "path": "apps/web/public/assets/images/3d-percent-badge.png",
+      "hash": "988b96bdc9d3caeb36dc9891ec89d318d79b2d39c4aefc677113e6efbab20a03",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "packages/contract/src/index.ts",
+      "hash": "3cbe383fb9710b1ef361a7bc2b56a5b4b76243b4c15ceea2a00cedc6970982ca",
+      "mod_time": "2026-10-27T07:14:21Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/data/icons.csv",
+      "hash": "50816c6012030178195a16ee481ebf58b47bd985d70e8ec58886cc83f6eddafc",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": "apps/web/index.html",
+      "hash": "d74a9add89007b814bf626a76380b660f11649870be916ad79867a219d95fde1",
+      "mod_time": "2026-10-28T21:08:50Z"
+    },
+    {
+      "path": ".agents/skills/nexload-code/evals/fixtures/interop-seam.md",
+      "hash": "d59aa1e44c6e8730d4bfb129b0a4e5995eef54a725531320fb2ea0f72736781e",
+      "mod_time": "2026-11-07T06:41:53Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/data/stacks/svelte.csv",
+      "hash": "f6e379ba802941ba26b01d4ffbe3cd39120f2587659a1d93851c707f66bc13db",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": "apps/cms/src/app/(payload)/custom.css",
+      "hash": "e5e69e1a0f9f72e54d9f00357bb95bdc65f2fdf5942da3159095045615403b77",
+      "mod_time": "2026-10-28T18:49:56Z"
+    },
+    {
+      "path": "apps/web/src/routes/cart.tsx",
+      "hash": "080bdbc4358eb8fc524e92a1bfd8a6f78114d790a00f8e0bed49ae798071913d",
+      "mod_time": "2026-10-28T12:59:44Z"
+    },
+    {
+      "path": "packages/contract/src/shopping.ts",
+      "hash": "64761ed84692588ee0048c1ff3aba58c909dd3ce582febc4e3fda3bce76c9f05",
+      "mod_time": "2026-10-27T07:14:21Z"
+    },
+    {
+      "path": ".agents/skills/nexload-react/evals/fixtures/checkout-page.tsx",
+      "hash": "9051c64b16f6904e261e7820033bd71b0e2eb7c75ca3da0c6ff74ec95fcbcee7",
+      "mod_time": "2026-11-07T06:41:56Z"
+    },
+    {
+      "path": "apps/web/package.json",
+      "hash": "c07ec53b42914835fce528735c83e8a3817ce5bc49ceea5f51e076d4698ae122",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/web/public/api/media/file/tile-travertine-beige.jpg",
+      "hash": "dc4de38deee5c7b803fc2618075bca401c721e5e53a7cb8ff557fc36786cd4ec",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/web/src/components/ui/code-slots.css",
+      "hash": "dc2ec4e3a965b28c6f38170e152609e5bebb9d6a4953b913968088e27624d1f0",
+      "mod_time": "2026-10-27T07:14:21Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/references/architecture-and-decision-lenses.md",
+      "hash": "e3c60f862ac1bc4782bbdcd2bff0152f99a21f0456c1c2a006a14f0fa4719409",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": ".agents/skills/nexload-design/SKILL.md",
+      "hash": "491a01ef2d2d6adac99e4f19ca40cd8b0a359e0a8c49913011469dbbb66a7eb9",
+      "mod_time": "2026-11-07T06:41:56Z"
+    },
+    {
+      "path": "apps/web/public/assets/images/persian-part-logo.png",
+      "hash": "da4f53adfd901682fe2f15b17ffeee1f9ac6b072930667815a733dd27e85cb24",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/web/src/routes/__root.tsx",
+      "hash": "65caff20e5823112c540dea66dc2ccba62559f976a70a5f3547a6f5a331638f9",
+      "mod_time": "2026-10-27T07:14:21Z"
+    },
+    {
+      "path": ".agents/skills/payload/reference/FIELDS.md",
+      "hash": "e7e93833a67b4064fde7d0a8d17e32e4f34cdc6b0c695656e2f88547ced32058",
+      "mod_time": "2026-11-07T06:42:01Z"
+    },
+    {
+      "path": ".agents/skills/tanstack-query-best-practices/rules/mut-loading-states.md",
+      "hash": "99167c1adbb398e21bda97a6929027cbc7272ace03dc2473ae6380ff5f51fab2",
+      "mod_time": "2026-11-07T06:42:36Z"
+    },
+    {
+      "path": "apps/api/src/index.ts",
+      "hash": "ced90c3989a70c0cf55223d28551bacd6acfa5c46717fb44461993af80d1fff7",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/web/src/components/ui/image-viewer-modal.tsx",
+      "hash": "1a8ef0e472d0ec2028230798d1570ca0cb250b8feb587c45ffa9561578c99e8c",
+      "mod_time": "2026-10-27T07:14:21Z"
+    },
+    {
+      "path": "apps/web/src/components/ui/pill-nav.css",
+      "hash": "bf94ecd294e53dcde351db6f4432b70dfa3bd56d41071cd335a64b998be96a5d",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": ".agents/skills/tanstack-query-best-practices/rules/cache-stale-time.md",
+      "hash": "b006949c167d3141ec818856761e24e1af40a4cf57a573e3db799edb9f6a27b4",
+      "mod_time": "2026-11-07T06:42:36Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/scripts/core.py",
+      "hash": "e544826963efefce3c59b65e18d83d92a5baf571f05458025bf1fa9021eced42",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": "apps/web/src/lib/utils.ts",
+      "hash": "6982a2abf238202eb4000af153a056703a124764e2e43a993ab06fba1ee06c52",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/web/tsconfig.json",
+      "hash": "80655bdda233d01e2127a81597391cd5ba05481f320ceabc1e838d5735685b3b",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": ".agents/skills/payload/reference/PLUGIN-DEVELOPMENT.md",
+      "hash": "cfd8360430e0216328cf07d57fc7722b2a69a257254d9396fc4fd0842342134b",
+      "mod_time": "2026-11-07T06:42:01Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/data/stacks/wpf.csv",
+      "hash": "9781a9950b20333637b30a02e498b7efca21b618a3eeb8665836f3ac6e974da7",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": "apps/web/src/features/cart/cart-store.ts",
+      "hash": "046053891f5b9e5aeaf9c3f4cee8d7d4bff32cb8c4304246183930db4d32fe6b",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": ".agents/skills/rtl-persian-ui/SKILL.md",
+      "hash": "2da0b95826c34034164c290a9b593870d037e3c94ceb1d559983131e9f88db0b",
+      "mod_time": "2026-11-07T07:25:49Z"
+    },
+    {
+      "path": "apps/cms/src/migrations/20261027_132154_add_otps.ts",
+      "hash": "b0339cd788f1c81b5ea9882d07b74aae9e1c4a002b975bd918be54474ad9e291",
+      "mod_time": "2026-10-27T13:21:54Z"
+    },
+    {
+      "path": "apps/web/public/api/media/file/tile-terrazzo-milano.jpg",
+      "hash": "723ea9b5f86c57276e1a3a6dd58d6740f039befad146f301da2dfb0f83e37835",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/web/public/assets/images/3d-percent-badge-cyan.png",
+      "hash": "ecd8ebdfdba0abec62d45b11ac454972e52ef4a2b92f74b0d98cdea42f6bde76",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "docs/00-overview.md",
+      "hash": "b1686cdda4d795d6ba443ea98015c560450a659ed2d64d155e0290ebacb2ae08",
+      "mod_time": "2026-10-26T14:33:58Z"
+    },
+    {
+      "path": ".agents/skills/nexload-reasoning-execution/references/plan-decomposition.md",
+      "hash": "97e5d6b87ed0eb72852c37ff7ecfebf6b99198916c616f8cbf5724f1f5b655f5",
+      "mod_time": "2026-11-07T06:41:56Z"
+    },
+    {
+      "path": ".agents/skills/tanstack-query-best-practices/rules/persist-queries.md",
+      "hash": "ca547f06055b01ef790c0c38e9cb0d5637b1c2c0d6b849170c4a476552c3768f",
+      "mod_time": "2026-11-07T06:42:36Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/data/stacks/threejs.csv",
+      "hash": "97542e0ba34915a0ff7578be20e1619495df47c95c8c1c39b83e3785e1de771f",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": "apps/cms/src/collections/admins/admins.collection.ts",
+      "hash": "d4a5e2a522c60016a73a08aa927a05b96128045f3c5f98850c4c88b32ffdc334",
+      "mod_time": "2026-10-27T13:12:45Z"
+    },
+    {
+      "path": "apps/web/src/features/products/product-bottom-sheet.tsx",
+      "hash": "bb8dd167c42114500ef7b2b2546937d96b72ad326549f4731e09a0edf8518cea",
+      "mod_time": "2026-10-27T07:14:21Z"
+    },
+    {
+      "path": ".agents/skills/nexload-design/evals/fixtures/settings-panel.css",
+      "hash": "3eec768d68aea8125dbbe86817313cf6769aa504da83c901527558a16578eb45",
+      "mod_time": "2026-11-07T06:41:56Z"
+    },
+    {
+      "path": ".agents/skills/tanstack-query-best-practices/rules/perf-structural-sharing.md",
+      "hash": "fec6b344151d4cf1415197818c29452bf3694dc3d44cb58fc6f27d2aa42e1ec7",
+      "mod_time": "2026-11-07T06:42:36Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/data/stacks/laravel.csv",
+      "hash": "854ea4daa5fc61292d22235ad33b49ba3fe22423c3de8d3cb03758ffed3b59f9",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/data/typography.csv",
+      "hash": "321fc446e89024488ebae96dda93efc4d2307bd8bddb240857ad51364f6782c8",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/approved-valid-abstraction/package.json",
+      "hash": "f0a42743408fe3b30cdf7a17c59545539df712a19dfecff4e35773e32e79dd94",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/speculative-plugin-system/src/index.ts",
+      "hash": "d17afb591345096765506daee0058f6e083c5837ddfe6c4be7d2a6a03bbc1dd4",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": ".agents/skills/tanstack-query-best-practices/rules/mut-invalidate-queries.md",
+      "hash": "cbfe273ac0a952972105d13f85fedd418ca06e146101317f2c3bb06ab1782c45",
+      "mod_time": "2026-11-07T06:42:36Z"
+    },
+    {
+      "path": "apps/cms/src/collections/media/index.ts",
+      "hash": "b168487e531fbeeee6b9f81b01359728e8f8889a279a3a741cbe55a49cd101da",
+      "mod_time": "2026-10-27T09:02:11Z"
+    },
+    {
+      "path": ".agents/skills/nexload-design/evals/evals.json",
+      "hash": "467484a7f9b4a04ee4b93c6d1fc01b8c1b56f4fe7f433de58eb5977389222480",
+      "mod_time": "2026-11-07T06:41:56Z"
+    },
+    {
+      "path": ".agents/skills/nexload-reasoning-execution/SKILL.md",
+      "hash": "4df7910bcc799e69244645e9160556e207fabeb3bfab91cc39dc350b8c123d25",
+      "mod_time": "2026-11-07T07:30:10Z"
+    },
+    {
+      "path": ".npmrc",
+      "hash": "e4d8245146fe9f5f27b494b7afd89b76cc28256e80aa71172d705ff3629140f8",
+      "mod_time": "2026-10-28T09:16:49Z"
+    },
+    {
+      "path": "apps/api/src/routers/shopping.ts",
+      "hash": "77e334f449d93b784cf076f1e36d572773b03f4a6dffee1f4d173e2d820dca3e",
+      "mod_time": "2026-10-27T11:15:16Z"
+    },
+    {
+      "path": "apps/cms/Dockerfile",
+      "hash": "f3547d0dc36e0e3ef6c6b6c58759e77e0744edb11098b0887edc0c374384173c",
+      "mod_time": "2026-10-28T09:30:07Z"
+    },
+    {
+      "path": "apps/web/public/assets/images/3d-percent-badge.webp",
+      "hash": "c841687a8b7ae43e484189cf617483ba46dbb5d293f82c5ffb93a9c0c1f76ed1",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/web/src/lib/.gitkeep",
+      "hash": "7fdf11d4cd93e0f6e669b1add0389edeb7b8f70d05ca82200f7a3c3ae20711c4",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": ".agents/skills/nexload-code/references/behavior-and-correctness.md",
+      "hash": "87545e6d5ea1e31ba711f2f3a2d76d1de48dee428e0b8e1fef3cb571863aa1da",
+      "mod_time": "2026-11-07T06:41:53Z"
+    },
+    {
+      "path": ".agents/skills/nexload-react/references/state-effects-and-runtime-boundaries.md",
+      "hash": "badf78057ae319595c887b66a9897a650c8c551f11bf39851cfc8b038076b434",
+      "mod_time": "2026-11-07T06:41:56Z"
+    },
+    {
+      "path": ".agents/skills/tanstack-query-best-practices/rules/mut-error-handling.md",
+      "hash": "6723c4d83ede65c8c7cd0f5dea67ac1c6a0630fe7e257b115ecb39c97bb290f5",
+      "mod_time": "2026-11-07T06:42:36Z"
+    },
+    {
+      "path": "apps/api/CLAUDE.md",
+      "hash": "336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/api/src/rpc/base.ts",
+      "hash": "83a39fd6dbda7c92e3be6eb21a662fc389541a0a7e4f82337434b2b74569f0c8",
+      "mod_time": "2026-10-27T07:14:21Z"
+    },
+    {
+      "path": "skills-lock.json",
+      "hash": "852395f4f492b9e78836b6d27da521cc731b85ced25203a3353fe7e4a84ed7a5",
+      "mod_time": "2026-11-07T06:42:34Z"
+    },
+    {
+      "path": ".agents/skills/tanstack-query-best-practices/rules/perf-select-transform.md",
+      "hash": "b6d5d491cabd50502edfb77f9588d9d237d2359df2f2b91a30ca03a4c43f77fe",
+      "mod_time": "2026-11-07T06:42:36Z"
+    },
+    {
+      "path": ".agents/skills/tanstack-query-best-practices/rules/ssr-dehydration.md",
+      "hash": "e9714ad4f67becd8fb2e82f32044d2429db11eabb0ea0047215086afb9f976c2",
+      "mod_time": "2026-11-07T06:42:36Z"
+    },
+    {
+      "path": "apps/cms/src/payload.ts",
+      "hash": "851e3eebc1c61cba568c8ad3d5e54ae8925f940aaeb2c88e80b7e02a017ab645",
+      "mod_time": "2026-10-27T11:04:58Z"
+    },
+    {
+      "path": "apps/web/src/components/ui/modal.tsx",
+      "hash": "b07e157c59ce8db3f808dcb474582ef35eb6caafad0de366e395340aeb3d7761",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/api/src/payload.ts",
+      "hash": "f59908bb869256a6f0258990dff71725c1c1889d8d9a3e0cf5a2150f4346dfcc",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/api/src/routers/index.ts",
+      "hash": "064310c3ea8c8a56cd175b401989dc0e3c99cf745217f3e6366a5d2d4a904f29",
+      "mod_time": "2026-10-27T07:14:21Z"
+    },
+    {
+      "path": "apps/web/src/lib/utils/math.ts",
+      "hash": "cdb3bae13e9b1ff2703e4857a3258450f674c54f086a63c1e25e1810c27d04a6",
+      "mod_time": "2026-10-28T20:49:53Z"
+    },
+    {
+      "path": "pnpm-workspace.yaml",
+      "hash": "d6a6620ddd3bb3a3560433d1895de98683ad7d2465d079827e5688d00ff83165",
+      "mod_time": "2026-10-28T09:15:38Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/scripts/tests/fixtures/catalogs/icons-curated.csv",
+      "hash": "68362c9a700c13b96f000784a0198c1c7e117a7088a01c85744e44233038fe9d",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": "apps/cms/src/migrations/index.ts",
+      "hash": "07f8cad442799144c558a8863ad97794cd5ce110634a892af528668f25964b12",
+      "mod_time": "2026-10-27T13:21:54Z"
+    },
+    {
+      "path": "docs/06-admin-and-operations.md",
+      "hash": "bc0072486d66a8574d78e61a2f4651b80a3606fcbfb27110bb27bf6585f2e8bc",
+      "mod_time": "2026-10-28T13:07:17Z"
+    },
+    {
+      "path": "apps/api/package.json",
+      "hash": "6a2ed2d3c8b82236104c9a52e8190022759e40f515c8d6c93a9f1f3c3a961ae9",
+      "mod_time": "2026-10-27T07:14:21Z"
+    },
+    {
+      "path": "apps/web/src/features/auth/auth-store.ts",
+      "hash": "9262257d29cac8a4877239c58f25223881c649f9d483b29f0931403eb9d3e083",
+      "mod_time": "2026-10-27T11:19:47Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/minor-public-api-issue/README.md",
+      "hash": "d3925b9ce71a6148944f70ec40e98c3d975aa99760a0e45636accd1ce660f780",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/missing-decisive-evidence/src/migrator.ts",
+      "hash": "567574c70ac0cbeb7470e671842bc791f2ae28ce54addf55f10e8772bac68491",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": ".agents/skills/nexload-design/references/layout-spacing-and-rtl.md",
+      "hash": "ad012a182b029dcd12472e8cbda7587225ec6d5fe007e82192e15d78f3a48309",
+      "mod_time": "2026-11-07T06:41:56Z"
+    },
+    {
+      "path": ".agents/skills/tanstack-query-best-practices/SKILL.md",
+      "hash": "7549b678f36b5a6971d3bd95ed5c5d2ddf39211c5e50e73ef47555a123e404e1",
+      "mod_time": "2026-11-07T07:26:01Z"
+    },
+    {
+      "path": ".agents/skills/tanstack-query-best-practices/rules/parallel-use-queries.md",
+      "hash": "c9cff9289ff424de1522f4bd0647a743ee92c2c90127c8003a84fb5e834358b4",
+      "mod_time": "2026-11-07T06:42:36Z"
+    },
+    {
+      "path": "apps/web/src/routes/plans.tsx",
+      "hash": "ba4328c892b0539ce94a61884b00e3d5080a57799ab404507ffcfaea295158fc",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": ".agents/skills/tanstack-query-best-practices/rules/err-retry-config.md",
+      "hash": "d4df6af8df58bcce75b03f7a6b9e965d7bd00bff1a3d086ab33f3f324c8343de",
+      "mod_time": "2026-11-07T06:42:36Z"
+    },
+    {
+      "path": ".agents/skills/tanstack-query-best-practices/rules/query-cancellation.md",
+      "hash": "c6948a75a680985df7b44f2b424df4e80d0653cef244826fffd98db10052e8fa",
+      "mod_time": "2026-11-07T06:42:36Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/data/stacks/astro.csv",
+      "hash": "2c2f55fadaafc05e04cc321c8194a1a28b656e6757fe2ba316f41b16428299c6",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": ".agents/skills/payload/reference/COLLECTIONS.md",
+      "hash": "7c4d8b95ff6a0e8d01880668656061ed55c17a4715c313474057a3810278a445",
+      "mod_time": "2026-11-07T06:42:01Z"
+    },
+    {
+      "path": "apps/cms/src/migrations/20261027_113124_baseline.json",
+      "hash": "ee7ed7042182178e17c0c5d5f3b343d295fd133ab099abdac39dde2f70bf9210",
+      "mod_time": "2026-10-27T11:31:24Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/data/landing.csv",
+      "hash": "9a2edd3bb676c2a58f00ade7a062e285222d4297bfd847c8d5b056f0dbbf52d0",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": "apps/web/src/lib/api-client.ts",
+      "hash": "cd3a2c59cc21b5cb26b4e24aecae8229aad6a082ed4ec7970df112ee616f8061",
+      "mod_time": "2026-10-27T07:14:21Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/approved-valid-abstraction/src/core/index.ts",
+      "hash": "aa8a3cb6a9e1ade077b5a818e28f9ca07b10141004149cac662dc0c283191a6e",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/scripts/tests/fixtures/catalogs/phosphor-react-package.json",
+      "hash": "1c57a1d76bcc0cdd3632d4c18b9c0e79576b4591df39831c9607e5d0eb4f2cec",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": "apps/web/src/components/layout/mobile-bottom-nav.tsx",
+      "hash": "0cdb05435cc55a059898bcd0f18ef0338109e02b4368bfcf20c97efc96fdd460",
+      "mod_time": "2026-10-27T07:14:21Z"
+    },
+    {
+      "path": "docs/02-business-rules.md",
+      "hash": "991ffa31210a5328652f35ce790171fb011aa04fe99558be3cf652cf17096ebc",
+      "mod_time": "2026-10-28T13:06:25Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/false-security-positive/REVIEW_REQUEST.md",
+      "hash": "bc1aef74de4dee3c93e54017547cad11e8376ebdd892c5c55ee1b62d275112b7",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": ".agents/skills/tanstack-query-best-practices/rules/cache-placeholder-vs-initial.md",
+      "hash": "d2cb14ea48196481a731535af287b8f634d39217b102b10a8b5d562e55738315",
+      "mod_time": "2026-11-07T06:42:36Z"
+    },
+    {
+      "path": "apps/cms/src/collections/orders/_lock-order.before-operation.ts",
+      "hash": "befe8db81648eac9cdd8433c3ae80d0891092b71e37fbd4dc4765be2163c1306",
+      "mod_time": "2026-10-27T09:49:40Z"
+    },
+    {
+      "path": ".agents/skills/nexload-code/evals/fixtures/abstraction-proposal.md",
+      "hash": "47277e0e6f264044cfc9d66c5b513e3a7b3d14c0de5a9863ec8acfc3917b08d0",
+      "mod_time": "2026-11-07T06:41:53Z"
+    },
+    {
+      "path": "apps/cms/src/collections/brands/index.ts",
+      "hash": "0e79faf283bbf481bab155202fd1571e841c4706d96e55553c165d1914555651",
+      "mod_time": "2026-10-27T09:02:54Z"
+    },
+    {
+      "path": "apps/web/public/assets/images/percent.webp",
+      "hash": "189b0fbed346a14df31382e9e219333d92467ae0f684dd69ff003483fa09683f",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/web/src/types/order.ts",
+      "hash": "cc6d73785a5fde13e64e879c9fb6b84f9a8c8e1e7e16b7d0acff09cce9a75455",
+      "mod_time": "2026-10-27T07:14:21Z"
+    },
+    {
+      "path": ".agents/skills/nexload-design/evals/trigger-evals.json",
+      "hash": "9851edd687c35b0c3742c78e55665aa2e0e068a9baa7cc53297e17983c19794c",
+      "mod_time": "2026-11-07T06:41:56Z"
+    },
+    {
+      "path": ".agents/skills/nexload-reasoning-investigation/SKILL.md",
+      "hash": "1f86a50faed1f7aff72e3bb72ad7d858d2775575f3a4323d7d0accbe670fa156",
+      "mod_time": "2026-11-07T07:29:47Z"
+    },
+    {
+      "path": "apps/api/tsconfig.json",
+      "hash": "b97d3e5cf64319337d79dde928656c7f04dce0e77cda118b3f7b5d4d4d36410b",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/cms/src/collections/users/users.collection.ts",
+      "hash": "7bf2f6745da5711735e4af841f9b91a661b1272a8cea6b05ddca636581a87e52",
+      "mod_time": "2026-10-27T13:14:53Z"
+    },
+    {
+      "path": "docs/05-architecture-and-contracts.md",
+      "hash": "efd1924e2c92aafedeb16eff02833ee6b47983c699922cb1f5d9bd988ad1b3fd",
+      "mod_time": "2026-10-26T14:45:26Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/scripts/tests/fixtures/relevance-baseline.json",
+      "hash": "38398452985116e74e31bd6bccca0f4decd1bbfe4eebc1ac99f7a1836baaf77f",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": "docker-compose.yml",
+      "hash": "398e6f0f94b811f2687be86103768c1ddf7ca41db7927775c6a76deb2d47d36b",
+      "mod_time": "2026-10-28T21:19:25Z"
+    },
+    {
+      "path": "apps/web/src/components/ui/code-slots.tsx",
+      "hash": "866da852d30b3ce8f0a2e5157e1a8586cf193ce377459e8c4e511b916bf4c976",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/web/src/features/checkout/cart-totals.ts",
+      "hash": "9ca61ea7f97bd91ff2c7f5689c59a43e75061713f5198fdf9c92eab56f7441b2",
+      "mod_time": "2026-10-28T21:01:43Z"
+    },
+    {
+      "path": "apps/web/src/features/products/product-config-card.tsx",
+      "hash": "16b6d205a2e6d1134b05ccce960c998d2c0252816db78b1925168db34b67af5f",
+      "mod_time": "2026-10-28T21:01:12Z"
+    },
+    {
+      "path": ".agents/skills/tanstack-query-best-practices/rules/qk-serializable.md",
+      "hash": "e5fe0734defea0e765893ae2fd9bb26fab3849725a7f1cd5402f2d8d46a84129",
+      "mod_time": "2026-11-07T06:42:36Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/data/phosphor-icons-upstream.json",
+      "hash": "2399325233b277b5c97a80e6a5e8941154f5d057beee4e7613db87c87d700236",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/data/stacks/winui.csv",
+      "hash": "e676dc1c13ee6c205c40b0746f1335150a346c7a49a0616d2545bc3d2c930c85",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": "apps/api/src/routers/user.ts",
+      "hash": "86e4f1428181dea6975b641511a87b5aebd281f2019dfb5851fba49919804bc9",
+      "mod_time": "2026-10-27T11:10:59Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/conflicting-authorities/src/route.ts",
+      "hash": "b986097f4898d3b788f526e470b5be315028b363d3387f9ad2fa49e7b4f157bc",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": "docs/04-roles-and-permissions.md",
+      "hash": "034a814e6061bba6ec392c885029a9b5df4fbcf0dae22b112da35425be2fdbd2",
+      "mod_time": "2026-10-28T13:07:00Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/re-review-fixed-findings/PREVIOUS_REVIEW.md",
+      "hash": "28a2548665c66ba3bc27012bd92c2c6e644a3c469dedbfed3f1f31c305ac3f68",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": ".agents/skills/nexload-reasoning/evals/evals.json",
+      "hash": "ce80021ad49035200be4e59fc870cb4cfb124b875faef03d7197da1d0cef3e87",
+      "mod_time": "2026-11-07T07:29:26Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/scripts/tests/fixtures/relevance-thresholds.json",
+      "hash": "9d738e11c6b82fecc8d0946e7b38515518ded5ed3294a7eb19a021c4edb5b57d",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": "apps/cms/src/app/page.tsx",
+      "hash": "b9841f51b143e29fcc69f9f39c919b1f2a3d15bf820e40836bba0f02a0270d63",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/approved-valid-abstraction/src/bun/index.ts",
+      "hash": "06d86c3cb1bd93a330477dd1f3e619672bf157ab5b0b128a1c6967da33496074",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": ".agents/skills/nexload-code/references/type-trust-boundaries.md",
+      "hash": "aef416382676120e6e313b01550390ec804a4ec7691150515b9da2a045dcfa0f",
+      "mod_time": "2026-11-07T06:41:53Z"
+    },
+    {
+      "path": ".agents/skills/nexload-reasoning/references/depth-heuristics.md",
+      "hash": "643fb66506b15fd427cc522c9ed8b3a5043f1784345d1441d42eedca87ee5d38",
+      "mod_time": "2026-11-07T07:28:47Z"
+    },
+    {
+      "path": ".agents/skills/nexload-reasoning-investigation/references/hypothesis-discriminator.md",
+      "hash": "3b6c4a27210af52beb1999b921cc08c163376b645fdb90f07948d56f5becb487",
+      "mod_time": "2026-11-07T06:41:56Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/data/react-performance.csv",
+      "hash": "3d925802539abac5afeb63ae8aa1960b7229ad271b3a47caed40ab2d97ad0734",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": "apps/api/src/routers/router.helpers.ts",
+      "hash": "b9b6b12fdf60974154bf13881a5ebaf7b07247b4b5c02ef021261c3b94245d3a",
+      "mod_time": "2026-10-27T11:10:23Z"
+    },
+    {
+      "path": "apps/cms/src/collections/products/_sync-slug-and-dimensions.before-validate.ts",
+      "hash": "7afed0d840e1aa696f5647e0f2bd810feb427c4491d32d91648886ddb22d8192",
+      "mod_time": "2026-10-28T13:02:02Z"
+    },
+    {
+      "path": "apps/cms/next-env.d.ts",
+      "hash": "0f70629890b72a0a82e91972cc032c04b658b26c265373cb711cf576bfbf8fcc",
+      "mod_time": "2026-10-28T20:41:51Z"
+    },
+    {
+      "path": "apps/cms/src/collections/categories/categories.collection.ts",
+      "hash": "fbd07d5e649dbede880e6c1e67f23ef6c6898d2c94a670fe89a63f8f1652c32e",
+      "mod_time": "2026-10-27T13:16:38Z"
+    },
+    {
+      "path": "apps/web/src/components/.gitkeep",
+      "hash": "57ae847f663e621177da6db30cbc5078890d26c975c44865c54b76c6922f37bc",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/missing-decisive-evidence/REVIEW_REQUEST.md",
+      "hash": "d38b755d10d313558e30e55c1da2e03f68cef82dadd261b391a9f785bcefa3fc",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": ".agents/skills/nexload-design/evals/fixtures/checkout-card.css",
+      "hash": "50351246c9221cfa09e420f5a8fbc16560bcf9fcbf2e008b52897c012c7c1042",
+      "mod_time": "2026-11-07T06:41:56Z"
+    },
+    {
+      "path": ".agents/skills/nexload-react/evals/evals.json",
+      "hash": "8867c75e1052e20debf66bfac4d74593d4e9ea57580750e8dbcc61d1b8be1315",
+      "mod_time": "2026-11-07T06:41:56Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/data/colors.csv",
+      "hash": "8162429222bce22df62b564085946a30d07cc9722c58d0a3a494bd0d1d00841c",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/scripts/design_system.py",
+      "hash": "6a94743c3362c9c7e6d1450b94f4014d9ea752e7b4e151f6f0bdb217e0544bf7",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": "apps/web/public/api/media/file/telegram-cloud-photo-size-4-5904444443106939075-y.jpg",
+      "hash": "9becb5f29bb37f1bd233bdc9b6f10f5f94fcb19e8ab02b6cd5999e78780d2d87",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/wrong-business-invariant/README.md",
+      "hash": "5c3bbbb6768e76c8cc783186e5653dc54dd019d4ef61a1542f7396edc00c4098",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": "apps/web/src/lib/utils/currency.ts",
+      "hash": "e5f8605e2d891c99b3ea4a266633e95861eef3e2cc9c3777f36a7bb6c7e753cd",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/web/src/routes/login.tsx",
+      "hash": "a813395f665bae55a95b6c258f55f221b80bdeb7bb7c5eb2d8e7ab5e7f500a67",
+      "mod_time": "2026-10-27T07:14:21Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/data/charts.csv",
+      "hash": "4115cf1120680f2cedef0676cb648f30c7ef4699e2a947535d4113e71ed3b12a",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": "apps/web/public/api/media/file/tile-calacatta-gold.jpg",
+      "hash": "ad947068be414cdbf57ca31ea4343f7a22436f65d24007b24783f2097086abf5",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/web/src/routes/product.tsx",
+      "hash": "a50c04de4bc9a786375556c71170a32d8a78889d8071a17d63120548061aae6b",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": ".agents/skills/payload/reference/ACCESS-CONTROL-ADVANCED.md",
+      "hash": "d9f8d8dea33afe17cfb060ee2b61bb28917ad366fad0184b8c22013fb37d6609",
+      "mod_time": "2026-11-07T06:42:01Z"
+    },
+    {
+      "path": ".github/workflows/ci-cd.yml",
+      "hash": "7f6a1aa0284369a5047a7c8fdd25effe5ec3eede3d585be69b26200406a82b35",
+      "mod_time": "2026-10-28T20:39:24Z"
+    },
+    {
+      "path": "apps/web/public/api/media/file/tile-marquina-black-1.jpg",
+      "hash": "176669983ef68660d56ea1e0c60fbd4a407448cab3e0eff3424e5dcb684eb45e",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/api/Dockerfile",
+      "hash": "105e1787f7dd81a296272ed85f2e9e15b06a7ec4cd106204385991c8494b1004",
+      "mod_time": "2026-10-28T07:47:05Z"
+    },
+    {
+      "path": "apps/api/src/routers/catalog.ts",
+      "hash": "91af31677b49acb53eb2a21ed791de859fbb833b37cf45728fbd34c0ea518308",
+      "mod_time": "2026-10-27T11:08:55Z"
+    },
+    {
+      "path": "apps/web/src/features/plans/plans-store.ts",
+      "hash": "9c814e93aef2e7514d48d5b9a019e7a3bdef2b7762a21e98ea156718543dc264",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": ".agents/skills/nexload-react/evals/fixtures/unsafe-search-preview.tsx",
+      "hash": "1be310adc7d2200584601f02c035ba5e38bd2da32afb230c9ac1aa7a1c9e5cc2",
+      "mod_time": "2026-11-07T06:41:56Z"
+    },
+    {
+      "path": ".agents/skills/nexload-reasoning-execution/references/failure-recovery-router.md",
+      "hash": "8ab4418f28fac36ce3608a63eb3ed36dd3d47f3fc490c42c61f9a8c07777c731",
+      "mod_time": "2026-11-07T07:30:57Z"
+    },
+    {
+      "path": ".agents/skills/tanstack-query-best-practices/rules/qk-include-dependencies.md",
+      "hash": "60067bc8cfa26da49a6e022b3133f646aaa26960b722934240fe189d005b61d7",
+      "mod_time": "2026-11-07T06:42:36Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/data/stacks/jetpack-compose.csv",
+      "hash": "699de218b286948eaec7d15767b6e1350ee299167e49bf476d82e3ff58724e0a",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/data/ui-reasoning.csv",
+      "hash": "f0774dd741cecdad5eec842034bd6d5e9ea50e9f220a1910069748daa0bb8e9a",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": "packages/contract/src/auth.ts",
+      "hash": "05f85556490e4656a852b95272f2e3d2677201dfa36dd47feac9705ab3c3b04b",
+      "mod_time": "2026-10-27T07:14:21Z"
+    },
+    {
+      "path": ".agents/skills/tanstack-query-best-practices/rules/cache-defaults.md",
+      "hash": "bc5d3117c4afa4a39f2734953743bb33dbbbcb99d222e5e6db373dbbe17f9938",
+      "mod_time": "2026-11-07T06:42:36Z"
+    },
+    {
+      "path": ".agents/skills/tanstack-query-best-practices/rules/qk-hierarchical-organization.md",
+      "hash": "e8c2b9133374743e98d88c92e73aba32e61365ddf07eb38714c81ff7cdfb1134",
+      "mod_time": "2026-11-07T06:42:36Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/scripts/tests/fixtures/catalogs/phosphor-package.json",
+      "hash": "500588c757d6de03e3d7e69b27a8b8b1f88ccf6bb0333e4c1e9b0d6a4f112475",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/misleading-repository-docs/src/index.ts",
+      "hash": "6915164e8253e1c238d31f0816d25f6c3eaa76e460d95791bf521eeaef54cc45",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": "apps/cms/src/app/(payload)/api/[...slug]/route.ts",
+      "hash": "7804220dade458228ec107f989affb535f2d48e7da76b0a7313e7a6ed2725145",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/cms/src/collections/dimensions/dimensions.collection.ts",
+      "hash": "00b273f975a6074221ab7da063338083358227ce73c3a44d32253f3498909178",
+      "mod_time": "2026-10-27T13:18:15Z"
+    },
+    {
+      "path": ".agents/skills/tanstack-query-best-practices/rules/pf-ensure-query-data.md",
+      "hash": "12379eb2025ae3f367a2fb4af5c66e31a7b7d7de695f170918310dfeb78e8c6a",
+      "mod_time": "2026-11-07T06:42:36Z"
+    },
+    {
+      "path": "README.md",
+      "hash": "612885d67ea7eb232ccbbd9fdc89f09baa10904f3a0bec9dc7b40bd3f40e4e1b",
+      "mod_time": "2026-10-26T14:40:51Z"
+    },
+    {
+      "path": "apps/api/src/routers/order.ts",
+      "hash": "53284531c9a1f8246a571b0cbcce26c68e0692de380f9228ac223d66fc5fe8ad",
+      "mod_time": "2026-10-28T12:59:10Z"
+    },
+    {
+      "path": "apps/web/src/components/ui/slide-commit.tsx",
+      "hash": "074ca94588954ddb40d8e2d015c1853fca0238cd4158f33dee9a133aae48d3fd",
+      "mod_time": "2026-10-28T21:10:44Z"
+    },
+    {
+      "path": "apps/cms/src/collections/plans/_personalize-plan.after-read.ts",
+      "hash": "ed95bf9e613b7cd17d95975e85a6c34fb4cb2cf7df200f2d8328e48dc96ff450",
+      "mod_time": "2026-10-27T08:42:41Z"
+    },
+    {
+      "path": "apps/cms/src/components/admin/LoginHeader.tsx",
+      "hash": "00ff245060c328f070dbc9bd2f7df1d3acb87e516e70b86e89e2a51cdf680f3b",
+      "mod_time": "2026-10-27T14:44:16Z"
+    },
+    {
+      "path": "apps/web/src/components/ui/hold-button.css",
+      "hash": "bd51dd2e4bc3f2f9126ab3e7495e9e572aebf089b86f49487751e66352d21469",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/minor-public-api-issue/package.json",
+      "hash": "26c640ee3c555885e4df15bb2ef39da32413184eaad2fe83d8e87cfac153fb59",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": "apps/cms/src/app/(payload)/admin/importMap.js",
+      "hash": "efc3a139ac269a3ec1fb00e5577f4ac8a2e7d2e6ebd58ae870c0dc2c3e0bbccf",
+      "mod_time": "2026-10-27T14:45:00Z"
+    },
+    {
+      "path": ".agents/skills/nexload-code/evals/fixtures/cohesion-and-extraction.md",
+      "hash": "57a898f80c845ccd7a383bdd2789e51f961be9ce4588a8a3f5c02586a31507c1",
+      "mod_time": "2026-11-07T06:41:53Z"
+    },
+    {
+      "path": ".agents/skills/nexload-react/evals/fixtures/vendor-map.tsx",
+      "hash": "daba3f710dcfc43d2d00ac23c58a3a38314d1e8f84e3ea739b89a4b14e809b49",
+      "mod_time": "2026-11-07T06:41:56Z"
+    },
+    {
+      "path": "apps/cms/src/collections/otps/otps.collection.ts",
+      "hash": "35de6197d83339967bee9d99b70d1175968d644981e67dcc23582d1384ec7e1a",
+      "mod_time": "2026-10-27T13:22:41Z"
+    },
+    {
+      "path": "apps/web/src/components/ui/counter.css",
+      "hash": "9f224c728e16bb2b4137cd0e5a3ff370043bc9c838450fa8aaed89e190a8a6f8",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/web/src/features/checkout/cart-summary.tsx",
+      "hash": "b245501175b83a71abb0829759ce8fd9ee771fdb59c9bd29804a318accc4656c",
+      "mod_time": "2026-10-28T21:02:16Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/scripts/search.py",
+      "hash": "8373e2dd2d560d9853ec116140de0e0d5bee45a6abe5e041173c84e1c36a7f87",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": "apps/web/Dockerfile",
+      "hash": "9fabec0a3b6f6641c9f6a81032bc657a0b92465e77eab2ad90974e3cf6487d59",
+      "mod_time": "2026-10-28T20:37:29Z"
+    },
+    {
+      "path": "apps/web/src/lib/utils/date.ts",
+      "hash": "c58795caff5e7b3cf2c04af19b381ec2e3124adc6bfa852957a82207dd1813fb",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": ".agents/skills/orpc-openapi/SKILL.md",
+      "hash": "02dd0771b0a80852006f580baed82b24df1a395814f6d335b5f29b29370494c7",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/cms/src/app/(payload)/admin/[[...segments]]/not-found.tsx",
+      "hash": "93b16da5608a04e7edb36620942f1658640afaaf478b9184d0126351f4cb3ebd",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/cms/src/collections/dimensions/index.ts",
+      "hash": "069db1886b3599dc3b3f4f138f138a5d05c1a651075c2fe589800892bc7d4256",
+      "mod_time": "2026-10-27T09:03:36Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/trigger-evals.json",
+      "hash": "df5739867c395d22e51908ad11d895658d883ced1c45800055b392b9ba5ad9d3",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": ".agents/skills/payload/reference/ADVANCED.md",
+      "hash": "1d05880d9bb88686630aef9489a5d84411ae0aedbbec0d525e68fd66672659e3",
+      "mod_time": "2026-11-07T06:42:01Z"
+    },
+    {
+      "path": ".agents/skills/payload/reference/QUERIES.md",
+      "hash": "468ca0bb663f3a818ad50072906feafb6b4ee665b4565d93494a89bfe0906ed0",
+      "mod_time": "2026-11-07T06:42:01Z"
+    },
+    {
+      "path": ".agents/skills/tanstack-query-best-practices/rules/pf-route-prefetch.md",
+      "hash": "7eb08637a7459055d237bfcb18f304d1ece8c2ae2e9e4700a109c56e365655e9",
+      "mod_time": "2026-11-07T06:42:36Z"
+    },
+    {
+      "path": ".agents/skills/tanstack-query-best-practices/rules/ssr-stale-time-server.md",
+      "hash": "c3d32d123494c05ee82f4c26ce1f1347669cd94e6758af54917269381ed431ca",
+      "mod_time": "2026-11-07T06:42:36Z"
+    },
+    {
+      "path": "apps/web/src/routes/orders/index.tsx",
+      "hash": "8f46498e37264b47dd508102150e8e728533e5e654ddf25ddd541e231ed3d236",
+      "mod_time": "2026-10-27T07:14:21Z"
+    },
+    {
+      "path": ".agents/skills/tanstack-query-best-practices/rules/pf-stale-time-config.md",
+      "hash": "95e6b803ce323f600d42dfc39443c89631342af2b2e52c7773b612cf9034368e",
+      "mod_time": "2026-11-07T06:42:36Z"
+    },
+    {
+      "path": "apps/api/src/client.ts",
+      "hash": "af9668a349402436e48e903773ec8c0e17f06650ba62d340dcd303959b0a2180",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/web/src/components/ui/counter.tsx",
+      "hash": "3a3ea1e5b2f4a2e59886263526b8d18ac5830750db909507027da80c82b19e5b",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/web/src/components/ui/slide-commit.css",
+      "hash": "caf08c8b89defd6a02df09132c6ad528d03a15bda62abdc19ef2d7518675b092",
+      "mod_time": "2026-10-28T21:07:32Z"
+    },
+    {
+      "path": "apps/web/src/lib/query-keys.ts",
+      "hash": "1f0c65544a21e0f5cebca9485b3a490425c7c997f0d540119c4ed88c53ef456f",
+      "mod_time": "2026-10-27T07:14:21Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/speculative-plugin-system/package.json",
+      "hash": "9d4850349e49f79abea67f9c911ef17d3a10a974158f4e694b15ad486b51e9da",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": ".agents/skills/payload/reference/ENDPOINTS.md",
+      "hash": "126c5bc1d99e794720c21b38b748b85d118a9b6c13fbf7913df7f90ae310f874",
+      "mod_time": "2026-11-07T06:42:01Z"
+    },
+    {
+      "path": ".agents/skills/tanstack-query-best-practices/rules/mut-mutation-state.md",
+      "hash": "cefd47db3ce551549e41370fc5f4ea88f465d7aa20703b69a80d8bcfe60c8f50",
+      "mod_time": "2026-11-07T06:42:36Z"
+    },
+    {
+      "path": "apps/cms/src/collections/otps/_otp-access.ts",
+      "hash": "fb38b86da44a1194a58a89cf9c0576f07d748a90b1a3a743f806f62c47be9ff2",
+      "mod_time": "2026-10-27T13:20:47Z"
+    },
+    {
+      "path": "apps/cms/src/collections/users/index.ts",
+      "hash": "dd559dab5f5ac4535fcc0347de1c5fe2850e2baf0cb80b80c205b81a105db864",
+      "mod_time": "2026-10-27T09:01:36Z"
+    },
+    {
+      "path": "apps/web/public/api/media/file/tile-pietra-grey-1.jpg",
+      "hash": "bb1aafe07835e3c64f24ff34452d1919036bd7b25047a59b3ab87bc029669702",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/web/public/assets/images/logo.webp",
+      "hash": "4b230aeaacd446b311c1a43bf428624cae0dfa963bc78b1bb23d72f2ca787ac4",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/web/src/routes/index.tsx",
+      "hash": "1cb1f2d929d791e2c82544820d4f3f9fd483ad3d51952ae983212ecc52fe7fbe",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/browser-runtime-boundary/package.json",
+      "hash": "b95d7ef6fdad4e61d0f6b3836639d01d4f44b8ebb9911d9919d2d12ec3ee8233",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": "apps/web/src/routes/product/index.tsx",
+      "hash": "3827295650ff5919289458a1d0f866e93128dab7003ebbf88f0cbf88599385e7",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "docs/01-domain-models.md",
+      "hash": "12b98cea3d56eb5a64fc872adfa8d370e10cf293eda95a97fc55c2c1d1e8988d",
+      "mod_time": "2026-10-27T10:58:24Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/data/stacks/nuxtjs.csv",
+      "hash": "3d9b54ed2d151bd9c86e9e5609b8a6f88a00c4c52fa601a30af96c49b2c4d176",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": "apps/api/src/lib/kavenegar.ts",
+      "hash": "93dfc7dd279a82f592e89f19d5ca50a981cc1572abd8ec05e197a2137d6fcc13",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": ".dockerignore",
+      "hash": "97aa1837d95c7e82b5db289f40494c279392594aef103b3da5efd2b2df99b2bf",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/api/src/context.ts",
+      "hash": "0eef6cf2f0b15f6e56115ff2abfb80b83e463cb23a051665137f947e09d5fe83",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/web/public/api/media/file/tile-marquina-black.jpg",
+      "hash": "176669983ef68660d56ea1e0c60fbd4a407448cab3e0eff3424e5dcb684eb45e",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/web/src/features/products/filter-drawer.tsx",
+      "hash": "a9292ea2fe3a219c5586a6b279b900fc4608709f83b458f42f983340e84c020e",
+      "mod_time": "2026-10-27T07:14:21Z"
+    },
+    {
+      "path": "apps/web/src/features/products/selection-store.ts",
+      "hash": "a9b5d0be7d19cc1e1bbafefb9305ebb4594a72e496f5fa04db4eac73608914bd",
+      "mod_time": "2026-10-28T20:59:03Z"
+    },
+    {
+      "path": "apps/web/src/hooks/useAuth.ts",
+      "hash": "78ef5a9f3e8a90bce4befa8517d9a696f44d210790466491e87782d662fd3020",
+      "mod_time": "2026-10-27T07:14:21Z"
+    },
+    {
+      "path": "apps/web/src/types/product.ts",
+      "hash": "3fc674e2f3a3e58bdc5b4d9b8afc4c2d6a4614422b900b9bfa4d6bb2c35da4ea",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": ".agents/skills/nexload-reasoning/SKILL.md",
+      "hash": "b22182b85fde2c60da9bc3c052e0b8a797126d1c9704099233297dc80c450b12",
+      "mod_time": "2026-11-07T07:33:27Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/scripts/tests/fixtures/relevance-cases.json",
+      "hash": "e77d36eebbf6ddc2860946a02cdb659351da6c09f2688f1ed30939a418099646",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": ".agents/skills/tanstack-router-best-practices/SKILL.md",
+      "hash": "5eab1026f3c6f09963988e1164934bb30f58ae318b0a5b926386670c3b7b480c",
+      "mod_time": "2026-11-07T07:35:50Z"
+    },
+    {
+      "path": "apps/web/src/hooks/.gitkeep",
+      "hash": "452ff7910be0132b0b82b3b2397f05ad1df35e65816e52f64763e1ed9a567d65",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/browser-runtime-boundary/src/token.ts",
+      "hash": "d0a3c6b837defef10a848a0d489d7dcf01ad8ecec9a2700d79b2e0ff2ca65be4",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": ".agents/skills/nexload-react/SKILL.md",
+      "hash": "039c14b85da25ffa8579c41fa23e2025ece33a1a5072eefbdc01457bb8229864",
+      "mod_time": "2026-11-07T06:41:56Z"
+    },
+    {
+      "path": ".agents/skills/tanstack-query-best-practices/rules/inf-loading-guards.md",
+      "hash": "a3ed462bc157ff3d972031af6ee2fcb6de27736c54476d4ec6b2f2f8c95120f9",
+      "mod_time": "2026-11-07T06:42:36Z"
+    },
+    {
+      "path": "apps/api/src/routers/auth.ts",
+      "hash": "01011dc8ce540a360191a7919be617539967176e3259d3e58ba613793a8fb70a",
+      "mod_time": "2026-10-27T13:26:04Z"
+    },
+    {
+      "path": "apps/web/public/api/media/file/tile-pietra-grey.jpg",
+      "hash": "bb1aafe07835e3c64f24ff34452d1919036bd7b25047a59b3ab87bc029669702",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/re-review-fixed-findings/src/server.ts",
+      "hash": "fb725e3bbc0a63b2cbb81e5fa36425d3ea814fb6636c8232f06239318f4cf58d",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": ".agents/skills/nexload-react/evals/fixtures/cart-summary.tsx",
+      "hash": "c987aa4e7b497bd76c7c653f7930b8f7ff0e280e81889c4c0386d78552335b43",
+      "mod_time": "2026-11-07T06:41:56Z"
+    },
+    {
+      "path": "apps/api/src/rpc/context.ts",
+      "hash": "ed75af98fd9ee6ad9ab48ff44599551df406e72bffa19ed8c7fe0d8ee1489c90",
+      "mod_time": "2026-10-27T07:14:21Z"
+    },
+    {
+      "path": ".agents/skills/nexload-code/evals/fixtures/readability-grouping.md",
+      "hash": "e455360f19b34ba390b5336b9f6bbda9794938a5fe8e877a297d11f800554ea0",
+      "mod_time": "2026-11-07T06:41:53Z"
+    },
+    {
+      "path": "apps/api/src/routers/customer.ts",
+      "hash": "7e9e72e0a128603127c7d5b4d1351363bf6e583bf9b7282c73468833687948d2",
+      "mod_time": "2026-10-27T07:14:21Z"
+    },
+    {
+      "path": "apps/web/public/assets/images/placeholder.svg",
+      "hash": "af4112ee26bf4e093135347adf4766611155eda4e080365f7ff0cf590b50229e",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": ".agents/skills/tanstack-query-best-practices/rules/mut-optimistic-updates.md",
+      "hash": "ee7feac30d6267349c54794f7ec32bf90d5d8472a906cf79588f4ccb163e0c48",
+      "mod_time": "2026-11-07T06:42:36Z"
+    },
+    {
+      "path": "apps/cms/src/payload.config.ts",
+      "hash": "14189487f8d4cbae715ff74bcd681d8ae166800eadc9d708646dbbd97f6bb959",
+      "mod_time": "2026-10-28T13:04:25Z"
+    },
+    {
+      "path": "apps/web/public/api/media/file/tile-cement-grey-1.jpg",
+      "hash": "47669557b10d12c46717ee9a649b79c261de285f00da0417fb39ddd5703cfa35",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/web/src/components/ui/pill-nav.tsx",
+      "hash": "b3b756ed62e89505e18ce2b770ce7541b66ff15b656bea7bab3d487d7c934b9a",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/web/src/features/products/order-entry-modal.tsx",
+      "hash": "609a75a6062502bb9864a331d1b7d2b454caa1dc223c9a703e4be34a9d8866b5",
+      "mod_time": "2026-10-27T07:14:21Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/SKILL.md",
+      "hash": "7cf7731197c3738a834ebd4398df5b4a5c3fa29ad3448085f4676e4cb6cf1879",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": ".agents/skills/nexload-design/evals/fixtures/approved-modal.tsx",
+      "hash": "4a22ea30abfaf4e253cebb13ebb6695418454374bdb3cd6ce7c0d6f52416ae0e",
+      "mod_time": "2026-11-07T06:41:56Z"
+    },
+    {
+      "path": ".agents/skills/nexload-reasoning-investigation/references/evidence-audit.md",
+      "hash": "6f5a257fb0ab2ec774612e85240c64e941955737c8e69db32cf8ce8d69ab3965",
+      "mod_time": "2026-11-07T06:41:56Z"
+    },
+    {
+      "path": ".agents/skills/orpc-contract/SKILL.md",
+      "hash": "d0894ddb02aa103dd1a71c59b63874017b4cc09f00206befd1ce1bc359b7f7e3",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/data/ux-guidelines.csv",
+      "hash": "ff81ec613f70ba9fc3fcce52dbe4ae35d44b2079dbe6dc066d2d6e38c28facd5",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/scripts/tests/fixtures/catalogs/google-metadata.json",
+      "hash": "30bffc29ae348416a2de2f9c6c418e768e4578f136b0f4bac5d2f70124f2e9ba",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": "apps/cms/src/collections/plans/index.ts",
+      "hash": "4da529eaec2f68f33e0283ab3cad82575a35f7cc93bd776f6c41959bf0cd5971",
+      "mod_time": "2026-10-27T09:04:34Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/change-with-existing-debt/REVIEW_REQUEST.md",
+      "hash": "618f099dcf25897ed2bb87b40b9d42c3f1c67169c71c41bca1bfb8ae8239577d",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/re-review-fixed-findings/src/token.ts",
+      "hash": "08905ba17fc6e3b52549bd0c0f57b07a7bf4144cf0a1cbb2243c08f57b886e9b",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": "apps/cms/src/app/(payload)/admin-enhancements.tsx",
+      "hash": "195a2ddf41ae68e21983116358125e63e4e0cfc29a85f04e9f46246e9780dd09",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/cms/src/collections/orders/index.ts",
+      "hash": "b795bfcdba6930a44d2df8fbea9f77a164240f538a8e8a6e966a963ec7abe541",
+      "mod_time": "2026-10-27T09:04:20Z"
+    },
+    {
+      "path": "apps/cms/src/components/admin/Icon.tsx",
+      "hash": "99da3a342eb08d4a44a2b959ea219e6d797486f9d21f3aad7d871eac8e7786fc",
+      "mod_time": "2026-10-27T13:11:37Z"
+    },
+    {
+      "path": "apps/web/src/features/products/product-card.tsx",
+      "hash": "35f00effc2b3885e7dc5044c5d7728e3626ebb00543c34383185ed62f3bc75ff",
+      "mod_time": "2026-10-27T07:14:21Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/wrong-business-invariant/package.json",
+      "hash": "a87a87ef465f953e0e7996b8f4ea08f5cc83cdb4475b849d5dd097130975f407",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": ".agents/skills/nexload-design/references/geometry-and-ui-preservation.md",
+      "hash": "1d54ed0e1f1bb3c675410d975c309bd956973fd6195232d42b7dbe047459f3b4",
+      "mod_time": "2026-11-07T06:41:56Z"
+    },
+    {
+      "path": ".agents/skills/nexload-reasoning-investigation/references/systematic-debugging.md",
+      "hash": "5b2daf40be4634ce13f74c95cfb049e7c66151b5c07d27415358e701796ffd82",
+      "mod_time": "2026-11-07T06:41:56Z"
+    },
+    {
+      "path": ".agents/skills/tanstack-query-best-practices/rules/inf-page-params.md",
+      "hash": "e4c5c0909f8b3d3cb60cb682e8cff1c395b070351cea7c7e1b76d6710248740e",
+      "mod_time": "2026-11-07T06:42:36Z"
+    },
+    {
+      "path": "apps/cms/src/collections/orders/_validate-transition.before-change.ts",
+      "hash": "f61ea73804856c816c119a86d5221905378790c57a6ccdc68da2cce16bf3c409",
+      "mod_time": "2026-10-27T11:13:28Z"
+    },
+    {
+      "path": "apps/web/src/hooks/useProducts.ts",
+      "hash": "158bac2b9a0a5e93c6e8a7e17d342f99f5db21554b482d471021654fe2d78796",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/wrong-business-invariant/src/payment-service.ts",
+      "hash": "d952fa7fcc6074a2696da7b431f63844dff132b3026364d84eedfbe040183235",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": ".agents/skills/orpc/SKILL.md",
+      "hash": "c5bcff3f2ca2ae62a28fc50945ccc209aeeed200ead50447be7a621c1e3b76e7",
+      "mod_time": "2026-11-07T07:34:59Z"
+    },
+    {
+      "path": "apps/cms/src/app/(payload)/admin/[[...segments]]/page.tsx",
+      "hash": "97c4de928bde71bc0696117a6a3aced33525518854fe9ebf98dccc80f22eae43",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "packages/contract/src/customer.ts",
+      "hash": "9d8442fce735b50b585a689b74e68d61274c922e9bb51e4cdb1f3ceca28e5210",
+      "mod_time": "2026-10-27T07:14:21Z"
+    },
+    {
+      "path": ".agents/skills/nexload-code/evals/evals.json",
+      "hash": "9c112b3c8fa49e2c3386f5f0f0496b620196ce205333a36969764ae15540ea3a",
+      "mod_time": "2026-11-07T06:41:53Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/minor-public-api-issue/src/index.ts",
+      "hash": "e0afafd76fe43ca3751de33fe95f5e82309669733c518b78754b31e3d21214c8",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/speculative-plugin-system/src/plugin-dsl.ts",
+      "hash": "c1cd6253f83177688c7dff266a1097696830bd0f4a11cd81b58c88a1dce9b0a6",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": "apps/cms/src/collections/otps/index.ts",
+      "hash": "047e7e719a9f4b08b0a87bda716ed806ea6e62e2309da59c973e3132f81a3570",
+      "mod_time": "2026-10-27T13:17:01Z"
+    },
+    {
+      "path": "apps/web/public/assets/images/bell.webp",
+      "hash": "d51ea5e99828d61e0d1619543bde12ef51ef858d940f845ea20867bac10392ad",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/approved-clean-package/README.md",
+      "hash": "1b88350e2af4c9a9c160068ce1ec0404a486fc83042da109d71f5e23bbf004c8",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/data/google-font-licenses.json",
+      "hash": "35688523f2955795caa1a47c53b83099e60c1708461476f9cc3a050cf3b0148a",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": "apps/api/.env",
+      "hash": "48ea9f5bcc2aa2ac28cb6bf05e375cefd659404e21dba3e3c69f70ccba5681e6",
+      "mod_time": "2026-10-27T11:58:13Z"
+    },
+    {
+      "path": "apps/api/src/orpc.ts",
+      "hash": "b31a01cdc5de7d1273696d7a2b8ecc699b8e269c05ee20be973990c0dbb3a442",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/web/src/components/feedback/toast.tsx",
+      "hash": "546968fbada12098ae0138f7fa933807f42d8e81ed31e816d80f32c4c4d23e6c",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "docs/03-system-flows.md",
+      "hash": "78aa08876d1e168ecd14ea348ad9fca8350de031055aef010f51e47ae75fbcfc",
+      "mod_time": "2026-10-28T13:06:39Z"
+    },
+    {
+      "path": ".agents/brain/cms-hardening-plan.md",
+      "hash": "86a9d2f0b6accca5bb86f29eb7cdcb1ef1950c3dc516351213eaa6f79e439992",
+      "mod_time": "2026-10-27T08:27:23Z"
+    },
+    {
+      "path": ".agents/skills/tanstack-query-best-practices/rules/perf-placeholder-data.md",
+      "hash": "c617f794a0aeed038b4f95e05354cfd60ab5a58973af5771ac0a53578323597c",
+      "mod_time": "2026-11-07T06:42:36Z"
+    },
+    {
+      "path": "apps/api/.env.example",
+      "hash": "7c26fd26a3a2a12f1f488a037fe186022030e246bbea60e1717027d9979fbb19",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/cms/src/collections/orders/_transaction.ts",
+      "hash": "cd50ca7557d189ea386691f3d4784d442b85b3eebc08a00937a133b8d4c892cd",
+      "mod_time": "2026-10-27T10:03:49Z"
+    },
+    {
+      "path": "apps/web/src/features/products/product-filters.ts",
+      "hash": "1ba2832257b9fb7899259b32a758629eae2db0ff96675671f5ffb6a337593aba",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/scripts/reasoning_contract.py",
+      "hash": "b8bac1af82aa280d3e06f00aabaeac4337e632996b07fed874e2b6ee6e9c5913",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": "apps/web/src/components/ui/solar-icons.tsx",
+      "hash": "b70d2453fea9f5ae104f4188b2e94cb4b3897b0ed6586f4aae5c2952dffeceff",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/web/src/routeTree.gen.ts",
+      "hash": "9ca90aed80dbc7f7ad11c290a67147c9834ad68325e28b0a6e0e658566365d6b",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/scripts/tests/fixtures/catalogs/google-catalog.json",
+      "hash": "c608ad5c4084ebc50a4bbbfb69ea2456c01fd5519c457e18410fffd250ae948f",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": "apps/web/src/routes/account.tsx",
+      "hash": "4208af90ce8f2c721944e10ae72eddf5933df80dd4a991ca54b0545f429f5462",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "packages/contract/src/catalog.ts",
+      "hash": "ed60e5be193e6c0479a37a876a0838ffad627b355d524913bf9766ac387fef12",
+      "mod_time": "2026-10-27T07:14:21Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/false-security-positive/src/query-clauses.ts",
+      "hash": "7223b4f5f3f3f6d004fd717561ecf388659055372fffe2c6f7df04f883470564",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/misleading-repository-docs/package.json",
+      "hash": "c9589f8a272aa7514e6faf0298bacf41d9d744175864482a88134329364ed894",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": ".agents/skills/nexload-reasoning/references/anti-patterns.md",
+      "hash": "9ce1fbd705dc8bd35e7137dcd879419b3872db021e8315019e37dfc352e43dee",
+      "mod_time": "2026-11-07T07:29:11Z"
+    },
+    {
+      "path": ".agents/skills/payload/reference/ADAPTERS.md",
+      "hash": "b3114cd31914dbc3a79928da5625c39f49a2010428766c6d1eb971f9e809e5eb",
+      "mod_time": "2026-11-07T06:42:01Z"
+    },
+    {
+      "path": "apps/cms/src/migrations/20261027_132154_add_otps.json",
+      "hash": "147a70ce779d7f9cd0e609041e19324e91b402f475d883c6d1c22c2b1641d018",
+      "mod_time": "2026-10-27T13:21:54Z"
+    },
+    {
+      "path": "apps/web/public/api/media/file/tile-wood-walnut.jpg",
+      "hash": "23b1ce899711fef195b3604d74176aa653662ffacee2b0c4c37d80d082cfb9a7",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": ".agents/skills/heroui-v3/SKILL.md",
+      "hash": "05866b9cda0cd74cf660ae3e8c92f1f7196283ac42e7996ed91688e872cce82f",
+      "mod_time": "2026-11-07T07:15:23Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/re-review-fixed-findings/src/browser.ts",
+      "hash": "8c04f6ebc1decf16e36d51812d0727d815939715bce8e47601edfdeca305fc2b",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": "apps/api/src/lib/jwt.ts",
+      "hash": "d1059ef2399d9069410082059bbc55eff9bc5a317c7744058ca80b6f7f0372ea",
+      "mod_time": "2026-10-27T11:11:16Z"
+    },
+    {
+      "path": "apps/cms/public/fonts/Vazirmatn[wght].woff2",
+      "hash": "4e3fa217d38fdafc1fea4414ceb58ca5e662cf0ab5fa735a8c8c20e8b42cad92",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/cms/src/collections/products/_product-access.ts",
+      "hash": "fe9adfa32c00318b9a1aea92524b81b329bd0513a142f31b36c33c74c90f1609",
+      "mod_time": "2026-10-28T13:01:03Z"
+    },
+    {
+      "path": "apps/web/src/features/.gitkeep",
+      "hash": "dcb4efde43256a1d0a7c5270e10f996b08b0050b05dea135d0e781b7bcb934ce",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/change-with-existing-debt/base/src/logger.ts",
+      "hash": "f2a12b8194155d9cbab731db5001895be3a33f216ec6a40b97d347215b10e2ac",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": ".agents/skills/nexload-cto-review/evals/fixtures/wrong-business-invariant/src/types.ts",
+      "hash": "69014d42fb4b99f9d4917e13c44f8efaaacedec256fc09ccfad7392197c15b5b",
+      "mod_time": "2026-11-07T06:41:55Z"
+    },
+    {
+      "path": ".agents/skills/skills-lock.json",
+      "hash": "11137b57a16c4d6cb336550a74abdc55e1b7a484f095fcdb8762e0240986bf3d",
+      "mod_time": "2026-11-07T07:26:20Z"
+    },
+    {
+      "path": "package.json",
+      "hash": "6c2a07c9f6e76a4ec55ede5c1006b77492698e085013a395a1506dcad2d12ff1",
+      "mod_time": "2026-10-28T20:03:22Z"
+    },
+    {
+      "path": ".agents/skills/nexload-code/evals/fixtures/public-export-request.md",
+      "hash": "e1960c7102457d91f61c0ead2ed43e47680d9b39c6138be5d0550792016907e8",
+      "mod_time": "2026-11-07T06:41:53Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/scripts/tests/fixtures/catalogs/google-api.json",
+      "hash": "22d8dc81a7d6827b7e8b64b53e7d184210fb9759e8e294e0d5133c81cc460176",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": ".agents/skills/ui-ux-pro-max/data/products.csv",
+      "hash": "42473f75e8dde5987bdf89ce55d8c168091b80a356cae691dd60247d80720b70",
+      "mod_time": "2026-11-07T07:01:54Z"
+    },
+    {
+      "path": "apps/cms/public/fonts/PEYDA-MEDIUM.TTF",
+      "hash": "42ab30be77a37737e5f45cda3210114b6c34df966aa853b40ce7ce2c15132862",
+      "mod_time": "2026-10-26T13:39:04Z"
+    },
+    {
+      "path": "apps/cms/src/collections/customer-types/index.ts",
+      "hash": "66789fa2eb5e239416c4ee21dc62b3d72c7d9d3683d7679c498453f0986112d3",
+      "mod_time": "2026-10-27T09:01:56Z"
+    },
+    {
+      "path": "apps/cms/src/collections/products/products.collection.ts",
+      "hash": "2a6db3ec7bc3be0d0d160649ca2d4aeb497d201bb54261869eb6342f216b028e",
+      "mod_time": "2026-10-27T13:16:12Z"
+    },
+    {
+      "path": "packages/contract/package.json",
+      "hash": "1e90a1dbec9d31718481f411707d6ddb5d48f41c799c0284fb1f2ecca367ff4f",
+      "mod_time": "2026-10-26T13:39:04Z"
+    }
+  ],
+  "fact_count": 4629,
+  "insight_count": 89,
+  "enola_version": "0.4.38",
+  "snapshot_id": "sha256:dcc56f59b3c07b919bc605e31abc342532a3ea3a8aa3bba9597a6495da54e949",
+  "git": {
+    "ref": "main",
+    "commit": "8c39a55c27629c3512c8f6faa62d147bee1aee9e",
+    "dirty": true,
+    "remote": "github.com/gecut/persianpartshop.ir"
+  },
+  "config_hash": "sha256:0bd4dd70eadd883034fcb98b5d4c9bf19bf25984306c3557610420f86875a2cd",
+  "extractor_version": "v500",
+  "files_seen": 467,
+  "files_parsed": 322,
+  "source_bytes": 1830811,
+  "files_skipped": 19,
+  "dirs_skipped": 10,
+  "skipped_sample": [
+    ".agents/skills/nexload-cto-review/evals/fixtures/approved-clean-package/test/cache.test.ts (glob: **/*.test.ts)",
+    ".agents/skills/nexload-cto-review/evals/fixtures/change-with-existing-debt/target/ (glob: **/target/**)",
+    ".agents/skills/ui-ux-pro-max/scripts/__pycache__/ (glob: **/__pycache__/**)",
+    ".agents/skills/ui-ux-pro-max/scripts/tests/test_catalog_refresh.py (glob: **/test_*.py)",
+    ".agents/skills/ui-ux-pro-max/scripts/tests/test_core.py (glob: **/test_*.py)",
+    ".agents/skills/ui-ux-pro-max/scripts/tests/test_core_data_quality.py (glob: **/test_*.py)",
+    ".agents/skills/ui-ux-pro-max/scripts/tests/test_data_contracts.py (glob: **/test_*.py)",
+    ".agents/skills/ui-ux-pro-max/scripts/tests/test_design_system_mode.py (glob: **/test_*.py)",
+    ".agents/skills/ui-ux-pro-max/scripts/tests/test_native_desktop_stack_freshness.py (glob: **/test_*.py)",
+    ".agents/skills/ui-ux-pro-max/scripts/tests/test_relevance_evaluator.py (glob: **/test_*.py)",
+    ".agents/skills/ui-ux-pro-max/scripts/tests/test_style_taxonomy.py (glob: **/test_*.py)",
+    ".agents/skills/ui-ux-pro-max/scripts/tests/test_text_layout_resilience.py (glob: **/test_*.py)",
+    ".agents/skills/ui-ux-pro-max/scripts/tests/test_web_stack_freshness.py (glob: **/test_*.py)",
+    ".git/ (glob: **/.git/**)",
+    "apps/api/node_modules/ (glob: **/node_modules/**)",
+    "apps/cms/.next/ (glob: **/.next/**)",
+    "apps/cms/node_modules/ (glob: **/node_modules/**)",
+    "apps/cms/src/_schema-inspect.test.ts (glob: **/*.test.ts)",
+    "apps/cms/src/_sdk.test.ts (glob: **/*.test.ts)",
+    "apps/cms/src/_seed-target.test.ts (glob: **/*.test.ts)"
+  ],
+  "ignore_glob_hash": "sha256:83dbf7e109a97f4fbe4c6255c5ea1648b57ede0e31e953295664e95171114a16",
+  "heuristic_insights": 87,
+  "coverage": {
+    "services_total": 0,
+    "coverage_gaps": 0,
+    "unresolved_edges": 0,
+    "extractors_reporting": 2,
+    "extraction_unresolved": 294
+  },
+  "census": {
+    "files_walked": 486,
+    "parsed": 322,
+    "excluded_by_ignore": 19,
+    "excluded_by_kind": 132,
+    "excluded_kinds": {
+      "(no extension)": 3,
+      ".css": 10,
+      ".csv": 37,
+      ".dockerignore": 1,
+      ".env": 2,
+      ".example": 3,
+      ".gitignore": 1,
+      ".gitkeep": 5,
+      ".jpg": 17,
+      ".json": 34,
+      ".npmrc": 1,
+      ".png": 4,
+      ".svg": 1,
+      ".tsbuildinfo": 2,
+      ".ttf": 1,
+      ".webp": 5,
+      ".woff2": 1,
+      ".yaml": 2,
+      ".yml": 2
+    },
+    "skipped_with_cause": 13,
+    "top_skip_causes": [
+      {
+        "cause": "claimed by manifests, no facts emitted",
+        "count": 12
+      },
+      {
+        "cause": "claimed by typescript, no facts emitted",
+        "count": 1
+      }
+    ]
+  },
+  "output_hashes": {
+    "docs.jsonl": "sha256:bd4fd4ea5f357984e296cd1e8383d3a55be7f2d9f2b76f81b22d54c6ac7745d8",
+    "facts.jsonl": "sha256:2543f43c45cdcde4dea36336843a4965505875795d21f73d0bfc60a95be38e46",
+    "flows.json": "sha256:f480fe5d0c0b92739b6b0de95f20abc9cf47306b9135f856550176ddf8e785ee",
+    "insights.json": "sha256:c626fb54ae9477c263cf2d213afeb04327291b0fef4c9891c3f4e0b2e833112e",
+    "llm_context.md": "sha256:309d15d97919331dcdbc55971e09bfb948802b5d1c49fb552e56483ae7ecc15d"
+  },
+  "unseen": {
+    "files_excluded_by_ignore": 19,
+    "dirs_excluded_by_ignore": 10,
+    "outside_graph": {
+      "imports": 340
+    },
+    "outside_graph_prefixes": {
+      "@orpc/client": 1,
+      "@orpc/server": 2,
+      "@payloadcms/next": 8,
+      "@payloadcms/plugin-import-export": 15,
+      "@payloadcms/richtext-lexical": 23,
+      "@payloadcms/translations": 2,
+      "@persianpart/api": 1,
+      "@persianpart/cms": 5,
+      "@solar-icons/react": 3,
+      "@tanstack/router-plugin": 1,
+      "dotenv": 1,
+      "hono": 8,
+      "next": 2,
+      "nuqs": 1,
+      "react-dom": 1
+    },
+    "dead_exemptions": 0,
+    "dynamic_feature_classes": 0
+  }
+}

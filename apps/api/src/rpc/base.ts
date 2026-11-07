@@ -2,7 +2,10 @@ import { implement, ORPCError } from '@orpc/server'
 import { appContract } from '@persianpart/contract'
 import type { Context, UserContext } from './context'
 
-export const base = implement(appContract).$context<Context>()
+export const base = implement(appContract).$context<Context>().use(async ({ context, next }) => {
+  if (context.authUnavailable) throw new ORPCError('SERVICE_UNAVAILABLE', { message: 'بررسی حساب موقتاً در دسترس نیست؛ دوباره تلاش کنید.' })
+  return next()
+})
 
 export interface AuthenticatedUserContext extends UserContext {
   id: string | number

@@ -10,20 +10,13 @@ Use allowed categories for catalog restrictions. `hideExactStock` also disables 
 
 Create tile and other products with SKU/name/slug and the appropriate metadata. A tile must have a valid carton factor to be ordered. Other uses its primary unit; secondary weight/content is descriptive. Existing stock records prevent changing product type/primary unit. Packaging changes with open orders are rejected. There is no implemented general catalog-completeness scoring service.
 
-## Warehouse setup and stock CSV
+## Price and stock CSV
 
-1. Create an active warehouse with a stable unique code. Rename/deactivate instead of deleting.
-2. Open warehouse stock administration and choose the target warehouse.
-3. Upload or paste UTF-8 CSV with exactly `sku,inventorySqm`; BOM is accepted. Limits: 1 MB, 1–1000 rows, existing unique SKUs, nonnegative amounts with at most two decimals, maximum 1,000,000,000 per row.
-4. Amounts are sellable stock **after reservations**, in each product's primary unit. Missing rows are unchanged. A missing product/warehouse balance can be created by apply.
-5. Preview, then confirm application within 15 minutes using the same actor. Balance or product changes invalidate preview; obtain a fresh one. Apply is one transaction, including audit. Do not attempt to reuse an already applied token.
-6. Export the selected warehouse from its stock endpoint when needed. An accepted stale physical count can still be operationally wrong: the system validates revisions, not the time of a physical count outside the system.
+Choose stock, price, or Kimia processing. Stock CSV uses `sku,inventorySqm`; price CSV uses `sku,basePricePerSqm` in whole Tomans. Kimia exports are headerless semicolon-delimited Windows-1256 or UTF-8 with unit, price in Rials, sellable stock, name, SKU and an empty trailing column. The system rounds converted prices to the nearest Toman; names and units are ignored.
 
-Direct balance update/delete and warehouse deletion are blocked. No automatic undo of a completed import exists. A compensating import needs a fresh, reconciled sellable count.
+Select an active warehouse for stock and Kimia. File stock is the reconciled sellable quantity after reservations; rows absent from the file remain unchanged. Files are limited to 1 MB and 1,000 rows. Invalid, duplicate, and unknown SKU rows are shown and skipped; valid rows are applied together only after confirmation. A stale preview is rejected. Price is global, while stock is warehouse-specific. Price export pages contain up to 1,000 rows and are suitable for reimport.
 
-## Global price CSV
-
-Use the official Payload import-export interface with `sku,basePricePerSqm`, at most 100 rows. Base prices are whole nonnegative Tomans in the primary selling unit. Unknown/duplicate SKU and invalid prices are rejected; the flow updates existing products and does not create partial products. Stock column `inventorySqm` is rejected. It does not share the stock CSV signed-preview workflow; do not promise identical transaction/rollback guarantees for plugin imports without separate verification.
+Direct balance update/delete and warehouse deletion are blocked. Completed imports have no automatic undo; use a fresh reconciled file for correction.
 
 ## Orders and plans
 
@@ -55,10 +48,8 @@ Live API tests in `warehouse.live.test.ts` are opt-in: `WAREHOUSE_LIVE_TEST=true
 
 ## Migration, seed and deployment
 
-CMS has nine registered migrations as of this review. Warehouse foundation follows the two remote product/customer migrations, then order binding, retry fingerprint, sales-unit snapshot and plan-title constraint correction. `plans.title` null values are populated before adding its required constraint.
-
-Warehouse order migration rejects nonempty historical orders rather than inventing a warehouse assignment. For preserved data, design and approve a historical allocation/backfill before applying it. Reset is appropriate only for an explicitly approved disposable target. Automatic production migration configuration does not remove this prerequisite and does not establish zero downtime.
+CMS uses a single baseline migration generated from the current Payload schema, including warehouse constraints. It is intended for a freshly created empty database. Existing databases using the previous migration history require an explicitly planned reset or a separate data-preserving migration; do not apply the baseline over existing tables.
 
 Seed requires `NODE_ENV=development` and `CMS_SEED_DATABASE_URI` exactly matching the effective local database URI with a guarded name. It creates 26 tile products, two other products, two demo warehouses, 56 balances, three customers and five demo orders on a fresh target. Existing balances are preserved on rerun; seed is not a reset command. Use `DISABLE_SMS=true` for CMS plan notifications.
 
-The session verification used independent temporary databases. It did not migrate/reset the working `persianpart_cms`, deploy, or push. See the [verification record](../.agents/brain/warehouse-merge-completion-2026-11-07.md) for measured checks and limitations; it is historical evidence, not a statement about a future environment.
+The historical [verification record](../.agents/brain/warehouse-merge-completion-2026-11-07.md) describes earlier migrations and is not a statement about a future environment.

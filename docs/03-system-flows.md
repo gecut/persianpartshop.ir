@@ -53,9 +53,7 @@ Read an authorized historical order → require an empty current draft → quote
 
 ## CSV
 
-Stock: select warehouse → parse/validate CSV → read product versions and balance revisions → show signed preview → human apply → lock/check warehouse/products → conditional updates/create missing balances + audit → commit all or rollback all. A completed import has no automatic undo operation.
-
-Price: official Payload import-export plugin → validate rows and SKU existence → whitelist SKU/base price → update existing products. This is not the signed warehouse stock pipeline and does not have its documented token/revision mechanism.
+Stock and price imports share a signed preview and transactional apply. Stock targets one active warehouse; prices are global. Kimia CSV supplies both and converts Rials to Tomans. Invalid or duplicate rows and unknown SKUs are shown and excluded; valid rows are applied together after product and inventory revision checks, or all rolled back. A completed import has no automatic undo.
 
 ## Plans
 

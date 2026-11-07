@@ -1,0 +1,81 @@
+[    4106ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:55173/node_modules/.vite/deps/react-dom_client.js?v=d037422f:15804
+[    4318ms] [WARNING] A PressResponder was rendered without a pressable child. Either call the usePress hook, or wrap your DOM node with <Pressable> component. @ http://127.0.0.1:55173/@vite/client:356
+[    5421ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:55173/node_modules/.vite/deps/react-dom_client.js?v=d037422f:15804
+[    5491ms] [WARNING] A PressResponder was rendered without a pressable child. Either call the usePress hook, or wrap your DOM node with <Pressable> component. @ http://127.0.0.1:55173/@vite/client:356
+[    5492ms] [WARNING] A PressResponder was rendered without a pressable child. Either call the usePress hook, or wrap your DOM node with <Pressable> component. @ http://127.0.0.1:55173/@vite/client:356
+[    5505ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[    5506ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[    5525ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[    5525ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[    5551ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[    5551ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[    5567ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[    5567ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[    5583ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[    5583ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[    5599ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[    5599ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[    5655ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[    5655ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[    5679ms] [WARNING] A PressResponder was rendered without a pressable child. Either call the usePress hook, or wrap your DOM node with <Pressable> component. @ http://127.0.0.1:55173/@vite/client:356
+[    7934ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[    7934ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[    7951ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[    7951ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[    7981ms] [WARNING] A PressResponder was rendered without a pressable child. Either call the usePress hook, or wrap your DOM node with <Pressable> component. @ http://127.0.0.1:55173/@vite/client:356
+[    9211ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[    9212ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[    9231ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[    9231ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[    9253ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[    9254ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[    9271ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[    9271ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[    9330ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[    9330ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[    9910ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:55173/node_modules/.vite/deps/react-dom_client.js?v=d037422f:15804
+[    9941ms] [WARNING] A PressResponder was rendered without a pressable child. Either call the usePress hook, or wrap your DOM node with <Pressable> component. @ http://127.0.0.1:55173/@vite/client:356
+[   10424ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:55173/node_modules/.vite/deps/react-dom_client.js?v=d037422f:15804
+[   10483ms] [WARNING] A PressResponder was rendered without a pressable child. Either call the usePress hook, or wrap your DOM node with <Pressable> component. @ http://127.0.0.1:55173/@vite/client:356
+[   10483ms] [WARNING] A PressResponder was rendered without a pressable child. Either call the usePress hook, or wrap your DOM node with <Pressable> component. @ http://127.0.0.1:55173/@vite/client:356
+[   10495ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[   10496ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[   10516ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[   10517ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[   10539ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[   10540ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[   10563ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[   10563ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[   10582ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[   10583ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[   10622ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[   10622ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[   10639ms] [WARNING] A PressResponder was rendered without a pressable child. Either call the usePress hook, or wrap your DOM node with <Pressable> component. @ http://127.0.0.1:55173/@vite/client:356
+[   10955ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[   10955ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[   11003ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[   11004ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[   11017ms] [WARNING] A PressResponder was rendered without a pressable child. Either call the usePress hook, or wrap your DOM node with <Pressable> component. @ http://127.0.0.1:55173/@vite/client:356
+[   11304ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[   11305ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[   11353ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[   11354ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[   11365ms] [WARNING] A PressResponder was rendered without a pressable child. Either call the usePress hook, or wrap your DOM node with <Pressable> component. @ http://127.0.0.1:55173/@vite/client:356
+[   16711ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[   16711ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[   16757ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[   16758ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[   16770ms] [WARNING] A PressResponder was rendered without a pressable child. Either call the usePress hook, or wrap your DOM node with <Pressable> component. @ http://127.0.0.1:55173/@vite/client:356
+[   16800ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:55173/api/rpc/catalog/getByScanCode:0
+[   17215ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[   17216ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[   17229ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[   17229ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[   17251ms] [WARNING] A PressResponder was rendered without a pressable child. Either call the usePress hook, or wrap your DOM node with <Pressable> component. @ http://127.0.0.1:55173/@vite/client:356
+[   17642ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[   17642ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[   18041ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[   18041ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[   18055ms] [WARNING] A PressResponder was rendered without a pressable child. Either call the usePress hook, or wrap your DOM node with <Pressable> component. @ http://127.0.0.1:55173/@vite/client:356
+[   18341ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356
+[   18341ms] [WARNING] If you do not provide a visible label, you must specify an aria-label or aria-labelledby attribute for accessibility @ http://127.0.0.1:55173/@vite/client:356

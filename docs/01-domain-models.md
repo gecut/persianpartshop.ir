@@ -17,7 +17,7 @@ erDiagram
 
 ## Customer and staff
 
-`users`: required `fullName`, unique `phone`, `customerType`, `status` (`active`, `pending`, `suspended`). Optional company/address/identity details, address array, internal `notes`, `isBanned`, `banReason`, `allowedCategories`, `hideExactStock`, `disableOrdering`, and document array. Documents hold type, media file, review status (`pending`, `approved`, `rejected`), rejection reason and upload time. Empty allowed categories means unrestricted categories. Hiding exact stock also disables ordering.
+`users`: required `fullName`, unique `phone`, `customerType`, `status` (`active`, `pending`, `suspended`). Optional company/address/identity details, address array, internal `notes`, `isBanned`, `banReason`, `allowedCategories`, `hideExactStock`, `disableOrdering`, `canUseProductQr`, and document array. Documents hold type, media file, review status (`pending`, `approved`, `rejected`), rejection reason and upload time. Empty allowed categories means unrestricted categories. Hiding exact stock also disables ordering. QR access defaults to false.
 
 `admins`: Payload-authenticated email/password accounts with API-key support, `name`, optional `phone`, `isActive`, and selectable roles `superadmin`, `manager`, `service`. Admin/customer phone linking can create a separate customer record; staff identity is not the same collection as a customer.
 
@@ -26,6 +26,8 @@ erDiagram
 ## Products and taxonomies
 
 `products`: required unique `sku`, unique `slug`, `name`; optional category/brand/tags/media, grade/color/rich description and dimensions. Slug derives from SKU when missing on creation and is preserved on ordinary updates. SKU immutability is not a declared collection invariant.
+
+Optional unique `scanCode` is normalized to uppercase, accepts ASCII letters, digits and hyphens up to 128 characters, and preserves leading zeros. Empty values become null. It is independent of SKU and is editable; changing it invalidates previously printed QR codes.
 
 - `productType`: `tile` or `other`.
 - Tile `sqmPerCarton` is the positive selling factor used for orders; `piecesPerCarton`, dimensions and grade are metadata. Dimension/grade are not universally required by schema; do not describe a separate completeness blocker that is not implemented.
@@ -56,4 +58,4 @@ Persisted timeline entries contain timestamp/status (and Payload array IDs). The
 
 `audit-logs`: action/entity, target/details, optional admin relation/name/IP, timestamps. Normal update/create is denied; server hooks write through Local API. Superadmin can read **and delete** logs, so this is not append-only storage against the highest-privilege role.
 
-`otps` persists phone/code/expiry/cooldown/attempts/customer reference. The import-export plugin also registers its own collections; those must not be confused with a custom `ImportRun` domain model.
+`otps` persists phone/code/expiry/cooldown/attempts/customer reference.

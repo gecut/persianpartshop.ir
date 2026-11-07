@@ -1,3 +1,4 @@
+import { DataStatus } from '../../components/feedback/data-status'
 import { customerErrorMessage } from '../../lib/utils/error'
 import { formatUnit, summarizeQuantities } from '../../lib/utils/unit'
 import { prepareReorderDraft } from '../../features/products/selection-store'
@@ -89,6 +90,9 @@ function OrderDetailPage() {
   const [order, setOrder] = useState<Order | null>(
     () => getOrderById(orderId) || null,
   );
+  const [detailError, setDetailError] = useState<unknown>(null);
+  const [detailRefreshing, setDetailRefreshing] = useState(false);
+  const [detailAttempt, setDetailAttempt] = useState(0);
   const [isLoading, setIsLoading] = useState(!order);
 
   const isCancelled =
@@ -125,6 +129,7 @@ function OrderDetailPage() {
       return;
     }
 
+    setDetailError(null);
     setIsLoading(true);
     fetchOrderById(orderId).then((res) => {
       if (isMounted) {
@@ -132,12 +137,12 @@ function OrderDetailPage() {
         setTimeLeftSeconds(calculateRemainingSeconds(res));
         setIsLoading(false);
       }
-    });
+    }).catch((error: unknown) => { if (isMounted) { setDetailError(error); setIsLoading(false) } });
 
     return () => {
       isMounted = false;
     };
-  }, [orderId, orders]);
+  }, [orderId, orders, detailAttempt]);
 
   useEffect(() => {
     if (!order || isCancelled || isCompleted) {
@@ -278,6 +283,20 @@ function OrderDetailPage() {
     return { reorderProducts: products, reorderQuantities: quantities };
   }, [order?.items, allProducts]);
 
+  const refreshDetail = async () => {
+    setDetailRefreshing(true);
+    setDetailError(null);
+    try {
+      const latest = await fetchOrderById(orderId);
+      setOrder(latest);
+      setTimeLeftSeconds(calculateRemainingSeconds(latest));
+    } catch (error) {
+      setDetailError(error);
+    } finally {
+      setDetailRefreshing(false);
+    }
+  };
+
   const handleCancel = async () => {
     if (!order) return;
     try {
@@ -289,8 +308,7 @@ function OrderDetailPage() {
       "سفارش لغو شد",
       `سفارش ${formatInvoiceNumber(order)} با موفقیت لغو شد و موجودی به انبار بازگردانی گردید.`,
     );
-    const fresh = await fetchOrderById(order.id);
-    if (fresh) setOrder(fresh);
+    await refreshDetail();
     } catch (error) {
       toast.error('لغو سفارش انجام نشد', customerErrorMessage(error, 'دوباره تلاش کنید.'));
     }
@@ -304,6 +322,8 @@ function OrderDetailPage() {
   if (isLoading) {
     return <OrderDetailSkeleton />;
   }
+
+  if (detailError && !order) return <DataStatus error={detailError} onRetry={() => setDetailAttempt(value => value + 1)} />;
 
   if (!order) {
     return (
@@ -327,6 +347,7 @@ function OrderDetailPage() {
 
   return (
     <div className="w-full px-3 py-3 space-y-3 select-none">
+      <DataStatus error={detailError} hasData fetching={detailRefreshing} onRetry={() => void refreshDetail()} />
       {/* Top Breadcrumb */}
       <nav className="flex items-center gap-2 text-xs text-muted">
         <Link

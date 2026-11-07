@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { createRequire } from 'node:module'
-import { randomUUID } from 'node:crypto'
+import { createHmac, randomUUID } from 'node:crypto'
 import { test } from 'node:test'
 import { getPayload, createLocalReq } from 'payload'
 import { stockImportEndpoints, parseStockCsv } from './collections/warehouse-stock/_import.endpoints'
@@ -38,20 +38,14 @@ test('full migrations: schema coverage, CRUD, and warehouse rollback', { skip: !
   })
 
   const applyDown = async () => db.transaction(async transaction => {
-    const warehouseNames = new Set([
-      '20261107_080025_warehouse_foundation',
-      '20261107_080843_warehouse_orders',
-      '20261107_082608_order_request_fingerprint',
-      '20261107_090722_warehouse_sales_units',
-    ])
-    for (const migration of [...migrations].filter(migration => warehouseNames.has(migration.name)).reverse()) {
+    for (const migration of [...migrations].reverse()) {
       await migration.down({ db: transaction, payload } as unknown as MigrateDownArgs)
     }
   })
 
   try {
     await control.query(`CREATE DATABASE "${name}"`)
-    assert.ok(migrations.length >= 4)
+    assert.equal(migrations.length, 1)
 
     // 1. Apply baseline migration
     await applyUp()
@@ -123,6 +117,7 @@ test('full migrations: schema coverage, CRUD, and warehouse rollback', { skip: !
       collection: 'users',
       data: { phone: '09120000001', fullName: 'آرش دهقان', customerType: tier.id, status: 'active' },
     })
+    assert.equal(user.canUseProductQr, false)
 
     // Dimensions & Products
     const dimension = await payload.create({
@@ -140,11 +135,33 @@ test('full migrations: schema coverage, CRUD, and warehouse rollback', { skip: !
         basePricePerSqm: 500000,
         stockCartons: 100,
         inventorySqm: 144,
+        scanCode: '  pp-001  ',
       },
     })
+    assert.equal(product.scanCode, 'PP-001')
+    const publicProduct = await payload.findByID({ collection: 'products', id: product.id, overrideAccess: false })
+    assert.equal(publicProduct.scanCode, undefined)
+    const serviceProduct = await payload.findByID({ collection: 'products', id: product.id, overrideAccess: false, user: { ...service, collection: 'admins' } })
+    assert.equal(serviceProduct.scanCode, 'PP-001')
+    await assert.rejects(payload.create({ collection: 'products', data: { sku: 'PP-DUP', slug: 'pp-dup', name: 'Duplicate', scanCode: 'pp-001', sqmPerCarton: 1, basePricePerSqm: 10 } }))
+    await assert.rejects(payload.update({ collection: 'products', id: product.id, data: { scanCode: 'A'.repeat(129) } }))
+    const maxCode = await payload.update({ collection: 'products', id: product.id, data: { scanCode: 'A'.repeat(128) } })
+    assert.equal(maxCode.scanCode, 'A'.repeat(128))
+    await payload.update({ collection: 'products', id: product.id, data: { scanCode: 'PP-001' } })
+    const noCodeOne = await payload.create({ collection: 'products', data: { sku: 'PP-NO-CODE-1', slug: 'pp-no-code-1', name: 'No QR 1', sqmPerCarton: 1, basePricePerSqm: 10 } })
+    const noCodeTwo = await payload.create({ collection: 'products', data: { sku: 'PP-NO-CODE-2', slug: 'pp-no-code-2', name: 'No QR 2', scanCode: '  ', sqmPerCarton: 1, basePricePerSqm: 10 } })
+    assert.equal(noCodeOne.scanCode ?? null, null)
+    assert.equal(noCodeTwo.scanCode, null)
 
     const warehouse = await payload.create({ collection: 'warehouses', data: { code: 'TEST', name: 'انبار تست', isActive: true } })
     await payload.create({ collection: 'warehouse-stock', data: { warehouse: warehouse.id, product: product.id, inventorySqm: 144, revision: 0 } })
+    await assert.rejects(pool.query('UPDATE warehouse_stock SET inventory_sqm = -1 WHERE warehouse_id = $1 AND product_id = $2', [warehouse.id, product.id]))
+    await assert.rejects(pool.query('UPDATE warehouse_stock SET inventory_sqm = 1.001 WHERE warehouse_id = $1 AND product_id = $2', [warehouse.id, product.id]))
+    await assert.rejects(pool.query('UPDATE warehouse_stock SET revision = 0.5 WHERE warehouse_id = $1 AND product_id = $2', [warehouse.id, product.id]))
+    const warehouseConstraints = await pool.query<{ conname: string; confdeltype: string }>(`SELECT conname, confdeltype FROM pg_constraint WHERE conname IN ('warehouse_stock_warehouse_id_warehouses_id_fk', 'warehouse_stock_product_id_products_id_fk', 'orders_warehouse_id_warehouses_id_fk')`)
+    assert.equal(warehouseConstraints.rowCount, 3)
+    assert.ok(warehouseConstraints.rows.every(constraint => constraint.confdeltype === 'r'))
+
     // Orders with authoritative calculation and timeline
     const order = await payload.create({
       collection: 'orders',
@@ -232,6 +249,41 @@ test('full migrations: schema coverage, CRUD, and warehouse rollback', { skip: !
     assert.equal((await importRequest('/apply', { token: (await staleProductPreview.json()).token })).status, 409)
     const audit = await payload.find({ collection: 'audit-logs', where: { target: { equals: `موجودی انبار #${warehouse.id}` } } })
     assert.equal(audit.totalDocs, 1, 'only successful CSV applications are audited')
+    const kimiaPreview = await importRequest('/preview', { mode: 'kimia', warehouseId: warehouse.id, csv: '"متر مربع";"12345";"77.5";"نام نادیده";"PP-TEST-001";\n"عدد";"10";"2";"ناشناخته";"MISSING";' })
+    assert.equal(kimiaPreview.status, 200)
+    const kimia = await kimiaPreview.json()
+    assert.equal(kimia.total, 2)
+    assert.equal(kimia.rows.length, 1)
+    assert.equal(kimia.errors.length, 1)
+    assert.equal(kimia.rows[0].basePricePerSqm, 1235)
+    assert.equal((await importRequest('/apply', { token: kimia.token })).status, 200)
+    assert.equal((await payload.findByID({ collection: 'products', id: product.id, depth: 0 })).basePricePerSqm, 1235)
+    assert.equal((await payload.find({ collection: 'warehouse-stock', where: { product: { equals: product.id } }, depth: 0 })).docs[0]!.inventorySqm, 77.5)
+    const pricePreview = await importRequest('/preview', { mode: 'price', csv: 'sku,basePricePerSqm\nPP-TEST-001,999' })
+    assert.equal(pricePreview.status, 200)
+    const priceToken = (await pricePreview.json()).token
+    await payload.update({ collection: 'products', id: product.id, data: { basePricePerSqm: 2222 } })
+    assert.equal((await importRequest('/apply', { token: priceToken })).status, 409)
+    assert.equal((await payload.findByID({ collection: 'products', id: product.id, depth: 0 })).basePricePerSqm, 2222)
+    const exportReq = await createLocalReq({ user: { ...manager, role: 'manager', collection: 'admins' } }, payload)
+    Object.assign(exportReq, { url: 'http://localhost/api/warehouse-stock/export?mode=price' })
+    const exported = await stockImportEndpoints.find(endpoint => endpoint.path === '/export')!.handler(exportReq)
+    assert.equal(exported.status, 200)
+    const priceRoundTrip = await importRequest('/preview', { mode: 'price', csv: await exported.text() })
+    assert.equal(priceRoundTrip.status, 200)
+    assert.equal((await priceRoundTrip.json()).errors.length, 0)
+    const expiredPreview = await importRequest('/preview', { mode: 'price', csv: 'sku,basePricePerSqm\nPP-TEST-001,999' })
+    const expiredBody = JSON.parse(Buffer.from((await expiredPreview.json()).token.split('.')[0], 'base64url').toString())
+    expiredBody.expiresAt = 0
+    const encodedExpired = Buffer.from(JSON.stringify(expiredBody)).toString('base64url')
+    const expiredSignature = createHmac('sha256', payload.secret).update(encodedExpired).digest('hex')
+    assert.equal((await importRequest('/apply', { token: `${encodedExpired}.${expiredSignature}` })).status, 409)
+    const rollbackPreview = await importRequest('/preview', { mode: 'kimia', warehouseId: warehouse.id, csv: '"m";"4000";"45";"x";"PP-TEST-001";\n"m";"5000";"5";"x";"PP-BAG";' })
+    const rollbackToken = (await rollbackPreview.json()).token
+    await pool.query('UPDATE warehouse_stock SET revision = revision + 1 WHERE id = $1', [otherBalance.id])
+    assert.equal((await importRequest('/apply', { token: rollbackToken })).status, 409)
+    assert.equal((await payload.findByID({ collection: 'products', id: product.id, depth: 0 })).basePricePerSqm, 2222)
+    assert.equal((await payload.find({ collection: 'warehouse-stock', where: { product: { equals: product.id } }, depth: 0 })).docs[0]!.inventorySqm, 77.5)
     console.log('CSV multi-row rollback, product-version invalidation and audit persistence: PASS')
     console.log('mixed units: authoritative pricing, reserve/cancel and unit immutability: PASS')
     console.log('Local API CRUD and lifecycle tests: PASS')

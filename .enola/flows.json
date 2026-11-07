@@ -1,0 +1,292 @@
+{
+  "roots": {
+    "main": 1,
+    "registered": 15,
+    "route": 5
+  },
+  "leaves": 18,
+  "total": 3,
+  "described": 3,
+  "flows": [
+    {
+      "id": "ac52e2e9c6fc6a4825b445b539340f8c",
+      "name": "ALL /api/rpc",
+      "rank": 1,
+      "repo": "persianpartshop.ir",
+      "mechanism": "route",
+      "routes": [
+        {
+          "name": "/api/rpc",
+          "method": "ALL",
+          "id": "7318fabbb64328752b152597a300876a",
+          "file": "apps/api/src/server.ts",
+          "line": 189
+        },
+        {
+          "name": "/api/rpc/*",
+          "method": "ALL",
+          "id": "0728e3d827bc69fe01c8490aeefbc0f4",
+          "file": "apps/api/src/server.ts",
+          "line": 190
+        }
+      ],
+      "entry": {
+        "name": "apps/api/src.rpcHandler",
+        "id": "a29f7e4c2a24b544b635df98ac637f12",
+        "file": "apps/api/src/server.ts",
+        "line": 176,
+        "doc": "3. oRPC Server Integration (/api/rpc/*)"
+      },
+      "summary": "HTTP ALL /api/rpc enters at src.rpcHandler (\"3. oRPC Server Integration (/api/rpc/*)\"). It hands off to rpc.createContext, which calls lib.extractBearerToken, lib.isTokenRevoked and lib.verifyToken. Most of its 5 symbols sit in apps/api/src/lib (3 symbols), apps/api/src (1) and apps/api/src/rpc (1).",
+      "metrics": {
+        "reach": 5,
+        "modules": 3,
+        "max_depth": 2,
+        "unresolved_calls": 6,
+        "external_calls": 2
+      },
+      "modules": [
+        {
+          "name": "apps/api/src/lib",
+          "symbols": 3
+        },
+        {
+          "name": "apps/api/src",
+          "symbols": 1
+        },
+        {
+          "name": "apps/api/src/rpc",
+          "symbols": 1
+        }
+      ],
+      "stages": [
+        {
+          "order": 1,
+          "depth": 1,
+          "name": "apps/api/src/rpc.createContext",
+          "id": "0ee29b1c4bbd95a280f71984e0408cd4",
+          "file": "apps/api/src/rpc/context.ts",
+          "line": 18,
+          "reach": 4
+        },
+        {
+          "order": 2,
+          "depth": 2,
+          "parent": "0ee29b1c4bbd95a280f71984e0408cd4",
+          "name": "apps/api/src/lib.extractBearerToken",
+          "id": "f247286a560303db456379c070978ed3",
+          "file": "apps/api/src/lib/jwt.ts",
+          "line": 98,
+          "doc": "Extracts the Bearer token string from an Authorization header (lightweight vanilla JS)",
+          "reach": 1
+        },
+        {
+          "order": 3,
+          "depth": 2,
+          "parent": "0ee29b1c4bbd95a280f71984e0408cd4",
+          "name": "apps/api/src/lib.isTokenRevoked",
+          "id": "450c0b58290c3f2a5ba52a7b62ab4d41",
+          "file": "apps/api/src/lib/jwt.ts",
+          "line": 128,
+          "doc": "Checks whether a token has been revoked / logged out",
+          "reach": 1
+        },
+        {
+          "order": 4,
+          "depth": 2,
+          "parent": "0ee29b1c4bbd95a280f71984e0408cd4",
+          "name": "apps/api/src/lib.verifyToken",
+          "id": "d1bfcae6f91182d132179a0f5dd3d47d",
+          "file": "apps/api/src/lib/jwt.ts",
+          "line": 71,
+          "doc": "Verifies a JWT token using Hono's native verify helper Validates expiration (exp), issue time (iat), and cryptographic signature",
+          "reach": 1
+        }
+      ]
+    },
+    {
+      "id": "b2ba91f5be7584ef4b73c85a8f650feb",
+      "name": "apps/web/src/routes.Route.beforeLoad",
+      "rank": 2,
+      "repo": "persianpartshop.ir",
+      "mechanism": "registered",
+      "entry": {
+        "name": "apps/web/src/routes.Route.beforeLoad",
+        "id": "66cd05f0c0cabe930f7a26c518241a29",
+        "file": "apps/web/src/routes/__root.tsx",
+        "line": 11
+      },
+      "summary": "The framework invokes routes.Route.beforeLoad. It hands off to auth.authStore.getState. Most of its 2 symbols sit in apps/web/src/features/auth (1 symbol) and apps/web/src/routes (1).",
+      "metrics": {
+        "reach": 2,
+        "modules": 2,
+        "max_depth": 1,
+        "unresolved_calls": 1,
+        "external_calls": 1
+      },
+      "modules": [
+        {
+          "name": "apps/web/src/features/auth",
+          "symbols": 1
+        },
+        {
+          "name": "apps/web/src/routes",
+          "symbols": 1
+        }
+      ],
+      "stages": [
+        {
+          "order": 1,
+          "depth": 1,
+          "name": "apps/web/src/features/auth.authStore.getState",
+          "id": "95bba5d59c8ea3624d6a840107d9ff49",
+          "file": "apps/web/src/features/auth/auth-store.ts",
+          "line": 57,
+          "reach": 1
+        }
+      ]
+    },
+    {
+      "id": "b551538d43b284b280c5290a9ffebb09",
+      "name": ".agents/skills/ui-ux-pro-max/scripts/validate_data.main",
+      "rank": 3,
+      "repo": "persianpartshop.ir",
+      "mechanism": "main",
+      "side": true,
+      "entry": {
+        "name": ".agents/skills/ui-ux-pro-max/scripts/validate_data.main",
+        "id": "a4bee76143b210e217598b0a624983e8",
+        "file": ".agents/skills/ui-ux-pro-max/scripts/validate_data.py",
+        "line": 1077
+      },
+      "summary": "The program starts at validate_data.main. It hands off to validate_data.validate, which calls validate_data._check_core_data_contract, validate_data._check_catalog_contract, validate_data._check_provenance and validate_data._check_reasoning_contract.",
+      "metrics": {
+        "reach": 41,
+        "modules": 1,
+        "max_depth": 5,
+        "performs_io": 9,
+        "unresolved_calls": 3,
+        "external_calls": 3
+      },
+      "modules": [
+        {
+          "name": ".agents/skills/ui-ux-pro-max/scripts",
+          "symbols": 41
+        }
+      ],
+      "stages": [
+        {
+          "order": 1,
+          "depth": 1,
+          "name": ".agents/skills/ui-ux-pro-max/scripts/validate_data.validate",
+          "id": "1c6fe6c205bede956a4c7cb6e64e0251",
+          "file": ".agents/skills/ui-ux-pro-max/scripts/validate_data.py",
+          "line": 999,
+          "doc": "Return every semantic data problem without terminating the process.",
+          "reach": 40
+        },
+        {
+          "order": 2,
+          "depth": 2,
+          "parent": "1c6fe6c205bede956a4c7cb6e64e0251",
+          "name": ".agents/skills/ui-ux-pro-max/scripts/validate_data._check_core_data_contract",
+          "id": "608b69a33323fbebfb43db25742a3815",
+          "file": ".agents/skills/ui-ux-pro-max/scripts/validate_data.py",
+          "line": 765,
+          "reach": 18
+        },
+        {
+          "order": 3,
+          "depth": 3,
+          "parent": "608b69a33323fbebfb43db25742a3815",
+          "name": ".agents/skills/ui-ux-pro-max/scripts/validate_data._check_typography_contract",
+          "id": "aabb66d91c59ce45d755b1e79a938c57",
+          "file": ".agents/skills/ui-ux-pro-max/scripts/validate_data.py",
+          "line": 468,
+          "reach": 6
+        },
+        {
+          "order": 4,
+          "depth": 3,
+          "parent": "608b69a33323fbebfb43db25742a3815",
+          "name": ".agents/skills/ui-ux-pro-max/scripts/validate_data._check_color_contract",
+          "id": "d9b6c0123b55db58f14b708c1f8cf1ef",
+          "file": ".agents/skills/ui-ux-pro-max/scripts/validate_data.py",
+          "line": 387,
+          "reach": 3
+        },
+        {
+          "order": 5,
+          "depth": 3,
+          "parent": "608b69a33323fbebfb43db25742a3815",
+          "name": ".agents/skills/ui-ux-pro-max/scripts/validate_data._check_icon_contract",
+          "id": "73ba306a15ace994a220c38e43e5952a",
+          "file": ".agents/skills/ui-ux-pro-max/scripts/validate_data.py",
+          "line": 698,
+          "reach": 2
+        },
+        {
+          "order": 6,
+          "depth": 2,
+          "parent": "1c6fe6c205bede956a4c7cb6e64e0251",
+          "name": ".agents/skills/ui-ux-pro-max/scripts/validate_data._check_catalog_contract",
+          "id": "83448756c962863a58172e663b01c449",
+          "file": ".agents/skills/ui-ux-pro-max/scripts/validate_data.py",
+          "line": 683,
+          "reach": 8
+        },
+        {
+          "order": 7,
+          "depth": 3,
+          "parent": "83448756c962863a58172e663b01c449",
+          "name": ".agents/skills/ui-ux-pro-max/scripts/validate_data._check_catalog_summary",
+          "id": "58a41ec63a3f957b5ecefe0c4c71fbbb",
+          "file": ".agents/skills/ui-ux-pro-max/scripts/validate_data.py",
+          "line": 635,
+          "reach": 3
+        },
+        {
+          "order": 8,
+          "depth": 3,
+          "parent": "83448756c962863a58172e663b01c449",
+          "name": ".agents/skills/ui-ux-pro-max/scripts/validate_data._check_font_catalog",
+          "id": "e1a781ed92e51f4f9c49dc22bc701015",
+          "file": ".agents/skills/ui-ux-pro-max/scripts/validate_data.py",
+          "line": 529,
+          "reach": 2
+        },
+        {
+          "order": 9,
+          "depth": 2,
+          "parent": "1c6fe6c205bede956a4c7cb6e64e0251",
+          "name": ".agents/skills/ui-ux-pro-max/scripts/validate_data._check_provenance",
+          "id": "b076f3e8192d55b3ef7026300449e4aa",
+          "file": ".agents/skills/ui-ux-pro-max/scripts/validate_data.py",
+          "line": 896,
+          "reach": 6
+        },
+        {
+          "order": 10,
+          "depth": 2,
+          "parent": "1c6fe6c205bede956a4c7cb6e64e0251",
+          "name": ".agents/skills/ui-ux-pro-max/scripts/validate_data._check_reasoning_contract",
+          "id": "43b25530d600fb7c976b7c27654bed9a",
+          "file": ".agents/skills/ui-ux-pro-max/scripts/validate_data.py",
+          "line": 331,
+          "reach": 4
+        },
+        {
+          "order": 11,
+          "depth": 3,
+          "parent": "43b25530d600fb7c976b7c27654bed9a",
+          "name": ".agents/skills/ui-ux-pro-max/scripts/reasoning_contract.parse_decision_rules",
+          "id": "0e839259f9d39f956238abd39243b781",
+          "file": ".agents/skills/ui-ux-pro-max/scripts/reasoning_contract.py",
+          "line": 67,
+          "doc": "Parse the canonical condition -\u003e action-array representation.",
+          "reach": 3
+        }
+      ]
+    }
+  ]
+}

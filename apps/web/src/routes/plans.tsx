@@ -1,3 +1,4 @@
+import { DataStatus } from '../components/feedback/data-status'
 import { useMemo, useState, useEffect, useRef } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { usePlans } from "../features/plans/plans-store";
@@ -14,7 +15,7 @@ export const Route = createFileRoute("/plans")({
 const PLANS_PAGE_SIZE = 12;
 
 function CustomerPlansPage() {
-  const { plans, isLoading: isPlansLoading } = usePlans();
+  const { plans, isLoading: isPlansLoading, error, isFetching, refresh } = usePlans();
   const { allProducts } = useProducts();
   const isLoading = isPlansLoading && plans.length === 0;
   const validPlans = (plans as Plan[]).filter((p: Plan) => {
@@ -62,13 +63,13 @@ function CustomerPlansPage() {
 
   return (
     <div className="w-full px-4 py-3 space-y-3.5 text-start pb-8">
-      <div className="flex items-center justify-between gap-2"></div>
+      <DataStatus error={error} hasData={plans.length > 0} fetching={isFetching} onRetry={() => void refresh()} />
       {isLoading && plans.length === 0 ? (
         <div className="grid grid-cols-1 gap-4 items-stretch">
           <PlanCardSkeleton />
           <PlanCardSkeleton />
         </div>
-      ) : sortedPlans.length === 0 ? (
+      ) : (error || !navigator.onLine) && !plans.length ? null : sortedPlans.length === 0 ? (
         <div className="bg-muted/5 rounded-2xl p-8 text-center space-y-3">
           <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto">
             <SparklesIcon size={26} />

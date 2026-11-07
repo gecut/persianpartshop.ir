@@ -1,7 +1,10 @@
 import { useMemo, useEffect } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Button } from "@heroui/react";
-import { useProducts } from "../../features/products/product-store";
+import { useQueries } from "@tanstack/react-query";
+import { mapCatalogProduct } from "../../features/products/product-store";
+import { api } from "../../lib/api-client";
+import { queryKeys } from "../../lib/query-keys";
 import {
   selectionStore,
   useSelectedIds,
@@ -33,27 +36,21 @@ function ProductNewConfigurationPage() {
     }
   }, [isOrderingDisabled, navigate]);
 
-  const { allProducts } = useProducts();
   const selectedIds = useSelectedIds();
-
-  // Reconcile selected IDs with live products and prune out-of-stock items
-  useEffect(() => {
-    if (allProducts && allProducts.length > 0) {
-      selectionStore.reconcileWithProducts(allProducts.map((p) => p.id));
-
-    }
-  }, [allProducts, selectedIds]);
+  const productQueries = useQueries({
+    queries: selectedIds.map((id) => ({
+      queryKey: queryKeys.products.detail(id),
+      queryFn: () => api.catalog.getById({ id: Number(id) }),
+      staleTime: 60_000,
+    })),
+  });
+  const productsLoading = productQueries.some((query) => query.isPending);
+  const productsFailed = productQueries.some((query) => query.isError);
 
   // Selected products resolved from live products database (excluding out-of-stock)
   const selectedProducts = useMemo(() => {
-    return selectedIds
-      .map((id) => {
-        const cleanId = String(id).replace(/["']/g, "").trim();
-        return allProducts.find(
-          (p) =>
-            String(p.id) === cleanId || p.sku === cleanId || p.slug === cleanId,
-        );
-      })
+    return productQueries
+      .map((query) => query.data ? mapCatalogProduct(query.data) : null)
       .filter((p): p is Product => {
         if (!p) return false;
         if (!isProductAllowedForUser(p, user)) return false;
@@ -64,7 +61,7 @@ function ProductNewConfigurationPage() {
             Number(p.inventorySqm) <= 0);
         return !isOutOfStock;
       });
-  }, [selectedIds, allProducts, user]);
+  }, [productQueries, user]);
 
   // Initialize quantities for newly selected products
   useEffect(() => {
@@ -91,6 +88,10 @@ function ProductNewConfigurationPage() {
       params: { id: orderId },
     });
   };
+
+  if (productsLoading || productsFailed) {
+    return <div className="p-6 text-center" role="status">{productsFailed ? "دریافت محصولات انتخاب‌شده ممکن نشد. دوباره تلاش کنید." : "در حال دریافت محصولات…"}{productsFailed && <Button onPress={() => productQueries.forEach((query) => query.refetch())}>تلاش مجدد</Button>}</div>;
+  }
 
   if (selectedProducts.length === 0) {
     return (

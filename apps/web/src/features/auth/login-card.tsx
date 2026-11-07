@@ -93,6 +93,7 @@ export function LoginCard() {
     }
 
     setIsLoading(true);
+    const loginRedirect = new URLSearchParams(window.location.search).get('redirect');
 
     try {
       await verifyOtp(code);
@@ -103,30 +104,12 @@ export function LoginCard() {
         "به سامانه سفارش‌گذاری عمده پرشین‌پارت خوش آمدید.",
       );
 
-      const search = new URLSearchParams(window.location.search);
-      const redirectUrl = search.get("redirect");
-
-      setTimeout(() => {
-        if (redirectUrl && !redirectUrl.includes("/login")) {
-          try {
-            const url = new URL(redirectUrl, window.location.origin);
-
-            if (url.origin !== window.location.origin) {
-              navigate({ to: "/product" });
-              return;
-            }
-
-            navigate({
-              to: url.pathname as any,
-              search: Object.fromEntries(url.searchParams.entries()) as any,
-            });
-          } catch {
-            navigate({ to: "/product" });
-          }
-        } else {
-          navigate({ to: "/product" });
-        }
-      }, 1200);
+      let destination = '/product';
+      try {
+        const url = new URL(loginRedirect || '/product', window.location.origin);
+        if (url.origin === window.location.origin && url.pathname !== '/login') destination = url.pathname + url.search + url.hash;
+      } catch { /* Fall back to the catalog. */ }
+      await navigate({ href: destination, replace: true });
     } catch (err: unknown) {
       setOtpStatus("error");
       const msg =

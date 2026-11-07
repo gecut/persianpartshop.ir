@@ -30,7 +30,6 @@ export const Orders: CollectionConfig = {
   },
   fields: [
     { name: 'requestFingerprint', type: 'text', admin: { hidden: true } },
-    { name: 'warehouse', type: 'relationship', relationTo: 'warehouses', required: true, index: true, label: 'انبار تأمین' },
     { name: 'warehouseName', type: 'text', admin: { hidden: true } },
     { name: 'warehouseCode', type: 'text', admin: { hidden: true } },
     {
@@ -40,26 +39,6 @@ export const Orders: CollectionConfig = {
       index: true,
       admin: {
         hidden: true,
-      },
-    },
-    {
-      name: 'orderNumber',
-      type: 'text',
-      required: true,
-      unique: true,
-      label: 'شماره سفارش',
-      admin: {
-        description: 'شناسه یکتا و رسمی فاکتور سفارش در سیستم.',
-      },
-    },
-    {
-      name: 'user',
-      type: 'relationship',
-      relationTo: 'users',
-      required: true,
-      label: 'مشتری',
-      admin: {
-        description: 'خریدار یا شرکت ثبت‌کننده سفارش.',
       },
     },
     {
@@ -82,20 +61,29 @@ export const Orders: CollectionConfig = {
       ],
     },
     {
-      name: 'cancelledBy',
-      type: 'select',
-      label: 'مرجع لغو',
+      name: 'orderNumber',
+      type: 'text',
+      required: true,
+      unique: true,
+      label: 'شماره سفارش',
       admin: {
-        position: 'sidebar',
-        description: 'سمت فرد لغو‌کننده سفارش.',
+        description: 'شناسه یکتا و رسمی فاکتور سفارش در سیستم.',
       },
-      options: [
-        { label: 'کاربر', value: 'customer' },
-        { label: 'ادمین', value: 'admin' },
-      ],
-      defaultValue: 'admin',
     },
     {
+      name: 'user',
+      type: 'relationship',
+      relationTo: 'users',
+      required: true,
+      label: 'مشتری',
+      admin: {
+        description: 'خریدار یا شرکت ثبت‌کننده سفارش.',
+      },
+    },
+    { name: 'warehouse', type: 'relationship', relationTo: 'warehouses', required: true, index: true, label: 'انبار تأمین' },
+    { type: 'tabs', tabs: [
+        { label: 'اقلام سفارش', fields: [
+          {
       name: 'items',
       type: 'array',
       required: true,
@@ -122,28 +110,28 @@ export const Orders: CollectionConfig = {
               name: 'requestedArea',
               type: 'number',
               required: true,
-              label: 'متراژ درخواستی',
+              label: 'مقدار درخواستی',
               admin: { width: '20%' },
             },
             {
               name: 'cartonCount',
               type: 'number',
               required: true,
-              label: 'تعداد کارتن',
+              label: 'تعداد بسته / واحد',
               admin: { width: '20%' },
             },
             {
               name: 'deliverableArea',
               type: 'number',
               required: true,
-              label: 'متراژ تحویلی کارتن',
+              label: 'مقدار قابل تحویل',
               admin: { width: '20%' },
             },
             {
               name: 'unitPrice',
               type: 'number',
               required: true,
-              label: 'قیمت هر متر (تومان)',
+              label: 'قیمت واحد (تومان)',
               admin: { width: '20%' },
             },
             {
@@ -157,7 +145,9 @@ export const Orders: CollectionConfig = {
         },
       ],
     },
-    {
+        ] },
+        { label: 'مبالغ', fields: [
+          {
       type: 'row',
       fields: [
         {
@@ -202,7 +192,9 @@ export const Orders: CollectionConfig = {
         },
       ],
     },
-    {
+        ] },
+        { label: 'تحویل و یادداشت', fields: [
+          {
       name: 'deliveryAddress',
       type: 'textarea',
       label: 'نشانی تحویل',
@@ -210,16 +202,31 @@ export const Orders: CollectionConfig = {
         description: 'آدرس نهایی مقصد بارگیری و تخلیه سفارش.',
       },
     },
-    {
+          {
       name: 'notes',
       type: 'textarea',
       label: 'یادداشت داخلی',
       admin: {
-        position: 'sidebar',
         description: 'هماهنگی‌ها و توضیحات داخلی کارشناسان فروش.',
       },
     },
-    {
+        ] },
+        { label: 'وضعیت و سابقه', fields: [
+          {
+      name: 'cancelledBy',
+      type: 'select',
+      label: 'مرجع لغو',
+      admin: {
+        description: 'سمت فرد لغوکننده سفارش.',
+        condition: (data) => ['cancelled_by_customer', 'cancelled_by_admin', 'cancel'].includes(data?.status),
+      },
+      options: [
+        { label: 'کاربر', value: 'customer' },
+        { label: 'ادمین', value: 'admin' },
+      ],
+      defaultValue: 'admin',
+    },
+          {
       name: 'timeline',
       type: 'array',
       label: 'گاه‌شمار وضعیت',
@@ -228,7 +235,6 @@ export const Orders: CollectionConfig = {
         plural: 'گاه‌شمار رویدادها',
       },
       admin: {
-        position: 'sidebar',
         description: 'ثبت زمانی تغییرات وضعیت سفارش.',
       },
       fields: [
@@ -244,5 +250,8 @@ export const Orders: CollectionConfig = {
         },
       ],
     },
+        ] },
+    ] },
+
   ],
 }

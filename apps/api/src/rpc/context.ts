@@ -13,6 +13,7 @@ export interface Context {
   user: UserContext | null
   jwtPayload: UserJwtPayload | null
   req: Request
+  authUnavailable?: boolean
   isBanned?: boolean
   banReason?: string | null
 }
@@ -41,11 +42,7 @@ export async function createContext(req: Request): Promise<Context> {
         let userDoc: any = null
 
         if (payload.role === 'admin' || payload.role === 'superadmin') {
-          try {
-            userDoc = await sdk.findByID({ collection: 'admins', id })
-          } catch {
-            userDoc = null
-          }
+          userDoc = await sdk.findByID({ collection: 'admins', id })
         } else {
           userDoc = await sdk.findByID({ collection: 'users', id })
         }
@@ -77,8 +74,11 @@ export async function createContext(req: Request): Promise<Context> {
             }
           }
         }
-      } catch {
-        // User lookup failed or db error - continue as guest
+      } catch (error) {
+        // A missing account invalidates the session; a service failure does not.
+        if (!(error && typeof error === 'object' && 'status' in error && error.status === 404)) {
+          return { user: null, jwtPayload: payload, req, authUnavailable: true }
+        }
       }
     }
   }

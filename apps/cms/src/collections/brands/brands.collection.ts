@@ -38,17 +38,6 @@ export const Brands: CollectionConfig = {
       },
     },
     {
-      name: 'slug',
-      type: 'text',
-      required: true,
-      unique: true,
-      label: 'اسلاگ URL',
-      admin: {
-        position: 'sidebar',
-        description: 'شناسه انگلیسی برند در آدرس سایت.',
-      },
-    },
-    {
       name: 'isActive',
       type: 'checkbox',
       defaultValue: true,
@@ -56,6 +45,16 @@ export const Brands: CollectionConfig = {
       admin: {
         position: 'sidebar',
         description: 'فعال بودن برند در سایت و فیلترها.',
+      },
+    },
+    {
+      name: 'slug',
+      type: 'text',
+      required: true,
+      unique: true,
+      label: 'شناسه فنی',
+      admin: {
+        description: 'شناسه انگلیسی برند در آدرس سایت.',
       },
     },
   ],

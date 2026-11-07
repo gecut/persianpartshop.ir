@@ -55,17 +55,6 @@ export const Dimensions: CollectionConfig = {
       ],
     },
     {
-      name: 'slug',
-      type: 'text',
-      required: true,
-      unique: true,
-      label: 'اسلاگ URL',
-      admin: {
-        position: 'sidebar',
-        description: 'شناسه انگلیسی یکتا در آدرس (مثال: 60x120).',
-      },
-    },
-    {
       name: 'isActive',
       type: 'checkbox',
       defaultValue: true,
@@ -73,6 +62,16 @@ export const Dimensions: CollectionConfig = {
       admin: {
         position: 'sidebar',
         description: 'نمایش و فعال بودن این سایز در فیلترها.',
+      },
+    },
+    {
+      name: 'slug',
+      type: 'text',
+      required: true,
+      unique: true,
+      label: 'شناسه فنی',
+      admin: {
+        description: 'شناسه انگلیسی یکتا در آدرس (مثال: 60x120).',
       },
     },
   ],

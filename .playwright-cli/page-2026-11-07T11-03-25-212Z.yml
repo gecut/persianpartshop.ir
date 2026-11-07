@@ -1,0 +1,15 @@
+- main [ref=f1e5]:
+  - generic [ref=f1e9]:
+    - generic [ref=f1e10]:
+      - img "پرشین‌پارت" [ref=f1e12]
+      - heading "ورود به پرشین‌پارت" [level=1] [ref=f1e13]
+    - generic [ref=f1e14]:
+      - generic [ref=f1e15]:
+        - generic [ref=f1e16]: شماره تلفن همراه
+        - group [ref=f1e17]:
+          - textbox "شماره تلفن همراه" [active] [ref=f1e20]:
+            - /placeholder: ۰۹۱۲۳۴۵۶۷۸۹
+      - button "دریافت کد ورود" [ref=f1e21] [cursor=pointer]
+    - generic [ref=f1e23]:
+      - generic [ref=f1e24]: افتتاح حساب مشتریان جدید منحصراً توسط مدیریت انجام می‌شود.
+      - paragraph [ref=f1e29]: "پشتیبانی امور نمایندگان: ۰۲۱-۸۸۸۸۸۸۸۸"

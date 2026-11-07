@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useLayoutEffect, lazy, Suspense } from "react";
 import { Drawer, Button } from "@heroui/react";
 import type { Product } from "../../types";
 import { toPersianDigits, formatToman } from "../../lib/utils/currency";
@@ -37,6 +37,8 @@ interface GalleryMediaItem {
   isSampleWork: boolean;
 }
 
+const ProductQrDownload = lazy(() => import('./product-qr-download').then(module => ({ default: module.ProductQrDownload })));
+
 export function ProductBottomSheet({
   product,
   isOpen,
@@ -48,6 +50,9 @@ export function ProductBottomSheet({
 }: ProductBottomSheetProps) {
   const [activeImageUrl, setActiveImageUrl] = useState<string | null>(null);
   const [zoomImageUrl, setZoomImageUrl] = useState<string | null>(null);
+  const [qrOpen, setQrOpen] = useState(false);
+
+  useLayoutEffect(() => { setQrOpen(false) }, [product?.id, isOpen]);
 
   // Preserve rendered product for smooth close transitions
   const [renderedProduct, setRenderedProduct] = useState<Product | null>(
@@ -124,6 +129,8 @@ export function ProductBottomSheet({
         <Drawer.Backdrop
           isOpen={isOpen}
           onOpenChange={(open) => !open && onClose()}
+          shouldCloseOnInteractOutside={() => false}
+          isKeyboardDismissDisabled
           className="fixed z-50  bg-foreground/30 min-h-60 flex items-end justify-center fade-up transition-all duration-300"
         >
           <Drawer.Content
@@ -143,6 +150,7 @@ export function ProductBottomSheet({
                   </Drawer.Heading>
                 </div>
 
+                {user?.canUseProductQr && activeProduct.hasScanCode && <Button type="button" isIconOnly variant="ghost" onPress={() => setQrOpen(value => !value)} aria-label="دریافت QR محصول" aria-expanded={qrOpen} className="size-10 shrink-0 rounded-2xl bg-muted/10 text-muted hover:bg-muted/20 hover:text-foreground"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><path d="M14 14h2v2h-2zM19 14v2M14 19h2M19 19h1"/></svg></Button>}
                 <Button
                   type="button"
                   onClick={onClose}
@@ -155,6 +163,7 @@ export function ProductBottomSheet({
 
               {/* Body */}
               <Drawer.Body className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 py-2 space-y-2.5 scrollbar-none pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))]">
+                {qrOpen && <Suspense fallback={<p role="status">در حال آماده‌سازی…</p>}><ProductQrDownload productId={activeProduct.id} /></Suspense>}
                 <div className="space-y-2">
                   <div
                     className="relative h-48 sm:h-56 w-full shrink-0 overflow-hidden bg-muted/10 rounded-2xl group cursor-pointer"

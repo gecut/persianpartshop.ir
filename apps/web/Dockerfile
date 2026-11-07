@@ -41,6 +41,7 @@ RUN pnpm --filter @persianpart/web build
 # 3. Runner Stage
 FROM ghcr.io/gecut/nginx/spa:1.0.0@sha256:62b6611c01e5103aa5e72b0cab9b96cbe2112bd06a89f47c65297c56e88ae15c AS runner
 
-# Allow uploads up to 25MB (prevents 413 Content Too Large error)
+# Preserve the previous request body limit using the image's supported setting.
+ENV NGINX_CLIENT_MAX_BODY_SIZE=25m
 
-COPY --chown=nginx:nginx --from=builder /app/apps/web/dist /data
+COPY --chown=nginx:nginx --from=builder /app/apps/web/dist/ /data/
