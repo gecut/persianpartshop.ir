@@ -33,10 +33,6 @@ test('full migrations: schema coverage, CRUD, and warehouse rollback', { skip: !
   const { default: config } = await import('./payload.config')
   const payload = await getPayload({ config, disableDBConnect: true })
 
-  const applyUp = async () => db.transaction(async transaction => {
-    for (const migration of migrations) await migration.up({ db: transaction, payload } as unknown as MigrateUpArgs)
-  })
-
   const applyDown = async () => db.transaction(async transaction => {
     for (const migration of [...migrations].reverse()) {
       await migration.down({ db: transaction, payload } as unknown as MigrateDownArgs)
@@ -47,9 +43,11 @@ test('full migrations: schema coverage, CRUD, and warehouse rollback', { skip: !
     await control.query(`CREATE DATABASE "${name}"`)
     assert.equal(migrations.length, 1)
 
-    // 1. Apply baseline migration
-    await applyUp()
-    console.log('baseline migration applied: PASS')
+    // A single baseline initializes an empty disposable database.
+    await db.transaction(transaction => migrations[0]!.up({ db: transaction, payload } as unknown as MigrateUpArgs))
+    const checks = await pool.query<{ conname: string }>(`SELECT conname FROM pg_constraint WHERE contype = 'c'`)
+    for (const name of ['warehouse_stock_amount_check', 'warehouse_stock_revision_check', 'products_cartons_per_pallet_valid', 'orders_items_cartons_per_pallet_valid', 'supply_requests_quantities_valid', 'supply_requests_prices_valid', 'supply_requests_cartons_per_pallet_valid']) assert.ok(checks.rows.some(row => row.conname === name), `missing check ${name}`)
+    console.log('fresh baseline and database constraints: PASS')
 
     // 2. Validate columns, nullability, data types, indexes and foreign keys against Payload's metadata
     const columns = (await pool.query<{ table_name: string; column_name: string; data_type: string; is_nullable: string }>(
@@ -153,8 +151,97 @@ test('full migrations: schema coverage, CRUD, and warehouse rollback', { skip: !
     assert.equal(noCodeOne.scanCode ?? null, null)
     assert.equal(noCodeTwo.scanCode, null)
 
-    const warehouse = await payload.create({ collection: 'warehouses', data: { code: 'TEST', name: 'انبار تست', isActive: true } })
+    const warehouse = await payload.create({ collection: 'warehouses', data: { code: 'TEST', name: 'انبار تست', isActive: true, stockMode: 'exact' } })
     await payload.create({ collection: 'warehouse-stock', data: { warehouse: warehouse.id, product: product.id, inventorySqm: 144, revision: 0 } })
+    const inquiry = await payload.create({ collection: 'warehouses', data: { code: 'INQUIRY', name: 'انبار استعلامی', isActive: true, stockMode: 'inquiry' } })
+    const supplyManager = await payload.create({ collection: 'admins', data: { name: 'Manager', email: 'manager@supply.test', role: 'manager', password: randomUUID() } })
+    const support = await payload.create({ collection: 'admins', data: { name: 'Support', email: 'support@supply.test', role: 'support', password: randomUUID() } })
+    const managerActor = { ...supplyManager, collection: 'admins' as const }
+    const serviceActor = { ...service, collection: 'admins' as const }
+    const supportActor = { ...support, collection: 'admins' as const }
+    await payload.update({ collection: 'admins', id: support.id, data: { name: 'Changed support', phone: user.phone }, user: supportActor, overrideAccess: false })
+    assert.equal((await payload.findByID({ collection: 'users', id: user.id, depth: 0 })).fullName, user.fullName)
+    await assert.rejects(payload.update({ collection: 'users', id: user.id, data: { fullName: 'unauthorized' }, user: supportActor, overrideAccess: false }))
+    await payload.create({ collection: 'supply-sources', data: { product: product.id, warehouse: inquiry.id, isActive: true, lastReportedAt: new Date().toISOString() }, user: managerActor, overrideAccess: false })
+    await assert.rejects(payload.create({ collection: 'supply-sources', data: { product: product.id, warehouse: inquiry.id, isActive: true, lastReportedAt: new Date().toISOString() }, user: managerActor, overrideAccess: false }))
+    await assert.rejects(payload.create({ collection: 'supply-sources', data: { product: product.id, warehouse: warehouse.id, isActive: true, lastReportedAt: new Date().toISOString() }, user: managerActor, overrideAccess: false }))
+    await assert.rejects(payload.create({ collection: 'supply-sources', data: { product: product.id, warehouse: inquiry.id, isActive: true, lastReportedAt: new Date().toISOString() }, user: supportActor, overrideAccess: false }))
+    await assert.rejects(payload.create({ collection: 'warehouse-stock', data: { warehouse: inquiry.id, product: product.id, inventorySqm: 10, revision: 0 } }))
+    await assert.rejects(payload.update({ collection: 'warehouses', id: inquiry.id, data: { stockMode: 'exact' } }))
+    const createSupply = (requestedQuantity: number) => payload.create({ collection: 'supply-requests', data: { user: user.id, product: product.id, warehouse: inquiry.id, requestedQuantity, idempotencyKey: randomUUID() } as never, user: serviceActor, overrideAccess: false })
+    await assert.rejects(createSupply(80), /EXACT_STOCK_AVAILABLE/)
+    await assert.rejects(payload.create({ collection: 'supply-requests', data: { user: user.id, product: product.id, warehouse: inquiry.id, requestedQuantity: 200, idempotencyKey: randomUUID(), status: 'supplied' } as never, user: serviceActor, overrideAccess: false }))
+    await assert.rejects(payload.create({ collection: 'supply-requests', data: { user: user.id, product: product.id, warehouse: inquiry.id, requestedQuantity: 200, idempotencyKey: randomUUID(), estimatedTotal: 1 } as never, user: serviceActor, overrideAccess: false }))
+    const media = await pool.query<{ id: number }>(`INSERT INTO media (alt, filename, mime_type) VALUES ('snapshot', 'snapshot.webp', 'image/webp') RETURNING id`)
+    const snapshotUrl = (await payload.findByID({ collection: 'media', id: media.rows[0]!.id, depth: 0 })).url
+    assert.ok(snapshotUrl)
+    await payload.update({ collection: 'products', id: product.id, data: { cover: media.rows[0]!.id } })
+    const supply = await createSupply(200)
+    assert.equal(supply.status, 'new')
+    assert.equal(supply.packageCount, 139)
+    assert.equal(supply.roundedQuantity, 200.16)
+    assert.equal(new Date(supply.responseDueAt).getTime() - new Date(supply.createdAt).getTime(), 48 * 60 * 60 * 1000)
+    assert.equal(supply.productImage, snapshotUrl)
+    await payload.update({ collection: 'products', id: product.id, data: { cover: null } })
+    assert.equal((await payload.findByID({ collection: 'supply-requests', id: supply.id, depth: 0 })).productImage, snapshotUrl)
+    await assert.rejects(payload.update({ collection: 'supply-requests', id: supply.id, data: { status: 'reviewing' }, user: { ...managerActor, role: 'editor' } as never, overrideAccess: false }))
+    const reviewing = await payload.update({ collection: 'supply-requests', id: supply.id, data: { status: 'reviewing' }, user: supportActor, overrideAccess: false })
+    assert.ok(reviewing.reviewStartedAt)
+    await assert.rejects(payload.update({ collection: 'supply-requests', id: supply.id, data: { status: 'cancelled_by_customer' }, user: serviceActor, overrideAccess: false }), /CANNOT_CANCEL/)
+    await assert.rejects(payload.update({ collection: 'supply-requests', id: supply.id, data: { notes: 'altered' }, user: managerActor, overrideAccess: false }))
+    const originalFetch = globalThis.fetch
+    const oldSmsKey = process.env.KAVENEGAR_API_KEY
+    const oldWebUrl = process.env.WEB_URL
+    let smsCalls = 0
+    try {
+      process.env.KAVENEGAR_API_KEY = 'fixture-only'
+      process.env.WEB_URL = 'http://fixture.invalid'
+      delete process.env.DISABLE_SMS
+      globalThis.fetch = async () => { smsCalls++; return new Response('', { status: 503 }) }
+      const supplied = await payload.update({ collection: 'supply-requests', id: supply.id, data: { status: 'supplied' }, user: managerActor, overrideAccess: false })
+      assert.equal(supplied.status, 'supplied', 'provider failure must not roll back status')
+      await payload.update({ collection: 'supply-requests', id: supply.id, data: { status: 'supplied' }, user: managerActor, overrideAccess: false })
+      assert.equal(smsCalls, 1, 'unchanged status must not notify')
+      await payload.update({ collection: 'supply-requests', id: supply.id, data: { status: 'unavailable' }, user: managerActor, overrideAccess: false })
+      assert.equal(smsCalls, 2, 'changing the final result attempts a notification')
+      await payload.update({ collection: 'supply-requests', id: supply.id, data: { status: 'new' }, user: managerActor, overrideAccess: false })
+      assert.equal(smsCalls, 2, 'returning to an open status must not notify')
+      await assert.rejects(payload.update({ collection: 'supply-requests', id: supply.id, data: { status: 'cancelled_by_customer' }, user: serviceActor, overrideAccess: false }), /CANNOT_CANCEL/)
+      globalThis.fetch = async () => new Promise<Response>(() => {})
+      const startedAt = Date.now()
+      const afterTimeout = await payload.update({ collection: 'supply-requests', id: supply.id, data: { status: 'supplied' }, user: managerActor, overrideAccess: false })
+      assert.equal(afterTimeout.status, 'supplied', 'an unresponsive provider must not prevent commit')
+      assert.ok(Date.now() - startedAt < 8_000, 'provider wait must be bounded')
+      const unlocked = await payload.update({ collection: 'supply-requests', id: supply.id, data: { status: 'reviewing' }, user: managerActor, overrideAccess: false })
+      assert.equal(unlocked.status, 'reviewing', 'the request lock must be released after timeout')
+    } finally {
+      globalThis.fetch = originalFetch
+      process.env.DISABLE_SMS = 'true'
+      if (oldSmsKey === undefined) delete process.env.KAVENEGAR_API_KEY; else process.env.KAVENEGAR_API_KEY = oldSmsKey
+      if (oldWebUrl === undefined) delete process.env.WEB_URL; else process.env.WEB_URL = oldWebUrl
+    }
+    const race = await createSupply(201)
+    const raceResults = await Promise.allSettled([
+      payload.update({ collection: 'supply-requests', id: race.id, data: { status: 'reviewing' }, user: managerActor, overrideAccess: false }),
+      payload.update({ collection: 'supply-requests', id: race.id, data: { status: 'cancelled_by_customer' }, user: serviceActor, overrideAccess: false }),
+    ])
+    assert.equal(raceResults.filter(result => result.status === 'fulfilled').length, 1)
+    const raceDoc = await payload.findByID({ collection: 'supply-requests', id: race.id, depth: 0 })
+    assert.ok((raceDoc.status === 'reviewing' && raceDoc.reviewStartedAt) || (raceDoc.status === 'cancelled_by_customer' && !raceDoc.reviewStartedAt))
+    const duplicateKey = randomUUID()
+    const duplicateInput = { user: user.id, product: product.id, warehouse: inquiry.id, requestedQuantity: 202, idempotencyKey: duplicateKey } as never
+    const duplicateResults = await Promise.allSettled([
+      payload.create({ collection: 'supply-requests', data: duplicateInput, user: serviceActor, overrideAccess: false }),
+      payload.create({ collection: 'supply-requests', data: duplicateInput, user: serviceActor, overrideAccess: false }),
+    ])
+    assert.equal(duplicateResults.filter(result => result.status === 'fulfilled').length, 1)
+    const splitProduct = await payload.create({ collection: 'products', data: { sku: 'PP-SPLIT', slug: 'pp-split', name: 'Split stock', sqmPerCarton: 1, basePricePerSqm: 100 } })
+    const secondExact = await payload.create({ collection: 'warehouses', data: { code: 'EXACT-TWO', name: 'انبار قطعی دوم', isActive: true, stockMode: 'exact' } })
+    for (const warehouseId of [warehouse.id, secondExact.id]) await payload.create({ collection: 'warehouse-stock', data: { warehouse: warehouseId, product: splitProduct.id, inventorySqm: 60, revision: 0 } })
+    await payload.create({ collection: 'supply-sources', data: { product: splitProduct.id, warehouse: inquiry.id, isActive: true, lastReportedAt: new Date().toISOString() }, user: managerActor, overrideAccess: false })
+    const splitRequest = await payload.create({ collection: 'supply-requests', data: { user: user.id, product: splitProduct.id, warehouse: inquiry.id, requestedQuantity: 100, idempotencyKey: randomUUID() } as never, user: serviceActor, overrideAccess: false })
+    assert.equal(splitRequest.roundedQuantity, 100, 'two insufficient warehouses must not be pooled')
+    console.log('supply source, request, status and access checks: PASS')
     await assert.rejects(pool.query('UPDATE warehouse_stock SET inventory_sqm = -1 WHERE warehouse_id = $1 AND product_id = $2', [warehouse.id, product.id]))
     await assert.rejects(pool.query('UPDATE warehouse_stock SET inventory_sqm = 1.001 WHERE warehouse_id = $1 AND product_id = $2', [warehouse.id, product.id]))
     await assert.rejects(pool.query('UPDATE warehouse_stock SET revision = 0.5 WHERE warehouse_id = $1 AND product_id = $2', [warehouse.id, product.id]))
@@ -163,6 +250,7 @@ test('full migrations: schema coverage, CRUD, and warehouse rollback', { skip: !
     assert.ok(warehouseConstraints.rows.every(constraint => constraint.confdeltype === 'r'))
 
     // Orders with authoritative calculation and timeline
+    await payload.update({ collection: 'products', id: product.id, data: { cartonsPerPallet: 48 }, user: managerActor, overrideAccess: false })
     const order = await payload.create({
       collection: 'orders',
       user: { ...service, collection: 'admins' },
@@ -179,6 +267,9 @@ test('full migrations: schema coverage, CRUD, and warehouse rollback', { skip: !
     assert.equal(order.status, 'pending')
     assert.equal(order.items.length, 1)
     assert.ok(order.finalTotal > 0)
+    assert.equal(order.items[0]!.cartonsPerPallet, 48)
+    await payload.update({ collection: 'products', id: product.id, data: { cartonsPerPallet: 24 }, user: managerActor, overrideAccess: false })
+    assert.equal((await payload.findByID({ collection: 'orders', id: order.id, depth: 0 })).items[0]!.cartonsPerPallet, 48)
 
     // Approve transition
     const approved = await payload.update({
@@ -212,11 +303,11 @@ test('full migrations: schema coverage, CRUD, and warehouse rollback', { skip: !
     const preview = await importRequest('/preview', { warehouseId: warehouse.id, csv: 'sku,inventorySqm\nPP-TEST-001,100' })
     assert.equal(preview.status, 200)
     const previewData = await preview.json()
-    const beforeImport = await payload.find({ collection: 'warehouse-stock', depth: 0 })
+    const beforeImport = await payload.find({ collection: 'warehouse-stock', where: { and: [{ product: { equals: product.id } }, { warehouse: { equals: warehouse.id } }] }, depth: 0 })
     assert.equal(beforeImport.docs[0]!.inventorySqm, 133.92)
     assert.equal((await importRequest('/apply', { token: previewData.token })).status, 200)
     assert.equal((await importRequest('/apply', { token: previewData.token })).status, 409)
-    const imported = await payload.find({ collection: 'warehouse-stock', depth: 0 })
+    const imported = await payload.find({ collection: 'warehouse-stock', where: { and: [{ product: { equals: product.id } }, { warehouse: { equals: warehouse.id } }] }, depth: 0 })
     assert.equal(imported.docs[0]!.inventorySqm, 100)
     assert.equal((await importRequest('/apply', { token: previewData.token + 'tampered' })).status, 409)
     console.log('CSV preview, authorization, apply, replay and tamper checks: PASS')
@@ -298,8 +389,8 @@ test('full migrations: schema coverage, CRUD, and warehouse rollback', { skip: !
   } finally {
     await pool.end()
     if (payload.db.pool) payload.db.pool.on('error', () => {})
-    await control.query(`DROP DATABASE "${name}" WITH (FORCE)`)
     await payload.destroy?.()
+    await control.query(`DROP DATABASE "${name}" WITH (FORCE)`)
     await control.end()
   }
 })

@@ -74,6 +74,8 @@ services:
     environment:
       NODE_ENV: production
       PORT: 5174
+      KAVENEGAR_API_KEY: ${KAVENEGAR_API_KEY:-}
+      WEB_URL: ${WEB_URL:-https://${WEB_DOMAIN:-persianpart.shop}}
       DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:8228@postgres:5432/persianpart_cms}
       PAYLOAD_SECRET: ${PAYLOAD_SECRET:-super-secret-payload-key-must-be-at-least-32-chars-long}
       NEXT_PUBLIC_SERVER_URL: ${CMS_URL:-https://${CMS_DOMAIN:-admin.persianpart.shop}}

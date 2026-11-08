@@ -32,6 +32,7 @@ export interface OrderItem {
   unitPrice: number
   requestedArea: number
   cartonCount: number
+  cartonsPerPallet?: number | null
   deliverableArea: number
   totalPrice: number
 }

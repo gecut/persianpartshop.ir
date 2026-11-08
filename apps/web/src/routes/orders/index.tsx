@@ -1,4 +1,5 @@
 import { DataStatus } from '../../components/feedback/data-status'
+import { SupplyRequestList } from '../../features/supply-requests/supply-request-list'
 import { useSessionValue } from '../../hooks/use-session-value'
 import { summarizeQuantities } from '../../lib/utils/unit'
 import { prepareReorderDraft } from '../../features/products/selection-store'
@@ -38,8 +39,24 @@ import { PreInvoiceModal } from "../../features/checkout/pre-invoice-modal";
 import { useProducts } from "../../features/products/product-store";
 
 export const Route = createFileRoute("/orders/")({
-  component: OrdersListPage,
+  validateSearch: (search: Record<string, unknown>): { view?: 'supply'; requestId?: number } => ({
+    view: search.view === 'supply' ? 'supply' : undefined,
+    requestId: /^[1-9]\d*$/.test(String(search.requestId ?? '')) && Number.isSafeInteger(Number(search.requestId)) ? Number(search.requestId) : undefined,
+  }),
+  component: OrdersPage,
 });
+
+function OrdersPage() {
+  const { view, requestId } = Route.useSearch()
+  const navigate = useNavigate()
+  return <>
+    <div className="flex gap-2 px-3 pt-3" role="group" aria-label="نوع سوابق">
+      <Button size="sm" variant={view !== 'supply' ? 'primary' : 'secondary'} onPress={() => void navigate({ to: '/orders', search: {} })}>سفارش‌ها</Button>
+      <Button size="sm" variant={view === 'supply' ? 'primary' : 'secondary'} onPress={() => void navigate({ to: '/orders', search: { view: 'supply' } })}>درخواست‌های تأمین</Button>
+    </div>
+    {view === 'supply' ? <SupplyRequestList requestId={requestId} onOpen={id => void navigate({ to: '/orders', search: { view: 'supply', requestId: id } })} onClose={() => void navigate({ to: '/orders', search: { view: 'supply' } })} /> : <OrdersListPage />}
+  </>
+}
 
 function formatInvoiceNumber(
   order: { id: string | number; orderNumber?: string } | string | number,

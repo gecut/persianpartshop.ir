@@ -77,7 +77,7 @@ export const Admins: CollectionConfig = {
         })
 
         // Sync customer account in users collection so admin can act as a regular customer
-        if (doc.phone) {
+        if (doc.phone && doc.role !== 'support') {
           try {
             const raw = String(doc.phone).trim()
             const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹']
@@ -191,6 +191,7 @@ export const Admins: CollectionConfig = {
       options: [
         { label: 'مدیر ارشد', value: 'superadmin' },
         { label: 'مدیر', value: 'manager' },
+        { label: 'پشتیبانی', value: 'support' },
         { label: 'سرویس ماشینی', value: 'service' },
       ],
     },

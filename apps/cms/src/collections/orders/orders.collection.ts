@@ -96,6 +96,7 @@ export const Orders: CollectionConfig = {
         { name: 'productType', type: 'text', admin: { hidden: true } },
         { name: 'unit', type: 'text', label: 'واحد فروش', admin: { readOnly: true } },
         { name: 'salesFactor', type: 'number', admin: { hidden: true } },
+        { name: 'cartonsPerPallet', type: 'number', admin: { hidden: true } },
         {
           name: 'product',
           type: 'relationship',

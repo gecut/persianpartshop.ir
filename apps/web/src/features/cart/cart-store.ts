@@ -10,6 +10,7 @@ export interface CartItem {
   productType: 'tile' | 'other'; unit: string; productId: string; name: string; slug: string; sku: string; dimension: string; image: string
   unitPrice: number; oldUnitPrice?: number; sqmPerCarton: number; areaPerCarton: number
   requestedArea: number; cartonCount: number; deliverableArea: number; totalPrice: number
+  cartonsPerPallet?: number | null
   stockCartons: number; inventorySqm: number; statusWarning?: 'low_stock' | 'out_of_stock' | 'price_changed'
 }
 export type CartDemoMode = 'normal' | 'low_stock' | 'out_of_stock' | 'price_changed' | 'empty'
@@ -49,7 +50,7 @@ export function useCart() {
     const deliverableArea = quote?.deliverableArea ?? Math.round(cartonCount * sqmPerCarton * 100) / 100
     const unitPrice = quote?.unitPrice ?? product?.finalCustomerPricePerSqm ?? 0
     return { productType: quote?.productType ?? product?.productType ?? 'tile', unit: quote?.unit ?? (product?.productType === 'other' ? product.unit ?? 'piece' : 'm2'), productId: id, name: product?.name ?? `کالای ${id}`, slug: product?.slug ?? id, sku: product?.sku ?? id, dimension: product?.dimension ?? '', image: product?.images[0] ?? '',
-      sqmPerCarton, areaPerCarton: sqmPerCarton, requestedArea, cartonCount, deliverableArea, unitPrice,
+      sqmPerCarton, areaPerCarton: sqmPerCarton, cartonsPerPallet: product?.cartonsPerPallet ?? null, requestedArea, cartonCount, deliverableArea, unitPrice,
       totalPrice: quote?.totalPrice ?? Math.round(deliverableArea * unitPrice), stockCartons: product?.stockCartons ?? 0, inventorySqm: product?.inventorySqm ?? 0 }
   })
   const subtotal = items.reduce((sum, item) => sum + item.totalPrice, 0)

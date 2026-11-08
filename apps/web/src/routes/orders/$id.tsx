@@ -1,6 +1,6 @@
 import { DataStatus } from '../../components/feedback/data-status'
 import { customerErrorMessage } from '../../lib/utils/error'
-import { formatUnit, summarizeQuantities } from '../../lib/utils/unit'
+import { formatCartons, formatUnit, summarizeQuantities } from '../../lib/utils/unit'
 import { prepareReorderDraft } from '../../features/products/selection-store'
 import { useState, useEffect, useMemo } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
@@ -558,7 +558,7 @@ function OrderDetailPage() {
                         item.deliverableArea || item.requestedArea,
                       )}
                     </strong>{" "}
-                    {formatUnit(item.unit ?? 'm2')}{item.productType !== 'other' && ` (${toPersianDigits(item.cartonCount)} کارتن)`}
+                    {formatUnit(item.unit ?? 'm2')}{item.productType !== 'other' && ` (${formatCartons(item.cartonCount, item.cartonsPerPallet)})`}
                   </div>
                 </div>
               </div>

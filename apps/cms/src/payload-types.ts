@@ -79,6 +79,8 @@ export interface Config {
     otps: Otp;
     warehouses: Warehouse;
     'warehouse-stock': WarehouseStock;
+    'supply-sources': SupplySource;
+    'supply-requests': SupplyRequest;
     media: Media;
     admins: Admin;
     'audit-logs': AuditLog;
@@ -101,6 +103,8 @@ export interface Config {
     otps: OtpsSelect<false> | OtpsSelect<true>;
     warehouses: WarehousesSelect<false> | WarehousesSelect<true>;
     'warehouse-stock': WarehouseStockSelect<false> | WarehouseStockSelect<true>;
+    'supply-sources': SupplySourcesSelect<false> | SupplySourcesSelect<true>;
+    'supply-requests': SupplyRequestsSelect<false> | SupplyRequestsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     admins: AdminsSelect<false> | AdminsSelect<true>;
     'audit-logs': AuditLogsSelect<false> | AuditLogsSelect<true>;
@@ -184,6 +188,7 @@ export interface Product {
    * مقدار پیش‌فرض را بررسی کنید. تغییر آن در صورت وجود سفارش باز مجاز نیست.
    */
   piecesPerCarton?: number | null;
+  cartonsPerPallet?: number | null;
   /**
    * تغییر واحد کالای دارای رکورد انبار مجاز نیست.
    */
@@ -432,6 +437,7 @@ export interface Order {
     productType?: string | null;
     unit?: string | null;
     salesFactor?: number | null;
+    cartonsPerPallet?: number | null;
     product: number | Product;
     requestedArea: number;
     cartonCount: number;
@@ -612,6 +618,7 @@ export interface Warehouse {
    */
   code: string;
   name: string;
+  stockMode: 'exact' | 'inquiry';
   isActive: boolean;
   updatedAt: string;
   createdAt: string;
@@ -697,6 +704,54 @@ export interface WarehouseStock {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "supply-sources".
+ */
+export interface SupplySource {
+  id: number;
+  product: number | Product;
+  warehouse: number | Warehouse;
+  isActive: boolean;
+  lastReportedAt: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "supply-requests".
+ */
+export interface SupplyRequest {
+  id: number;
+  requestNumber: string;
+  user: number | User;
+  product: number | Product;
+  warehouse: number | Warehouse;
+  status: 'new' | 'reviewing' | 'supplied' | 'unavailable' | 'cancelled_by_customer';
+  requestedQuantity: number;
+  packageCount: number;
+  roundedQuantity: number;
+  salesFactor: number;
+  estimatedUnitPrice: number;
+  estimatedTotal: number;
+  cartonsPerPallet?: number | null;
+  productType: string;
+  unit: string;
+  productSku: string;
+  productName: string;
+  warehouseName: string;
+  warehouseCode: string;
+  productImage?: string | null;
+  notes?: string | null;
+  responseDueAt: string;
+  reviewStartedAt?: string | null;
+  resolvedAt?: string | null;
+  cancelledAt?: string | null;
+  idempotencyKey: string;
+  requestFingerprint: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "admins".
  */
 export interface Admin {
@@ -712,7 +767,7 @@ export interface Admin {
   /**
    * نقش و حیطه دسترسی
    */
-  role: 'superadmin' | 'manager' | 'service';
+  role: 'superadmin' | 'manager' | 'support' | 'service';
   /**
    * امکان ورود به سامانه
    */
@@ -841,6 +896,14 @@ export interface PayloadLockedDocument {
         value: number | WarehouseStock;
       } | null)
     | ({
+        relationTo: 'supply-sources';
+        value: number | SupplySource;
+      } | null)
+    | ({
+        relationTo: 'supply-requests';
+        value: number | SupplyRequest;
+      } | null)
+    | ({
         relationTo: 'media';
         value: number | Media;
       } | null)
@@ -914,6 +977,7 @@ export interface ProductsSelect<T extends boolean = true> {
   basePricePerSqm?: T;
   sqmPerCarton?: T;
   piecesPerCarton?: T;
+  cartonsPerPallet?: T;
   unit?: T;
   weight?: T;
   secondary_unit?: T;
@@ -1015,6 +1079,7 @@ export interface OrdersSelect<T extends boolean = true> {
         productType?: T;
         unit?: T;
         salesFactor?: T;
+        cartonsPerPallet?: T;
         product?: T;
         requestedArea?: T;
         cartonCount?: T;
@@ -1122,6 +1187,7 @@ export interface OtpsSelect<T extends boolean = true> {
 export interface WarehousesSelect<T extends boolean = true> {
   code?: T;
   name?: T;
+  stockMode?: T;
   isActive?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -1136,6 +1202,52 @@ export interface WarehouseStockSelect<T extends boolean = true> {
   product?: T;
   inventorySqm?: T;
   revision?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "supply-sources_select".
+ */
+export interface SupplySourcesSelect<T extends boolean = true> {
+  product?: T;
+  warehouse?: T;
+  isActive?: T;
+  lastReportedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "supply-requests_select".
+ */
+export interface SupplyRequestsSelect<T extends boolean = true> {
+  requestNumber?: T;
+  user?: T;
+  product?: T;
+  warehouse?: T;
+  status?: T;
+  requestedQuantity?: T;
+  packageCount?: T;
+  roundedQuantity?: T;
+  salesFactor?: T;
+  estimatedUnitPrice?: T;
+  estimatedTotal?: T;
+  cartonsPerPallet?: T;
+  productType?: T;
+  unit?: T;
+  productSku?: T;
+  productName?: T;
+  warehouseName?: T;
+  warehouseCode?: T;
+  productImage?: T;
+  notes?: T;
+  responseDueAt?: T;
+  reviewStartedAt?: T;
+  resolvedAt?: T;
+  cancelledAt?: T;
+  idempotencyKey?: T;
+  requestFingerprint?: T;
   updatedAt?: T;
   createdAt?: T;
 }

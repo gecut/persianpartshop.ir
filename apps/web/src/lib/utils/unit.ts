@@ -33,3 +33,12 @@ export function summarizeQuantities(items: Array<{ unit: string; quantity: numbe
   for (const item of items) totals.set(item.unit, (totals.get(item.unit) ?? 0) + item.quantity)
   return [...totals].map(([unit, quantity]) => `${toPersianDigits(Math.round(quantity * 100) / 100)} ${formatUnit(unit)}`).join('، ')
 }
+
+export function formatCartons(count: number, cartonsPerPallet?: number | null): string {
+  if (!Number.isSafeInteger(count) || count < 0) return ''
+  if (!Number.isSafeInteger(cartonsPerPallet) || !cartonsPerPallet || cartonsPerPallet < 1) return `${toPersianDigits(count)} کارتن`
+  const pallets = Math.floor(count / cartonsPerPallet)
+  const cartons = count % cartonsPerPallet
+  if (!pallets) return `${toPersianDigits(count)} کارتن`
+  return `${toPersianDigits(pallets)} پالت${cartons ? ` و ${toPersianDigits(cartons)} کارتن` : ''}`
+}

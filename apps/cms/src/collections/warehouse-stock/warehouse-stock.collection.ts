@@ -2,6 +2,8 @@ import { getSalesFactor } from '../products/_inventory-math'
 import type { CollectionConfig } from 'payload'
 import { stockImportEndpoints } from './_import.endpoints'
 import { manageWarehouses, readWarehouses } from '../warehouses/warehouses.collection'
+import { sql } from '@payloadcms/db-postgres'
+import { getOrderTransaction } from '../orders/_transaction'
 
 export const WarehouseStock: CollectionConfig = {
   slug: 'warehouse-stock',
@@ -17,15 +19,20 @@ export const WarehouseStock: CollectionConfig = {
       const product = await req.payload.findByID({ collection: 'products', id, depth: 0, req })
       return product.productType === 'other' ? Number(siblingData.inventorySqm) : Math.floor(Math.round(Number(siblingData.inventorySqm) * 100) / Math.round(getSalesFactor(product) * 100))
     }] } },
-    { name: 'warehouse', label: 'انبار', type: 'relationship', relationTo: 'warehouses', required: true, index: true },
+    { name: 'warehouse', label: 'انبار', type: 'relationship', relationTo: 'warehouses', required: true, index: true, filterOptions: { stockMode: { equals: 'exact' } } },
     { name: 'product', label: 'محصول', type: 'relationship', relationTo: 'products', required: true, index: true },
     { name: 'inventorySqm', label: 'موجودی قابل فروش در واحد اصلی کالا', type: 'number', required: true, min: 0, defaultValue: 0, admin: { description: 'برای کاشی مترمربع و برای سایر کالاها تعداد واحد فروش است. اصلاح موجودی از مسیر کنترل‌شده انبار انجام می‌شود.' } },
     { name: 'revision', type: 'number', required: true, min: 0, defaultValue: 0, admin: { hidden: true } },
   ],
   hooks: {
     beforeDelete: [() => { throw new Error('حذف موجودی انبار مجاز نیست؛ مقدار آن را اصلاح کنید.') }],
-    beforeChange: [({ data, operation }) => {
+    beforeChange: [async ({ data, operation, req }) => {
       if (operation === 'update') throw new Error('موجودی فقط از مسیر کنترل‌شدهٔ انبار قابل تغییر است.')
+      const warehouseId = Number(typeof data.warehouse === 'object' ? data.warehouse?.id : data.warehouse)
+      if (!Number.isSafeInteger(warehouseId) || warehouseId <= 0) throw new Error('انبار معتبر نیست.')
+      const db = await getOrderTransaction(req)
+      const warehouse = await db.execute(sql`SELECT id FROM warehouses WHERE id = ${warehouseId} AND stock_mode = 'exact' FOR SHARE`)
+      if (warehouse.rows.length !== 1) throw new Error('موجودی فقط برای انبار قطعی مجاز است.')
       const amount = data.inventorySqm ?? 0
       if (typeof amount !== 'number' || !Number.isFinite(amount) || amount < 0 ||
         Math.abs(amount * 100 - Math.round(amount * 100)) > 1e-7 || !Number.isSafeInteger(Math.round(amount * 100))) {

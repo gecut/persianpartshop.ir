@@ -24,7 +24,7 @@ export const stockImportEndpoints: Endpoint[] = [
       const input = StockImportPreviewInputSchema.parse(await req.json?.())
       if (input.mode !== 'price') {
         const warehouse = await req.payload.findByID({ collection: 'warehouses', id: input.warehouseId!, depth: 0, req, overrideAccess: false })
-        if (!warehouse.isActive) throw new Error('انبار فعال نیست.')
+        if (!warehouse.isActive || warehouse.stockMode !== 'exact') throw new Error('انبار قطعی فعال نیست.')
       }
       const parsed = parseImportCsv(input.csv, input.mode)
       const products = parsed.rows.length ? await req.payload.find({ collection: 'products', where: { sku: { in: parsed.rows.map(row => row.sku) } }, pagination: false, depth: 0, req, overrideAccess: false }) : { docs: [] }
@@ -60,7 +60,7 @@ export const stockImportEndpoints: Endpoint[] = [
       started = await initTransaction(req)
       const db = await getOrderTransaction(req)
       if (snapshot.warehouseId) {
-        const warehouse = await db.execute(sql`SELECT id FROM warehouses WHERE id = ${snapshot.warehouseId} AND is_active = true FOR SHARE`)
+        const warehouse = await db.execute(sql`SELECT id FROM warehouses WHERE id = ${snapshot.warehouseId} AND is_active = true AND stock_mode = 'exact' FOR SHARE`)
         if (warehouse.rows.length !== 1) throw new Error('انبار فعال نیست.')
       }
       for (const row of [...snapshot.rows].sort((a, b) => a.productId - b.productId)) {

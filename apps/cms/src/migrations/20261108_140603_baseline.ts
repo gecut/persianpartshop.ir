@@ -11,372 +11,421 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   CREATE TYPE "public"."enum_users_documents_document_type" AS ENUM('business_license', 'establishment_license', 'operating_license', 'trade_guild_registration', 'union_membership', 'competent_authorities_permit', 'stewardship_card_or_letter', 'sales_agency_certificate', 'brand_agency_certificate', 'standard_certificate', 'other');
   CREATE TYPE "public"."enum_users_documents_status" AS ENUM('pending', 'approved', 'rejected');
   CREATE TYPE "public"."enum_users_status" AS ENUM('active', 'pending', 'suspended');
-  CREATE TYPE "public"."enum_admins_role" AS ENUM('superadmin', 'manager', 'service');
+  CREATE TYPE "public"."enum_warehouses_stock_mode" AS ENUM('exact', 'inquiry');
+  CREATE TYPE "public"."enum_supply_requests_status" AS ENUM('new', 'reviewing', 'supplied', 'unavailable', 'cancelled_by_customer');
+  CREATE TYPE "public"."enum_admins_role" AS ENUM('superadmin', 'manager', 'support', 'service');
   CREATE TYPE "public"."enum_audit_logs_action" AS ENUM('admin_login', 'product_create', 'product_update', 'product_delete', 'user_create', 'user_update', 'user_ban', 'user_unban', 'user_delete', 'admin_manage', 'other');
   CREATE TYPE "public"."enum_audit_logs_entity" AS ENUM('products', 'users', 'admins', 'auth', 'orders');
   CREATE TABLE "products_gallery" (
-  	"_order" integer NOT NULL,
-  	"_parent_id" integer NOT NULL,
-  	"id" varchar PRIMARY KEY NOT NULL,
-  	"image_id" integer NOT NULL
+	"_order" integer NOT NULL,
+	"_parent_id" integer NOT NULL,
+	"id" varchar PRIMARY KEY NOT NULL,
+	"image_id" integer NOT NULL
   );
-  
+
   CREATE TABLE "products" (
-  	"id" serial PRIMARY KEY NOT NULL,
-  	"is_active" boolean DEFAULT true,
-  	"name" varchar NOT NULL,
-  	"sku" varchar NOT NULL,
-  	"product_type" "enum_products_product_type" DEFAULT 'tile',
-  	"category_id" integer,
-  	"brand_id" integer,
-  	"color" varchar,
-  	"grade" "enum_products_grade",
-  	"dimension_id" integer,
-  	"width" numeric,
-  	"height" numeric,
-  	"base_price_per_sqm" numeric DEFAULT 0,
-  	"sqm_per_carton" numeric DEFAULT 1.44,
-  	"pieces_per_carton" numeric DEFAULT 4,
-  	"unit" "enum_products_unit" DEFAULT 'bag',
-  	"weight" numeric,
-  	"secondary_unit" "enum_products_secondary_unit",
-  	"items_per_pack" numeric,
-  	"approx_coverage" varchar,
-  	"inventory_sqm" numeric DEFAULT 0,
-  	"stock_cartons" numeric DEFAULT 0,
-  	"cover_id" integer,
-  	"rich_description" jsonb,
-  	"slug" varchar NOT NULL,
-  	"scan_code" varchar,
-  	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
-  	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
+	"id" serial PRIMARY KEY NOT NULL,
+	"is_active" boolean DEFAULT true,
+	"name" varchar NOT NULL,
+	"sku" varchar NOT NULL,
+	"product_type" "enum_products_product_type" DEFAULT 'tile',
+	"category_id" integer,
+	"brand_id" integer,
+	"color" varchar,
+	"grade" "enum_products_grade",
+	"dimension_id" integer,
+	"width" numeric,
+	"height" numeric,
+	"base_price_per_sqm" numeric DEFAULT 0,
+	"sqm_per_carton" numeric DEFAULT 1.44,
+	"pieces_per_carton" numeric DEFAULT 4,
+	"cartons_per_pallet" numeric,
+	"unit" "enum_products_unit" DEFAULT 'bag',
+	"weight" numeric,
+	"secondary_unit" "enum_products_secondary_unit",
+	"items_per_pack" numeric,
+	"approx_coverage" varchar,
+	"inventory_sqm" numeric DEFAULT 0,
+	"stock_cartons" numeric DEFAULT 0,
+	"cover_id" integer,
+	"rich_description" jsonb,
+	"slug" varchar NOT NULL,
+	"scan_code" varchar,
+	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
+	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
   );
-  
+
   CREATE TABLE "products_rels" (
-  	"id" serial PRIMARY KEY NOT NULL,
-  	"order" integer,
-  	"parent_id" integer NOT NULL,
-  	"path" varchar NOT NULL,
-  	"tags_id" integer
+	"id" serial PRIMARY KEY NOT NULL,
+	"order" integer,
+	"parent_id" integer NOT NULL,
+	"path" varchar NOT NULL,
+	"tags_id" integer
   );
-  
+
   CREATE TABLE "categories" (
-  	"id" serial PRIMARY KEY NOT NULL,
-  	"name" varchar NOT NULL,
-  	"ordering" numeric DEFAULT 0,
-  	"parent_id" integer,
-  	"is_active" boolean DEFAULT true,
-  	"slug" varchar NOT NULL,
-  	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
-  	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
+	"id" serial PRIMARY KEY NOT NULL,
+	"name" varchar NOT NULL,
+	"ordering" numeric DEFAULT 0,
+	"parent_id" integer,
+	"is_active" boolean DEFAULT true,
+	"slug" varchar NOT NULL,
+	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
+	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
   );
-  
+
   CREATE TABLE "dimensions" (
-  	"id" serial PRIMARY KEY NOT NULL,
-  	"name" varchar NOT NULL,
-  	"width" numeric NOT NULL,
-  	"height" numeric NOT NULL,
-  	"is_active" boolean DEFAULT true,
-  	"slug" varchar NOT NULL,
-  	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
-  	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
+	"id" serial PRIMARY KEY NOT NULL,
+	"name" varchar NOT NULL,
+	"width" numeric NOT NULL,
+	"height" numeric NOT NULL,
+	"is_active" boolean DEFAULT true,
+	"slug" varchar NOT NULL,
+	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
+	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
   );
-  
+
   CREATE TABLE "brands" (
-  	"id" serial PRIMARY KEY NOT NULL,
-  	"name" varchar NOT NULL,
-  	"logo_id" integer,
-  	"is_active" boolean DEFAULT true,
-  	"slug" varchar NOT NULL,
-  	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
-  	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
+	"id" serial PRIMARY KEY NOT NULL,
+	"name" varchar NOT NULL,
+	"logo_id" integer,
+	"is_active" boolean DEFAULT true,
+	"slug" varchar NOT NULL,
+	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
+	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
   );
-  
+
   CREATE TABLE "tags" (
-  	"id" serial PRIMARY KEY NOT NULL,
-  	"name" varchar NOT NULL,
-  	"is_active" boolean DEFAULT true,
-  	"slug" varchar NOT NULL,
-  	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
-  	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
+	"id" serial PRIMARY KEY NOT NULL,
+	"name" varchar NOT NULL,
+	"is_active" boolean DEFAULT true,
+	"slug" varchar NOT NULL,
+	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
+	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
   );
-  
+
   CREATE TABLE "customer_types" (
-  	"id" serial PRIMARY KEY NOT NULL,
-  	"name" varchar NOT NULL,
-  	"markup_percent" numeric DEFAULT 0 NOT NULL,
-  	"description" varchar,
-  	"is_active" boolean DEFAULT true,
-  	"slug" varchar NOT NULL,
-  	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
-  	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
+	"id" serial PRIMARY KEY NOT NULL,
+	"name" varchar NOT NULL,
+	"markup_percent" numeric DEFAULT 0 NOT NULL,
+	"description" varchar,
+	"is_active" boolean DEFAULT true,
+	"slug" varchar NOT NULL,
+	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
+	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
   );
-  
+
   CREATE TABLE "orders_items" (
-  	"_order" integer NOT NULL,
-  	"_parent_id" integer NOT NULL,
-  	"id" varchar PRIMARY KEY NOT NULL,
-  	"product_type" varchar,
-  	"unit" varchar,
-  	"sales_factor" numeric,
-  	"product_id" integer NOT NULL,
-  	"requested_area" numeric NOT NULL,
-  	"carton_count" numeric NOT NULL,
-  	"deliverable_area" numeric NOT NULL,
-  	"unit_price" numeric NOT NULL,
-  	"total_price" numeric NOT NULL
+	"_order" integer NOT NULL,
+	"_parent_id" integer NOT NULL,
+	"id" varchar PRIMARY KEY NOT NULL,
+	"product_type" varchar,
+	"unit" varchar,
+	"sales_factor" numeric,
+	"cartons_per_pallet" numeric,
+	"product_id" integer NOT NULL,
+	"requested_area" numeric NOT NULL,
+	"carton_count" numeric NOT NULL,
+	"deliverable_area" numeric NOT NULL,
+	"unit_price" numeric NOT NULL,
+	"total_price" numeric NOT NULL
   );
-  
+
   CREATE TABLE "orders_timeline" (
-  	"_order" integer NOT NULL,
-  	"_parent_id" integer NOT NULL,
-  	"id" varchar PRIMARY KEY NOT NULL,
-  	"timestamp" timestamp(3) with time zone,
-  	"status" varchar
+	"_order" integer NOT NULL,
+	"_parent_id" integer NOT NULL,
+	"id" varchar PRIMARY KEY NOT NULL,
+	"timestamp" timestamp(3) with time zone,
+	"status" varchar
   );
-  
+
   CREATE TABLE "orders" (
-  	"id" serial PRIMARY KEY NOT NULL,
-  	"request_fingerprint" varchar,
-  	"warehouse_name" varchar,
-  	"warehouse_code" varchar,
-  	"idempotency_key" varchar,
-  	"status" "enum_orders_status" DEFAULT 'pending' NOT NULL,
-  	"order_number" varchar NOT NULL,
-  	"user_id" integer NOT NULL,
-  	"warehouse_id" integer NOT NULL,
-  	"subtotal" numeric NOT NULL,
-  	"discount_amount" numeric DEFAULT 0,
-  	"tax_amount" numeric DEFAULT 0,
-  	"final_total" numeric NOT NULL,
-  	"delivery_address" varchar,
-  	"notes" varchar,
-  	"cancelled_by" "enum_orders_cancelled_by" DEFAULT 'admin',
-  	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
-  	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
+	"id" serial PRIMARY KEY NOT NULL,
+	"request_fingerprint" varchar,
+	"warehouse_name" varchar,
+	"warehouse_code" varchar,
+	"idempotency_key" varchar,
+	"status" "enum_orders_status" DEFAULT 'pending' NOT NULL,
+	"order_number" varchar NOT NULL,
+	"user_id" integer NOT NULL,
+	"warehouse_id" integer NOT NULL,
+	"subtotal" numeric NOT NULL,
+	"discount_amount" numeric DEFAULT 0,
+	"tax_amount" numeric DEFAULT 0,
+	"final_total" numeric NOT NULL,
+	"delivery_address" varchar,
+	"notes" varchar,
+	"cancelled_by" "enum_orders_cancelled_by" DEFAULT 'admin',
+	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
+	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
   );
-  
+
   CREATE TABLE "plans" (
-  	"id" serial PRIMARY KEY NOT NULL,
-  	"title" varchar NOT NULL,
-  	"content" varchar NOT NULL,
-  	"starts_at" timestamp(3) with time zone,
-  	"expires_at" timestamp(3) with time zone,
-  	"is_active" boolean DEFAULT true,
-  	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
-  	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
+	"id" serial PRIMARY KEY NOT NULL,
+	"title" varchar NOT NULL,
+	"content" varchar NOT NULL,
+	"starts_at" timestamp(3) with time zone,
+	"expires_at" timestamp(3) with time zone,
+	"is_active" boolean DEFAULT true,
+	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
+	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
   );
-  
+
   CREATE TABLE "plans_rels" (
-  	"id" serial PRIMARY KEY NOT NULL,
-  	"order" integer,
-  	"parent_id" integer NOT NULL,
-  	"path" varchar NOT NULL,
-  	"users_id" integer,
-  	"products_id" integer
+	"id" serial PRIMARY KEY NOT NULL,
+	"order" integer,
+	"parent_id" integer NOT NULL,
+	"path" varchar NOT NULL,
+	"users_id" integer,
+	"products_id" integer
   );
-  
+
   CREATE TABLE "users_addresses" (
-  	"_order" integer NOT NULL,
-  	"_parent_id" integer NOT NULL,
-  	"id" varchar PRIMARY KEY NOT NULL,
-  	"title" varchar NOT NULL,
-  	"province" varchar NOT NULL,
-  	"city" varchar NOT NULL,
-  	"postal_code" varchar,
-  	"address_detail" varchar NOT NULL
+	"_order" integer NOT NULL,
+	"_parent_id" integer NOT NULL,
+	"id" varchar PRIMARY KEY NOT NULL,
+	"title" varchar NOT NULL,
+	"province" varchar NOT NULL,
+	"city" varchar NOT NULL,
+	"postal_code" varchar,
+	"address_detail" varchar NOT NULL
   );
-  
+
   CREATE TABLE "users_documents" (
-  	"_order" integer NOT NULL,
-  	"_parent_id" integer NOT NULL,
-  	"id" varchar PRIMARY KEY NOT NULL,
-  	"document_type" "enum_users_documents_document_type" DEFAULT 'business_license' NOT NULL,
-  	"title" varchar,
-  	"file_id" integer NOT NULL,
-  	"status" "enum_users_documents_status" DEFAULT 'pending' NOT NULL,
-  	"rejection_reason" varchar,
-  	"uploaded_at" timestamp(3) with time zone
+	"_order" integer NOT NULL,
+	"_parent_id" integer NOT NULL,
+	"id" varchar PRIMARY KEY NOT NULL,
+	"document_type" "enum_users_documents_document_type" DEFAULT 'business_license' NOT NULL,
+	"title" varchar,
+	"file_id" integer NOT NULL,
+	"status" "enum_users_documents_status" DEFAULT 'pending' NOT NULL,
+	"rejection_reason" varchar,
+	"uploaded_at" timestamp(3) with time zone
   );
-  
+
   CREATE TABLE "users" (
-  	"id" serial PRIMARY KEY NOT NULL,
-  	"status" "enum_users_status" DEFAULT 'active' NOT NULL,
-  	"customer_type_id" integer NOT NULL,
-  	"is_banned" boolean DEFAULT false,
-  	"full_name" varchar NOT NULL,
-  	"phone" varchar NOT NULL,
-  	"company_name" varchar,
-  	"national_code" varchar,
-  	"economic_code" varchar,
-  	"province" varchar,
-  	"city" varchar,
-  	"address" varchar,
-  	"hide_exact_stock" boolean DEFAULT false,
-  	"can_use_product_qr" boolean DEFAULT false,
-  	"disable_ordering" boolean DEFAULT false,
-  	"notes" varchar,
-  	"ban_reason" varchar,
-  	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
-  	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
+	"id" serial PRIMARY KEY NOT NULL,
+	"status" "enum_users_status" DEFAULT 'active' NOT NULL,
+	"customer_type_id" integer NOT NULL,
+	"is_banned" boolean DEFAULT false,
+	"full_name" varchar NOT NULL,
+	"phone" varchar NOT NULL,
+	"company_name" varchar,
+	"national_code" varchar,
+	"economic_code" varchar,
+	"province" varchar,
+	"city" varchar,
+	"address" varchar,
+	"hide_exact_stock" boolean DEFAULT false,
+	"can_use_product_qr" boolean DEFAULT false,
+	"disable_ordering" boolean DEFAULT false,
+	"notes" varchar,
+	"ban_reason" varchar,
+	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
+	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
   );
-  
+
   CREATE TABLE "users_rels" (
-  	"id" serial PRIMARY KEY NOT NULL,
-  	"order" integer,
-  	"parent_id" integer NOT NULL,
-  	"path" varchar NOT NULL,
-  	"categories_id" integer
+	"id" serial PRIMARY KEY NOT NULL,
+	"order" integer,
+	"parent_id" integer NOT NULL,
+	"path" varchar NOT NULL,
+	"categories_id" integer
   );
-  
+
   CREATE TABLE "otps" (
-  	"id" serial PRIMARY KEY NOT NULL,
-  	"user_id" integer NOT NULL,
-  	"phone" varchar NOT NULL,
-  	"code" varchar,
-  	"expires_at" timestamp(3) with time zone NOT NULL,
-  	"cooldown_until" timestamp(3) with time zone NOT NULL,
-  	"attempts" numeric DEFAULT 0 NOT NULL,
-  	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
-  	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
+	"id" serial PRIMARY KEY NOT NULL,
+	"user_id" integer NOT NULL,
+	"phone" varchar NOT NULL,
+	"code" varchar,
+	"expires_at" timestamp(3) with time zone NOT NULL,
+	"cooldown_until" timestamp(3) with time zone NOT NULL,
+	"attempts" numeric DEFAULT 0 NOT NULL,
+	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
+	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
   );
-  
+
   CREATE TABLE "warehouses" (
-  	"id" serial PRIMARY KEY NOT NULL,
-  	"code" varchar NOT NULL,
-  	"name" varchar NOT NULL,
-  	"is_active" boolean DEFAULT true NOT NULL,
-  	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
-  	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
+	"id" serial PRIMARY KEY NOT NULL,
+	"code" varchar NOT NULL,
+	"name" varchar NOT NULL,
+	"stock_mode" "enum_warehouses_stock_mode" DEFAULT 'exact' NOT NULL,
+	"is_active" boolean DEFAULT true NOT NULL,
+	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
+	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
   );
-  
+
   CREATE TABLE "warehouse_stock" (
-  	"id" serial PRIMARY KEY NOT NULL,
-  	"warehouse_id" integer NOT NULL,
-  	"product_id" integer NOT NULL,
-  	"inventory_sqm" numeric DEFAULT 0 NOT NULL,
-  	"revision" numeric DEFAULT 0 NOT NULL,
-  	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
-  	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
+	"id" serial PRIMARY KEY NOT NULL,
+	"warehouse_id" integer NOT NULL,
+	"product_id" integer NOT NULL,
+	"inventory_sqm" numeric DEFAULT 0 NOT NULL,
+	"revision" numeric DEFAULT 0 NOT NULL,
+	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
+	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
   );
-  
+
+  CREATE TABLE "supply_sources" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"product_id" integer NOT NULL,
+	"warehouse_id" integer NOT NULL,
+	"is_active" boolean DEFAULT true NOT NULL,
+	"last_reported_at" timestamp(3) with time zone NOT NULL,
+	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
+	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
+  );
+
+  CREATE TABLE "supply_requests" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"request_number" varchar NOT NULL,
+	"user_id" integer NOT NULL,
+	"product_id" integer NOT NULL,
+	"warehouse_id" integer NOT NULL,
+	"status" "enum_supply_requests_status" DEFAULT 'new' NOT NULL,
+	"requested_quantity" numeric NOT NULL,
+	"package_count" numeric NOT NULL,
+	"rounded_quantity" numeric NOT NULL,
+	"sales_factor" numeric NOT NULL,
+	"estimated_unit_price" numeric NOT NULL,
+	"estimated_total" numeric NOT NULL,
+	"cartons_per_pallet" numeric,
+	"product_type" varchar NOT NULL,
+	"unit" varchar NOT NULL,
+	"product_sku" varchar NOT NULL,
+	"product_name" varchar NOT NULL,
+	"warehouse_name" varchar NOT NULL,
+	"warehouse_code" varchar NOT NULL,
+	"product_image" varchar,
+	"notes" varchar DEFAULT '',
+	"response_due_at" timestamp(3) with time zone NOT NULL,
+	"review_started_at" timestamp(3) with time zone,
+	"resolved_at" timestamp(3) with time zone,
+	"cancelled_at" timestamp(3) with time zone,
+	"idempotency_key" varchar NOT NULL,
+	"request_fingerprint" varchar NOT NULL,
+	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
+	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
+  );
+
   CREATE TABLE "media" (
-  	"id" serial PRIMARY KEY NOT NULL,
-  	"alt" varchar NOT NULL,
-  	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
-  	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
-  	"url" varchar,
-  	"thumbnail_u_r_l" varchar,
-  	"filename" varchar,
-  	"mime_type" varchar,
-  	"filesize" numeric,
-  	"width" numeric,
-  	"height" numeric,
-  	"focal_x" numeric,
-  	"focal_y" numeric
+	"id" serial PRIMARY KEY NOT NULL,
+	"alt" varchar NOT NULL,
+	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
+	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
+	"url" varchar,
+	"thumbnail_u_r_l" varchar,
+	"filename" varchar,
+	"mime_type" varchar,
+	"filesize" numeric,
+	"width" numeric,
+	"height" numeric,
+	"focal_x" numeric,
+	"focal_y" numeric
   );
-  
+
   CREATE TABLE "admins_sessions" (
-  	"_order" integer NOT NULL,
-  	"_parent_id" integer NOT NULL,
-  	"id" varchar PRIMARY KEY NOT NULL,
-  	"created_at" timestamp(3) with time zone,
-  	"expires_at" timestamp(3) with time zone NOT NULL
+	"_order" integer NOT NULL,
+	"_parent_id" integer NOT NULL,
+	"id" varchar PRIMARY KEY NOT NULL,
+	"created_at" timestamp(3) with time zone,
+	"expires_at" timestamp(3) with time zone NOT NULL
   );
-  
+
   CREATE TABLE "admins" (
-  	"id" serial PRIMARY KEY NOT NULL,
-  	"name" varchar NOT NULL,
-  	"phone" varchar,
-  	"role" "enum_admins_role" DEFAULT 'manager' NOT NULL,
-  	"is_active" boolean DEFAULT true,
-  	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
-  	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
-  	"enable_a_p_i_key" boolean,
-  	"api_key" varchar,
-  	"api_key_index" varchar,
-  	"email" varchar NOT NULL,
-  	"reset_password_token" varchar,
-  	"reset_password_expiration" timestamp(3) with time zone,
-  	"salt" varchar,
-  	"hash" varchar,
-  	"reset_password_requested_at" timestamp(3) with time zone,
-  	"login_attempts" numeric DEFAULT 0,
-  	"lock_until" timestamp(3) with time zone
+	"id" serial PRIMARY KEY NOT NULL,
+	"name" varchar NOT NULL,
+	"phone" varchar,
+	"role" "enum_admins_role" DEFAULT 'manager' NOT NULL,
+	"is_active" boolean DEFAULT true,
+	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
+	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
+	"enable_a_p_i_key" boolean,
+	"api_key" varchar,
+	"api_key_index" varchar,
+	"email" varchar NOT NULL,
+	"reset_password_token" varchar,
+	"reset_password_expiration" timestamp(3) with time zone,
+	"salt" varchar,
+	"hash" varchar,
+	"reset_password_requested_at" timestamp(3) with time zone,
+	"login_attempts" numeric DEFAULT 0,
+	"lock_until" timestamp(3) with time zone
   );
-  
+
   CREATE TABLE "audit_logs" (
-  	"id" serial PRIMARY KEY NOT NULL,
-  	"action" "enum_audit_logs_action" NOT NULL,
-  	"entity" "enum_audit_logs_entity" NOT NULL,
-  	"admin_name" varchar,
-  	"admin_id" integer,
-  	"target" varchar NOT NULL,
-  	"details" varchar,
-  	"ip" varchar,
-  	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
-  	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
+	"id" serial PRIMARY KEY NOT NULL,
+	"action" "enum_audit_logs_action" NOT NULL,
+	"entity" "enum_audit_logs_entity" NOT NULL,
+	"admin_name" varchar,
+	"admin_id" integer,
+	"target" varchar NOT NULL,
+	"details" varchar,
+	"ip" varchar,
+	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
+	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
   );
-  
+
   CREATE TABLE "payload_kv" (
-  	"id" serial PRIMARY KEY NOT NULL,
-  	"key" varchar NOT NULL,
-  	"data" jsonb NOT NULL
+	"id" serial PRIMARY KEY NOT NULL,
+	"key" varchar NOT NULL,
+	"data" jsonb NOT NULL
   );
-  
+
   CREATE TABLE "payload_locked_documents" (
-  	"id" serial PRIMARY KEY NOT NULL,
-  	"global_slug" varchar,
-  	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
-  	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
+	"id" serial PRIMARY KEY NOT NULL,
+	"global_slug" varchar,
+	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
+	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
   );
-  
+
   CREATE TABLE "payload_locked_documents_rels" (
-  	"id" serial PRIMARY KEY NOT NULL,
-  	"order" integer,
-  	"parent_id" integer NOT NULL,
-  	"path" varchar NOT NULL,
-  	"products_id" integer,
-  	"categories_id" integer,
-  	"dimensions_id" integer,
-  	"brands_id" integer,
-  	"tags_id" integer,
-  	"customer_types_id" integer,
-  	"orders_id" integer,
-  	"plans_id" integer,
-  	"users_id" integer,
-  	"otps_id" integer,
-  	"warehouses_id" integer,
-  	"warehouse_stock_id" integer,
-  	"media_id" integer,
-  	"admins_id" integer,
-  	"audit_logs_id" integer
+	"id" serial PRIMARY KEY NOT NULL,
+	"order" integer,
+	"parent_id" integer NOT NULL,
+	"path" varchar NOT NULL,
+	"products_id" integer,
+	"categories_id" integer,
+	"dimensions_id" integer,
+	"brands_id" integer,
+	"tags_id" integer,
+	"customer_types_id" integer,
+	"orders_id" integer,
+	"plans_id" integer,
+	"users_id" integer,
+	"otps_id" integer,
+	"warehouses_id" integer,
+	"warehouse_stock_id" integer,
+	"supply_sources_id" integer,
+	"supply_requests_id" integer,
+	"media_id" integer,
+	"admins_id" integer,
+	"audit_logs_id" integer
   );
-  
+
   CREATE TABLE "payload_preferences" (
-  	"id" serial PRIMARY KEY NOT NULL,
-  	"key" varchar,
-  	"value" jsonb,
-  	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
-  	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
+	"id" serial PRIMARY KEY NOT NULL,
+	"key" varchar,
+	"value" jsonb,
+	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
+	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
   );
-  
+
   CREATE TABLE "payload_preferences_rels" (
-  	"id" serial PRIMARY KEY NOT NULL,
-  	"order" integer,
-  	"parent_id" integer NOT NULL,
-  	"path" varchar NOT NULL,
-  	"admins_id" integer
+	"id" serial PRIMARY KEY NOT NULL,
+	"order" integer,
+	"parent_id" integer NOT NULL,
+	"path" varchar NOT NULL,
+	"admins_id" integer
   );
-  
+
   CREATE TABLE "payload_migrations" (
-  	"id" serial PRIMARY KEY NOT NULL,
-  	"name" varchar,
-  	"batch" numeric,
-  	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
-  	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
+	"id" serial PRIMARY KEY NOT NULL,
+	"name" varchar,
+	"batch" numeric,
+	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
+	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
   );
-  
+
   ALTER TABLE "products_gallery" ADD CONSTRAINT "products_gallery_image_id_media_id_fk" FOREIGN KEY ("image_id") REFERENCES "public"."media"("id") ON DELETE set null ON UPDATE no action;
   ALTER TABLE "products_gallery" ADD CONSTRAINT "products_gallery_parent_id_fk" FOREIGN KEY ("_parent_id") REFERENCES "public"."products"("id") ON DELETE cascade ON UPDATE no action;
   ALTER TABLE "products" ADD CONSTRAINT "products_category_id_categories_id_fk" FOREIGN KEY ("category_id") REFERENCES "public"."categories"("id") ON DELETE set null ON UPDATE no action;
@@ -406,6 +455,16 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   ALTER TABLE "warehouse_stock" ADD CONSTRAINT "warehouse_stock_product_id_products_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."products"("id") ON DELETE restrict ON UPDATE no action;
   ALTER TABLE "warehouse_stock" ADD CONSTRAINT "warehouse_stock_amount_check" CHECK ("inventory_sqm" >= 0 AND "inventory_sqm" = ROUND("inventory_sqm", 2));
   ALTER TABLE "warehouse_stock" ADD CONSTRAINT "warehouse_stock_revision_check" CHECK ("revision" >= 0 AND "revision" = FLOOR("revision"));
+  ALTER TABLE "products" ADD CONSTRAINT "products_cartons_per_pallet_valid" CHECK ("cartons_per_pallet" IS NULL OR ("cartons_per_pallet" >= 1 AND "cartons_per_pallet" <= 9007199254740991 AND trunc("cartons_per_pallet") = "cartons_per_pallet"));
+  ALTER TABLE "orders_items" ADD CONSTRAINT "orders_items_cartons_per_pallet_valid" CHECK ("cartons_per_pallet" IS NULL OR ("cartons_per_pallet" >= 1 AND "cartons_per_pallet" <= 9007199254740991 AND trunc("cartons_per_pallet") = "cartons_per_pallet"));
+  ALTER TABLE "supply_requests" ADD CONSTRAINT "supply_requests_quantities_valid" CHECK ("requested_quantity" > 0 AND "requested_quantity" <= 1000000 AND round("requested_quantity", 2) = "requested_quantity" AND "package_count" > 0 AND "package_count" <= 9007199254740991 AND trunc("package_count") = "package_count" AND "rounded_quantity" > 0 AND "sales_factor" > 0);
+  ALTER TABLE "supply_requests" ADD CONSTRAINT "supply_requests_prices_valid" CHECK ("estimated_unit_price" >= 0 AND "estimated_unit_price" <= 9007199254740991 AND trunc("estimated_unit_price") = "estimated_unit_price" AND "estimated_total" >= 0 AND "estimated_total" <= 9007199254740991 AND trunc("estimated_total") = "estimated_total");
+  ALTER TABLE "supply_requests" ADD CONSTRAINT "supply_requests_cartons_per_pallet_valid" CHECK ("cartons_per_pallet" IS NULL OR ("cartons_per_pallet" >= 1 AND "cartons_per_pallet" <= 9007199254740991 AND trunc("cartons_per_pallet") = "cartons_per_pallet"));
+  ALTER TABLE "supply_sources" ADD CONSTRAINT "supply_sources_product_id_products_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."products"("id") ON DELETE set null ON UPDATE no action;
+  ALTER TABLE "supply_sources" ADD CONSTRAINT "supply_sources_warehouse_id_warehouses_id_fk" FOREIGN KEY ("warehouse_id") REFERENCES "public"."warehouses"("id") ON DELETE set null ON UPDATE no action;
+  ALTER TABLE "supply_requests" ADD CONSTRAINT "supply_requests_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;
+  ALTER TABLE "supply_requests" ADD CONSTRAINT "supply_requests_product_id_products_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."products"("id") ON DELETE set null ON UPDATE no action;
+  ALTER TABLE "supply_requests" ADD CONSTRAINT "supply_requests_warehouse_id_warehouses_id_fk" FOREIGN KEY ("warehouse_id") REFERENCES "public"."warehouses"("id") ON DELETE set null ON UPDATE no action;
   ALTER TABLE "admins_sessions" ADD CONSTRAINT "admins_sessions_parent_id_fk" FOREIGN KEY ("_parent_id") REFERENCES "public"."admins"("id") ON DELETE cascade ON UPDATE no action;
   ALTER TABLE "audit_logs" ADD CONSTRAINT "audit_logs_admin_id_admins_id_fk" FOREIGN KEY ("admin_id") REFERENCES "public"."admins"("id") ON DELETE set null ON UPDATE no action;
   ALTER TABLE "payload_locked_documents_rels" ADD CONSTRAINT "payload_locked_documents_rels_parent_fk" FOREIGN KEY ("parent_id") REFERENCES "public"."payload_locked_documents"("id") ON DELETE cascade ON UPDATE no action;
@@ -421,6 +480,8 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   ALTER TABLE "payload_locked_documents_rels" ADD CONSTRAINT "payload_locked_documents_rels_otps_fk" FOREIGN KEY ("otps_id") REFERENCES "public"."otps"("id") ON DELETE cascade ON UPDATE no action;
   ALTER TABLE "payload_locked_documents_rels" ADD CONSTRAINT "payload_locked_documents_rels_warehouses_fk" FOREIGN KEY ("warehouses_id") REFERENCES "public"."warehouses"("id") ON DELETE cascade ON UPDATE no action;
   ALTER TABLE "payload_locked_documents_rels" ADD CONSTRAINT "payload_locked_documents_rels_warehouse_stock_fk" FOREIGN KEY ("warehouse_stock_id") REFERENCES "public"."warehouse_stock"("id") ON DELETE cascade ON UPDATE no action;
+  ALTER TABLE "payload_locked_documents_rels" ADD CONSTRAINT "payload_locked_documents_rels_supply_sources_fk" FOREIGN KEY ("supply_sources_id") REFERENCES "public"."supply_sources"("id") ON DELETE cascade ON UPDATE no action;
+  ALTER TABLE "payload_locked_documents_rels" ADD CONSTRAINT "payload_locked_documents_rels_supply_requests_fk" FOREIGN KEY ("supply_requests_id") REFERENCES "public"."supply_requests"("id") ON DELETE cascade ON UPDATE no action;
   ALTER TABLE "payload_locked_documents_rels" ADD CONSTRAINT "payload_locked_documents_rels_media_fk" FOREIGN KEY ("media_id") REFERENCES "public"."media"("id") ON DELETE cascade ON UPDATE no action;
   ALTER TABLE "payload_locked_documents_rels" ADD CONSTRAINT "payload_locked_documents_rels_admins_fk" FOREIGN KEY ("admins_id") REFERENCES "public"."admins"("id") ON DELETE cascade ON UPDATE no action;
   ALTER TABLE "payload_locked_documents_rels" ADD CONSTRAINT "payload_locked_documents_rels_audit_logs_fk" FOREIGN KEY ("audit_logs_id") REFERENCES "public"."audit_logs"("id") ON DELETE cascade ON UPDATE no action;
@@ -502,6 +563,18 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   CREATE INDEX "warehouse_stock_updated_at_idx" ON "warehouse_stock" USING btree ("updated_at");
   CREATE INDEX "warehouse_stock_created_at_idx" ON "warehouse_stock" USING btree ("created_at");
   CREATE UNIQUE INDEX "warehouse_product_idx" ON "warehouse_stock" USING btree ("warehouse_id","product_id");
+  CREATE INDEX "supply_sources_product_idx" ON "supply_sources" USING btree ("product_id");
+  CREATE INDEX "supply_sources_warehouse_idx" ON "supply_sources" USING btree ("warehouse_id");
+  CREATE INDEX "supply_sources_updated_at_idx" ON "supply_sources" USING btree ("updated_at");
+  CREATE INDEX "supply_sources_created_at_idx" ON "supply_sources" USING btree ("created_at");
+  CREATE UNIQUE INDEX "warehouse_product_1_idx" ON "supply_sources" USING btree ("warehouse_id","product_id");
+  CREATE UNIQUE INDEX "supply_requests_request_number_idx" ON "supply_requests" USING btree ("request_number");
+  CREATE INDEX "supply_requests_user_idx" ON "supply_requests" USING btree ("user_id");
+  CREATE INDEX "supply_requests_product_idx" ON "supply_requests" USING btree ("product_id");
+  CREATE INDEX "supply_requests_warehouse_idx" ON "supply_requests" USING btree ("warehouse_id");
+  CREATE UNIQUE INDEX "supply_requests_idempotency_key_idx" ON "supply_requests" USING btree ("idempotency_key");
+  CREATE INDEX "supply_requests_updated_at_idx" ON "supply_requests" USING btree ("updated_at");
+  CREATE INDEX "supply_requests_created_at_idx" ON "supply_requests" USING btree ("created_at");
   CREATE INDEX "media_updated_at_idx" ON "media" USING btree ("updated_at");
   CREATE INDEX "media_created_at_idx" ON "media" USING btree ("created_at");
   CREATE UNIQUE INDEX "media_filename_idx" ON "media" USING btree ("filename");
@@ -532,6 +605,8 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   CREATE INDEX "payload_locked_documents_rels_otps_id_idx" ON "payload_locked_documents_rels" USING btree ("otps_id");
   CREATE INDEX "payload_locked_documents_rels_warehouses_id_idx" ON "payload_locked_documents_rels" USING btree ("warehouses_id");
   CREATE INDEX "payload_locked_documents_rels_warehouse_stock_id_idx" ON "payload_locked_documents_rels" USING btree ("warehouse_stock_id");
+  CREATE INDEX "payload_locked_documents_rels_supply_sources_id_idx" ON "payload_locked_documents_rels" USING btree ("supply_sources_id");
+  CREATE INDEX "payload_locked_documents_rels_supply_requests_id_idx" ON "payload_locked_documents_rels" USING btree ("supply_requests_id");
   CREATE INDEX "payload_locked_documents_rels_media_id_idx" ON "payload_locked_documents_rels" USING btree ("media_id");
   CREATE INDEX "payload_locked_documents_rels_admins_id_idx" ON "payload_locked_documents_rels" USING btree ("admins_id");
   CREATE INDEX "payload_locked_documents_rels_audit_logs_id_idx" ON "payload_locked_documents_rels" USING btree ("audit_logs_id");
@@ -568,6 +643,8 @@ export async function down({ db, payload, req }: MigrateDownArgs): Promise<void>
   DROP TABLE "otps" CASCADE;
   DROP TABLE "warehouses" CASCADE;
   DROP TABLE "warehouse_stock" CASCADE;
+  DROP TABLE "supply_sources" CASCADE;
+  DROP TABLE "supply_requests" CASCADE;
   DROP TABLE "media" CASCADE;
   DROP TABLE "admins_sessions" CASCADE;
   DROP TABLE "admins" CASCADE;
@@ -587,6 +664,8 @@ export async function down({ db, payload, req }: MigrateDownArgs): Promise<void>
   DROP TYPE "public"."enum_users_documents_document_type";
   DROP TYPE "public"."enum_users_documents_status";
   DROP TYPE "public"."enum_users_status";
+  DROP TYPE "public"."enum_warehouses_stock_mode";
+  DROP TYPE "public"."enum_supply_requests_status";
   DROP TYPE "public"."enum_admins_role";
   DROP TYPE "public"."enum_audit_logs_action";
   DROP TYPE "public"."enum_audit_logs_entity";`)

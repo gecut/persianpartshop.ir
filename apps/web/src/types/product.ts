@@ -40,6 +40,8 @@ export interface Product {
   originalPricePerSqm?: number
   discountPlanTitle?: string
   sqmPerCarton: number
+  cartonsPerPallet?: number | null
+  hasSupplySource?: boolean
   areaPerCarton: number
   piecesPerCarton: number
   tilesPerCarton: number

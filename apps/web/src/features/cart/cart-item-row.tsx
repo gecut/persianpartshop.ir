@@ -1,4 +1,4 @@
-import { formatUnit } from '../../lib/utils/unit'
+import { formatCartons, formatUnit } from '../../lib/utils/unit'
 import React from "react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@heroui/react";
@@ -156,6 +156,7 @@ export const CartItemRow = React.memo(function CartItemRow({
                 • ضریب: {toPersianDigits(item.sqmPerCarton)}
               </span>
             )}
+            {item.productType === 'tile' && item.cartonsPerPallet && <span>• {formatCartons(item.cartonCount, item.cartonsPerPallet)}</span>}
           </div>
         </div>
       </div>

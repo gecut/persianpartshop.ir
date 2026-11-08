@@ -29,7 +29,7 @@ export const Users: CollectionConfig = {
   access: {
     read: isSalesManager,
     create: canManageUsers,
-    update: isSalesManager,
+    update: canManageUsers,
     delete: isSuperAdmin,
   },
   hooks: {

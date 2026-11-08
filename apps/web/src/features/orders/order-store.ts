@@ -233,6 +233,7 @@ export function mapDocToOrder(doc: any): Order {
       grade,
       requestedArea: i.requestedArea || 1,
       cartonCount: i.cartonCount || 1,
+      cartonsPerPallet: i.cartonsPerPallet ?? null,
       deliverableArea: i.deliverableArea || 1,
       unitPrice: i.unitPrice || 0,
       totalPrice: i.totalPrice || 0,

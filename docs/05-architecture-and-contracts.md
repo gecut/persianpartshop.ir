@@ -22,6 +22,8 @@ API business data goes through [CMS SDK](../apps/cms/src/sdk.ts); the running AP
 
 ## Actual contract surface
 
+`supplyRequest` defines preview, submit, list, detail and cancel in the shared contract. The API maps CMS snapshots into a customer DTO and scopes history to the authenticated customer. CMS owns final validation, snapshots and serialized status transitions; inquiry stock is excluded from exact warehouse availability and reservations.
+
 The root [appContract](../packages/contract/src/index.ts) exports `health`, `echo`, `auth`, `catalog`, `shopping`, `customer`, `user`, `order`, `plan`, `warehouse`. There is no `system` router in the current root, despite a stale source comment referring to it.
 
 Relevant names are `auth.session`, `catalog.getById`, `order.pricing.validateCart`, `order.submit`, `order.cancel`, `order.prepareReorder`, `warehouse.availability`, and `shopping.createOrder`. The latter delegates to the same submit implementation. Do not use former conceptual names such as `getBySlug`, `cancelByCustomer`, `system.previewCsvImport` or `getGlobalConfig` as executable API documentation.
@@ -55,6 +57,7 @@ Shared volume mounts differ by service: API `/app/media`, CMS `/app/apps/cms/med
 - Database: `DATABASE_URL` takes precedence over `DATABASE_URI` in CMS.
 - Service calls: `CMS_API_URL`/`PAYLOAD_URL`/`CMS_URL` and `CMS_API_KEY`; SDK resolver specifies precedence.
 - Authentication: `PAYLOAD_SECRET`, `JWT_SECRET` and Kavenegar environment configuration.
+- CMS result notifications: `KAVENEGAR_API_KEY` and `WEB_URL`; absent settings skip the notification with a sanitized log entry. The provider attempt, including response-body reading, is limited to five seconds.
 - Media: `MEDIA_DIR`, `CDN_URL` and frontend build-time settings.
 - Tests/seed: use explicit disposable DB settings and `DISABLE_SMS=true` for CMS notification hooks. OTP sending uses a separate Kavenegar helper; this flag must not be treated as proof that a test invoking OTP can never send SMS.
 

@@ -22,6 +22,12 @@ export const queryKeys = {
     detail: (id: string | number) => [...queryKeys.orders.details(), String(id)] as const,
     summary: () => [...queryKeys.orders.all, 'summary'] as const,
   },
+  supplyRequests: {
+    all: ['supply-requests'] as const,
+    preview: (owner: string, productId: number, quantity: number) => ['supply-requests', owner, 'preview', productId, quantity] as const,
+    list: (owner: string, page: number) => ['supply-requests', owner, 'list', page] as const,
+    detail: (owner: string, id: number) => ['supply-requests', owner, 'detail', id] as const,
+  },
   plans: {
     all: ['plans'] as const,
     lists: () => [...queryKeys.plans.all, 'list'] as const,

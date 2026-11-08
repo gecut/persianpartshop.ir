@@ -14,7 +14,7 @@ The commercial intent is an authenticated trade portal. The web root redirects u
 - Manager (`manager`) and supervisor (`superadmin`): human CMS accounts in `admins`.
 - Service (`service`): CMS API-key identity used by the API. It can write orders and customer records; it is not globally read-only. Warehouse balance administration and CSV application are restricted to manager/superadmin.
 
-`support` and `editor` are not selectable roles in the current admin schema. Legacy role helper branches remain in source; they are not new supported staff roles.
+`support` is a selectable staff role for sales operations and supply-request statuses. `editor` remains a legacy helper role and is not selectable in the admin schema.
 
 ## Supported scope
 

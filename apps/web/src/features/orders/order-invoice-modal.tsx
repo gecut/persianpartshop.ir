@@ -1,4 +1,4 @@
-import { formatUnit } from '../../lib/utils/unit'
+import { formatCartons, formatUnit } from '../../lib/utils/unit'
 import { useMemo } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
@@ -280,7 +280,7 @@ export function OrderInvoiceModal({
                               </div>
                             </Table.Cell>
                             <Table.Cell className="text-center font-bold text-foreground px-1 py-2.5 sm:py-3 text-xs sm:text-sm print:text-[10px] whitespace-nowrap rounded-none border-x-0 bg-white!">
-                              {toPersianDigits(item.cartonCount || 1)} {item.productType === 'other' ? formatUnit(item.unit) : 'کارتن'}
+                              {item.productType === 'other' ? `${toPersianDigits(item.cartonCount || 1)} ${formatUnit(item.unit)}` : formatCartons(item.cartonCount || 1, item.cartonsPerPallet)}
                             </Table.Cell>
                             <Table.Cell className="text-center font-bold text-foreground px-1 py-2.5 sm:py-3 text-xs sm:text-sm print:text-[10px] whitespace-nowrap rounded-none border-x-0 bg-white!">
                               {toPersianDigits(

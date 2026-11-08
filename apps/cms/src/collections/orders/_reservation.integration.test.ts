@@ -30,7 +30,7 @@ test('PostgreSQL reservation atomicity and cancellation races', { skip: !connect
   try {
     await db.execute(sql`
       DROP TABLE IF EXISTS warehouse_stock, warehouses, products, orders;
-      CREATE TABLE warehouses (id integer PRIMARY KEY, is_active boolean NOT NULL);
+      CREATE TABLE warehouses (id integer PRIMARY KEY, is_active boolean NOT NULL, stock_mode text NOT NULL DEFAULT 'exact');
       CREATE TABLE warehouse_stock (id serial UNIQUE, warehouse_id integer, product_id integer, inventory_sqm numeric NOT NULL CHECK (inventory_sqm >= 0), revision integer DEFAULT 0, updated_at timestamptz, PRIMARY KEY (warehouse_id, product_id));
       CREATE TABLE products (
         id integer PRIMARY KEY,
@@ -48,7 +48,7 @@ test('PostgreSQL reservation atomicity and cancellation races', { skip: !connect
 
     const reset = async () => {
       await db.execute(sql`TRUNCATE warehouse_stock, warehouses, products, orders`)
-      await db.execute(sql`INSERT INTO warehouses VALUES (1, true), (2, true)`);
+      await db.execute(sql`INSERT INTO warehouses (id, is_active) VALUES (1, true), (2, true)`);
       await db.execute(sql`INSERT INTO warehouse_stock (warehouse_id, product_id, inventory_sqm) VALUES (1, 1, 10), (1, 2, 1), (2, 1, 100)`);
       await db.execute(sql`INSERT INTO products VALUES (1, 'one', 10, 10, 1, now()), (2, 'two', 1, 1, 1, now())`)
       await db.execute(sql`INSERT INTO orders VALUES (1, 'pending')`)

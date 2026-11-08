@@ -1,4 +1,8 @@
 import { DataStatus } from '../../components/feedback/data-status'
+import { parseAsStringLiteral, useQueryState } from 'nuqs'
+import { SupplyRequestModal } from '../../features/supply-requests/supply-request-modal'
+import { SupplyRequestRecovery } from '../../features/supply-requests/supply-request-recovery'
+import { supplyDraftStore, useSupplyDraft } from '../../features/supply-requests/supply-request-draft'
 import { api } from '../../lib/api-client'
 import { useQuery } from '@tanstack/react-query'
 import { queryKeys } from '../../lib/query-keys'
@@ -25,6 +29,7 @@ import { useAuth, isProductAllowedForUser } from "../../features/auth/auth-store
 import { useCart } from "../../features/cart/cart-store";
 import { selectionStore, useProductSelection } from "../../features/products/selection-store";
 import { toPersianDigits } from "../../lib/utils/currency";
+import { formatUnit } from "../../lib/utils/unit";
 import { ProductCardSkeleton } from "../../components/ui/skeleton";
 import {
   FilterIcon,
@@ -55,7 +60,8 @@ const PRODUCT_DIMENSIONS = [
 function ProductListPage() {
   const navigate = useNavigate();
   const { productId } = Route.useSearch();
-  const productHook = useProducts();
+  const [mode, setMode] = useQueryState('mode', parseAsStringLiteral(['purchase', 'supply'] as const).withDefault('purchase'));
+  const productHook = useProducts(mode === 'supply');
   const {
     products,
     allProducts,
@@ -68,6 +74,7 @@ function ProductListPage() {
     error, isFetching, refetch,
   } = productHook;
   const { user } = useAuth();
+  const { owner: supplyOwner } = useSupplyDraft();
   const isOrderingDisabled = Boolean(user?.disableOrdering) || Boolean(user?.hideExactStock);
   const { items: cartItems } = useCart();
   const {
@@ -106,6 +113,8 @@ function ProductListPage() {
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [supplyProduct, setSupplyProduct] = useState<Product | null>(null);
+  const [purchaseSuggestion, setPurchaseSuggestion] = useState<{ product: Product; quantity: number } | null>(null);
   const [activeBottomSheetProduct, setActiveBottomSheetProduct] =
     useState<Product | null>(null);
 
@@ -119,11 +128,12 @@ function ProductListPage() {
     },
     enabled: !!productId,
   });
-  useEffect(() => { if (productId && sharedProduct.data) setActiveBottomSheetProduct(sharedProduct.data) }, [productId, sharedProduct.data]);
+  useEffect(() => { if (productId && sharedProduct.data) { if (mode === 'supply' && supplyOwner && sharedProduct.data.hasSupplySource && supplyDraftStore.open(Number(sharedProduct.data.id))) setSupplyProduct(sharedProduct.data); else if (mode !== 'supply') setActiveBottomSheetProduct(sharedProduct.data) } }, [productId, sharedProduct.data, mode, supplyOwner]);
 
   const handleOpenBottomSheet = useCallback((product: Product) => {
+    if (mode === 'supply') { if (!isOrderingDisabled && product.hasSupplySource && supplyDraftStore.open(Number(product.id))) setSupplyProduct(product); return }
     setActiveBottomSheetProduct(product);
-  }, []);
+  }, [mode, isOrderingDisabled]);
 
   const handleCloseBottomSheet = useCallback(() => {
     setActiveBottomSheetProduct(null);
@@ -132,13 +142,14 @@ function ProductListPage() {
 
   const handleToggleSelect = useCallback(
     (product: Product) => {
+      if (mode === 'supply') { handleOpenBottomSheet(product); return }
       if (isOrderingDisabled) {
         handleOpenBottomSheet(product);
         return;
       }
       toggleProduct(product.id);
     },
-    [isOrderingDisabled, toggleProduct, handleOpenBottomSheet],
+    [mode, isOrderingDisabled, toggleProduct, handleOpenBottomSheet],
   );
 
   const listContainerRef = useRef<HTMLDivElement | null>(null);
@@ -222,6 +233,18 @@ function ProductListPage() {
 
   return (
     <div className="w-full px-4 py-3 space-y-3 text-start pb-8 bg-background">
+      <div className="flex gap-2" role="group" aria-label="نوع درخواست">
+        <Button size="sm" variant={mode === 'purchase' ? 'primary' : 'secondary'} onPress={() => void setMode('purchase')}>خرید از موجودی</Button>
+        <Button size="sm" variant={mode === 'supply' ? 'primary' : 'secondary'} onPress={() => void setMode('supply')}>درخواست تأمین</Button>
+      </div>
+      {!supplyProduct && <SupplyRequestRecovery onSuccess={id => { void navigate({ to: '/orders', search: { view: 'supply', requestId: id } }) }} />}
+      {mode === 'purchase' && purchaseSuggestion && <div className="rounded-2xl bg-muted/10 p-3 text-sm flex flex-wrap items-center gap-2"><span>برای خرید «{purchaseSuggestion.product.name}»، مقدار {toPersianDigits(purchaseSuggestion.quantity)} {purchaseSuggestion.product.productType === 'other' ? formatUnit(purchaseSuggestion.product.unit) : 'مترمربع'} را انتخاب کنید.</span><Button size="sm" variant="ghost" onPress={() => setActiveBottomSheetProduct(purchaseSuggestion.product)}>مشاهده کالا</Button><Button size="sm" onPress={async () => {
+        const { product, quantity } = purchaseSuggestion
+        const current = selectionStore.getSnapshot().quantities[product.id]
+        if (current !== undefined && current !== quantity && !window.confirm('مقدار این کالا در سبد خرید جایگزین شود؟')) return
+        await selectionStore.setQuantity(product.id, quantity)
+        if (selectionStore.getSnapshot().quantities[product.id] === quantity) { setPurchaseSuggestion(null); void navigate({ to: '/product/new' }) }
+      }}>افزودن این مقدار به سبد</Button></div>}
       {error && <DataStatus error={error} hasData={allProducts.length > 0} fetching={isFetching} onRetry={() => void refetch()} />}
       {productId && (sharedProduct.isPending || sharedProduct.error) && <DataStatus error={sharedProduct.error} fetching={sharedProduct.isFetching} onRetry={() => void sharedProduct.refetch()} />}
       {/* 1. Search Bar & Advanced Filters Trigger */}
@@ -366,6 +389,7 @@ function ProductListPage() {
         isOpen={isFilterOpen}
         onClose={() => setIsFilterOpen(false)}
         productHook={productHook}
+        supplyMode={mode === 'supply'}
       />
 
       {/* Status & Active Count */}
@@ -448,9 +472,10 @@ function ProductListPage() {
                 >
                   <ProductCard
                     product={product}
-                    isSelected={isSelected}
-                    isInCart={inCart}
+                    isSelected={mode === 'purchase' && isSelected}
+                    isInCart={mode === 'purchase' && inCart}
                     isOrderingDisabled={isOrderingDisabled}
+                    supplyMode={mode === 'supply'}
                     onToggleSelect={handleToggleSelect}
                     onOpenBottomSheet={handleOpenBottomSheet}
                   />
@@ -469,7 +494,7 @@ function ProductListPage() {
       )}
 
       {/* Floating Action Bar (FAB) */}
-      {!isOrderingDisabled && selectedCount > 0 && (
+      {mode === 'purchase' && !isOrderingDisabled && selectedCount > 0 && (
         <div className="fixed bottom-24 1 left-1/2 -translate-x-1/2 z-50 animate-in fade-in zoom-in-95 duration-200 pointer-events-auto">
           <Link
             to="/product/new"
@@ -486,7 +511,8 @@ function ProductListPage() {
       )}
 
       {/* Product Bottom Sheet */}
-      {isScannerOpen && <ProductQrScanner onClose={() => setIsScannerOpen(false)} onProduct={(product) => { setIsScannerOpen(false); requestAnimationFrame(() => setActiveBottomSheetProduct(product)); }} />}
+      {isScannerOpen && <ProductQrScanner onClose={() => setIsScannerOpen(false)} onProduct={(product) => { setIsScannerOpen(false); requestAnimationFrame(() => handleOpenBottomSheet(product)); }} />}
+      <SupplyRequestModal product={supplyProduct} onClose={() => setSupplyProduct(null)} onPurchase={() => { const draft = supplyDraftStore.getSnapshot().draft; if (supplyProduct && draft) setPurchaseSuggestion({ product: supplyProduct, quantity: draft.requestedQuantity }); setSupplyProduct(null); void setMode('purchase') }} onSuccess={(id) => { setSupplyProduct(null); void navigate({ to: '/orders', search: { view: 'supply', requestId: id } }) }} />
       <ProductBottomSheet
         product={activeBottomSheetProduct}
         isOpen={Boolean(activeBottomSheetProduct)}

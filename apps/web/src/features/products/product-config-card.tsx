@@ -6,6 +6,7 @@ import { MoneyBagOutlineIcon } from "@solar-icons/react";
 import type { Product } from "../../types";
 import { calculateCartonRequirement } from "../../lib/utils/math";
 import { formatToman, toPersianDigits } from "../../lib/utils/currency";
+import { formatCartons } from "../../lib/utils/unit";
 import { formatGrade, formatUnit } from "./product-store";
 import { selectionStore, useProductQuantity } from "./selection-store";
 import { ThrottledSlider } from "../../components/ui/throttled-slider";
@@ -203,7 +204,7 @@ function ProductConfigCardComponent({
           </div>
           <div className="min-w-0 flex-1">
             <span className="text-xs text-muted font-medium block leading-tight mb-1">
-              متراژ تحویلی
+              {product.productType === 'other' ? 'مقدار تحویلی' : 'متراژ تحویلی'}
             </span>
             <span className="font-bold text-foreground text-sm leading-normal  block">
               {toPersianDigits(calc.deliverableArea)}
@@ -217,10 +218,10 @@ function ProductConfigCardComponent({
           </div>
           <div className="min-w-0 flex-1">
             <span className="text-xs text-muted font-medium block leading-tight mb-1">
-              تعداد کارتن
+              {product.productType === 'other' ? 'تعداد واحد فروش' : 'تعداد کارتن'}
             </span>
             <span className="font-bold text-primary text-sm leading-normal  block">
-              {toPersianDigits(calc.cartonCount)} کارتن
+              {product.productType === 'other' ? `${toPersianDigits(calc.cartonCount)} ${formatUnit(product.unit)}` : formatCartons(calc.cartonCount, product.cartonsPerPallet)}
             </span>
           </div>
         </div>

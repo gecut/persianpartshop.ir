@@ -18,7 +18,7 @@ export const prepareOrderBeforeValidate: CollectionBeforeValidateHook = async ({
   const db = await getOrderTransaction(req)
   const warehouseId = Number(typeof data.warehouse === 'object' ? data.warehouse?.id : data.warehouse)
   if (!Number.isSafeInteger(warehouseId) || warehouseId <= 0) throw new Error('انتخاب انبار الزامی است.')
-  const lockedWarehouse = await db.execute(sql`SELECT id FROM warehouses WHERE id = ${warehouseId} AND is_active = true FOR SHARE`)
+  const lockedWarehouse = await db.execute(sql`SELECT id FROM warehouses WHERE id = ${warehouseId} AND is_active = true AND stock_mode = 'exact' FOR SHARE`)
   if (lockedWarehouse.rows.length !== 1) throw new Error('انبار انتخاب‌شده فعال نیست.')
   const warehouse = await req.payload.findByID({ collection: 'warehouses', id: warehouseId, depth: 0, req })
   data.warehouseName = warehouse.name
@@ -133,6 +133,7 @@ export const prepareOrderBeforeValidate: CollectionBeforeValidateHook = async ({
     productType: string
     unit: string
     salesFactor: number
+    cartonsPerPallet: number | null
   }> = []
 
   let calculatedSubtotal = 0
@@ -188,6 +189,7 @@ export const prepareOrderBeforeValidate: CollectionBeforeValidateHook = async ({
       productType: productDoc.productType ?? 'tile',
       unit: productDoc.productType === 'other' ? (productDoc.unit ?? 'piece') : 'm2',
       salesFactor: sqmPerCarton,
+      cartonsPerPallet: productDoc.productType === 'other' ? null : productDoc.cartonsPerPallet ?? null,
       requestedArea,
       cartonCount,
       deliverableArea,

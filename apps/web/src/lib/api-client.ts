@@ -20,7 +20,7 @@ export const api = createApiClient({
   fetch: async (input, init) => {
     const token = localStorage.getItem('persianpart_token')
     const path = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url
-    const isWrite = /\/(?:order\/(?:submit|cancel)|shopping\/createOrder|user\/update|auth\/(?:verifyOtp|requestOtp))/.test(path)
+    const isWrite = /\/(?:order\/(?:submit|cancel)|supplyRequest\/(?:submit|cancel)|shopping\/createOrder|user\/update|auth\/(?:verifyOtp|requestOtp))/.test(path)
     const finish = isWrite ? writeActivity.begin() : () => {}
     const controller = new AbortController()
     const abort = () => controller.abort(init?.signal?.reason)

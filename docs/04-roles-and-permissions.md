@@ -4,35 +4,39 @@ Reviewed: 2026-11-07. This describes implemented access, not a security certific
 
 ## Identity layers
 
-CMS `admins` has selectable roles `superadmin`, `manager`, `service`, gated by `isActive`. Customers live in `users` and authenticate to the API as `customer`. The API's `adminOnly` middleware checks role strings `admin`/`superadmin`; it is not identical to the CMS `manager` permission model. Do not assume every CMS role can call every administrative RPC.
+CMS `admins` has selectable roles `superadmin`, `manager`, `support` and `service`, gated by `isActive`. Customers live in `users` and authenticate to the API as `customer`. The API's `adminOnly` middleware checks role strings `admin`/`superadmin`; it is not identical to the CMS `manager` permission model. Do not assume every CMS role can call every administrative RPC.
 
-[Legacy role helpers](../apps/cms/src/access/roles.ts) still recognize `support`/`editor` and contain permission branches for them, although current admin field options omit them. Warehouse and operational-price guards exclude them. Their removal from all legacy branches has not been implemented by this documentation update.
+The admin field offers `support`; legacy helpers also recognize `editor`, which is not currently selectable. Warehouse and operational-price guards exclude both.
 
 ## CMS matrix for current selectable roles
 
-| Operation | manager | superadmin | service |
-| --- | --- | --- | --- |
-| Product/media content create/update/delete | Yes | Yes | Yes |
-| Product base-price create/update | Yes | Yes | No |
-| Read/create/update customers | Yes | Yes | Yes |
-| Delete customers | No | Yes | No |
-| Read/create/update orders within lifecycle guards | Yes | Yes | Yes |
-| Delete orders | No | No | No |
-| Read warehouses/balances | Yes | Yes | Yes |
-| Create/update warehouses | Yes | Yes | No |
-| Create balance; CSV preview/apply/export | Yes | Yes | No |
-| Direct balance update/delete | No | No | No |
-| Delete warehouse | No | No | No |
-| Create/update plans | Yes | Yes | No |
-| Change customer-tier definitions | No | Yes | No |
-| Create/manage staff roles | No | Yes | No |
-| Read/delete audit logs | No | Yes | No |
+| Operation | manager | superadmin | support | service |
+| --- | --- | --- | --- | --- |
+| Product/media content create/update/delete | Yes | Yes | No | Yes |
+| Product base-price create/update | Yes | Yes | No | No |
+| Read customers | Yes | Yes | Yes | Yes |
+| Create/update customers | Yes | Yes | No | Yes |
+| Delete customers | No | Yes | No | No |
+| Read/update orders within lifecycle guards | Yes | Yes | Yes | Yes |
+| Create orders | Yes | Yes | No | Yes |
+| Delete orders | No | No | No | No |
+| Read warehouses/balances | Yes | Yes | No | Yes |
+| Create/update warehouses and sources | Yes | Yes | No | No |
+| Create balance; CSV preview/apply/export | Yes | Yes | No | No |
+| Direct balance update/delete | No | No | No | No |
+| Delete warehouse | No | No | No | No |
+| Create/update plans | Yes | Yes | No | No |
+| Change customer-tier definitions | No | Yes | No | No |
+| Create/manage staff roles | No | Yes | No | No |
+| Read/delete audit logs | No | Yes | No | No |
 
 Staff can read/update their own admin record under the self-access rule; role changes are separately superadmin-only. Server Local API operations default to bypassing collection access, so hooks and internal callers must be considered separately from REST/UI permissions. Service writes orders, which invoke controlled reserve/restore operations; denial of direct balance writes does not prevent that workflow.
 
 Sources: [admin collection](../apps/cms/src/collections/admins/admins.collection.ts), [users](../apps/cms/src/collections/users/users.collection.ts), [products](../apps/cms/src/collections/products/products.collection.ts), [product price guard](../apps/cms/src/collections/products/_product-access.ts), [warehouses](../apps/cms/src/collections/warehouses/warehouses.collection.ts), [balances](../apps/cms/src/collections/warehouse-stock/warehouse-stock.collection.ts).
 
 ## Customer API boundaries
+
+Supply preview and submission require an active customer with ordering and category access. An active customer retains access to their own request history and eligible cancellation after ordering access is removed. Managers and superadmins manage sources; managers, superadmins and support manage request statuses. The service account is the technical CMS boundary for customer creation and cancellation.
 
 Order access is owner-scoped; unauthorized order lookup returns `NOT_FOUND` to avoid enumeration. Submit/availability require authentication, ordering permission and allowed categories. `hideExactStock` converts catalog quantities to availability hints and also disables ordering. `disableOrdering` independently blocks ordering. A failed customer-permission lookup returns an error instead of permissive defaults for a known customer ID.
 

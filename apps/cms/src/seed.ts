@@ -3,6 +3,8 @@ import fs from "fs";
 import path from "path";
 import { getPayloadClient } from "./payload.js";
 import { validateSeedTarget } from "./_seed-target.js";
+import { supplyKeyHash } from './collections/supply-requests/supply-requests.collection.js';
+import type { WarehouseStock } from './payload-types.js';
 
 interface CategorySeed {
   name: string;
@@ -930,7 +932,7 @@ export async function runSeed() {
     {
       name: "کارشناس پشتیبانی سفارشات",
       email: "support@persianpart.ir",
-      role: "manager",
+      role: "support",
       password: "SupportPassword2026!",
       isActive: true,
       enableAPIKey: false,
@@ -1302,6 +1304,7 @@ export async function runSeed() {
       height: prod.height,
       piecesPerCarton: prod.piecesPerCarton,
       sqmPerCarton: prod.sqmPerCarton,
+      ...(prod.sku === 'PP-CAL-60120-P' ? { cartonsPerPallet: 48 } : {}),
       basePricePerSqm: prod.basePricePerSqm,
       stockCartons: prod.stockCartons,
       inventorySqm,
@@ -1366,7 +1369,8 @@ export async function runSeed() {
   const seededWarehouses = []
   for (const fixture of [{ code: 'DEMO-1', name: 'انبار نمونهٔ یک' }, { code: 'DEMO-2', name: 'انبار نمونهٔ دو' }]) {
     const existing = await payload.find({ collection: 'warehouses', where: { code: { equals: fixture.code } }, limit: 1 })
-    const warehouse = existing.docs[0] ?? await payload.create({ collection: 'warehouses', data: { ...fixture, isActive: true } })
+    const warehouse = existing.docs[0] ?? await payload.create({ collection: 'warehouses', data: { ...fixture, isActive: true, stockMode: 'exact' } })
+    if (warehouse.stockMode !== 'exact') throw new Error(`Seed warehouse ${fixture.code} must have exact stock mode`)
     seededWarehouses.push(warehouse)
     for (const product of otherProducts) {
       const existingStock = await payload.find({ collection: 'warehouse-stock', where: { and: [{ warehouse: { equals: warehouse.id } }, { product: { equals: product.id } }] }, limit: 1 })
@@ -1378,6 +1382,17 @@ export async function runSeed() {
       const existingStock = await payload.find({ collection: 'warehouse-stock', where: { and: [{ warehouse: { equals: warehouse.id } }, { product: { equals: found.docs[0].id } }] }, limit: 1 })
       if (!existingStock.docs.length) await payload.create({ collection: 'warehouse-stock', data: { warehouse: warehouse.id, product: found.docs[0].id, inventorySqm: Math.round(product.stockCartons * product.sqmPerCarton * (fixture.code === 'DEMO-1' ? 1 : 0.25) * 100) / 100, revision: 0 } })
     }
+  }
+
+  const inquiryCode = 'DEMO-INQUIRY'
+  const existingInquiry = await payload.find({ collection: 'warehouses', where: { code: { equals: inquiryCode } }, limit: 1 })
+  const inquiry = existingInquiry.docs[0] ?? await payload.create({ collection: 'warehouses', data: { code: inquiryCode, name: 'انبار استعلامی نمونه', stockMode: 'inquiry', isActive: true } })
+  if (inquiry.stockMode !== 'inquiry') throw new Error('Seed inquiry warehouse has an incompatible stock mode')
+  const supplyTile = (await payload.find({ collection: 'products', where: { sku: { equals: 'PP-CAL-60120-P' } }, limit: 1, depth: 0 })).docs[0]
+  if (!supplyTile) throw new Error('Seed supply product is missing')
+  for (const product of [supplyTile, ...otherProducts]) {
+    const sources = await payload.find({ collection: 'supply-sources', where: { and: [{ product: { equals: product.id } }, { warehouse: { equals: inquiry.id } }] }, limit: 1 })
+    if (!sources.docs.length) await payload.create({ collection: 'supply-sources', data: { product: product.id, warehouse: inquiry.id, isActive: true, lastReportedAt: new Date().toISOString() } })
   }
 
   // 6. Seed B2B Users
@@ -1420,6 +1435,19 @@ export async function runSeed() {
     userMap.set(u.phone, id);
   }
   console.log(`✅ ${userMap.size} Users synchronized.`);
+
+  const service = (await payload.find({ collection: 'admins', where: { email: { equals: 'service@persianpart.ir' } }, limit: 1, depth: 0 })).docs[0]
+  const supplyUserId = userMap.get(USERS_SEED[0]!.phone)
+  if (!service || !supplyUserId) throw new Error('Seed supply actor or customer is missing')
+  const supplyKey = '7c41d4b0-90e2-4dd5-b496-42fcdfb871f1'
+  const existingSupply = await payload.find({ collection: 'supply-requests', where: { idempotencyKey: { equals: supplyKeyHash(supplyUserId, supplyKey) } }, limit: 1, depth: 0 })
+  if (!existingSupply.docs.length) {
+    const stocks = await payload.find({ collection: 'warehouse-stock', where: { product: { equals: supplyTile.id } }, pagination: false, depth: 0 })
+    const maxStock = Math.max(0, ...stocks.docs.map((stock: WarehouseStock) => stock.inventorySqm))
+    const requestedQuantity = Math.ceil(maxStock) + 10
+    if (requestedQuantity > 1_000_000) throw new Error('Seed supply quantity exceeds the supported limit')
+    await payload.create({ collection: 'supply-requests', user: { ...service, collection: 'admins' }, data: { user: supplyUserId, product: supplyTile.id, warehouse: inquiry.id, requestedQuantity, notes: 'درخواست نمونه برای بررسی تأمین', idempotencyKey: supplyKey } as never })
+  }
 
   // 7. Seed Orders with rich Timelines
   console.log(

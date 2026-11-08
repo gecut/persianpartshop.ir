@@ -172,6 +172,12 @@ export const Products: CollectionConfig = {
               ],
             },
             {
+              name: 'cartonsPerPallet', type: 'number', label: 'تعداد کارتن در هر پالت', min: 1,
+              admin: { condition: (data) => !data?.productType || data?.productType === 'tile' },
+              access: { create: canUpdateOperationalPrice, update: canUpdateOperationalPrice },
+              validate: (value: number | null | undefined) => value == null || (Number.isSafeInteger(value) && value > 0) || 'تعداد کارتن پالت باید عدد صحیح مثبت باشد.',
+            },
+            {
               name: "unit", type: "select", defaultValue: "bag", label: "واحد فروش",
               admin: { condition: (data) => data?.productType === "other", description: "تغییر واحد کالای دارای رکورد انبار مجاز نیست." },
               options: [

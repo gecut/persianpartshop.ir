@@ -1,5 +1,5 @@
 import { customerErrorMessage } from '../../lib/utils/error'
-import { summarizeQuantities } from '../../lib/utils/unit'
+import { formatCartons, summarizeQuantities } from '../../lib/utils/unit'
 import { useProductSelection } from '../products/selection-store'
 import { WarehouseSummary } from '../cart/warehouse-selection'
 import { useEffect, useMemo, useRef } from "react";
@@ -106,7 +106,7 @@ function PreInvoiceItemCard({ item }: PreInvoiceItemCardProps) {
             {item.product.productType === 'other' ? 'تعداد' : 'تعداد کارتن'}
           </span>
           <span className="font-bold text-primary">
-            {toPersianDigits(item.cartonCount)} {item.product.productType === 'other' ? formatUnit(item.product.unit) : 'کارتن'}
+            {item.product.productType === 'other' ? `${toPersianDigits(item.cartonCount)} ${formatUnit(item.product.unit)}` : formatCartons(item.cartonCount, item.product.cartonsPerPallet)}
           </span>
         </div>
 

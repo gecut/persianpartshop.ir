@@ -1,6 +1,6 @@
 # 06 — Administration and verification runbook
 
-Reviewed: 2026-11-07. Human operators are manager/superadmin; consult [permissions](04-roles-and-permissions.md) for exact boundaries.
+Human operators include manager, superadmin and support; consult [permissions](04-roles-and-permissions.md) for exact boundaries.
 
 ## Accounts and catalog
 
@@ -19,6 +19,8 @@ Select an active warehouse for stock and Kimia. File stock is the reconciled sel
 Direct balance update/delete and warehouse deletion are blocked. Completed imports have no automatic undo; use a fresh reconciled file for correction.
 
 ## Orders and plans
+
+Create an inquiry warehouse and activate a supply source for each product manually. Staff explicitly move requests into review or a final result; merely opening a record does not start review. A result transition attempts an SMS using the explicitly configured `KAVENEGAR_API_KEY` and `WEB_URL`; missing configuration or provider failure does not roll back the status. Delivery is best effort: the notification hook can run before database commit and has no retry queue.
 
 Orders arrive as `pending` with warehouse and immutable authoritative line amounts. Staff can approve (`approve`), complete, or cancel within the allowed transitions. Print the warehouse name and original quantities; no picking across warehouses. Customers can cancel pending orders within 60 minutes; staff can cancel pending/approved orders before completion. Cancelled/completed orders cannot reopen. No required structured staff-reason field or multi-stage preparing/ready workflow is implemented.
 
@@ -48,8 +50,8 @@ Live API tests in `warehouse.live.test.ts` are opt-in: `WAREHOUSE_LIVE_TEST=true
 
 ## Migration, seed and deployment
 
-CMS uses a single baseline migration generated from the current Payload schema, including warehouse constraints. It is intended for a freshly created empty database. Existing databases using the previous migration history require an explicitly planned reset or a separate data-preserving migration; do not apply the baseline over existing tables.
+CMS has one re-created baseline covering supply requests and support roles. It initializes an empty database and must not be applied over existing tables. Databases with prior migration history require a separately planned data-preserving transition or an explicitly authorized reset; this baseline does not perform either automatically.
 
-Seed requires `NODE_ENV=development` and `CMS_SEED_DATABASE_URI` exactly matching the effective local database URI with a guarded name. It creates 26 tile products, two other products, two demo warehouses, 56 balances, three customers and five demo orders on a fresh target. Existing balances are preserved on rerun; seed is not a reset command. Use `DISABLE_SMS=true` for CMS plan notifications.
+Seed requires `NODE_ENV=development` and `CMS_SEED_DATABASE_URI` exactly matching the effective local database URI with a guarded name. On a fresh target it creates 26 tile products, two other products, two exact warehouses with 56 balances, one inquiry warehouse with three supply sources, one supply request, three customers and five demo orders. A sample tile has a 48-carton pallet factor. Existing balances and the sample request are preserved on rerun; seed is not a reset command. Use `DISABLE_SMS=true` for CMS notifications.
 
 The historical [verification record](../.agents/brain/warehouse-merge-completion-2026-11-07.md) describes earlier migrations and is not a statement about a future environment.

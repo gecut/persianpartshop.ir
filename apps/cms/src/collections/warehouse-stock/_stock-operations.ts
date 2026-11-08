@@ -35,7 +35,7 @@ export async function reserveWarehouseStock(req: PayloadRequest, warehouseId: nu
   validId(warehouseId)
   const items = consolidateRequirements(requirements)
   const db = await getOrderTransaction(req)
-  const warehouse = await db.execute(sql`SELECT id FROM warehouses WHERE id = ${warehouseId} AND is_active = true FOR SHARE`)
+  const warehouse = await db.execute(sql`SELECT id FROM warehouses WHERE id = ${warehouseId} AND is_active = true AND stock_mode = 'exact' FOR SHARE`)
   if (warehouse.rows.length !== 1) throw new Error('انبار انتخاب‌شده فعال نیست.')
   for (const item of items) {
     const result = await db.execute(sql`
@@ -67,6 +67,8 @@ export async function replaceWarehouseStock(req: PayloadRequest, warehouseId: nu
   validAmount(inventorySqm)
   if (!Number.isSafeInteger(revision) || revision < 0) throw new Error('نسخهٔ موجودی نامعتبر است.')
   const db = await getOrderTransaction(req)
+  const warehouse = await db.execute(sql`SELECT id FROM warehouses WHERE id = ${warehouseId} AND is_active = true AND stock_mode = 'exact' FOR SHARE`)
+  if (warehouse.rows.length !== 1) throw new Error('انبار قطعی فعال نیست.')
   const result = await db.execute(sql`
     UPDATE warehouse_stock SET inventory_sqm = ${inventorySqm}, revision = revision + 1, updated_at = NOW()
     WHERE warehouse_id = ${warehouseId} AND product_id = ${productId} AND revision = ${revision} RETURNING id

@@ -15,6 +15,7 @@ export interface FilterDrawerProps {
   onClose: () => void;
   productHook?: ReturnType<typeof useProducts>;
   catalogHook?: ReturnType<typeof useProducts>;
+  supplyMode?: boolean;
 }
 
 const AVAILABLE_DIMENSIONS = [
@@ -43,6 +44,7 @@ export function FilterDrawer({
   onClose,
   productHook,
   catalogHook,
+  supplyMode = false,
 }: FilterDrawerProps) {
   const hook = productHook || catalogHook!;
 
@@ -96,7 +98,7 @@ export function FilterDrawer({
             {/* Body */}
             <Drawer.Body className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 py-3 space-y-3 scrollbar-none">
               {/* Only In Stock */}
-              <div
+              {!supplyMode && <div
                 className="py-4 px-4 rounded-2xl bg-muted/5 flex items-center justify-between cursor-pointer select-none"
                 onClick={() => setFilter("onlyInStock", !filters.onlyInStock)}
               >
@@ -135,7 +137,7 @@ export function FilterDrawer({
                     </Switch.Control>
                   </Switch.Content>
                 </Switch>
-              </div>
+              </div>}
 
               {/* Sorting */}
               <div className="space-y-1">

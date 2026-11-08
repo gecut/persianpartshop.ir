@@ -400,6 +400,8 @@ export const ScannedCatalogProductSchema = z.object({
   width: z.number().nullish(),
   height: z.number().nullish(),
   sqmPerCarton: z.number().nullish(),
+  cartonsPerPallet: z.number().int().positive().nullable().optional(),
+  hasSupplySource: z.boolean().optional(),
   piecesPerCarton: z.number().nullish(),
   unit: z.string().nullish(),
   secondary_unit: z.string().nullish(),

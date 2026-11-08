@@ -173,6 +173,8 @@ export function mapCatalogProduct(item: CatalogProductInput): Product {
     discountPercent,
     discountPlanTitle,
     sqmPerCarton: isOther ? 1 : (item.sqmPerCarton || 1.44),
+    cartonsPerPallet: isOther ? null : item.cartonsPerPallet ?? null,
+    hasSupplySource: Boolean(item.hasSupplySource),
     areaPerCarton: isOther ? 1 : (item.sqmPerCarton || 1.44),
     piecesPerCarton: item.piecesPerCarton || 1,
     tilesPerCarton: item.piecesPerCarton || 1,
@@ -212,7 +214,7 @@ export function mapCatalogProduct(item: CatalogProductInput): Product {
   };
 }
 
-export function useProducts() {
+export function useProducts(supplyMode = false) {
   const [queryFilters, setQueryFilters] = useQueryStates(productFilterParsers, {
     shallow: true,
   });
@@ -300,10 +302,10 @@ export function useProducts() {
     count += filters.selectedGrades.length;
     count += filters.selectedTags.length;
     if (filters.selectedCategory) count++;
-    if (filters.onlyInStock) count++;
+    if (!supplyMode && filters.onlyInStock) count++;
     if (filters.sortBy !== "default") count++;
     return count;
-  }, [filters]);
+  }, [filters, supplyMode]);
 
   const filteredProducts = useMemo(() => {
     const list = productsList.filter((product) => {
@@ -385,7 +387,8 @@ export function useProducts() {
       }
 
       // Only in stock
-      if (filters.onlyInStock && !product.inStock) {
+      if (supplyMode && !product.hasSupplySource) return false;
+      if (!supplyMode && filters.onlyInStock && !product.inStock) {
         return false;
       }
 
@@ -407,10 +410,11 @@ export function useProducts() {
       default:
         return list;
     }
-  }, [filters, productsList]);
+  }, [filters, productsList, supplyMode]);
 
   const resetFilters = () => {
-    setQueryFilters(null);
+    if (supplyMode) setQueryFilters({ q: null, dimension: null, brands: null, colors: null, grades: null, tags: null, category: null, sort: null })
+    else setQueryFilters(null);
   };
 
   const setFilter = <K extends keyof FilterState>(

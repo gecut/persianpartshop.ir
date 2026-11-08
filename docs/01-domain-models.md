@@ -19,7 +19,7 @@ erDiagram
 
 `users`: required `fullName`, unique `phone`, `customerType`, `status` (`active`, `pending`, `suspended`). Optional company/address/identity details, address array, internal `notes`, `isBanned`, `banReason`, `allowedCategories`, `hideExactStock`, `disableOrdering`, `canUseProductQr`, and document array. Documents hold type, media file, review status (`pending`, `approved`, `rejected`), rejection reason and upload time. Empty allowed categories means unrestricted categories. Hiding exact stock also disables ordering. QR access defaults to false.
 
-`admins`: Payload-authenticated email/password accounts with API-key support, `name`, optional `phone`, `isActive`, and selectable roles `superadmin`, `manager`, `service`. Admin/customer phone linking can create a separate customer record; staff identity is not the same collection as a customer.
+`admins`: Payload-authenticated email/password accounts with API-key support, `name`, optional `phone`, `isActive`, and selectable roles `superadmin`, `manager`, `support`, `service`. Admin/customer phone linking can create a separate customer record; staff identity is not the same collection as a customer.
 
 `customer-types`: `name`, unique `slug`, required numeric `markupPercent`, optional description and active flag. Negative markup is supported. Historical orders store final monetary amounts, not a complete tier/markup snapshot.
 
@@ -39,6 +39,8 @@ Optional unique `scanCode` is normalized to uppercase, accepts ASCII letters, di
 `categories`, `brands`, `tags`, `dimensions`, `media` hold catalog metadata. See their [collection definitions](../apps/cms/src/collections) for individual constraints rather than treating illustrative trade attributes as implemented fields.
 
 ## Warehouses and sellable stock
+
+Warehouses have an `exact` or `inquiry` stock mode. Existing warehouses migrate to `exact`; an inquiry warehouse has active product relationships in `supply-sources`, rather than a numeric balance. A supply request snapshots one customer, product, inquiry warehouse, quantity, packaging and estimated price. Tile products may have an optional cartons-per-pallet factor; new order items snapshot it for historical display.
 
 `warehouses`: unique immutable `code`, `name`, `isActive`; deletion forbidden. `warehouse-stock`: unique `(warehouse, product)`, `inventorySqm` (nonnegative, at most two decimals), `revision`, timestamps; virtual `stockCartons` is derived. The historical `inventorySqm` name denotes the product's primary unit. Direct update/delete is forbidden; controlled reservation/restore/import changes it. Missing balance means zero.
 

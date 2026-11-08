@@ -9,7 +9,7 @@ export function saveDraft(key: string, value: unknown) {
 export function clearAccountDrafts(owner: string) {
   window.dispatchEvent(new CustomEvent('persianpart:discard-drafts', { detail: owner }))
   for (const key of Object.keys(localStorage)) {
-    if (key.startsWith(`${prefix}${owner}:`) || key === `persianpart_draft_v3:${owner}` || key === `persianpart_draft_v3:${owner}:submission`) localStorage.removeItem(key)
+    if (key.startsWith(`${prefix}${owner}:`) || key === `persianpart_draft_v3:${owner}` || key === `persianpart_draft_v3:${owner}:submission` || key === `persianpart_supply_draft_v1:${owner}`) localStorage.removeItem(key)
   }
 }
 export function flushDrafts() {

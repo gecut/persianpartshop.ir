@@ -23,6 +23,8 @@ Authoritative calculation: [prepare order hook](../apps/cms/src/collections/orde
 
 ## Stock and binding
 
+Supply requests are separate from orders and reserve no stock. A request is eligible only when its active source is in an active inquiry warehouse and no single active exact warehouse can fulfill the rounded quantity. Pallet equivalence is display-only and never rounds an order or request to a pallet.
+
 Sellable balance belongs to exactly one product/warehouse pair; warehouse balances are never summed to determine fulfillment. Catalog hints use the maximum balance of one active warehouse and are not a reservation or a guarantee that a mixed cart is fulfillable.
 
 The whole cart must fit one active warehouse after rounding. At first addition: zero candidates rejects; one binds automatically with visible name; multiple requires explicit selection with no default. Once bound, additions/quantity changes must fit that same warehouse. A failed change preserves the previous draft. Removing the last line clears warehouse binding. Buying from another warehouse requires submitting or emptying the active cart first.
@@ -38,6 +40,8 @@ CMS recalculates current price and units, snapshots the order, and reserves ever
 Same customer/key/fingerprint replays an existing order before new availability checks, without decrementing stock twice. A changed payload with the same key conflicts. Failed create retries are reconciled against a concurrent winner. Client network failure preserves the draft/key; successful responses only clear the matching submitted draft and never another account's draft.
 
 ## Lifecycle and cancellation
+
+Supply requests use `new`, `reviewing`, `supplied`, `unavailable`, and `cancelled_by_customer`. The customer can cancel only before review has started; staff may correct a non-cancelled status. The response deadline is 48 continuous hours from creation and overdue requests remain open.
 
 Persisted transitions are `pending → approve → completed`; `pending` can cancel by customer/admin and `approve` can cancel by admin. Cancelled/completed orders are terminal. Contract legacy aliases do not imply additional supported persisted transitions.
 

@@ -1,6 +1,7 @@
 import { PwaControls } from '../features/pwa/pwa-controls'
 import { DataStatus } from '../components/feedback/data-status'
 import { selectionStore } from '../features/products/selection-store'
+import { supplyDraftStore } from '../features/supply-requests/supply-request-draft'
 import { WarehouseSelection, WarehouseSummary } from '../features/cart/warehouse-selection'
 import { useEffect } from 'react'
 import { createRootRoute, Outlet, redirect, useNavigate, useRouterState } from '@tanstack/react-router'
@@ -47,6 +48,7 @@ function RootComponent() {
   const isLoginPage = pathname === '/login'
 
   useEffect(() => { selectionStore.setOwner(isAuthenticated && user ? String(user.id) : '') }, [isAuthenticated, user?.id])
+  useEffect(() => { supplyDraftStore.setOwner(isAuthenticated && user ? String(user.id) : '') }, [isAuthenticated, user?.id])
 
   // Periodic background check of session validity and ban status (every 4 seconds and on focus)
   const { data: sessionData, error: sessionError, refetch: refetchSession } = useQuery({

@@ -7,6 +7,7 @@ import { orderContract } from './order'
 import { planContract } from './plan'
 import { shoppingContract } from './shopping'
 import { warehouseContract } from './warehouse'
+import { supplyRequestContract } from './supply-request'
 
 /**
  * Root Contract for PersianPart Monorepo (Single Source of Truth - SSOT).
@@ -44,6 +45,7 @@ export const appContract = {
   order: orderContract,
   plan: planContract,
   warehouse: warehouseContract,
+  supplyRequest: supplyRequestContract,
 }
 
 export type AppContract = typeof appContract
@@ -57,3 +59,4 @@ export * from './customer'
 export * from './order'
 export * from './plan'
 export * from './warehouse'
+export * from './supply-request'

@@ -12,6 +12,8 @@ Sources: [auth](../apps/api/src/routers/auth.ts), [OTP](../apps/api/src/lib/otp.
 
 ## Selection to order
 
+The catalog also offers an independent supply-request mode. Preview returns the current estimate and inquiry warehouses; submission revalidates the source, customer, price and exact-stock eligibility in the CMS. A customer-scoped key permits safe replay of the same submission. Results appear under the supply-request tab in orders; coordination after the result is outside the application.
+
 ```mermaid
 flowchart TD
     A[Requested quantities] --> B[Quote entire candidate cart]

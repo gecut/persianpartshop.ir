@@ -7,6 +7,7 @@ import { customer } from './customer'
 import { user } from './user'
 import { plan } from './plan'
 import { warehouse } from './warehouse'
+import { supplyRequest } from './supply-request'
 
 export { auth, catalog, shopping, order, customer, user, plan }
 
@@ -22,6 +23,7 @@ export const router = base.router({
   user,
   plan,
   warehouse,
+  supplyRequest,
 })
 
 export type AppRouter = typeof router

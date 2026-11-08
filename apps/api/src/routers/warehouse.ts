@@ -33,7 +33,7 @@ const availability = authed.warehouse.availability.handler(async ({ input, conte
   const warehouses: Array<{ id: number; code: string; name: string }> = []
   let page = 1
   while (true) {
-    const result = await sdk.find({ collection: 'warehouses', where: { isActive: { equals: true } }, limit: 100, page, depth: 0 })
+    const result = await sdk.find({ collection: 'warehouses', where: { and: [{ isActive: { equals: true } }, { stockMode: { equals: 'exact' } }] }, limit: 100, page, depth: 0 })
     const balances: Pick<WarehouseStock, 'product' | 'warehouse' | 'inventorySqm'>[] = []
     let stockPage = 1
     while (result.docs.length) {

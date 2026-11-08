@@ -33,7 +33,7 @@ export function StockImport() {
       let page = 1
       try {
         while (true) {
-          const response = await fetch(`/api/warehouses?where[isActive][equals]=true&limit=100&page=${page}&depth=0`)
+          const response = await fetch(`/api/warehouses?where[isActive][equals]=true&where[stockMode][equals]=exact&limit=100&page=${page}&depth=0`)
           if (!response.ok) throw new Error('دریافت انبارها ممکن نشد.')
           const data = await response.json()
           found.push(...data.docs)

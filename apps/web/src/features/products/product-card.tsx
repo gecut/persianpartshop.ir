@@ -10,6 +10,7 @@ export interface ProductCardProps {
   isSelected: boolean;
   isInCart?: boolean;
   isOrderingDisabled?: boolean;
+  supplyMode?: boolean;
   onToggleSelect: (product: Product) => void;
   onOpenBottomSheet?: (product: Product) => void;
 }
@@ -72,14 +73,15 @@ export const ProductCard = React.memo(function ProductCard({
   isSelected,
   isInCart = false,
   isOrderingDisabled = false,
+  supplyMode = false,
   onToggleSelect,
   onOpenBottomSheet,
 }: ProductCardProps) {
-  const isOutOfStock =
+  const isOutOfStock = !supplyMode && (
     product.stockStatus === "out_of_stock" ||
     product.inStock === false ||
     (Number.isFinite(Number(product.inventorySqm)) &&
-      Number(product.inventorySqm) <= 0);
+      Number(product.inventorySqm) <= 0));
 
   const effectiveSelected = !isOrderingDisabled && !isOutOfStock && isSelected;
 
@@ -193,7 +195,7 @@ export const ProductCard = React.memo(function ProductCard({
       <div className="flex flex-col justify-between items-end self-stretch shrink-0 ps-3 py-0.5 text-end">
         {/* Top: Price & In-Cart Status - Centered vertically from top */}
         <div className="flex-1 flex flex-col justify-center items-end">
-          {isInCart && (
+          {isInCart && !supplyMode && (
             <span className="px-2 py-0.5 rounded-lg text-xs font-semibold bg-primary/10 text-primary mb-1">
               در سبد خرید
             </span>
@@ -207,7 +209,7 @@ export const ProductCard = React.memo(function ProductCard({
 
         {/* Bottom: Inventory Badge - Shows red "ناموجود" if out of stock, otherwise exact stock or presence badge */}
         <div className="mt-auto">
-          {isOutOfStock ? (
+          {supplyMode ? <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-primary/10 text-primary">قابل استعلام · درخواست تأمین</span> : isOutOfStock ? (
             <span className="px-2 py-1 rounded-lg flex text-xs font-semibold bg-danger/15 text-danger">
               <span>ناموجود</span>
             </span>
