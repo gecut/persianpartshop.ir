@@ -335,7 +335,7 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
 	"id" serial PRIMARY KEY NOT NULL,
 	"name" varchar NOT NULL,
 	"phone" varchar,
-	"role" "enum_admins_role" DEFAULT 'manager' NOT NULL,
+	"role" "enum_admins_role" DEFAULT 'superadmin' NOT NULL,
 	"is_active" boolean DEFAULT true,
 	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
 	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
@@ -453,13 +453,6 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   ALTER TABLE "otps" ADD CONSTRAINT "otps_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;
   ALTER TABLE "warehouse_stock" ADD CONSTRAINT "warehouse_stock_warehouse_id_warehouses_id_fk" FOREIGN KEY ("warehouse_id") REFERENCES "public"."warehouses"("id") ON DELETE restrict ON UPDATE no action;
   ALTER TABLE "warehouse_stock" ADD CONSTRAINT "warehouse_stock_product_id_products_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."products"("id") ON DELETE restrict ON UPDATE no action;
-  ALTER TABLE "warehouse_stock" ADD CONSTRAINT "warehouse_stock_amount_check" CHECK ("inventory_sqm" >= 0 AND "inventory_sqm" = ROUND("inventory_sqm", 2));
-  ALTER TABLE "warehouse_stock" ADD CONSTRAINT "warehouse_stock_revision_check" CHECK ("revision" >= 0 AND "revision" = FLOOR("revision"));
-  ALTER TABLE "products" ADD CONSTRAINT "products_cartons_per_pallet_valid" CHECK ("cartons_per_pallet" IS NULL OR ("cartons_per_pallet" >= 1 AND "cartons_per_pallet" <= 9007199254740991 AND trunc("cartons_per_pallet") = "cartons_per_pallet"));
-  ALTER TABLE "orders_items" ADD CONSTRAINT "orders_items_cartons_per_pallet_valid" CHECK ("cartons_per_pallet" IS NULL OR ("cartons_per_pallet" >= 1 AND "cartons_per_pallet" <= 9007199254740991 AND trunc("cartons_per_pallet") = "cartons_per_pallet"));
-  ALTER TABLE "supply_requests" ADD CONSTRAINT "supply_requests_quantities_valid" CHECK ("requested_quantity" > 0 AND "requested_quantity" <= 1000000 AND round("requested_quantity", 2) = "requested_quantity" AND "package_count" > 0 AND "package_count" <= 9007199254740991 AND trunc("package_count") = "package_count" AND "rounded_quantity" > 0 AND "sales_factor" > 0);
-  ALTER TABLE "supply_requests" ADD CONSTRAINT "supply_requests_prices_valid" CHECK ("estimated_unit_price" >= 0 AND "estimated_unit_price" <= 9007199254740991 AND trunc("estimated_unit_price") = "estimated_unit_price" AND "estimated_total" >= 0 AND "estimated_total" <= 9007199254740991 AND trunc("estimated_total") = "estimated_total");
-  ALTER TABLE "supply_requests" ADD CONSTRAINT "supply_requests_cartons_per_pallet_valid" CHECK ("cartons_per_pallet" IS NULL OR ("cartons_per_pallet" >= 1 AND "cartons_per_pallet" <= 9007199254740991 AND trunc("cartons_per_pallet") = "cartons_per_pallet"));
   ALTER TABLE "supply_sources" ADD CONSTRAINT "supply_sources_product_id_products_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."products"("id") ON DELETE set null ON UPDATE no action;
   ALTER TABLE "supply_sources" ADD CONSTRAINT "supply_sources_warehouse_id_warehouses_id_fk" FOREIGN KEY ("warehouse_id") REFERENCES "public"."warehouses"("id") ON DELETE set null ON UPDATE no action;
   ALTER TABLE "supply_requests" ADD CONSTRAINT "supply_requests_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;
@@ -487,6 +480,13 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   ALTER TABLE "payload_locked_documents_rels" ADD CONSTRAINT "payload_locked_documents_rels_audit_logs_fk" FOREIGN KEY ("audit_logs_id") REFERENCES "public"."audit_logs"("id") ON DELETE cascade ON UPDATE no action;
   ALTER TABLE "payload_preferences_rels" ADD CONSTRAINT "payload_preferences_rels_parent_fk" FOREIGN KEY ("parent_id") REFERENCES "public"."payload_preferences"("id") ON DELETE cascade ON UPDATE no action;
   ALTER TABLE "payload_preferences_rels" ADD CONSTRAINT "payload_preferences_rels_admins_fk" FOREIGN KEY ("admins_id") REFERENCES "public"."admins"("id") ON DELETE cascade ON UPDATE no action;
+  ALTER TABLE "warehouse_stock" ADD CONSTRAINT "warehouse_stock_amount_check" CHECK ("inventory_sqm" >= 0 AND "inventory_sqm" = ROUND("inventory_sqm", 2));
+  ALTER TABLE "warehouse_stock" ADD CONSTRAINT "warehouse_stock_revision_check" CHECK ("revision" >= 0 AND "revision" = FLOOR("revision"));
+  ALTER TABLE "products" ADD CONSTRAINT "products_cartons_per_pallet_valid" CHECK ("cartons_per_pallet" IS NULL OR ("cartons_per_pallet" >= 1 AND "cartons_per_pallet" <= 9007199254740991 AND trunc("cartons_per_pallet") = "cartons_per_pallet"));
+  ALTER TABLE "orders_items" ADD CONSTRAINT "orders_items_cartons_per_pallet_valid" CHECK ("cartons_per_pallet" IS NULL OR ("cartons_per_pallet" >= 1 AND "cartons_per_pallet" <= 9007199254740991 AND trunc("cartons_per_pallet") = "cartons_per_pallet"));
+  ALTER TABLE "supply_requests" ADD CONSTRAINT "supply_requests_quantities_valid" CHECK ("requested_quantity" > 0 AND "requested_quantity" <= 1000000 AND round("requested_quantity", 2) = "requested_quantity" AND "package_count" > 0 AND "package_count" <= 9007199254740991 AND trunc("package_count") = "package_count" AND "rounded_quantity" > 0 AND "sales_factor" > 0);
+  ALTER TABLE "supply_requests" ADD CONSTRAINT "supply_requests_prices_valid" CHECK ("estimated_unit_price" >= 0 AND "estimated_unit_price" <= 9007199254740991 AND trunc("estimated_unit_price") = "estimated_unit_price" AND "estimated_total" >= 0 AND "estimated_total" <= 9007199254740991 AND trunc("estimated_total") = "estimated_total");
+  ALTER TABLE "supply_requests" ADD CONSTRAINT "supply_requests_cartons_per_pallet_valid" CHECK ("cartons_per_pallet" IS NULL OR ("cartons_per_pallet" >= 1 AND "cartons_per_pallet" <= 9007199254740991 AND trunc("cartons_per_pallet") = "cartons_per_pallet"));
   CREATE INDEX "products_gallery_order_idx" ON "products_gallery" USING btree ("_order");
   CREATE INDEX "products_gallery_parent_id_idx" ON "products_gallery" USING btree ("_parent_id");
   CREATE INDEX "products_gallery_image_idx" ON "products_gallery" USING btree ("image_id");

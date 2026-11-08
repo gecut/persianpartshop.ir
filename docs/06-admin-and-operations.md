@@ -55,3 +55,5 @@ CMS has one re-created baseline covering supply requests and support roles. It i
 Seed requires `NODE_ENV=development` and `CMS_SEED_DATABASE_URI` exactly matching the effective local database URI with a guarded name. On a fresh target it creates 26 tile products, two other products, two exact warehouses with 56 balances, one inquiry warehouse with three supply sources, one supply request, three customers and five demo orders. A sample tile has a 48-carton pallet factor. Existing balances and the sample request are preserved on rerun; seed is not a reset command. Use `DISABLE_SMS=true` for CMS notifications.
 
 The historical [verification record](../.agents/brain/warehouse-merge-completion-2026-11-07.md) describes earlier migrations and is not a statement about a future environment.
+
+New administrator accounts default to `superadmin`; explicitly selected manager, support and service roles remain available. Creating an administrator with a valid phone also creates or updates its customer account in the same transaction. On a fresh database, the first such account creates a zero-markup regular customer tier instead of assuming a fixed relationship ID.

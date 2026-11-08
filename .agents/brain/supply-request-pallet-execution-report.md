@@ -16,3 +16,7 @@ Date: 2026-11-08. Implemented against `ad2fe63` and the supply-request plan. A s
 ## Boundaries and limitations
 
 No production migration or deployment was performed and no real SMS was sent. SMS remains best effort: a result notification can be attempted before commit, and no delivery, retry or exactly-once guarantee is claimed. The new single baseline targets empty databases; it is not a data-preserving upgrade for installations using the old migration history. CMS requires explicit `KAVENEGAR_API_KEY` and `WEB_URL` for notification attempts.
+
+## Admin bootstrap correction (2026-11-08)
+
+The server log showed FK 23503 because admin synchronization assumed customer tier ID 1. The hook now uses an existing tier or creates a regular zero-markup tier, threads the original request through nested operations, and fails atomically without logging raw customer data. New admins default to superadmin. The migration history was reset again to `20261108_152041_baseline`, preserving the custom database constraints. The fresh PostgreSQL migration suite passed, including first-admin creation with no tiers, Persian phone normalization and repeated update without duplicate users.

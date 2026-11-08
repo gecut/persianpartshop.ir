@@ -3754,7 +3754,7 @@
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
-          "default": "'manager'"
+          "default": "'superadmin'"
         },
         "is_active": {
           "name": "is_active",
@@ -5310,6 +5310,6 @@
     "tables": {},
     "columns": {}
   },
-  "id": "8f402b27-59da-4eef-b13a-113889b9f695",
+  "id": "ff1efdb1-7c60-410b-b98a-4e3e4bbc6a05",
   "prevId": "00000000-0000-0000-0000-000000000000"
 }

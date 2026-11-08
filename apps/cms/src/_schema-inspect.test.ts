@@ -92,6 +92,26 @@ test('full migrations: schema coverage, CRUD, and warehouse rollback', { skip: !
     // 3. Connect Payload and test real Local API operations
     await payload.db.connect!()
 
+    // A fresh installation has no customer tier when the first admin is created.
+    assert.equal((await payload.find({ collection: 'customer-types' })).totalDocs, 0)
+    // Payload's generated input requires role; omit it deliberately to exercise the runtime default.
+    // @ts-expect-error Testing creation without an explicit role.
+    const firstAdmin = await payload.create({
+      collection: 'admins',
+      data: { name: 'Bootstrap Admin', email: 'bootstrap@example.test', phone: '۰۹۱۲۹۹۹۹۹۹۹', password: randomUUID() },
+    })
+    assert.equal(firstAdmin.role, 'superadmin')
+    const linked = await payload.find({ collection: 'users', where: { phone: { equals: '09129999999' } }, depth: 0 })
+    assert.equal(linked.totalDocs, 1)
+    assert.equal(linked.docs[0]!.status, 'active')
+    const bootstrapTier = await payload.findByID({ collection: 'customer-types', id: linked.docs[0]!.customerType as number })
+    assert.equal(bootstrapTier.slug, 'regular')
+    await payload.update({ collection: 'admins', id: firstAdmin.id, data: { name: 'Updated Bootstrap Admin' } })
+    const updatedLinked = await payload.find({ collection: 'users', where: { phone: { equals: '09129999999' } } })
+    assert.equal(updatedLinked.totalDocs, 1)
+    assert.equal(updatedLinked.docs[0]!.fullName, 'Updated Bootstrap Admin')
+    console.log('fresh admin default and transactional customer synchronization: PASS')
+
     // Admin & Service API-key
     const service = await payload.create({
       collection: 'admins',

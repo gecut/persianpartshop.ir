@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import type { User } from '../../payload-types'
 import { isActiveBeforeLogin } from './_is-active.before-login'
 import {
   isSuperAdmin,
@@ -85,6 +86,7 @@ export const Admins: CollectionConfig = {
             if (/^09\d{9}$/.test(normalized)) {
               const existingUsers = await req.payload.find({
                 collection: 'users',
+                req,
                 where: {
                   or: [
                     { phone: { equals: normalized } },
@@ -98,16 +100,23 @@ export const Admins: CollectionConfig = {
               if (existingUsers.docs.length === 0) {
                 const defaultTypeRes = await req.payload.find({
                   collection: 'customer-types',
+                  req,
+                  sort: 'id',
                   limit: 1,
                 })
-                const customerTypeId = defaultTypeRes.docs[0]?.id || 1
+                const customerType = defaultTypeRes.docs[0] ?? await req.payload.create({
+                  collection: 'customer-types',
+                  req,
+                  data: { name: 'مشتری عادی', slug: 'regular', markupPercent: 0, isActive: true },
+                })
 
                 await req.payload.create({
                   collection: 'users',
+                  req,
                   data: {
                     fullName: doc.name,
                     phone: normalized,
-                    customerType: customerTypeId,
+                    customerType: customerType.id,
                     status: doc.isActive !== false ? 'active' : 'suspended',
                     notes: `حساب مشتری ایجاد شده برای ${adminRoleLabel} (${doc.name})`,
                   },
@@ -115,7 +124,7 @@ export const Admins: CollectionConfig = {
                 })
               } else {
                 const existing = existingUsers.docs[0]
-                const updates: Record<string, any> = {}
+                const updates: Partial<User> = {}
                 if (existing.fullName !== doc.name) updates.fullName = doc.name
                 if (doc.isActive === false && existing.status === 'active') {
                   updates.status = 'suspended'
@@ -123,6 +132,7 @@ export const Admins: CollectionConfig = {
                 if (Object.keys(updates).length > 0) {
                   await req.payload.update({
                     collection: 'users',
+                    req,
                     id: existing.id,
                     data: updates,
                     context: { skipLogging: true },
@@ -130,8 +140,8 @@ export const Admins: CollectionConfig = {
                 }
               }
             }
-          } catch (syncErr) {
-            console.error('Error syncing admin to customer user account:', syncErr)
+          } catch {
+            throw new Error('Admin customer account synchronization failed')
           }
         }
       },
@@ -179,7 +189,7 @@ export const Admins: CollectionConfig = {
       name: 'role',
       type: 'select',
       required: true,
-      defaultValue: 'manager',
+      defaultValue: 'superadmin',
       label: 'سطح دسترسی',
       access: {
         update: isSuperAdminField,
