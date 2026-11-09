@@ -46,7 +46,7 @@
 
 ## راستی‌آزمایی
 
-تست‌های unit CMS، API، PostgreSQL و migration روی DB موقت جداگانه اجرا شوند. `test:hardening:postgres` جدول‌های fixture را پاک می‌کند؛ هرگز URI دیتابیس کاری ندهید. `test:hardening:migrations` دیتابیس تصادفی خودش را می‌سازد و حذف می‌کند. تست مرورگر با API mock در `apps/web/e2e/warehouse.js` به‌وسیلهٔ `playwright-cli run-code --filename …` اجرا می‌شود؛ این تست مدرک شبکهٔ زندهٔ سرویس‌ها نیست.
+تست‌های unit CMS، API، PostgreSQL و migration روی DB موقت جداگانه اجرا شوند. `test:hardening:postgres` جدول‌های fixture را پاک می‌کند؛ هرگز URI دیتابیس کاری ندهید. `test:hardening:migrations` دیتابیس تصادفی خودش را می‌سازد و حذف می‌کند.
 
 
 ## نتیجهٔ ادغام ۲۰۲۶/۱۱/۰۷

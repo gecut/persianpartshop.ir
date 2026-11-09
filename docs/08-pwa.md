@@ -31,13 +31,8 @@ From repository root:
 
 - `pnpm --filter @persianpart/web build`
 - `pnpm --filter @persianpart/api exec tsc --noEmit`
-- `pnpm --filter @persianpart/web exec playwright install chromium`
-- `pnpm --filter @persianpart/web test:pwa`
+- `pnpm --filter @persianpart/web test:catalog:unit`
 
-To use an installed Chrome: `PWA_BROWSER_CHANNEL=chrome pnpm --filter @persianpart/web test:pwa`.
-
-Tests use mocked business APIs and real production assets/workers. The update test serves two worker revisions on a disposable local origin and verifies user-controlled activation and draft preservation. No real OTP/SMS is sent.
-
-The web container now owns its nginx configuration: HTML, manifest and worker require revalidation, hashed assets are immutable, missing assets/API paths return 404 rather than HTML. Production must provide HTTPS and route the configured API/CDN origins correctly. Reverse proxies must preserve these policies. Build/install tests do not establish real-device installation or the live proxy configuration.
+The web container now owns its nginx configuration: HTML, manifest and worker require revalidation, hashed assets are immutable, missing assets/API paths return 404 rather than HTML. Production must provide HTTPS and route the configured API/CDN origins correctly. Reverse proxies must preserve these policies. The build does not establish real-device installation or the live proxy configuration.
 
 Rollback must continue serving a valid worker at `/sw.js`; removing the file alone does not uninstall existing workers. If PWA support is deliberately withdrawn, use a cleanup worker at that URL before removing it.

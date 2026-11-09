@@ -42,7 +42,7 @@ pnpm --filter @persianpart/cms test:hardening
 pnpm --filter @persianpart/api test
 ```
 
-Root `dev` currently calls itself; use workspace commands when dev is requested. CMS/API/Web default to 5174/5175/5173. Do not manually edit generated route tree, Payload types or import map. Web has no configured unit-test runner; its warehouse browser script uses Playwright CLI.
+Root `dev` currently calls itself; use workspace commands when dev is requested. CMS/API/Web default to 5174/5175/5173. Do not manually edit generated route tree, Payload types or import map. Web catalog unit tests use Bun via `pnpm --filter @persianpart/web test:catalog:unit`.
 
 PostgreSQL tests require disposable local targets: `CMS_TEST_DATABASE_URI` for `test:hardening:postgres` must name `cms_hardening_test`; that fixture drops/truncates tables. `CMS_MIGRATION_TEST_DATABASE_URI` for `test:hardening:migrations` points at a loopback `/postgres` control database with an explicit port and creates/deletes a random database. No environment variable means skip, not successful database verification.
 
