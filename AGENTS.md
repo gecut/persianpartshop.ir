@@ -194,6 +194,7 @@ pnpm --filter @persianpart/web test:catalog:unit      # bun test (catalog coordi
 - `routes/` — wiring only: `createFileRoute(...)`, `validateSearch`/`loader`/`beforeLoad`, and `component: XView`. No page JSX or business logic.
 - `app/` — application shell (root layout view, header, bottom nav, auth guard, session sync).
 - `modules/<name>/` — feature modules. Pages are `<name>.view.tsx` in the owning module; module-private files start with `_` (never imported from another module); search parsers are `<name>-search.ts`. Views read route params/search through `getRouteApi('<route id>')`, so modules never import `routes/`.
+- One significant component per file. A component with two or more extracted parts gets a folder named after it (`product-bottom-sheet/product-bottom-sheet.tsx` + `_parts`); `_` files hold sub-components, `_use-*.ts` hooks and `_*.ts` pure helpers. State stays in the parent; children take props. Grouped exceptions: icon registries (`components/ui/icons.tsx`, `solar-icons.tsx`).
 - `components/` (pure shared UI) and `lib/` (infra, utils, query keys) must not import from `modules/` or `app/`.
 - Imports: `@/…` across directories, relative inside one module. No barrel (`index.ts`) files. Filenames are kebab-case.
 - Known exception: import cycles between `products`, `auth` and `cart` pre-date this structure and are left as-is.
