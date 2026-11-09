@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { OrderDetailView } from '@/modules/orders/order-detail.view'
+import { OrderDetailView } from '@/modules/orders/order-detail/order-detail.view'
 
 export const Route = createFileRoute("/orders/$id")({
   loader: async ({ params }) => {

@@ -1,4 +1,4 @@
-import { SlideCommit, type SlideCommitProps } from '@/components/ui/slide-commit'
+import { SlideCommit, type SlideCommitProps } from '@/components/ui/slide-commit/slide-commit'
 
 type CheckoutCommitProps = Pick<SlideCommitProps, 'label' | 'doneLabel' | 'errorLabel' | 'disabled' | 'onConfirm'>
 

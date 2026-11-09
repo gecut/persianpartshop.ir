@@ -4,7 +4,7 @@ import { Link } from "@tanstack/react-router"
 import { usePlans } from "./plans-store";
 import { useCatalogIds } from "@/modules/products/catalog-data";
 import type { Plan } from "./plan-types"
-import { PlanCard } from "./plan-card";
+import { PlanCard } from "./plan-card/plan-card";
 import { PlanCardSkeleton } from "./plan-card-skeleton";
 import { ArrowLeftIcon, SparklesIcon } from "@/components/ui/icons";
 

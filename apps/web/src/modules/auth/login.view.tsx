@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-import { LoginCard } from "./login-card";
+import { LoginCard } from "./login-card/login-card";
 
 
 export function LoginView() {
