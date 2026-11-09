@@ -1,5 +1,5 @@
 
-import { ProfileView } from './profile-view'
+import { ProfileView } from './profile-view/profile-view'
 
 
 export function AccountView() {
