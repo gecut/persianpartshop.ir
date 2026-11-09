@@ -123,7 +123,7 @@ export function useProfileDocuments({ documents, userId }: UseProfileDocumentsOp
           documentType: d.documentType,
           title: d.title,
           file:
-            typeof d.file === "object" && d.file ? (d.file as any).id : d.file,
+            typeof d.file === "object" && d.file ? d.file.id : d.file,
           status: d.status,
           rejectionReason: d.rejectionReason,
           uploadedAt: d.uploadedAt,
@@ -145,10 +145,10 @@ export function useProfileDocuments({ documents, userId }: UseProfileDocumentsOp
         "مدرک شما ثبت شد و در انتظار بررسی و تأیید مدیریت قرار گرفت.",
       );
       handleCloseUploadModal();
-    } catch (err: any) {
+    } catch (err) {
       toast.error(
         "خطا در بارگذاری مدرک",
-        err.message || "لطفاً مجدداً تلاش فرمایید.",
+        (err instanceof Error && err.message) || "لطفاً مجدداً تلاش فرمایید.",
       );
     } finally {
       finishUpload();
@@ -173,7 +173,7 @@ export function useProfileDocuments({ documents, userId }: UseProfileDocumentsOp
           documentType: d.documentType,
           title: d.title,
           file:
-            typeof d.file === "object" && d.file ? (d.file as any).id : d.file,
+            typeof d.file === "object" && d.file ? d.file.id : d.file,
           status: d.status,
           rejectionReason: d.rejectionReason,
           uploadedAt: d.uploadedAt,
@@ -183,10 +183,10 @@ export function useProfileDocuments({ documents, userId }: UseProfileDocumentsOp
       queryClient.setQueryData(queryKeys.auth.profile(userId), profile);
 
       toast.success("مدرک حذف شد", "فایل مورد نظر از لیست مدارک حذف گردید.");
-    } catch (err: any) {
+    } catch (err) {
       toast.error(
         "خطا در حذف مدرک",
-        err.message || "امکان حذف این مدرک وجود ندارد.",
+        (err instanceof Error && err.message) || "امکان حذف این مدرک وجود ندارد.",
       );
     } finally {
       setIsDeletingDocId(null);

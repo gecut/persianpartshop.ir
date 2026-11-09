@@ -57,8 +57,8 @@ export function SortFilter({ filters, setFilter, isOpen: isSortOpen, onOpenChang
             selectionMode="single"
             selectedKeys={new Set([filters.sortBy || "default"])}
             onSelectionChange={(keys) => {
-              const selected = Array.from(keys)[0] as string;
-              if (selected) setFilter("sortBy", selected as any);
+              const selected = SORT_OPTIONS.find((opt) => opt.id === Array.from(keys)[0]);
+              if (selected) setFilter("sortBy", selected.id);
               setIsSortOpen(false);
             }}
           >

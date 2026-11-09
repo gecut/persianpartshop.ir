@@ -1,11 +1,12 @@
 import { useMemo } from "react";
+import { useNow } from "@/lib/use-now";
 import type { Plan } from "@/modules/plans/plan-types"
 import { toPersianDigits } from "@/lib/utils/currency";
 import { formatPersianDate } from "@/lib/utils/date";
 
 export function usePlanTimeStatus(plan: Plan) {
   // Time & Status computations
-  const now = Date.now();
+  const now = useNow();
   const startTime = plan.startsAt ? new Date(plan.startsAt).getTime() : null;
   const isUpcoming = startTime !== null && !isNaN(startTime) && startTime > now;
 

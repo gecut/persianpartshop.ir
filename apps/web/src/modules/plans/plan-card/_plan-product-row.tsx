@@ -16,8 +16,8 @@ export function PlanProductRow({ prod, isExpired, isUpcoming, onSelect }: PlanPr
       prod.finalCustomerPricePerSqm &&
       prod.finalCustomerPricePerSqm > 0
         ? prod.finalCustomerPricePerSqm
-        : Number((prod as any).basePricePerSqm) > 0
-          ? Number((prod as any).basePricePerSqm)
+        : Number(prod.basePricePerSqm) > 0
+          ? Number(prod.basePricePerSqm)
           : Number(prod.pricePerM2) || 0;
   
     const dimText = formatProdDimension(prod);

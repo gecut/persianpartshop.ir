@@ -49,7 +49,7 @@ export interface CustomerDocument {
   uploadedAt?: string;
 }
 
-export function getDocFileUrl(file: any): string | null {
+export function getDocFileUrl(file: CustomerDocument["file"]): string | null {
   if (!file) return null;
   if (typeof file === "object" && file.url) {
     return file.url;

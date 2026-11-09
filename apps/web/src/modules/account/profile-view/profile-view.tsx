@@ -43,7 +43,7 @@ export function ProfileView() {
   });
 
   const documents =
-    ((profileDoc as any)?.documents as CustomerDocument[]) || [];
+    (profileDoc?.documents as CustomerDocument[] | undefined) || [];
 
   const docs = useProfileDocuments({ documents, userId: user?.id });
 

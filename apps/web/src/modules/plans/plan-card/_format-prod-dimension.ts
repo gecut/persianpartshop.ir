@@ -1,14 +1,23 @@
 import { toPersianDigits } from "@/lib/utils/currency";
+import type { Product } from "@/modules/products/product-types";
 
-export function formatProdDimension(prod: any): string {
+// Plan products come from untyped API documents, so `dimension` may be an object at runtime.
+interface DimensionObject {
+  name?: string | number;
+  width?: number;
+  height?: number;
+}
+
+export function formatProdDimension(prod: Pick<Product, "dimension" | "dimensions"> | null | undefined): string {
   if (!prod) return "";
-  const d = prod.dimension;
+  const d: unknown = prod.dimension;
   if (typeof d === "object" && d !== null) {
-    if (d.name) {
-      return toPersianDigits(String(d.name).replace(/x/gi, " × "));
+    const { name, width, height } = d as DimensionObject;
+    if (name) {
+      return toPersianDigits(String(name).replace(/x/gi, " × "));
     }
-    if (d.width && d.height) {
-      return `${toPersianDigits(d.width)} × ${toPersianDigits(d.height)}`;
+    if (width && height) {
+      return `${toPersianDigits(width)} × ${toPersianDigits(height)}`;
     }
   }
   if (

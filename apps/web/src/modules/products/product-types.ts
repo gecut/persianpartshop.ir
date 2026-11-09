@@ -38,6 +38,7 @@ export interface Product {
   previousPricePerM2?: number
   discountPercent?: number
   originalPricePerSqm?: number
+  basePricePerSqm?: number
   discountPlanTitle?: string
   sqmPerCarton: number
   cartonsPerPallet?: number | null

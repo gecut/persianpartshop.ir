@@ -86,7 +86,7 @@ export function PreInvoiceModal({
         "جهت ثبت و نهایی‌سازی سفارش، ابتدا وارد حساب کاربری خود شوید.",
       );
       onClose();
-      navigate({ to: "/login" as any });
+      navigate({ to: "/login" });
       return;
     }
 
@@ -138,7 +138,7 @@ export function PreInvoiceModal({
         })),
       );
       onClose();
-      (navigate as any)({
+      navigate({
         to: "/product/new",
       });
       return;
