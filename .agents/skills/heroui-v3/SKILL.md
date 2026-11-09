@@ -56,7 +56,7 @@ Do not copy v2-era snippets (`color` prop, `startContent`/`endContent`, standalo
 
 ## Localization
 
-`I18nProvider` localizes built-in component strings; it is used in `src/features/products/product-config-card.tsx`. Wrap a localized subtree once, not once per component.
+`I18nProvider` localizes built-in component strings; it is used in `src/modules/products/product-config-card.tsx`. Wrap a localized subtree once, not once per component.
 
 ## Verify
 

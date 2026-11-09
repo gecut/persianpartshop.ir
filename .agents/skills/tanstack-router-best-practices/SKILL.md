@@ -19,7 +19,7 @@ Comprehensive guidelines for implementing TanStack Router patterns in React appl
 
 ## PersianPart project boundary
 
-`apps/web` uses TanStack Router for file-based routing and navigation. For product filters, `nuqs` in `src/features/products/product-filters.ts` and `src/features/products/product-store.ts` owns URL synchronization. Do not migrate those filters to Router search state or introduce a second URL-state owner. Use Router search validation for other route-owned search parameters when needed.
+`apps/web` uses TanStack Router for file-based routing and navigation. For product filters, `nuqs` in `src/modules/products/product-filters.ts` and `src/modules/products/product-store.ts` owns URL synchronization. Do not migrate those filters to Router search state or introduce a second URL-state owner. Use Router search validation for other route-owned search parameters when needed.
 
 ## Rule Categories by Priority
 

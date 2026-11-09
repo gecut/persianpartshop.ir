@@ -182,13 +182,21 @@ pnpm --filter @persianpart/web dev --port 5173
 pnpm --filter @persianpart/cms test:hardening          # node:test via tsx (unit)
 pnpm --filter @persianpart/cms test:hardening:postgres # requires live Postgres
 pnpm --filter @persianpart/api test                    # bun test (warehouse unit suites; live suites are opt-in)
-# apps/web: no test runner configured — verify through typecheck and build
+pnpm --filter @persianpart/web test:catalog:unit      # bun test (catalog coordinator); other apps/web changes: typecheck + build
 ```
 
 ### 5.3 Route Tree Generation
 - TanStack Router route tree (`apps/web/src/routeTree.gen.ts`) is generated automatically by `@tanstack/router-plugin/vite` upon running `vite` or `vite build`.
 - Never manually edit `src/routeTree.gen.ts`.
 - All routes must be authored in `apps/web/src/routes/` following the file-based routing standard.
+
+### 5.4 `apps/web/src` Module Structure
+- `routes/` — wiring only: `createFileRoute(...)`, `validateSearch`/`loader`/`beforeLoad`, and `component: XView`. No page JSX or business logic.
+- `app/` — application shell (root layout view, header, bottom nav, auth guard, session sync).
+- `modules/<name>/` — feature modules. Pages are `<name>.view.tsx` in the owning module; module-private files start with `_` (never imported from another module); search parsers are `<name>-search.ts`. Views read route params/search through `getRouteApi('<route id>')`, so modules never import `routes/`.
+- `components/` (pure shared UI) and `lib/` (infra, utils, query keys) must not import from `modules/` or `app/`.
+- Imports: `@/…` across directories, relative inside one module. No barrel (`index.ts`) files. Filenames are kebab-case.
+- Known exception: import cycles between `products`, `auth` and `cart` pre-date this structure and are left as-is.
 
 ---
 

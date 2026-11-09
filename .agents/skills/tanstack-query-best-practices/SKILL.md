@@ -11,7 +11,7 @@ Comprehensive guidelines for implementing TanStack Query (React Query) patterns 
 
 - `apps/web` is a Vite React SPA. Do not add SSR, hydration, or server-per-request setup based only on generic SSR rules in this skill.
 - Query and mutation keys are centralized in `apps/web/src/lib/query-keys.ts`. Use those factories; do not create competing key registries or inline unrelated key shapes.
-- `nuqs` owns URL synchronization for product filters in `src/features/products/product-filters.ts` and `src/features/products/product-store.ts`. Do not move that state to TanStack Router search params or duplicate its serialization without an explicit request.
+- `nuqs` owns URL synchronization for product filters in `src/modules/products/product-filters.ts` and `src/modules/products/product-store.ts`. Do not move that state to TanStack Router search params or duplicate its serialization without an explicit request.
 - Keep query cache state distinct from URL filter state. Include every query dependency in the query key and keep URL parsing in the existing product-filter parsers.
 
 ## When to Apply

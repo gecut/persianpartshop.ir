@@ -8,7 +8,7 @@ description: Persian RTL rules for apps/web. Load when writing or reviewing Pers
 ## Document direction and mixed text
 
 - `apps/web/index.html` sets `<html lang="fa" dir="rtl">`. Keep page direction RTL; do not flip it per route or layout.
-- Isolate phone numbers, SKUs, part codes, and URLs in a local `dir="ltr"` wrapper. Existing examples include `src/features/auth/login-card.tsx` and `src/features/products/product-bottom-sheet.tsx`.
+- Isolate phone numbers, SKUs, part codes, and URLs in a local `dir="ltr"` wrapper. Existing examples include `src/modules/auth/login-card.tsx` and `src/modules/products/product-bottom-sheet.tsx`.
 - Use `<bdi>` or an explicit direction wrapper when Persian text contains a value whose direction could reorder, such as a measurement followed by a Latin unit.
 
 ## Logical layout
