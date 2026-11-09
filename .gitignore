@@ -16,6 +16,8 @@ dist-ssr/
 .next/
 .next
 out/
+output/
+tmp
 
 # Logs
 npm-debug.log*
@@ -39,3 +41,8 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+
+# Generated build and test artifacts
+*.tsbuildinfo
+test-results/
+playwright-report/
