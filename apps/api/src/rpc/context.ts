@@ -1,5 +1,6 @@
 import { extractBearerToken, verifyToken, isTokenRevoked, type UserJwtPayload } from '../lib/jwt'
 import { sdk } from '../payload'
+import type { User } from '@persianpart/cms/types'
 
 export interface UserContext {
   id: string | number
@@ -10,6 +11,7 @@ export interface UserContext {
 }
 
 export interface Context {
+  accountDocument?: User
   user: UserContext | null
   jwtPayload: UserJwtPayload | null
   req: Request
@@ -44,7 +46,7 @@ export async function createContext(req: Request): Promise<Context> {
         if (payload.role === 'admin' || payload.role === 'superadmin') {
           userDoc = await sdk.findByID({ collection: 'admins', id })
         } else {
-          userDoc = await sdk.findByID({ collection: 'users', id })
+          userDoc = await sdk.findByID({ collection: 'users', id, depth: 1 })
         }
 
         if (userDoc) {
@@ -62,6 +64,7 @@ export async function createContext(req: Request): Promise<Context> {
           const isInactive = userDoc.isActive === false
           if (!isInactive) {
             return {
+              accountDocument: payload.role !== 'admin' && payload.role !== 'superadmin' ? userDoc : undefined,
               user: {
                 id: userDoc.id ?? id,
                 phone: userDoc.phone || payload.phone,

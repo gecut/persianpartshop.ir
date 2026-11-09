@@ -8,8 +8,9 @@ import { user } from './user'
 import { plan } from './plan'
 import { warehouse } from './warehouse'
 import { supplyRequest } from './supply-request'
+import { activityFeed } from './activity-feed'
 
-export { auth, catalog, shopping, order, customer, user, plan }
+export { auth, catalog, shopping, order, customer, user, plan, activityFeed }
 
 export const router = base.router({
   health: base.health.handler(() => ({ status: 'ok' })),
@@ -24,6 +25,7 @@ export const router = base.router({
   plan,
   warehouse,
   supplyRequest,
+  activityFeed,
 })
 
 export type AppRouter = typeof router

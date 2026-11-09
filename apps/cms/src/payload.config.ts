@@ -20,9 +20,10 @@ import { CustomerTypes } from './collections/customer-types'
 import { Otps } from './collections/otps'
 import { Warehouses } from './collections/warehouses/warehouses.collection'
 import { WarehouseStock } from './collections/warehouse-stock/warehouse-stock.collection'
-import { SupplySources } from './collections/supply-sources/supply-sources.collection'
 import { SupplyRequests } from './collections/supply-requests/supply-requests.collection'
 import { AuditLogs } from './collections/audit-logs'
+import { activityFeedEndpoint } from './endpoints/activity-feed.endpoint'
+import { catalogBrowseEndpoint, planBrowseEndpoint } from './endpoints/catalog-browse.endpoint'
 
 import { fa } from '@payloadcms/translations/languages/fa'
 import { en } from '@payloadcms/translations/languages/en'
@@ -128,13 +129,13 @@ export default buildConfig({
     Otps,
     Warehouses,
     WarehouseStock,
-    SupplySources,
     SupplyRequests,
     // رسانه و مدیریت
     Media,
     Admins,
     AuditLogs,
   ],
+  endpoints: [activityFeedEndpoint, catalogBrowseEndpoint, planBrowseEndpoint],
   editor: lexicalEditor(),
   graphQL: {
     disable: true,

@@ -14,14 +14,14 @@ export async function attachWarehouseStock(products: Product[]) {
       ] }, depth: 0, page, limit: 1000 })
       for (const balance of result.docs) {
         const id = typeof balance.product === 'object' ? balance.product.id : balance.product
-        maximum.set(id, Math.max(maximum.get(id) ?? 0, balance.inventorySqm))
+        maximum.set(id, Math.max(maximum.get(id) ?? 0, Number(balance.inventorySqm) || 0))
       }
       if (!result.hasNextPage) break
       page++
     }
     page = 1
     while (true) {
-      const result = await sdk.find({ collection: 'supply-sources', select: { product: true }, where: { and: [
+      const result = await sdk.find({ collection: 'warehouse-stock', select: { product: true }, where: { and: [
         { product: { in: products.map(product => product.id) } }, { isActive: { equals: true } },
         { 'warehouse.isActive': { equals: true } }, { 'warehouse.stockMode': { equals: 'inquiry' } },
       ] }, depth: 0, page, limit: 1000 })

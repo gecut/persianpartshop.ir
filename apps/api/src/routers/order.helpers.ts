@@ -92,16 +92,6 @@ export async function findAndAuthorizeOrder(
 }
 
 /**
- * Generates a collision-resistant unique temporary order number.
- * Combines timestamp with high-entropy random sequence.
- */
-export function generateTempOrderNumber(): string {
-  const timestamp = Date.now().toString()
-  const randomSuffix = Math.floor(1000 + Math.random() * 9000).toString()
-  return `ptp-tmp-${timestamp.slice(-8)}-${randomSuffix}`
-}
-
-/**
  * Single Source of Truth (SSOT) packaging & pricing conversion engine:
  * Shares identical mathematics between `submit` and `validateCart`.
  */

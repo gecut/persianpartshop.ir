@@ -41,6 +41,9 @@ export const validateTransitionBeforeChange: CollectionBeforeChangeHook = async 
     if (data.finalTotal !== undefined && data.finalTotal !== originalDoc.finalTotal) {
       throw new Error('ویرایش مبالغ مالی سفارش پس از ثبت ممنوع است.')
     }
+    if (data.trackingNumber !== undefined && data.trackingNumber !== originalDoc.trackingNumber) {
+      throw new Error('تغییر شمارهٔ پیگیری ممنوع است.')
+    }
     if (data.orderNumber && data.orderNumber !== originalDoc.orderNumber) {
       throw new Error('تغییر شماره سفارش ممنوع است.')
     }

@@ -32,7 +32,7 @@ liveTest('live CMS: mixed quote, submit/replay, cancellation and 60-minute bound
   await call(order.cancel, { id: created.id }, { context })
   await call(order.cancel, { id: created.id }, { context })
   expect((await balances()).docs.map(balance => balance.inventorySqm)).toEqual(before)
-  const old = await sdk.create({ collection: 'orders', data: { user: customer.id, warehouse: warehouseId, status: 'pending', orderNumber: `boundary-${randomUUID()}`, items: [{ product: bag.id, requestedArea: 1, cartonCount: 0, deliverableArea: 0, unitPrice: 0, totalPrice: 0 }], subtotal: 0, finalTotal: 0, createdAt: new Date(Date.now() - 61 * 60_000).toISOString() } })
+  const old = await sdk.create({ collection: 'orders', data: { trackingNumber: 0, user: customer.id, warehouse: warehouseId, status: 'pending', orderNumber: `boundary-${randomUUID()}`, items: [{ product: bag.id, requestedArea: 1, cartonCount: 0, deliverableArea: 0, unitPrice: 0, totalPrice: 0 }], subtotal: 0, finalTotal: 0, createdAt: new Date(Date.now() - 61 * 60_000).toISOString() } })
   await expect(call(order.cancel, { id: old.id }, { context })).rejects.toHaveProperty('code', 'CANCELLATION_DEADLINE_EXPIRED')
   await sdk.update({ collection: 'orders', id: old.id, data: { status: 'cancelled_by_admin' } })
   expect((await balances()).docs.map(balance => balance.inventorySqm)).toEqual(before)

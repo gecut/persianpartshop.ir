@@ -70,6 +70,7 @@ export const authContract = {
     .output(
       z.object({
         user: z.any().nullable(),
+        catalogScopeKey: z.string().optional(),
       })
     ),
 

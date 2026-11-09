@@ -12,8 +12,8 @@ export const Orders: CollectionConfig = {
     plural: 'سفارشات مشتریان',
   },
   admin: {
-    useAsTitle: 'orderNumber',
-    defaultColumns: ['orderNumber', 'user', 'warehouse', 'status', 'finalTotal', 'createdAt'],
+    useAsTitle: 'trackingNumber',
+    defaultColumns: ['trackingNumber', 'user', 'warehouse', 'status', 'finalTotal', 'createdAt'],
     group: 'فروش و مشتریان',
     description: 'فهرست و وضعیت سفارشات.',
   },
@@ -29,6 +29,7 @@ export const Orders: CollectionConfig = {
     beforeChange: [validateTransitionBeforeChange, applyReservationBeforeChange],
   },
   fields: [
+    { name: 'trackingNumber', type: 'number', required: true, unique: true, label: 'شمارهٔ پیگیری', admin: { readOnly: true } },
     { name: 'requestFingerprint', type: 'text', admin: { hidden: true } },
     { name: 'warehouseName', type: 'text', admin: { hidden: true } },
     { name: 'warehouseCode', type: 'text', admin: { hidden: true } },

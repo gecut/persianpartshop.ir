@@ -79,7 +79,6 @@ export interface Config {
     otps: Otp;
     warehouses: Warehouse;
     'warehouse-stock': WarehouseStock;
-    'supply-sources': SupplySource;
     'supply-requests': SupplyRequest;
     media: Media;
     admins: Admin;
@@ -103,7 +102,6 @@ export interface Config {
     otps: OtpsSelect<false> | OtpsSelect<true>;
     warehouses: WarehousesSelect<false> | WarehousesSelect<true>;
     'warehouse-stock': WarehouseStockSelect<false> | WarehouseStockSelect<true>;
-    'supply-sources': SupplySourcesSelect<false> | SupplySourcesSelect<true>;
     'supply-requests': SupplyRequestsSelect<false> | SupplyRequestsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     admins: AdminsSelect<false> | AdminsSelect<true>;
@@ -416,6 +414,7 @@ export interface CustomerType {
  */
 export interface Order {
   id: number;
+  trackingNumber: number;
   requestFingerprint?: string | null;
   warehouseName?: string | null;
   warehouseCode?: string | null;
@@ -695,23 +694,12 @@ export interface WarehouseStock {
   warehouse: number | Warehouse;
   product: number | Product;
   /**
-   * برای کاشی مترمربع و برای سایر کالاها تعداد واحد فروش است. اصلاح موجودی از مسیر کنترل‌شده انبار انجام می‌شود.
+   * برای کاشی مترمربع و برای سایر کالاها تعداد واحد فروش است. در انبار استعلامی خالی (null) است. اصلاح موجودی از مسیر کنترل‌شده انبار انجام می‌شود.
    */
-  inventorySqm: number;
+  inventorySqm?: number | null;
   revision: number;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "supply-sources".
- */
-export interface SupplySource {
-  id: number;
-  product: number | Product;
-  warehouse: number | Warehouse;
   isActive: boolean;
-  lastReportedAt: string;
+  lastReportedAt?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -721,10 +709,11 @@ export interface SupplySource {
  */
 export interface SupplyRequest {
   id: number;
+  trackingNumber: number;
   requestNumber: string;
   user: number | User;
   product: number | Product;
-  warehouse: number | Warehouse;
+  warehouse?: (number | null) | Warehouse;
   status: 'new' | 'reviewing' | 'supplied' | 'unavailable' | 'cancelled_by_customer';
   requestedQuantity: number;
   packageCount: number;
@@ -737,8 +726,8 @@ export interface SupplyRequest {
   unit: string;
   productSku: string;
   productName: string;
-  warehouseName: string;
-  warehouseCode: string;
+  warehouseName?: string | null;
+  warehouseCode?: string | null;
   productImage?: string | null;
   notes?: string | null;
   responseDueAt: string;
@@ -747,6 +736,7 @@ export interface SupplyRequest {
   cancelledAt?: string | null;
   idempotencyKey: string;
   requestFingerprint: string;
+  fingerprintVersion: number;
   updatedAt: string;
   createdAt: string;
 }
@@ -894,10 +884,6 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'warehouse-stock';
         value: number | WarehouseStock;
-      } | null)
-    | ({
-        relationTo: 'supply-sources';
-        value: number | SupplySource;
       } | null)
     | ({
         relationTo: 'supply-requests';
@@ -1065,6 +1051,7 @@ export interface CustomerTypesSelect<T extends boolean = true> {
  * via the `definition` "orders_select".
  */
 export interface OrdersSelect<T extends boolean = true> {
+  trackingNumber?: T;
   requestFingerprint?: T;
   warehouseName?: T;
   warehouseCode?: T;
@@ -1202,16 +1189,6 @@ export interface WarehouseStockSelect<T extends boolean = true> {
   product?: T;
   inventorySqm?: T;
   revision?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "supply-sources_select".
- */
-export interface SupplySourcesSelect<T extends boolean = true> {
-  product?: T;
-  warehouse?: T;
   isActive?: T;
   lastReportedAt?: T;
   updatedAt?: T;
@@ -1222,6 +1199,7 @@ export interface SupplySourcesSelect<T extends boolean = true> {
  * via the `definition` "supply-requests_select".
  */
 export interface SupplyRequestsSelect<T extends boolean = true> {
+  trackingNumber?: T;
   requestNumber?: T;
   user?: T;
   product?: T;
@@ -1248,6 +1226,7 @@ export interface SupplyRequestsSelect<T extends boolean = true> {
   cancelledAt?: T;
   idempotencyKey?: T;
   requestFingerprint?: T;
+  fingerprintVersion?: T;
   updatedAt?: T;
   createdAt?: T;
 }

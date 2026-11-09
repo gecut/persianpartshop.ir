@@ -138,15 +138,15 @@ export type UpdateTagInput = z.infer<typeof UpdateTagInputSchema>
 // ============================================================================
 
 export const DimensionSchema = z.object({
-  id: EntityIdSchema,
-  name: z.string().min(1, 'عنوان بعد الزامی است'),
-  width: z.number().positive('عرض باید عددی مثبت باشد'),
-  height: z.number().positive('طول باید عددی مثبت باشد'),
-  slug: SlugSchema,
-  isActive: z.boolean().default(true),
-  createdAt: z.string().optional(),
-  updatedAt: z.string().optional(),
-})
+  id: z.number(),
+  name: z.string(),
+  width: z.number(),
+  height: z.number(),
+  slug: z.string(),
+  isActive: z.boolean().nullable().optional(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+}).passthrough()
 
 export type Dimension = z.infer<typeof DimensionSchema>
 
@@ -420,6 +420,37 @@ export const ScannedCatalogProductSchema = z.object({
 })
 export type ScannedCatalogProduct = z.infer<typeof ScannedCatalogProductSchema>
 
+/** The complete, customer-safe product shared by every catalog consumer. */
+export const CatalogRecordSchema = ScannedCatalogProductSchema.omit({ hasScanCode: true }).extend({
+  hasScanCode: z.boolean(),
+  scanHash: z.string().regex(/^[a-f0-9]{64}$/).optional(),
+  createdAt: z.string(),
+})
+export type CatalogRecord = z.infer<typeof CatalogRecordSchema>
+export const CatalogBrowseInputSchema = z.object({
+  page: z.number().int().positive().default(1),
+  limit: z.number().int().min(1).max(100).default(24),
+  search: z.string().max(100).default(''),
+  dimension: z.string().nullable().default(null),
+  brands: z.array(z.string()).max(100).default([]),
+  colors: z.array(z.string()).max(100).default([]),
+  grades: z.array(z.string()).max(100).default([]),
+  tags: z.array(z.string()).max(100).default([]),
+  category: z.string().nullable().default(null),
+  inStock: z.boolean().default(false),
+  supplyMode: z.boolean().default(false),
+  sort: z.enum(['default', 'cheapest', 'expensive', 'newest', 'oldest']).default('default'),
+})
+export type CatalogBrowseInput = z.infer<typeof CatalogBrowseInputSchema>
+export const CatalogScopeOutputSchema = z.object({ scopeKey: z.string(), items: z.array(CatalogRecordSchema) })
+export const CatalogSyncCursorSchema = z.object({
+  watermark: z.string().datetime(), createdAt: z.string().datetime(), id: z.number().int().positive(), scopeKey: z.string(),
+})
+export const CatalogFacetOutputSchema = z.object({
+  scopeKey: z.string(),
+  dimensions: z.array(DimensionSchema),
+})
+
 export const CatalogFilterInputSchema = z
   .object({
     page: z.coerce.number().int().min(1, 'شماره صفحه باید حداقل ۱ باشد').default(1).optional(),
@@ -628,10 +659,15 @@ export const tagContract = {
 }
 
 export const catalogContract = {
+  syncPage: oc.input(z.object({ cursor: z.string().max(2048).optional(), limit: z.number().int().min(1).max(100).default(24) }))
+    .output(CatalogScopeOutputSchema.extend({ nextCursor: z.string().nullable() })),
+  browse: oc.input(CatalogBrowseInputSchema).output(CatalogScopeOutputSchema.extend({ total: z.number(), hasMore: z.boolean() })),
+  facets: oc.output(CatalogFacetOutputSchema),
+  getByIds: oc.input(z.object({ ids: z.array(z.number().int().positive()).max(100) })).output(CatalogScopeOutputSchema),
   getByScanCode: oc
     .meta(openapi({ method: 'POST', path: '/catalog/scan', summary: 'شناسایی محصول با کد اسکن' }))
     .input(z.object({ scanCode: z.string().trim().min(1).max(128).regex(/^[a-zA-Z0-9-]+$/).transform(value => value.toUpperCase()) }))
-    .output(ScannedCatalogProductSchema),
+    .output(CatalogRecordSchema),
   getProductQr: oc
     .meta(openapi({ method: 'POST', path: '/catalog/product-qr', summary: 'دریافت کد QR محصول' }))
     .input(z.object({ id: z.union([EntityIdSchema, z.number().int().positive()]) }))
@@ -647,7 +683,7 @@ export const catalogContract = {
   getById: oc
     .meta(openapi({ method: 'GET', path: '/catalog/{id}', summary: 'مشاهده جزییات کاتالوگ محصول توسط مشتری' }))
     .input(z.object({ id: z.union([EntityIdSchema, z.number().int().positive()]) }))
-    .output(CatalogProductSchema.or(z.any()))
+    .output(CatalogRecordSchema)
     .errors({
       UNAUTHORIZED: { data: StandardErrorDataSchema },
       NOT_FOUND: { data: StandardErrorDataSchema },
@@ -696,7 +732,7 @@ export const catalogContract = {
   dimensions: oc
     .meta(openapi({ method: 'GET', path: '/catalog/dimensions', summary: 'دریافت لیست ابعاد' }))
     .input(z.object({ onlyActive: z.boolean().optional() }).optional())
-    .output(z.array(DimensionSchema).or(z.any())),
+    .output(z.array(DimensionSchema)),
 
   deleteProduct: oc
     .meta(openapi({ method: 'DELETE', path: '/catalog/products/{id}', summary: 'حذف محصول' }))

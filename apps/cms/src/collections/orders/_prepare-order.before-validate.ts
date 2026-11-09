@@ -1,3 +1,4 @@
+import { nextTrackingNumber } from '../../lib/tracking-number'
 import { getSalesFactor } from '../products/_inventory-math'
 import type { CollectionBeforeValidateHook } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
@@ -47,12 +48,8 @@ export const prepareOrderBeforeValidate: CollectionBeforeValidateHook = async ({
     }
   }
 
-  // 3. Stable, collision-resistant orderNumber generation
-  if (!data.orderNumber) {
-    const timestamp = Date.now().toString().slice(-6)
-    const randomSuffix = Math.floor(1000 + Math.random() * 9000)
-    data.orderNumber = `ptp ${timestamp}${randomSuffix}`
-  }
+  data.trackingNumber = await nextTrackingNumber(req)
+  data.orderNumber = String(data.trackingNumber)
 
   if (!data.items || !Array.isArray(data.items) || data.items.length === 0) {
     throw new Error('سفارش باید حداقل شامل یک قلم کالا باشد.')

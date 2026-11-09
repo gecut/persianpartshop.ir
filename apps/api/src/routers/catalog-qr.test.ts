@@ -34,7 +34,7 @@ const getQr = () => call(catalog.getProductQr, { id: 501 }, { context })
 beforeEach(() => {
   permissions = { canUseProductQr: true }
   failPermissions = false
-  product = { id: 501, name: 'Tile', slug: 'tile', sku: 'SKU', scanCode: 'PP-001', category: 3, isActive: true, productType: 'tile', sqmPerCarton: 1, basePricePerSqm: 100, cover: { id: 3, url: '/cover.png' }, gallery: [{ image: { id: 4, url: '/gallery.png' } }] }
+  product = { createdAt: '2026-01-01T00:00:00.000Z', id: 501, name: 'Tile', slug: 'tile', sku: 'SKU', scanCode: 'PP-001', category: 3, isActive: true, productType: 'tile', sqmPerCarton: 1, basePricePerSqm: 100, cover: { id: 3, url: '/cover.png' }, gallery: [{ image: { id: 4, url: '/gallery.png' } }] }
 })
 
 describe('product QR authorization and lookup', () => {

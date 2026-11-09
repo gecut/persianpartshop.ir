@@ -40,6 +40,7 @@ export type ListPlansInput = z.infer<typeof ListPlansInputSchema>
 export const ListPlansOutputSchema = z.object({
   items: z.array(z.any()),
   total: z.number(),
+  hasMore: z.boolean().optional(),
 })
 
 export type ListPlansOutput = z.infer<typeof ListPlansOutputSchema>

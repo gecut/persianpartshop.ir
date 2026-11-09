@@ -145,7 +145,7 @@ export interface UserPermissions {
   disableOrdering: boolean
 }
 
-export async function getUserPermissions(userId?: string | number): Promise<UserPermissions> {
+export async function getUserPermissions(userId?: string | number, context?: Context): Promise<UserPermissions> {
   const defaults: UserPermissions = {
     canUseProductQr: false,
     markupPercent: 0,
@@ -157,7 +157,7 @@ export async function getUserPermissions(userId?: string | number): Promise<User
   if (!userId) return defaults
 
   try {
-    const userDoc: any = await sdk.findByID({
+    const userDoc = context?.accountDocument && String(context.accountDocument.id) === String(userId) ? context.accountDocument : await sdk.findByID({
       collection: 'users',
       id: userId,
       depth: 1,
@@ -240,7 +240,7 @@ export function applyProductPricing(product: any, markupPercent: number, hideExa
  */
 export function sanitizeOrderForCustomer(order: any) {
   if (!order || typeof order !== 'object') return order
-  const sanitized = { ...order }
+  const sanitized = { ...order, orderNumber: String(order.trackingNumber ?? order.orderNumber) }
   if (Array.isArray(sanitized.items)) {
     sanitized.items = sanitized.items.map((item: any) => {
       if (!item || typeof item !== 'object') return item
@@ -273,29 +273,6 @@ export function sanitizePlanProducts<T extends { products?: unknown }>(plan: T):
       const { scanCode: _scanCode, ...safeProduct } = product as Record<string, unknown>
       return safeProduct
     }),
-  }
-}
-
-/**
- * Finalizes an order by updating its orderNumber to standard `ptp {id}` format
- */
-export async function finalizeOrderNumber(orderDoc: any) {
-  if (!orderDoc?.id) return orderDoc
-  const finalOrderNumber = `ptp ${orderDoc.id}`
-  if (orderDoc.orderNumber === finalOrderNumber) {
-    return orderDoc
-  }
-  try {
-    const updated = await sdk.update({
-      collection: 'orders',
-      id: orderDoc.id,
-      data: {
-        orderNumber: finalOrderNumber,
-      },
-    })
-    return updated || { ...orderDoc, orderNumber: finalOrderNumber }
-  } catch {
-    return { ...orderDoc, orderNumber: finalOrderNumber }
   }
 }
 

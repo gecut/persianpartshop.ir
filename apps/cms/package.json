@@ -4,7 +4,10 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./inventory": { "types": "./src/collections/products/_inventory-math.ts", "import": "./src/collections/products/_inventory-math.ts" },
+    "./inventory": {
+      "types": "./src/collections/products/_inventory-math.ts",
+      "import": "./src/collections/products/_inventory-math.ts"
+    },
     "./payload": {
       "types": "./src/payload.ts",
       "import": "./src/payload.ts"
@@ -36,7 +39,9 @@
     "seed": "cross-env NODE_OPTIONS=--no-deprecation node --import tsx src/seed.ts",
     "test:hardening": "tsx --test src/_sdk.test.ts src/_seed-target.test.ts src/lib/sms.test.ts src/collections/orders/_reservation.test.ts src/collections/products/_products.test.ts src/collections/products/_access.test.ts src/collections/warehouse-stock/_stock-operations.test.ts src/collections/warehouse-stock/_import-csv.test.ts",
     "test:hardening:postgres": "tsx --test src/collections/orders/_reservation.integration.test.ts",
-    "test:hardening:migrations": "tsx --test --test-force-exit src/_schema-inspect.test.ts"
+    "test:hardening:migrations": "tsx --test --test-force-exit src/_schema-inspect.test.ts",
+    "test:tracking:postgres": "tsx --test src/lib/tracking-number.integration.test.ts",
+    "test:catalog:postgres": "tsx --test src/endpoints/catalog-browse.integration.test.ts"
   },
   "dependencies": {
     "@fontsource-variable/vazirmatn": "^5.3.0",

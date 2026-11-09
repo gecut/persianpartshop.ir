@@ -1372,11 +1372,11 @@ export async function runSeed() {
     const warehouse = existing.docs[0] ?? await payload.create({ collection: 'warehouses', data: { ...fixture, isActive: true, stockMode: 'exact' } })
     if (warehouse.stockMode !== 'exact') throw new Error(`Seed warehouse ${fixture.code} must have exact stock mode`)
     seededWarehouses.push(warehouse)
-    for (const product of otherProducts) {
+    for (const product of (fixture.code === 'DEMO-1' ? otherProducts : otherProducts.slice(0, 1))) {
       const existingStock = await payload.find({ collection: 'warehouse-stock', where: { and: [{ warehouse: { equals: warehouse.id } }, { product: { equals: product.id } }] }, limit: 1 })
       if (!existingStock.docs.length) await payload.create({ collection: 'warehouse-stock', data: { warehouse: warehouse.id, product: product.id, inventorySqm: fixture.code === 'DEMO-1' ? 100 : 25 } })
     }
-    for (const product of PRODUCTS) {
+    for (const product of (fixture.code === 'DEMO-1' ? PRODUCTS : PRODUCTS.slice(0, 1))) {
       const found = await payload.find({ collection: 'products', where: { sku: { equals: product.sku } }, limit: 1 })
       if (!found.docs[0]) continue
       const existingStock = await payload.find({ collection: 'warehouse-stock', where: { and: [{ warehouse: { equals: warehouse.id } }, { product: { equals: found.docs[0].id } }] }, limit: 1 })
@@ -1390,9 +1390,23 @@ export async function runSeed() {
   if (inquiry.stockMode !== 'inquiry') throw new Error('Seed inquiry warehouse has an incompatible stock mode')
   const supplyTile = (await payload.find({ collection: 'products', where: { sku: { equals: 'PP-CAL-60120-P' } }, limit: 1, depth: 0 })).docs[0]
   if (!supplyTile) throw new Error('Seed supply product is missing')
-  for (const product of [supplyTile, ...otherProducts]) {
-    const sources = await payload.find({ collection: 'supply-sources', where: { and: [{ product: { equals: product.id } }, { warehouse: { equals: inquiry.id } }] }, limit: 1 })
-    if (!sources.docs.length) await payload.create({ collection: 'supply-sources', data: { product: product.id, warehouse: inquiry.id, isActive: true, lastReportedAt: new Date().toISOString() } })
+  // Inquiry-only products are catalogued without any exact-stock rows.
+  const inquiryOnlyProducts = []
+  const inquiryFixtures = [
+    { sku: 'PP-INQUIRY-TRAVERTINE', slug: 'inquiry-travertine', name: 'اسلب تراورتن روشن سفارشی', basePricePerSqm: 1850000 },
+    { sku: 'PP-INQUIRY-MARBLE', slug: 'inquiry-marble', name: 'اسلب مرمر سبز سفارشی', basePricePerSqm: 2650000 },
+    { sku: 'PP-INQUIRY-ONYX', slug: 'inquiry-onyx', name: 'اسلب اونیکس عسلی سفارشی', basePricePerSqm: 3200000 },
+  ]
+  for (const fixture of inquiryFixtures) {
+    const existing = await payload.find({ collection: 'products', where: { sku: { equals: fixture.sku } }, limit: 1, depth: 0 })
+    inquiryOnlyProducts.push(existing.docs[0] ?? await payload.create({
+      collection: 'products',
+      data: { ...fixture, productType: 'tile', isActive: true, category: typeof supplyTile.category === 'object' ? supplyTile.category?.id : supplyTile.category, brand: typeof supplyTile.brand === 'object' ? supplyTile.brand?.id : supplyTile.brand, sqmPerCarton: 1.44, piecesPerCarton: 1, cover: typeof supplyTile.cover === 'object' ? supplyTile.cover?.id : supplyTile.cover, inventorySqm: 0, stockCartons: 0 },
+    }))
+  }
+  for (const product of [supplyTile, ...otherProducts, ...inquiryOnlyProducts]) {
+    const sources = await payload.find({ collection: 'warehouse-stock', where: { and: [{ product: { equals: product.id } }, { warehouse: { equals: inquiry.id } }] }, limit: 1 })
+    if (!sources.docs.length) await payload.create({ collection: 'warehouse-stock', data: { product: product.id, warehouse: inquiry.id, inventorySqm: null, isActive: true, lastReportedAt: new Date().toISOString() } })
   }
 
   // 6. Seed B2B Users
@@ -1443,10 +1457,10 @@ export async function runSeed() {
   const existingSupply = await payload.find({ collection: 'supply-requests', where: { idempotencyKey: { equals: supplyKeyHash(supplyUserId, supplyKey) } }, limit: 1, depth: 0 })
   if (!existingSupply.docs.length) {
     const stocks = await payload.find({ collection: 'warehouse-stock', where: { product: { equals: supplyTile.id } }, pagination: false, depth: 0 })
-    const maxStock = Math.max(0, ...stocks.docs.map((stock: WarehouseStock) => stock.inventorySqm))
+    const maxStock = Math.max(0, ...stocks.docs.map((stock: any) => stock.inventorySqm || 0))
     const requestedQuantity = Math.ceil(maxStock) + 10
     if (requestedQuantity > 1_000_000) throw new Error('Seed supply quantity exceeds the supported limit')
-    await payload.create({ collection: 'supply-requests', user: { ...service, collection: 'admins' }, data: { user: supplyUserId, product: supplyTile.id, warehouse: inquiry.id, requestedQuantity, notes: 'درخواست نمونه برای بررسی تأمین', idempotencyKey: supplyKey } as never })
+    await payload.create({ collection: 'supply-requests', user: { ...service, collection: 'admins' }, data: { user: supplyUserId, product: supplyTile.id, requestedQuantity, notes: 'درخواست نمونه برای بررسی تأمین', idempotencyKey: supplyKey } as never })
   }
 
   // 7. Seed Orders with rich Timelines

@@ -6,7 +6,6 @@ import { base, authed } from '../rpc/base'
 import { calculateCartonMetrics } from './catalog.helpers'
 import {
   fetchTaxonomy,
-  finalizeOrderNumber,
   findOrderByIdOrNumber,
   getUserPermissions,
   applyProductPricing,

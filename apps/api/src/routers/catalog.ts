@@ -1,6 +1,8 @@
+import type { Context } from '../rpc/context'
 import { attachWarehouseStock } from './warehouse-stock.helpers'
+import { catalogSync, catalogScope, catalogRecord } from './catalog-sync'
 import { sdk } from '../payload'
-import { base, customerOnly, adminOnly } from '../rpc/base'
+import { base, customerOnly, adminOnly, authed } from '../rpc/base'
 import { ORPCError } from '@orpc/server'
 import type { Product, Category, Brand, Tag, Dimension } from '@persianpart/cms/types'
 import { calculateCartonMetrics } from './catalog.helpers'
@@ -12,7 +14,7 @@ import {
 
 const list = base.catalog.list.handler(async ({ input, context }) => {
   const isAdmin = context.user?.role === 'admin' || context.user?.role === 'superadmin'
-  const userPerms = await getUserPermissions(context.user?.id)
+  const userPerms = await getUserPermissions(context.user?.id, context)
   const where: Record<string, any> = {}
 
   // Invariant: Non-admins can strictly NEVER see inactive products
@@ -110,7 +112,7 @@ const getById = base.catalog.getById.handler(async ({ input, context, errors }) 
   }
 
   const isAdmin = context.user?.role === 'admin' || context.user?.role === 'superadmin'
-  const userPerms = await getUserPermissions(context.user?.id)
+  const userPerms = await getUserPermissions(context.user?.id, context)
 
   if (!isAdmin) {
     if (prod.isActive === false) {
@@ -127,7 +129,7 @@ const getById = base.catalog.getById.handler(async ({ input, context, errors }) 
     }
   }
 
-  return applyProductPricing((await attachWarehouseStock([prod]))[0]!, userPerms.markupPercent, userPerms.hideExactStock)
+  return catalogRecord((await attachWarehouseStock([prod]))[0]!, context, { permissions: userPerms, scopeKey: (await catalogScope(context)).scopeKey })
 })
 
 async function qrProduct(userId: string | number, where: Record<string, unknown>) {
@@ -144,7 +146,7 @@ async function qrProduct(userId: string | number, where: Record<string, unknown>
 
 const getByScanCode = customerOnly.catalog.getByScanCode.handler(async ({ input, context }) => {
   const { product, permissions } = await qrProduct(context.user.id, { scanCode: { equals: input.scanCode } })
-  return applyProductPricing((await attachWarehouseStock([product]))[0]!, permissions.markupPercent, permissions.hideExactStock)
+  return catalogRecord((await attachWarehouseStock([product]))[0]!, context, { permissions, scopeKey: (await catalogScope(context)).scopeKey })
 })
 
 const getProductQr = customerOnly.catalog.getProductQr.handler(async ({ input, context }) => {
@@ -155,7 +157,7 @@ const getProductQr = customerOnly.catalog.getProductQr.handler(async ({ input, c
 
 const categories = base.catalog.categories.handler(async ({ input, context }) => {
   const isAdmin = context?.user?.role === 'admin' || context?.user?.role === 'superadmin'
-  const userPerms = await getUserPermissions(context?.user?.id)
+  const userPerms = await getUserPermissions(context?.user?.id, context)
   const docs = (await fetchTaxonomy('categories', { onlyActive: input?.onlyActive, sort: 'ordering' })) as Category[]
 
   if (!isAdmin && userPerms.allowedCategoryIds.length > 0) {
@@ -174,10 +176,34 @@ const tags = base.catalog.tags.handler(async ({ input }) => {
   return docs as Tag[]
 })
 
-const dimensions = base.catalog.dimensions.handler(async ({ input }) => {
-  const docs = await fetchTaxonomy('dimensions', { onlyActive: input?.onlyActive, sort: 'width' })
-  return docs as Dimension[]
-})
+async function catalogDimensions(input: { onlyActive?: boolean } | undefined, context: Context) {
+  const docs = (await fetchTaxonomy('dimensions', { onlyActive: input?.onlyActive, sort: 'width' }) as Dimension[]).map((dimension) => ({ ...dimension }))
+  if (docs.length === 0) return docs
+
+  const isAdmin = context.user?.role === 'admin' || context.user?.role === 'superadmin'
+  const permissions = isAdmin ? null : await getUserPermissions(context.user?.id, context)
+  const where = {
+    isActive: { equals: true },
+    dimension: { in: docs.map((dimension) => dimension.id) },
+    ...(permissions?.allowedCategoryIds.length ? { category: { in: permissions.allowedCategoryIds } } : {}),
+  }
+  const counts = new Map<string, number>()
+  let page = 1
+  while (true) {
+    const result = await sdk.find({
+      collection: 'products', where, select: { dimension: true }, depth: 0,
+      limit: 500, page, sort: 'id',
+    })
+    for (const product of result.docs) {
+      const id = typeof product.dimension === 'object' ? product.dimension?.id : product.dimension
+      if (id != null) counts.set(String(id), (counts.get(String(id)) ?? 0) + 1)
+    }
+    if (!result.hasNextPage) break
+    page += 1
+  }
+  return docs.sort((a, b) => (counts.get(String(b.id)) ?? 0) - (counts.get(String(a.id)) ?? 0))
+}
+const dimensions = base.catalog.dimensions.handler(({ input, context }) => catalogDimensions(input, context))
 
 const deleteProduct = adminOnly.catalog.deleteProduct.handler(async ({ input, errors }) => {
   const id = Number(input.id)
@@ -236,11 +262,17 @@ const deleteCategory = adminOnly.catalog.deleteCategory.handler(async ({ input, 
 })
 
 const calculateCartons = base.catalog.calculateCartons.handler(async ({ input, context }) => {
-  const permissions = await getUserPermissions(context?.user?.id)
+  const permissions = await getUserPermissions(context?.user?.id, context)
   return calculateCartonMetrics(input, permissions.markupPercent, permissions.allowedCategoryIds)
 })
 
 export const catalog = base.catalog.router({
+  ...catalogSync,
+  facets: authed.catalog.facets.handler(async ({ context }) => {
+    const scope = await catalogScope(context)
+    const docs = await catalogDimensions({ onlyActive: true }, context)
+    return { scopeKey: scope.scopeKey, dimensions: docs.map(doc => ({ ...doc })) }
+  }),
   list,
   getById,
   getByScanCode,

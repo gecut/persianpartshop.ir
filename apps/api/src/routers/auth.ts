@@ -1,3 +1,4 @@
+import { catalogScope } from './catalog-sync'
 import { base } from '../rpc/base'
 import { ORPCError } from '@orpc/server'
 import { generateToken } from '../lib/jwt'
@@ -177,7 +178,7 @@ export const auth = base.auth.router({
     }
     if (!context.user) return { user: null }
     try {
-      const userDoc: any = await getUserProfile(context.user.id)
+      const userDoc = context.accountDocument ?? await getUserProfile(context.user.id)
       if (!userDoc || userDoc.status === 'suspended' || userDoc.isBanned) {
         const reason = userDoc?.banReason ? ` به علت: «${userDoc.banReason}»` : ''
         throw new ORPCError('FORBIDDEN', {
@@ -185,7 +186,10 @@ export const auth = base.auth.router({
         })
       }
       const { notes, ...safeUser } = userDoc
-      return { user: safeUser }
+      const tier = safeUser.customerType
+      const safeTier = tier && typeof tier === 'object' ? { id: tier.id, name: tier.name } : tier
+      const scope = await catalogScope(context)
+      return { user: { ...safeUser, customerType: safeTier }, catalogScopeKey: scope.scopeKey }
     } catch (err) {
       if (err instanceof ORPCError) throw err
       throw new ORPCError('SERVICE_UNAVAILABLE', { message: 'بررسی نشست موقتاً در دسترس نیست؛ دوباره تلاش کنید.' })
@@ -204,7 +208,7 @@ export const auth = base.auth.router({
       }
       if (!context.user) return null
       try {
-        const userDoc: any = await getUserProfile(context.user.id)
+        const userDoc = context.accountDocument ?? await getUserProfile(context.user.id)
         if (!userDoc || userDoc.status === 'suspended' || userDoc.isBanned) {
           const reason = userDoc?.banReason ? ` به علت: «${userDoc.banReason}»` : ''
           throw new ORPCError('FORBIDDEN', {

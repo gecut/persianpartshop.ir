@@ -70,7 +70,7 @@ export const stockImportEndpoints: Endpoint[] = [
           await req.payload.update({ collection: 'products', id: row.productId, data: { basePricePerSqm: row.basePricePerSqm }, req, overrideAccess: false })
         }
         if (row.inventorySqm !== undefined && snapshot.warehouseId) {
-          if (row.revision === null) await req.payload.create({ collection: 'warehouse-stock', data: { warehouse: snapshot.warehouseId, product: row.productId, inventorySqm: row.inventorySqm, revision: 0 }, req, overrideAccess: false })
+          if (row.revision === null) await req.payload.create({ collection: 'warehouse-stock', data: { warehouse: snapshot.warehouseId, product: row.productId, inventorySqm: row.inventorySqm, revision: 0, isActive: true }, req, overrideAccess: false })
           else await replaceWarehouseStock(req, snapshot.warehouseId, row.productId, row.inventorySqm, row.revision)
         }
       }

@@ -5,7 +5,7 @@ import { getUserPermissions } from './router.helpers'
 import type { WarehouseStock } from '@persianpart/cms/types'
 
 const availability = authed.warehouse.availability.handler(async ({ input, context, errors }) => {
-  const permissions = await getUserPermissions(context.user.id)
+  const permissions = await getUserPermissions(context.user.id, context)
   if (permissions.disableOrdering || permissions.hideExactStock) throw errors.FORBIDDEN({ message: 'حساب کاربری شما فقط اجازهٔ مشاهدهٔ کاتالوگ را دارد.' })
   const totals = new Map<number, number>()
   for (const item of input.items) {
@@ -16,8 +16,9 @@ const availability = authed.warehouse.availability.handler(async ({ input, conte
   const ids = [...totals.keys()]
   const products = await sdk.find({ collection: 'products', where: { id: { in: ids } }, limit: ids.length, depth: 0 })
   const markup = permissions.markupPercent
+  const productsById = new Map(products.docs.map(product => [product.id, product]))
   const items = ids.map((productId) => {
-    const product = products.docs.find((doc) => doc.id === productId)
+    const product = productsById.get(productId)
     if (!product?.isActive) {
       throw errors.BAD_REQUEST({ message: 'یکی از کالاهای سبد قابل سفارش نیست.' })
     }
@@ -47,12 +48,13 @@ const availability = authed.warehouse.availability.handler(async ({ input, conte
       if (!stock.hasNextPage) break
       stockPage++
     }
+    const byWarehouseProduct = new Map(balances.map(balance => {
+      const productId = typeof balance.product === 'object' ? balance.product.id : balance.product
+      const warehouseId = typeof balance.warehouse === 'object' ? balance.warehouse.id : balance.warehouse
+      return [`${warehouseId}:${productId}`, balance.inventorySqm ?? 0] as const
+    }))
     for (const warehouse of result.docs) {
-      if (items.every((item) => balances.some((balance) => {
-        const productId = typeof balance.product === 'object' ? balance.product.id : balance.product
-        const warehouseId = typeof balance.warehouse === 'object' ? balance.warehouse.id : balance.warehouse
-        return warehouseId === warehouse.id && productId === item.productId && balance.inventorySqm >= item.deliverableArea
-      }))) warehouses.push({ id: warehouse.id, code: warehouse.code, name: warehouse.name })
+      if (items.every(item => (byWarehouseProduct.get(`${warehouse.id}:${item.productId}`) ?? 0) >= item.deliverableArea)) warehouses.push({ id: warehouse.id, code: warehouse.code, name: warehouse.name })
     }
     if (!result.hasNextPage) break
     page++

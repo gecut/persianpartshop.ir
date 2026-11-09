@@ -41,7 +41,7 @@ export const Warehouses: CollectionConfig = {
       if (operation === 'update' && data.stockMode !== undefined && data.stockMode !== originalDoc.stockMode) {
         const db = await getOrderTransaction(req)
         const id = Number(originalDoc.id)
-        const refs = await db.execute(sql`SELECT 1 WHERE EXISTS (SELECT 1 FROM warehouse_stock WHERE warehouse_id = ${id}) OR EXISTS (SELECT 1 FROM orders WHERE warehouse_id = ${id}) OR EXISTS (SELECT 1 FROM supply_sources WHERE warehouse_id = ${id}) OR EXISTS (SELECT 1 FROM supply_requests WHERE warehouse_id = ${id})`)
+        const refs = await db.execute(sql`SELECT 1 WHERE EXISTS (SELECT 1 FROM warehouse_stock WHERE warehouse_id = ${id}) OR EXISTS (SELECT 1 FROM orders WHERE warehouse_id = ${id}) OR EXISTS (SELECT 1 FROM supply_sources_legacy WHERE warehouse_id = ${id}) OR EXISTS (SELECT 1 FROM supply_requests WHERE warehouse_id = ${id})`)
         if (refs.rows.length) throw new Error('نوع انبار دارای سابقه قابل تغییر نیست؛ انبار جدید بسازید.')
       }
       return data

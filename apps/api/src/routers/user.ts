@@ -4,7 +4,7 @@ import { base, authed, adminOnly } from '../rpc/base'
 import { fetchTaxonomy, getUserProfile } from './router.helpers'
 
 const profile = authed.user.profile.handler(async ({ context }) => {
-  const userDoc: any = await getUserProfile(context.user.id)
+  const userDoc: any = context.accountDocument ?? await getUserProfile(context.user.id)
   if (!userDoc) return null
   const { notes, password, resetPasswordToken, salt, hash, ...safeUser } = userDoc
   if (safeUser.customerType && typeof safeUser.customerType === 'object') {

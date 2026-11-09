@@ -6,7 +6,6 @@ import { base, authed } from '../rpc/base'
 import { ORPCError } from '@orpc/server'
 import type { Order } from '@persianpart/cms/types'
 import {
-  finalizeOrderNumber,
   getUserMarkupPercent,
   getUserPermissions,
   getUserProfile,
@@ -15,7 +14,6 @@ import {
 import {
   assertOrderAccess,
   findAndAuthorizeOrder,
-  generateTempOrderNumber,
   calculateOrderItemPricing,
 } from './order.helpers'
 
@@ -116,7 +114,7 @@ export const submit = authed.order.submit.handler(async ({ input, context, error
     })
   }
 
-  const userPerms = await getUserPermissions(context.user.id)
+  const userPerms = await getUserPermissions(context.user.id, context)
   if (userPerms.disableOrdering || userPerms.hideExactStock) {
     throw errors.FORBIDDEN({
       message: 'حساب کاربری شما در وضعیت «فقط مشاهده کاتالوگ» تنظیم شده است و امکان ثبت سفارش را ندارد.',
@@ -182,8 +180,6 @@ export const submit = authed.order.submit.handler(async ({ input, context, error
     }
   }
 
-  const tempOrderNumber = generateTempOrderNumber()
-
   const quote = await call(warehouse.availability, { items: rawItems.map(item => ({ productId: item.product, requestedArea: item.requestedArea })) }, { context })
   if (!quote.warehouses.some(candidate => candidate.id === input.warehouseId)) throw errors.INSUFFICIENT_STOCK({ message: 'موجودی انبار انتخاب‌شده برای تأمین کل سفارش کافی نیست.' })
 
@@ -192,7 +188,8 @@ export const submit = authed.order.submit.handler(async ({ input, context, error
     orderDoc = (await sdk.create({
       collection: 'orders',
       data: {
-        orderNumber: tempOrderNumber,
+        orderNumber: '', // Assigned authoritatively by the CMS create hook.
+        trackingNumber: 0,
         user: Number(context.user.id),
         warehouse: input.warehouseId,
         requestFingerprint,
@@ -276,7 +273,7 @@ const cancel = authed.order.cancel.handler(async ({ input, context, errors }) =>
     orderDoc.status === 'cancelled_by_customer' ||
     orderDoc.status === 'cancelled_by_admin'
   ) {
-    return orderDoc
+    return sanitizeOrderForCustomer(orderDoc)
   }
 
   const isAdmin = context.user.role === 'admin' || context.user.role === 'superadmin'
@@ -306,7 +303,7 @@ const cancel = authed.order.cancel.handler(async ({ input, context, errors }) =>
   const existingNotes = orderDoc.notes ? orderDoc.notes.trim() : ''
   const updatedNotes = existingNotes ? `${existingNotes}\n${cancellationText}` : cancellationText
 
-  return sdk.update({
+  const cancelled = await sdk.update({
     collection: 'orders',
     id: input.id,
     data: {
@@ -315,6 +312,7 @@ const cancel = authed.order.cancel.handler(async ({ input, context, errors }) =>
       notes: updatedNotes,
     },
   })
+  return sanitizeOrderForCustomer(cancelled)
 })
 
 const prepareReorder = authed.order.prepareReorder.handler(async ({ input, context, errors }) => {

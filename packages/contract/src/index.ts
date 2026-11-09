@@ -8,6 +8,7 @@ import { planContract } from './plan'
 import { shoppingContract } from './shopping'
 import { warehouseContract } from './warehouse'
 import { supplyRequestContract } from './supply-request'
+import { activityFeedContract } from './activity-feed'
 
 /**
  * Root Contract for PersianPart Monorepo (Single Source of Truth - SSOT).
@@ -21,6 +22,8 @@ import { supplyRequestContract } from './supply-request'
  * 7. order         - Order lifecycle, reorder preparation & cart pricing validation
  * 8. plan          - Personalized credit terms & promotional plans
  * 9. warehouse     - Whole-cart warehouse eligibility and authoritative quote
+ * 10. supplyRequest- Inquiry supply request lifecycle
+ * 11. activityFeed - Unified orders and supply requests feed
  */
 export const appContract = {
   health: oc.output(
@@ -46,6 +49,7 @@ export const appContract = {
   plan: planContract,
   warehouse: warehouseContract,
   supplyRequest: supplyRequestContract,
+  activityFeed: activityFeedContract,
 }
 
 export type AppContract = typeof appContract
@@ -60,3 +64,4 @@ export * from './order'
 export * from './plan'
 export * from './warehouse'
 export * from './supply-request'
+export * from './activity-feed'
