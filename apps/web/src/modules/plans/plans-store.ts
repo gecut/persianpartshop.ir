@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api-client'
-import type { Plan } from '@/types'
+import type { Plan } from './plan-types'
 import { formatPersianDate } from '@/lib/utils/date'
 import { authStore, isProductAllowedForUser, useAuth } from '@/modules/auth/auth-store'
 

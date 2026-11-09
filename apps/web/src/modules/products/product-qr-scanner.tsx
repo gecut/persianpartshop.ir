@@ -4,7 +4,7 @@ import { XIcon } from '@/components/ui/icons'
 import { catalogCoordinator } from './catalog-data'
 import { authStore } from '@/modules/auth/auth-store'
 import { mapCatalogProduct } from './product-store'
-import type { Product } from '@/types'
+import type { Product } from './product-types'
 
 const ProductQrCamera = lazy(() => import('./product-qr-camera').then(module => ({ default: module.ProductQrCamera })))
 

@@ -1,5 +1,5 @@
 import React from "react";
-import type { Product } from "@/types";
+import type { Product } from "./product-types"
 import { formatToman, toPersianDigits } from "@/lib/utils/currency";
 import { cn } from "@/lib/utils";
 import TomanIcon, { ZoomInIcon } from "@/components/ui/icons";

@@ -4,7 +4,7 @@ import { useDeferredValue, useMemo, useState } from "react";
 import { Button } from "@heroui/react";
 import { catalogCoordinator } from "@/modules/products/catalog-data";
 
-import type { Product } from "@/types";
+import type { Product } from "@/modules/products/product-types"
 import { useAllQuantities, useProductSelection, selectionStore } from "@/modules/products/selection-store";
 import { computeCartTotals } from "./cart-totals";
 import { PreInvoiceModal } from "./pre-invoice-modal";

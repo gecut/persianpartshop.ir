@@ -3,7 +3,7 @@ import { queryClient } from '@/lib/query-client'
 import { queryKeys, mutationKeys } from '@/lib/query-keys'
 import { catalogCoordinator } from '@/modules/products/catalog-data'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { type Order, type OrderItem, type TimelineStep } from '@/types'
+import { type Order, type OrderItem, type TimelineStep } from './order-types'
 import { api } from '@/lib/api-client'
 import { formatGrade } from '@/modules/products/product-store'
 import {

@@ -8,7 +8,7 @@ import { Button } from "@heroui/react";
 import { AnimatePresence, motion } from "framer-motion";
 
 import { useNavigate } from "@tanstack/react-router";
-import type { Product } from "@/types";
+import type { Product } from "@/modules/products/product-types"
 import { calculateCartonRequirement } from "@/lib/utils/math";
 import { formatToman, toPersianDigits } from "@/lib/utils/currency";
 import { CheckoutCommit } from "./checkout-commit";

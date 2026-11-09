@@ -1,5 +1,5 @@
 import { summarizeQuantities } from '@/lib/utils/unit'
-import type { Product } from '@/types'
+import type { Product } from '@/modules/products/product-types'
 import { useCatalogIds } from '@/modules/products/catalog-data'
 import { selectionStore, useProductSelection } from '@/modules/products/selection-store'
 

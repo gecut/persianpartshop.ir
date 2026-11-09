@@ -11,7 +11,7 @@ import {
 } from "@/modules/products/selection-store";
 import { ProductConfigCard } from "@/modules/products/product-config-card";
 import { CartSummary } from "@/modules/checkout/cart-summary";
-import type { Product } from "@/types";
+import type { Product } from "@/modules/products/product-types"
 import { toast } from "@/components/feedback/toast";
 import { ArrowRightIcon, BoxIcon } from "@/components/ui/icons";
 import { useAuth, isProductAllowedForUser } from "@/modules/auth/auth-store";

@@ -3,7 +3,7 @@ import { formatCartons, formatUnit } from '@/lib/utils/unit'
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { Button, Table } from "@heroui/react";
-import type { Order } from "@/types";
+import type { Order } from "./order-types"
 import { formatToman, toPersianDigits } from "@/lib/utils/currency";
 import { formatPersianDate } from "@/lib/utils/date";
 import {

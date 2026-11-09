@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useLayoutEffect, lazy, Suspense } from "react";
 import { Drawer, Button } from "@heroui/react";
-import type { Product } from "@/types";
+import type { Product } from "./product-types"
 import { toPersianDigits, formatToman } from "@/lib/utils/currency";
 import { cn } from "@/lib/utils";
 import { ImageViewerModal } from "@/components/ui/image-viewer-modal";

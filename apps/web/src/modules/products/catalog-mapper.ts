@@ -1,4 +1,4 @@
-import type { Product } from "@/types"
+import type { Product } from "./product-types"
 import type { CatalogRecord } from "@persianpart/contract"
 import { toPersianDigits } from "@/lib/utils/currency"
 export function resolveMediaUrl(media: unknown): string {

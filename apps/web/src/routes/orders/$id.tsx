@@ -13,11 +13,8 @@ import {
   useOrderDetail, useCancelOrder,
   buildFullOrderTimeline,
 } from "@/modules/orders/order-store";
-import {
-  ORDER_STATUS_MAP,
-  type OrderItem,
-  type Product,
-} from "@/types";
+import { ORDER_STATUS_MAP, type OrderItem } from "@/modules/orders/order-types"
+import { type Product } from "@/modules/products/product-types"
 import { OrderTimeline } from "@/modules/orders/order-timeline";
 import { Badge } from "@/components/ui/badge";
 import { formatToman, toPersianDigits } from "@/lib/utils/currency";

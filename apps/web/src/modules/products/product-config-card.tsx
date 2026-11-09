@@ -3,7 +3,7 @@
 import { memo, useMemo } from "react";
 import { NumberField, I18nProvider, Button } from "@heroui/react";
 import { MoneyBagOutlineIcon } from "@solar-icons/react";
-import type { Product } from "@/types";
+import type { Product } from "./product-types"
 import { calculateCartonRequirement } from "@/lib/utils/math";
 import { formatToman, toPersianDigits } from "@/lib/utils/currency";
 import { formatCartons } from "@/lib/utils/unit";

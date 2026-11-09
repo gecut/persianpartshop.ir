@@ -1,7 +1,8 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Drawer, Button } from "@heroui/react";
-import type { Plan, Product } from "@/types";
+import type { Plan } from "./plan-types"
+import type { Product } from "@/modules/products/product-types"
 import { toPersianDigits, formatToman } from "@/lib/utils/currency";
 import { formatPersianDate } from "@/lib/utils/date";
 import { cn } from "@/lib/utils";

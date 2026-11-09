@@ -1,4 +1,4 @@
-import type { TimelineStep } from '@/types'
+import type { TimelineStep } from './order-types'
 import { CheckIcon, ClockIcon, XIcon } from '@/components/ui/icons'
 
 export interface OrderTimelineProps {

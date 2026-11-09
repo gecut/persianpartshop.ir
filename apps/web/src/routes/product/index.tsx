@@ -6,7 +6,7 @@ import {
   useSupplyDraft,
 } from "@/modules/supply-requests/supply-request-draft";
 
-import { useSessionValue } from "@/hooks/use-session-value";
+import { useSessionValue } from "@/modules/products/use-session-value";
 import {
   useState,
   useMemo,
@@ -24,7 +24,7 @@ import { ProductCard } from "@/modules/products/product-card";
 import { ProductBottomSheet } from "@/modules/products/product-bottom-sheet";
 import { ProductQrScanner } from "@/modules/products/product-qr-scanner";
 import { FilterDrawer } from "@/modules/products/filter-drawer";
-import type { Product } from "@/types";
+import type { Product } from "@/modules/products/product-types"
 import { useAuth } from "@/modules/auth/auth-store";
 import { useCart } from "@/modules/cart/cart-store";
 import {
