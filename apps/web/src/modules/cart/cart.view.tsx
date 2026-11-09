@@ -3,7 +3,7 @@ import { useSubmitOrder } from "@/modules/orders/use-submit-order";
 import { useTextDraft } from '@/lib/drafts'
 import { customerErrorMessage } from '@/lib/utils/error'
 import { selectionStore } from '@/modules/products/selection-store'
-import { WarehouseSummary } from './warehouse-selection'
+import { WarehouseSummary } from './warehouse-summary'
 import { useRef, useState, useEffect } from 'react'
 import { Link, useNavigate } from '@tanstack/react-router'
 

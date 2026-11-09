@@ -5,7 +5,7 @@ import { usePlans } from "./plans-store";
 import { useCatalogIds } from "@/modules/products/catalog-data";
 import type { Plan } from "./plan-types"
 import { PlanCard } from "./plan-card";
-import { PlanCardSkeleton } from "@/components/ui/skeleton";
+import { PlanCardSkeleton } from "./plan-card-skeleton";
 import { ArrowLeftIcon, SparklesIcon } from "@/components/ui/icons";
 
 

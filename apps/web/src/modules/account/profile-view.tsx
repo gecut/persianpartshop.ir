@@ -1,4 +1,4 @@
-import { PwaAccountButton } from '@/modules/pwa/pwa-controls'
+import { PwaAccountButton } from '@/modules/pwa/pwa-account-button'
 import { DataStatus } from '@/components/feedback/data-status'
 import { useTextDraft } from '@/lib/drafts'
 import { useWriteActivity, writeActivity } from '@/lib/write-activity'

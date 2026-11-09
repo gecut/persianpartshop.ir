@@ -1,9 +1,10 @@
-import React from "react";
+import React from "react"
 import type { Product } from "./product-types"
-import { formatToman, toPersianDigits } from "@/lib/utils/currency";
-import { cn } from "@/lib/utils";
-import TomanIcon, { ZoomInIcon } from "@/components/ui/icons";
-import { formatGrade, formatUnit } from "./product-store";
+import { formatToman, toPersianDigits } from "@/lib/utils/currency"
+import { cn } from "@/lib/utils"
+import TomanIcon from "@/components/ui/icons"
+import { formatGrade, formatUnit } from "./product-store"
+import { ProductThumbnail } from './_product-thumbnail'
 
 export interface ProductCardProps {
   product: Product;
@@ -13,59 +14,6 @@ export interface ProductCardProps {
   onToggleSelect: (product: Product) => void;
   onOpenBottomSheet?: (product: Product) => void;
 }
-
-interface ProductThumbnailProps {
-  src: string;
-  alt: string;
-  onOpenBottomSheet?: () => void;
-}
-
-const ProductThumbnail = React.memo(function ProductThumbnail({
-  src,
-  alt,
-  onOpenBottomSheet,
-}: ProductThumbnailProps) {
-  return (
-    <div
-      data-no-select
-      role="button"
-      tabIndex={0}
-      onClick={(e) => {
-        e.stopPropagation();
-        onOpenBottomSheet?.();
-      }}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.stopPropagation();
-          onOpenBottomSheet?.();
-        }
-      }}
-      className="relative size-19 aspect-square shrink-0 group/img cursor-pointer transition-transform active:scale-95 bg-muted/15 rounded-2xl overflow-hidden"
-      title="مشاهده جزئیات کالا"
-      aria-label={`مشاهده جزئیات ${alt}`}
-    >
-      <img
-        alt={alt}
-        src={src}
-        loading="lazy"
-        decoding="async"
-        className="size-19 aspect-square object-cover rounded-2xl transition-transform duration-200 group-hover/img:scale-105"
-        onError={(e) => {
-          const target = e.currentTarget;
-          if (!target.src.endsWith("/assets/images/placeholder.svg")) {
-            target.src = "/assets/images/placeholder.svg";
-          }
-        }}
-      />
-
-      <div className="absolute inset-0 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center rounded-2xl pointer-events-none">
-        <span className="p-1 rounded-md bg-primary flex flex-col items-center justify-center size-8 text-primary-foreground">
-          <ZoomInIcon size={16} />
-        </span>
-      </div>
-    </div>
-  );
-});
 
 export const ProductCard = React.memo(function ProductCard({
   product,

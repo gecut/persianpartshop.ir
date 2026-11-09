@@ -32,7 +32,7 @@ import {
   useProductSelection,
 } from "./selection-store";
 import { toPersianDigits } from "@/lib/utils/currency";
-import { ProductCardSkeleton } from "@/components/ui/skeleton";
+import { ProductCardSkeleton } from "./product-card-skeleton";
 import { DimensionFilter } from "./dimension-filter";
 import {
   FilterIcon,

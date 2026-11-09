@@ -20,7 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatToman, toPersianDigits } from "@/lib/utils/currency";
 import { formatPersianDate } from "@/lib/utils/date";
 import { toast } from "@/components/feedback/toast";
-import { OrderDetailSkeleton } from "@/components/ui/skeleton";
+import { OrderDetailSkeleton } from "./order-detail-skeleton";
 import {
   ArrowRightIcon,
   RefreshCwIcon,
