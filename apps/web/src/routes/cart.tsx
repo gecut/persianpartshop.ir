@@ -1,15 +1,16 @@
+import { formatTrackingNumber } from '../lib/utils/tracking-number'
+import { useSubmitOrder } from "../features/orders/use-submit-order";
 import { useTextDraft } from '../lib/drafts'
 import { customerErrorMessage } from '../lib/utils/error'
 import { selectionStore } from '../features/products/selection-store'
 import { WarehouseSummary } from '../features/cart/warehouse-selection'
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+
 import { Button } from '@heroui/react'
 import { useCart } from '../features/cart/cart-store'
 import { CartItemRow } from '../features/cart/cart-item-row'
-import { api } from '../lib/api-client'
-import { queryKeys, mutationKeys } from '../lib/query-keys'
+
 import { useAuth } from '../features/auth/auth-store'
 import { formatToman, toPersianDigits } from '../lib/utils/currency'
 import { toast } from '../components/feedback/toast'
@@ -50,20 +51,16 @@ function CartPage() {
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false)
   const [orderNotes, setOrderNotes, discardNotes] = useTextDraft<string>(user?.id ?? '', 'cart-notes', '')
   const idempotencyKeyRef = useRef<string | null>(null)
-  const queryClient = useQueryClient()
 
-  const submitOrderMutation = useMutation({
-    mutationKey: mutationKeys.orders.submit,
-    mutationFn: async (payload: any) => {
-      return await api.order.submit(payload)
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.orders.all })
-      queryClient.invalidateQueries({ queryKey: queryKeys.products.all })
-    },
-  })
+  const submitOrderMutation = useSubmitOrder();
 
   const isSubmitting = submitOrderMutation.isPending
+  const entryChecked = useRef(false)
+  useEffect(() => {
+    if (!items.length || entryChecked.current) return
+    entryChecked.current = true
+    void selectionStore.revalidate()
+  }, [items.length])
 
   const handleCheckoutSubmit = async () => {
     if (!isAuthenticated || !user) {
@@ -98,7 +95,7 @@ function CartPage() {
       setIsCheckoutModalOpen(false)
       toast.success(
         'سفارش با موفقیت در سامانه ثبت گردید',
-        `شماره پیگیری: ${newOrder.orderNumber}`
+        `شماره پیگیری: ${formatTrackingNumber(newOrder.orderNumber)}`
       )
       navigate({ to: '/orders/$id', params: { id: String(newOrder.id) } })
     } catch (err) {
@@ -231,7 +228,7 @@ function CartPage() {
 
             <Button
               type="button"
-              onPress={() => setIsCheckoutModalOpen(true)}
+              onPress={async () => { await selectionStore.revalidate(); const draft = selectionStore.getSnapshot(); if (draft.warehouse && !draft.error && draft.quotes.length === items.length) setIsCheckoutModalOpen(true) }}
               isDisabled={hasBlockingIssues || items.length === 0 || isOrderingDisabled}
               className="w-full h-11 rounded-2xl bg-primary hover:bg-primary/90 active:scale-98 text-primary-foreground font-bold text-sm flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >

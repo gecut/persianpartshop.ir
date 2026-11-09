@@ -18,17 +18,6 @@ export interface FilterDrawerProps {
   supplyMode?: boolean;
 }
 
-const AVAILABLE_DIMENSIONS = [
-  "30×90",
-  "60×120",
-  "80×160",
-  "100×100",
-  "120×240",
-  "60×60",
-  "30×60",
-  "20×120",
-];
-
 const AVAILABLE_GRADES = ["درجه ۱", "درجه ۲", "درجه ۳", "درجه ۴"] as const;
 
 const SORT_OPTIONS = [
@@ -56,9 +45,6 @@ export function FilterDrawer({
 
   const currentSortLabel =
     SORT_OPTIONS.find((s) => s.id === filters.sortBy)?.label || "پیش‌فرض";
-
-  const allDimensions =
-    dimensions && dimensions.length > 0 ? dimensions : AVAILABLE_DIMENSIONS;
 
   const currentDimLabel = filters.selectedDimension
     ? toPersianDigits(filters.selectedDimension)
@@ -236,13 +222,13 @@ export function FilterDrawer({
                       className="text-right"
                       selectionMode="single"
                       selectedKeys={
-                        new Set([filters.selectedDimension || "all"])
+                        new Set([String(dimensions.find((dim) => dim.name === filters.selectedDimension)?.id ?? "all")])
                       }
                       onSelectionChange={(keys) => {
                         const selected = Array.from(keys)[0] as string;
                         setFilter(
                           "selectedDimension",
-                          !selected || selected === "all" ? null : selected,
+                          !selected || selected === "all" ? null : dimensions.find((dim) => String(dim.id) === selected)?.name ?? null,
                         );
                         setIsDimOpen(false);
                       }}
@@ -263,15 +249,15 @@ export function FilterDrawer({
                         </Label>
                       </Dropdown.Item>
 
-                      {allDimensions.map((dim) => {
-                        const isSelected = filters.selectedDimension === dim;
+                      {dimensions.map((dim) => {
+                        const isSelected = filters.selectedDimension === dim.name;
 
                         return (
                           <Dropdown.Item
-                            key={dim}
-                            id={dim}
+                            key={dim.id}
+                            id={String(dim.id)}
                             dir="rtl"
-                            textValue={dim}
+                            textValue={dim.name}
                             className={cn(
                               "rounded-lg px-3 py-2 text-xs font-semibold cursor-pointer transition-colors flex items-center justify-start text-right w-full",
                               isSelected
@@ -280,7 +266,7 @@ export function FilterDrawer({
                             )}
                           >
                             <Label className="cursor-pointer text-right w-full">
-                              {toPersianDigits(dim)}
+                              {toPersianDigits(dim.name)}
                             </Label>
                           </Dropdown.Item>
                         );

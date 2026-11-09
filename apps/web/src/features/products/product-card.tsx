@@ -10,7 +10,6 @@ export interface ProductCardProps {
   isSelected: boolean;
   isInCart?: boolean;
   isOrderingDisabled?: boolean;
-  supplyMode?: boolean;
   onToggleSelect: (product: Product) => void;
   onOpenBottomSheet?: (product: Product) => void;
 }
@@ -71,19 +70,19 @@ const ProductThumbnail = React.memo(function ProductThumbnail({
 export const ProductCard = React.memo(function ProductCard({
   product,
   isSelected,
-  isInCart = false,
   isOrderingDisabled = false,
-  supplyMode = false,
   onToggleSelect,
   onOpenBottomSheet,
 }: ProductCardProps) {
-  const isOutOfStock = !supplyMode && (
+  const isOutOfStock = (
     product.stockStatus === "out_of_stock" ||
     product.inStock === false ||
     (Number.isFinite(Number(product.inventorySqm)) &&
       Number(product.inventorySqm) <= 0));
 
-  const effectiveSelected = !isOrderingDisabled && !isOutOfStock && isSelected;
+  const supplyOnly = isOutOfStock && Boolean(product.hasSupplySource);
+
+  const effectiveSelected = !isOrderingDisabled && (!isOutOfStock || supplyOnly) && isSelected;
 
   const handleCardClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
@@ -91,7 +90,7 @@ export const ProductCard = React.memo(function ProductCard({
     if (target.closest("button") || target.closest("[data-no-select]")) {
       return;
     }
-    if (isOrderingDisabled || isOutOfStock) {
+    if (isOrderingDisabled || (isOutOfStock && !supplyOnly)) {
       onOpenBottomSheet?.(product);
       return;
     }
@@ -109,7 +108,7 @@ export const ProductCard = React.memo(function ProductCard({
       onKeyDown={(e) => {
         if (e.key === " " || e.key === "Enter") {
           e.preventDefault();
-          if (isOrderingDisabled || isOutOfStock) {
+          if (isOrderingDisabled || (isOutOfStock && !supplyOnly)) {
             onOpenBottomSheet?.(product);
             return;
           }
@@ -195,12 +194,6 @@ export const ProductCard = React.memo(function ProductCard({
       <div className="flex flex-col justify-between items-end self-stretch shrink-0 ps-3 py-0.5 text-end">
         {/* Top: Price & In-Cart Status - Centered vertically from top */}
         <div className="flex-1 flex flex-col justify-center items-end">
-          {isInCart && !supplyMode && (
-            <span className="px-2 py-0.5 rounded-lg text-xs font-semibold bg-primary/10 text-primary mb-1">
-              در سبد خرید
-            </span>
-          )}
-
           <span className="text-sm font-bold text-foreground inline-flex items-center gap-1">
             <span>{formatToman(product.finalCustomerPricePerSqm)}</span>
             <TomanIcon className="size-3.5" />
@@ -209,7 +202,7 @@ export const ProductCard = React.memo(function ProductCard({
 
         {/* Bottom: Inventory Badge - Shows red "ناموجود" if out of stock, otherwise exact stock or presence badge */}
         <div className="mt-auto">
-          {supplyMode ? <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-primary/10 text-primary">قابل استعلام · درخواست تأمین</span> : isOutOfStock ? (
+          {supplyOnly ? <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-primary/10 text-primary">قابل استعلام</span> : isOutOfStock ? (
             <span className="px-2 py-1 rounded-lg flex text-xs font-semibold bg-danger/15 text-danger">
               <span>ناموجود</span>
             </span>

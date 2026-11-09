@@ -4,7 +4,7 @@ import { isSessionError } from '../../lib/session-error'
 import { selectionStore } from '../products/selection-store'
 import { useState, useEffect } from 'react'
 import { api, setAuthErrorHandler } from '../../lib/api-client'
-import { clearTanStackCache } from '../../lib/query-client'
+import { clearTanStackCache, queryClient } from '../../lib/query-client'
 
 export interface UserProfile {
   id: string
@@ -205,6 +205,7 @@ export const authStore = {
         user: userProfile,
         pendingPhone: null,
       })
+      queryClient.setQueryData(queryKeys.auth.session(userProfile.id), { user: userData })
       return true
     } catch (err: any) {
       throw new Error(err.message || 'کد وارد شده اشتباه یا منقضی است.')
@@ -246,49 +247,27 @@ export const authStore = {
     if (!currentState.user) return
 
     const expectedUser = currentState.user.id
-    await api.user.update({ fullName: updated.name, companyName: updated.storeName, address: updated.address })
+    const profile = await api.user.update({ fullName: updated.name, companyName: updated.storeName, address: updated.address })
     if (currentState.user?.id !== expectedUser) throw new Error('حساب کاربری تغییر کرده است.')
     broadcast({ ...currentState, user: { ...currentState.user, ...updated } })
+    queryClient.setQueryData(queryKeys.auth.profile(expectedUser), profile)
+    return profile
   },
 
-  syncProfile: async () => {
-    if (typeof window === 'undefined') return
-    const token = localStorage.getItem(TOKEN_KEY)
-    if (!token) return
-
-    try {
-      const profile: any = await api.user.profile()
-      if (profile && token === localStorage.getItem(TOKEN_KEY)) {
-        const hideExactStock = Boolean(profile.hideExactStock)
-        const disableOrdering = Boolean(profile.disableOrdering) || hideExactStock
-        const { allowedCategories, allowedCategoryIds } = parseAllowedCategories(
-          profile.allowedCategories
-        )
-        const userProfile: UserProfile = {
-          id: String(profile.id),
-          name: profile.fullName || profile.name || 'کاربر گرامی',
-          storeName: profile.companyName || 'فروشگاه قطعات',
-          phone: profile.phone || '',
-          province: profile.province || 'تهران',
-          city: profile.city || 'تهران',
-          address: profile.address || '',
-          economicCode: profile.economicCode || '',
-          hideExactStock,
-          disableOrdering,
-          canUseProductQr: Boolean(profile.canUseProductQr),
-          allowedCategories,
-          allowedCategoryIds,
-        }
-        broadcast({
-          isAuthenticated: true,
-          user: userProfile,
-          pendingPhone: null,
-        })
-      }
-    } catch {
-      // Best effort sync
+  acceptProfile: (profile: unknown) => {
+    if (!profile || typeof profile !== 'object' || !('id' in profile) || !currentState.user || String(profile.id) !== currentState.user.id) return
+    const raw: Record<string, unknown> = Object.fromEntries(Object.entries(profile))
+    const previous = currentState.user
+    const text = (key: string, fallback: string) => typeof raw[key] === 'string' ? raw[key] : fallback
+    const categories = 'allowedCategories' in raw ? parseAllowedCategories(raw.allowedCategories) : { allowedCategories: previous.allowedCategories, allowedCategoryIds: previous.allowedCategoryIds }
+    const user: UserProfile = { ...previous, name: text('fullName', previous.name), storeName: text('companyName', previous.storeName), phone: text('phone', previous.phone), province: text('province', previous.province), city: text('city', previous.city), address: text('address', previous.address), economicCode: text('economicCode', previous.economicCode), ...categories,
+      hideExactStock: 'hideExactStock' in raw ? Boolean(raw.hideExactStock) : previous.hideExactStock,
+      disableOrdering: 'disableOrdering' in raw ? Boolean(raw.disableOrdering) || Boolean(raw.hideExactStock) : previous.disableOrdering,
+      canUseProductQr: 'canUseProductQr' in raw ? Boolean(raw.canUseProductQr) : previous.canUseProductQr,
     }
+    if (JSON.stringify(user) !== JSON.stringify(previous)) broadcast({ ...currentState, user })
   },
+
 }
 
 setAuthErrorHandler((error: unknown) => {
@@ -311,18 +290,14 @@ window.addEventListener('storage', event => {
   window.dispatchEvent(new Event('persianpart:account-change'))
 })
 
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import { queryKeys, mutationKeys } from '../../lib/query-keys'
 
 export function useAuth() {
-  const queryClient = useQueryClient()
   const [state, setState] = useState<AuthState>(authStore.getState())
 
   useEffect(() => {
     listeners.add(setState)
-    if (state.isAuthenticated) {
-      authStore.syncProfile()
-    }
     return () => {
       listeners.delete(setState)
     }
@@ -336,17 +311,13 @@ export function useAuth() {
   const verifyOtpMutation = useMutation({
     mutationKey: mutationKeys.auth.verifyOtp,
     mutationFn: (code: string) => authStore.verifyOtp(code),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.auth.all })
-    },
+
   })
 
   const updateProfileMutation = useMutation({
     mutationKey: mutationKeys.auth.updateProfile,
     mutationFn: (updated: Partial<UserProfile>) => authStore.updateProfile(updated),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.auth.all })
-    },
+
   })
 
   return {

@@ -8,6 +8,8 @@ export interface SupplyDraft {
   requestedQuantity: number
   notes: string
   submissionKey: string
+  selected?: boolean
+  edited?: boolean
   pending?: boolean
 }
 interface SupplyDraftState { owner: string; draft: SupplyDraft | null; persisted: boolean }
@@ -18,7 +20,7 @@ const emit = () => listeners.forEach(listener => listener())
 const valid = (value: unknown): value is SupplyDraft => {
   if (!value || typeof value !== 'object') return false
   const data = value as Record<string, unknown>
-  return Number.isSafeInteger(data.productId) && Number(data.productId) > 0 && (data.warehouseId === null || (Number.isSafeInteger(data.warehouseId) && Number(data.warehouseId) > 0)) && typeof data.requestedQuantity === 'number' && Number.isFinite(data.requestedQuantity) && typeof data.notes === 'string' && typeof data.submissionKey === 'string' && /^[0-9a-f-]{36}$/i.test(data.submissionKey) && (data.pending === undefined || typeof data.pending === 'boolean')
+  return Number.isSafeInteger(data.productId) && Number(data.productId) > 0 && (data.warehouseId === null || (Number.isSafeInteger(data.warehouseId) && Number(data.warehouseId) > 0)) && typeof data.requestedQuantity === 'number' && Number.isFinite(data.requestedQuantity) && typeof data.notes === 'string' && typeof data.submissionKey === 'string' && /^[0-9a-f-]{36}$/i.test(data.submissionKey) && (data.pending === undefined || typeof data.pending === 'boolean') && (data.selected === undefined || typeof data.selected === 'boolean') && (data.edited === undefined || typeof data.edited === 'boolean')
 }
 const persist = () => {
   if (!state.owner) return true
@@ -39,26 +41,44 @@ export const supplyDraftStore = {
   open(productId: number) {
     if (!state.owner) return false
     if (state.draft?.pending && state.draft.productId !== productId) { toast.warning('ثبت نامطمئن', 'ابتدا نتیجه درخواست قبلی را پیگیری کنید.'); return false }
-    if (state.draft && state.draft.productId !== productId && !window.confirm('پیش‌نویس قبلی جایگزین شود؟')) return false
+    if (state.draft && state.draft.productId !== productId && (state.draft.edited ?? (state.draft.requestedQuantity !== 1 || !!state.draft.notes.trim())) && !window.confirm('پیش‌نویس قبلی جایگزین شود؟')) return false
     if (state.draft?.productId !== productId) {
-      state = { ...state, draft: { productId, warehouseId: null, requestedQuantity: 1, notes: '', submissionKey: crypto.randomUUID() } }
+      state = { ...state, draft: { productId, warehouseId: null, requestedQuantity: 1, notes: '', selected: true, edited: false, submissionKey: crypto.randomUUID() } }
       state = { ...state, persisted: persist() }; emit()
     }
+    if (state.draft?.selected === false) { state = { ...state, draft: { ...state.draft, selected: true } }; state = { ...state, persisted: persist() }; emit() }
     return true
+  },
+  discard() {
+    if (state.draft?.pending) { toast.warning('ثبت نامطمئن', 'ابتدا نتیجه درخواست قبلی را پیگیری کنید.'); return false }
+    if (!state.draft) return true
+    const previous = state
+    state = { ...state, draft: null }
+    if (!persist()) {
+      state = { ...previous, persisted: false }; emit()
+      toast.warning('حذف پیش‌نویس ممکن نشد', 'فضای ذخیره‌سازی را بررسی کنید و دوباره تلاش کنید.')
+      return false
+    }
+    state = { ...state, persisted: true }; emit()
+    return true
+  },
+  deselect() {
+    if (!state.draft) return
+    state = { ...state, draft: { ...state.draft, selected: false } }; state = { ...state, persisted: persist() }; emit()
   },
   update(change: Partial<Pick<SupplyDraft, 'warehouseId' | 'requestedQuantity' | 'notes'>>) {
     const draft = state.draft
     if (!draft) return false
     if (draft.pending) return false
     if (change.warehouseId != null && draft.warehouseId != null && change.warehouseId !== draft.warehouseId && !window.confirm('انبار پیش‌نویس تغییر کند؟')) return false
-    const next = { ...draft, ...change }
+    const next = { ...draft, ...change, edited: true }
     if (next.warehouseId === draft.warehouseId && next.requestedQuantity === draft.requestedQuantity && next.notes === draft.notes) return true
     if (next.warehouseId !== draft.warehouseId || next.requestedQuantity !== draft.requestedQuantity || next.notes.trim() !== draft.notes.trim()) next.submissionKey = crypto.randomUUID()
     state = { ...state, draft: next }; state = { ...state, persisted: persist() }; emit(); return true
   },
   retryPersist() { state = { ...state, persisted: persist() }; emit() },
   markPending(owner: string, key: string) {
-    if (state.owner !== owner || state.draft?.submissionKey !== key || !state.draft.warehouseId) return false
+    if (state.owner !== owner || state.draft?.submissionKey !== key) return false
     state = { ...state, draft: { ...state.draft, pending: true } }
     const persisted = persist()
     state = { ...state, persisted }; emit()

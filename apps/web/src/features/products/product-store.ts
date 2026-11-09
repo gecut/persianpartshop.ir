@@ -1,81 +1,18 @@
-import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
-import type { Product } from "../../types";
-import type { ScannedCatalogProduct } from "@persianpart/contract";
+import { useState, useMemo, useEffect } from "react";
+import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
+
+
 import { api } from "../../lib/api-client";
-import { toPersianDigits } from "../../lib/utils/currency";
+
 import { useQueryStates } from "nuqs";
 import { productFilterParsers, type SortOption } from "./product-filters";
 import { queryKeys } from "../../lib/query-keys";
 
 export type { SortOption };
 
-export function resolveMediaUrl(media: unknown): string {
-  if (!media) return "";
-  if (typeof media === "string") {
-    if (
-      media.startsWith("http://") ||
-      media.startsWith("https://") ||
-      media.startsWith("/")
-    ) {
-      return media;
-    }
-    if (media.includes(".")) {
-      const cdnUrl = import.meta.env.VITE_CDN_URL;
-      if (cdnUrl) {
-        return `${cdnUrl}/${encodeURIComponent(media)}`;
-      }
-      return `/api/media/file/${media}`;
-    }
-    return "";
-  }
-  if (typeof media === "object" && media !== null) {
-    const item = media as Record<string, unknown>;
-    if (item.url && typeof item.url === "string") return item.url;
-    if (item.thumbnailURL && typeof item.thumbnailURL === "string")
-      return item.thumbnailURL;
-    if (item.filename && typeof item.filename === "string") {
-      const cdnUrl = import.meta.env.VITE_CDN_URL;
-      if (cdnUrl) {
-        return `${cdnUrl}/${encodeURIComponent(item.filename)}`;
-      }
-      return `/api/media/file/${item.filename}`;
-    }
-    if (item.image) return resolveMediaUrl(item.image);
-  }
-  return "";
-}
-
-export function formatGrade(rawGrade?: string | null): string {
-  if (!rawGrade) return "";
-  const gradeStr = String(rawGrade).trim();
-  const mapping: Record<string, string> = {
-    grade_1: "درجه ۱",
-    grade_2: "درجه ۲",
-    grade_3: "درجه ۳",
-    grade_4: "درجه ۴",
-    grade: "درجه ۱",
-    "1": "درجه ۱",
-    "2": "درجه ۲",
-    "3": "درجه ۳",
-    "4": "درجه ۴",
-    "درجه 1": "درجه ۱",
-    "درجه 2": "درجه ۲",
-    "درجه 3": "درجه ۳",
-    "درجه 4": "درجه ۴",
-    "اصلی (Genuine)": "درجه ۱",
-    "درجه ۱ (اصلی)": "درجه ۱",
-  };
-  if (mapping[gradeStr]) return mapping[gradeStr];
-  if (gradeStr.startsWith("grade_")) {
-    const num = gradeStr.replace("grade_", "");
-    return `درجه ${toPersianDigits(num)}`;
-  }
-  return gradeStr;
-}
-
-export { formatUnit } from '../../lib/utils/unit'
-
+export { mapCatalogProduct, resolveMediaUrl, formatGrade, formatUnit } from "./catalog-mapper";
+import { formatGrade } from "./catalog-mapper";
+import { catalogCoordinator, useCatalogData } from "./catalog-data";
 export type ViewMode = "list" | "grid-2" | "grid-3" | "compact";
 
 export interface FilterState {
@@ -91,189 +28,37 @@ export interface FilterState {
   sortBy: SortOption;
 }
 
-function getDescriptionText(value: unknown): string | undefined {
-  if (typeof value === 'string') return value || undefined
-  if (!value || typeof value !== 'object') return undefined
-  const node = value as Record<string, unknown>
-  const parts = [typeof node.text === 'string' ? node.text : '', getDescriptionText(node.root)]
-  if (Array.isArray(node.children)) parts.push(...node.children.map(getDescriptionText))
-  return parts.filter(Boolean).join(' ') || undefined
-}
-
-type CatalogProductInput = ScannedCatalogProduct & { brandName?: string; categoryName?: string; categoryId?: string | number | null; secondaryUnit?: string | null; inStock?: boolean }
-
-export function mapCatalogProduct(item: CatalogProductInput): Product {
-  const isOther = item.productType === "other";
-  const dimObj = typeof item.dimension === "object" ? item.dimension : null;
-  const width = isOther ? 0 : Number(dimObj?.width || item.width || 60);
-  const height = isOther ? 0 : Number(dimObj?.height || item.height || 120);
-  const dimStr = isOther
-    ? item.weight
-      ? `${item.weight} کیلوگرم`
-      : ""
-    : dimObj?.name || `${width}×${height}`;
-
-  const brandName =
-    typeof item.brand === "object" && item.brand !== null
-      ? item.brand.name
-      : item.brandName || "پرشین پارت";
-  const categoryName =
-    typeof item.category === "object" && item.category !== null
-      ? item.category.name
-      : item.categoryName || "عمومی";
-  const basePrice =
-    Number(item.finalCustomerPricePerSqm ?? 0);
-  const rawGallery = Array.isArray(item.gallery) ? item.gallery : [];
-  const galleryUrls = rawGallery
-    .map((g) => resolveMediaUrl(g.image))
-    .filter(Boolean);
-
-  const rawCoverUrl = resolveMediaUrl(item.cover);
-  const primaryImage =
-    rawCoverUrl || galleryUrls[0] || "/assets/images/placeholder.svg";
-  const imagesList = [
-    primaryImage,
-    ...galleryUrls.filter((u: string) => u !== primaryImage),
-  ];
-
-  const finalPrice = basePrice;
-  const discountPercent: number | undefined = undefined;
-  const originalPricePerSqm: number | undefined = undefined;
-  const discountPlanTitle: string | undefined = undefined;
-
-  return {
-    id: String(item.id),
-    slug: item.slug || `product-${item.id}`,
-    name: item.name,
-    sku: item.sku,
-    hasScanCode: Boolean(item.hasScanCode),
-    productType: item.productType || (isOther ? "other" : "tile"),
-    dimensions: { width, height },
-    dimension: dimStr,
-    brand: brandName,
-    color: item.color || "استاندارد",
-    grade: item.grade ? formatGrade(item.grade) : undefined,
-    category: categoryName,
-    categoryId: typeof item.category === 'object' && item.category !== null ? item.category.id : item.categoryId ?? item.category,
-    unit: item.unit || (isOther ? "bag" : "m2"),
-    secondary_unit: item.secondary_unit || item.secondaryUnit || undefined,
-    secondaryUnit: item.secondary_unit || item.secondaryUnit || undefined,
-    weight:
-      item.weight != null
-        ? Number(item.weight)
-        : undefined,
-    itemsPerPack:
-      item.itemsPerPack != null
-        ? Number(item.itemsPerPack)
-        : undefined,
-    approxCoverage: item.approxCoverage || undefined,
-    finalCustomerPricePerSqm: finalPrice,
-    pricePerM2: finalPrice,
-    originalPricePerSqm,
-    discountPercent,
-    discountPlanTitle,
-    sqmPerCarton: isOther ? 1 : (item.sqmPerCarton || 1.44),
-    cartonsPerPallet: isOther ? null : item.cartonsPerPallet ?? null,
-    hasSupplySource: Boolean(item.hasSupplySource),
-    areaPerCarton: isOther ? 1 : (item.sqmPerCarton || 1.44),
-    piecesPerCarton: item.piecesPerCarton || 1,
-    tilesPerCarton: item.piecesPerCarton || 1,
-    cartonWeightKg:
-      item.weight != null ? Number(item.weight) : 28,
-    hideExactStock: Boolean(item.hideExactStock),
-    inventorySqm:
-      item.availability === "out_of_stock"
-        ? 0
-        : Number(item.inventorySqm || 0),
-    stockCartons:
-      item.availability === "out_of_stock"
-        ? 0
-        : Number(item.stockCartons || 0),
-    inStock:
-      item.availability !== "out_of_stock" &&
-      (item.hideExactStock
-        ? Boolean(Number(item.stockCartons || 0) > 0 || Number(item.inventorySqm || 0) > 0 || item.inStock)
-        : Number(item.inventorySqm || 0) > 0),
-    stockStatus:
-      item.availability === "out_of_stock" ||
-      Number(item.inventorySqm || 0) <= 0
-        ? "out_of_stock"
-        : item.hideExactStock
-          ? "in_stock"
-          : item.availability === "limited" ||
-              Number(item.inventorySqm || 0) < 50
-            ? "low_stock"
-            : "in_stock",
-    description: getDescriptionText(item.richDescription),
-    applications: ["خودرو سواری", "سفارش عمده"],
-    tags: Array.isArray(item.tags)
-      ? item.tags.flatMap((t) => typeof t === "object" ? [t.name] : typeof t === "string" ? [t] : [])
-      : [],
-    images: imagesList,
-    gallery: galleryUrls.length > 0 ? galleryUrls : [primaryImage],
-  };
-}
-
 export function useProducts(supplyMode = false) {
   const [queryFilters, setQueryFilters] = useQueryStates(productFilterParsers, {
     shallow: true,
   });
   const [viewMode, setViewMode] = useState<ViewMode>("list");
 
-  // Fetch dimensions via TanStack Query using queryKeys.products.dimensions()
-  const {
-    data: dimensions = [
-      "30×90",
-      "60×120",
-      "80×160",
-      "100×100",
-      "120×240",
-      "60×60",
-      "30×60",
-      "20×120",
-    ],
-  } = useQuery({
-    queryKey: queryKeys.products.dimensions(),
-    queryFn: async () => {
-      const dims = await api.catalog.dimensions({ onlyActive: true });
-      if (Array.isArray(dims) && dims.length > 0) {
-        const list = dims.map((d: any) => d.name || `${d.width}×${d.height}`);
-        return Array.from(new Set(list));
-      }
-      return [
-        "30×90",
-        "60×120",
-        "80×160",
-        "100×100",
-        "120×240",
-        "60×60",
-        "30×60",
-        "20×120",
-      ];
-    },
-    staleTime: 5 * 60 * 1000,
+  const { state: catalog, products: productsList, owner } = useCatalogData(true);
+  const dimensionsQuery = useQuery({
+    queryKey: queryKeys.products.facets(owner),
+    queryFn: ({ signal }) => api.catalog.facets(undefined, { signal }),
+    enabled: !!owner,
+    staleTime: 15 * 60_000,
+    select: result => result.dimensions,
   });
-
-  // Fetch products via TanStack Query using queryKeys.products.list(...)
-  const {
-    data: rawProducts = [],
-    isLoading,
-    isError,
-    error,
-    isFetching,
-    refetch,
-  } = useQuery({
-    queryKey: queryKeys.products.list({ page: 1, limit: 500 }),
-    queryFn: async () => {
-      const res = await api.catalog.list({ page: 1, limit: 500 });
-      return res.items || [];
-    },
-    staleTime: 60 * 1000,
-    refetchInterval: 60 * 1000,
-    refetchIntervalInBackground: false,
+  const [search, setSearch] = useState(queryFilters.q);
+  useEffect(() => { const timer = setTimeout(() => setSearch(queryFilters.q), 300); return () => clearTimeout(timer) }, [queryFilters.q]);
+  const browseInput = useMemo(() => ({ search, dimension: queryFilters.dimension, brands: queryFilters.brands, colors: queryFilters.colors, grades: queryFilters.grades, tags: queryFilters.tags, category: queryFilters.category, inStock: queryFilters.inStock, supplyMode, sort: queryFilters.sort, limit: 24 }), [search, queryFilters, supplyMode]);
+  const needsBrowse = !!(search.trim() || queryFilters.dimension || queryFilters.brands.length || queryFilters.colors.length || queryFilters.grades.length || queryFilters.tags.length || queryFilters.category || queryFilters.inStock || supplyMode || queryFilters.sort !== 'default');
+  const browse = useInfiniteQuery({
+    queryKey: queryKeys.products.browse(owner, browseInput),
+    queryFn: ({ pageParam, signal }) => catalogCoordinator.browse({ ...browseInput, page: pageParam }, signal),
+    initialPageParam: 1,
+    getNextPageParam: (last, pages) => last.hasMore ? pages.length + 1 : undefined,
+    enabled: !!owner && !catalog.complete && needsBrowse && search === queryFilters.q,
+    staleTime: 120_000,
   });
-
-  const isLiveConnected = !isError;
+  const error = browse.error ?? catalog.error;
+  const isFetching = catalog.fetching || (!catalog.complete && browse.isFetching);
+  const isLoading = !productsList.length && !error;
+  const isLiveConnected = !error;
+  const refetch = () => catalogCoordinator.refresh();
 
   const filters: FilterState = useMemo(
     () => ({
@@ -288,10 +73,8 @@ export function useProducts(supplyMode = false) {
       viewMode,
       sortBy: queryFilters.sort,
     }),
-    [queryFilters, viewMode],
+    [queryFilters, viewMode]
   );
-
-  const productsList = useMemo<Product[]>(() => rawProducts.map(mapCatalogProduct), [rawProducts]);
 
   const activeFilterCount = useMemo(() => {
     let count = 0;
@@ -318,7 +101,7 @@ export function useProducts(supplyMode = false) {
         const matchesColor = product.color.toLowerCase().includes(query);
         const matchesDim = product.dimension.includes(query);
         const matchesTag = product.tags.some((t) =>
-          t.toLowerCase().includes(query),
+          t.toLowerCase().includes(query)
         );
         if (
           !matchesName &&
@@ -362,7 +145,7 @@ export function useProducts(supplyMode = false) {
       // Grades (Normalized OR match across selected grades)
       if (filters.selectedGrades.length > 0) {
         const normSelectedGrades = filters.selectedGrades.map((g) =>
-          formatGrade(g),
+          formatGrade(g)
         );
         const prodGrade = formatGrade(product.grade);
         if (!normSelectedGrades.includes(prodGrade)) {
@@ -399,27 +182,39 @@ export function useProducts(supplyMode = false) {
     switch (filters.sortBy) {
       case "cheapest":
         return [...list].sort(
-          (a, b) => a.finalCustomerPricePerSqm - b.finalCustomerPricePerSqm,
+          (a, b) => a.finalCustomerPricePerSqm - b.finalCustomerPricePerSqm
         );
       case "expensive":
         return [...list].sort(
-          (a, b) => b.finalCustomerPricePerSqm - a.finalCustomerPricePerSqm,
+          (a, b) => b.finalCustomerPricePerSqm - a.finalCustomerPricePerSqm
         );
-      case "newest":
+      case "oldest":
         return [...list].reverse();
+      case "newest":
+        return list;
       default:
         return list;
     }
   }, [filters, productsList, supplyMode]);
 
   const resetFilters = () => {
-    if (supplyMode) setQueryFilters({ q: null, dimension: null, brands: null, colors: null, grades: null, tags: null, category: null, sort: null })
+    if (supplyMode)
+      setQueryFilters({
+        q: null,
+        dimension: null,
+        brands: null,
+        colors: null,
+        grades: null,
+        tags: null,
+        category: null,
+        sort: null,
+      });
     else setQueryFilters(null);
   };
 
   const setFilter = <K extends keyof FilterState>(
     key: K,
-    value: FilterState[K],
+    value: FilterState[K]
   ) => {
     switch (key) {
       case "searchQuery":
@@ -472,7 +267,7 @@ export function useProducts(supplyMode = false) {
       | "selectedColors"
       | "selectedGrades"
       | "selectedTags",
-    value: string,
+    value: string
   ) => {
     const map: Record<typeof key, "brands" | "colors" | "grades" | "tags"> = {
       selectedBrands: "brands",
@@ -492,9 +287,15 @@ export function useProducts(supplyMode = false) {
   };
 
   return {
-    products: filteredProducts,
+    products: !catalog.complete && browse.data && search === queryFilters.q && needsBrowse
+      ? browse.data.pages.flatMap(page => page.ids).flatMap(id => productsList.find(product => product.id === id) ?? [])
+      : filteredProducts,
+    hasRemoteMore: !catalog.complete && needsBrowse && !!browse.hasNextPage,
+    loadMore: () => { if (!catalog.complete && browse.hasNextPage && !browse.isFetching) void browse.fetchNextPage() },
+    complete: catalog.complete,
     allProducts: productsList,
-    dimensions,
+    dimensions: dimensionsQuery.data ?? [],
+    dimensionsQuery,
     filters,
     isLoading,
     activeFilterCount,

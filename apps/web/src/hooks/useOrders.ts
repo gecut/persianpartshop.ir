@@ -1,102 +1,25 @@
-import { selectionStore } from '../features/products/selection-store'
-import { useRef } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { api, type Order, type OrderStatus } from '../lib/api-client'
+import { useAuth } from '../features/auth/auth-store'
+import { useQuery, useMutation } from '@tanstack/react-query'
+import { api, type OrderStatus } from '../lib/api-client'
 import { queryKeys, mutationKeys } from '../lib/query-keys'
-
+import { useOrderDetail as useDetail, useCancelOrder } from '../features/orders/order-store'
+import { useSubmitOrder } from '../features/orders/use-submit-order'
+import { selectionStore } from '../features/products/selection-store'
 export function useCustomerOrders(status?: OrderStatus) {
-  const { data, isLoading, error, refetch } = useQuery({
-    queryKey: queryKeys.orders.list(status ? { status } : undefined),
-    queryFn: async () => {
-      const res = await api.order.list({ status })
-      return res
-    },
-    enabled: typeof window !== 'undefined' && Boolean(localStorage.getItem('persianpart_token')),
-    staleTime: 30 * 1000,
-  })
-
-  return {
-    orders: (data?.items || []) as Order[],
-    total: data?.total || 0,
-    isLoading,
-    error: error ? (error as Error).message : null,
-    refetch,
-  }
+  const { user } = useAuth()
+  const query = useQuery({ queryKey: queryKeys.orders.list({ status, owner: user?.id }), queryFn: ({ signal }) => api.order.list({ status }, { signal }), staleTime: 30_000 })
+  return { orders: query.data?.items ?? [], total: query.data?.total ?? 0, isLoading: query.isPending, error: query.error?.message ?? null, refetch: query.refetch }
 }
-
-export function useOrderDetail(orderId: string | null) {
-  const { data: order = null, isLoading, error, refetch } = useQuery({
-    queryKey: queryKeys.orders.detail(orderId || ''),
-    queryFn: async () => {
-      if (!orderId) return null
-      return await api.order.getById({ id: orderId })
-    },
-    enabled: !!orderId,
-    staleTime: 30 * 1000,
-  })
-
-  return {
-    order: order as Order | null,
-    isLoading,
-    error: error ? (error as Error).message : null,
-    refetch,
-  }
+export function useOrderDetail(id: string | null) {
+  const query = useDetail(id ?? '')
+  return { order: query.data ?? null, isLoading: query.isPending, error: query.error?.message ?? null, refetch: query.refetch }
 }
-
 export function useOrderActions() {
-  const queryClient = useQueryClient()
-  const idempotencyKeyRef = useRef<string | null>(null)
-
-  const submitMutation = useMutation({
-    mutationKey: mutationKeys.orders.submit,
-    mutationFn: async ({
-      items,
-      notes,
-    }: {
-      items: Array<{ productId: string; requestedSqm: number }>
-      notes?: string
-    }) => {
-      idempotencyKeyRef.current = selectionStore.submissionKey(notes ?? '')
-      const order = await api.order.submit({
-        warehouseId: selectionStore.getSnapshot().warehouse?.id ?? 0,
-        items,
-        notes,
-        idempotencyKey: idempotencyKeyRef.current,
-      })
-      idempotencyKeyRef.current = null
-      return order
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.orders.all })
-      queryClient.invalidateQueries({ queryKey: queryKeys.products.all })
-    },
-  })
-
-  const cancelMutation = useMutation({
-    mutationKey: mutationKeys.orders.cancel,
-    mutationFn: async ({ orderId, reason }: { orderId: string; reason?: string }) => {
-      return await api.order.cancel({ id: orderId, reason })
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.orders.all })
-      queryClient.invalidateQueries({ queryKey: queryKeys.products.all })
-    },
-  })
-
-  const prepareReorderMutation = useMutation({
-    mutationKey: mutationKeys.orders.prepareReorder,
-    mutationFn: async (orderId: string) => {
-      return await api.order.prepareReorder({ id: orderId })
-    },
-  })
-
+  const submit = useSubmitOrder(), cancel = useCancelOrder()
+  const reorder = useMutation({ mutationKey: mutationKeys.orders.prepareReorder, mutationFn: (id: string) => api.order.prepareReorder({ id }) })
   return {
-    submitOrder: (items: Array<{ productId: string; requestedSqm: number }>, notes?: string) =>
-      submitMutation.mutateAsync({ items, notes }),
-    cancelOrder: (orderId: string, reason?: string) =>
-      cancelMutation.mutateAsync({ orderId, reason }),
-    prepareReorder: (orderId: string) => prepareReorderMutation.mutateAsync(orderId),
-    isSubmitting: submitMutation.isPending,
-    isCancelling: cancelMutation.isPending,
+    submitOrder: (items: Array<{ productId: string; requestedSqm: number }>, notes?: string) => submit.mutateAsync({ warehouseId: selectionStore.getSnapshot().warehouse?.id ?? 0, items: items.map(item => ({ productId: item.productId, requestedArea: item.requestedSqm })), notes, idempotencyKey: selectionStore.submissionKey(notes) }),
+    cancelOrder: (orderId: string, reason?: string) => cancel.mutateAsync({ orderId, reason }),
+    prepareReorder: (id: string) => reorder.mutateAsync(id), isSubmitting: submit.isPending, isCancelling: cancel.isPending,
   }
 }

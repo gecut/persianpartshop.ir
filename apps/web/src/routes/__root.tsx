@@ -1,8 +1,9 @@
+import { catalogCoordinator } from '../features/products/catalog-data'
 import { PwaControls } from '../features/pwa/pwa-controls'
 import { DataStatus } from '../components/feedback/data-status'
 import { selectionStore } from '../features/products/selection-store'
 import { supplyDraftStore } from '../features/supply-requests/supply-request-draft'
-import { WarehouseSelection, WarehouseSummary } from '../features/cart/warehouse-selection'
+import { WarehouseSelection } from '../features/cart/warehouse-selection'
 import { useEffect } from 'react'
 import { createRootRoute, Outlet, redirect, useNavigate, useRouterState } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
@@ -50,16 +51,16 @@ function RootComponent() {
   useEffect(() => { selectionStore.setOwner(isAuthenticated && user ? String(user.id) : '') }, [isAuthenticated, user?.id])
   useEffect(() => { supplyDraftStore.setOwner(isAuthenticated && user ? String(user.id) : '') }, [isAuthenticated, user?.id])
 
-  // Periodic background check of session validity and ban status (every 4 seconds and on focus)
+  // One shared session check; no periodic polling.
   const { data: sessionData, error: sessionError, refetch: refetchSession } = useQuery({
-    queryKey: queryKeys.auth.session(),
+    queryKey: queryKeys.auth.session(user?.id),
     queryFn: async () => {
       const token = typeof window !== 'undefined' ? localStorage.getItem('persianpart_token') : null
       if (!token) return null
       return api.auth.session()
     },
     enabled: isAuthenticated && !isLoginPage,
-    refetchInterval: 4_000,
+    staleTime: 60_000,
     refetchOnWindowFocus: true,
     retry: false,
   })
@@ -69,6 +70,10 @@ function RootComponent() {
 
     if (sessionError && typeof sessionError === 'object' && 'code' in sessionError && sessionError.code === 'FORBIDDEN') authStore.logout()
     else if (!sessionError && sessionData && !sessionData.user) authStore.logout()
+    else if (sessionData?.user) {
+      authStore.acceptProfile(sessionData.user)
+      if (sessionData.catalogScopeKey) catalogCoordinator.acceptScope(sessionData.catalogScopeKey)
+    }
   }, [sessionData, sessionError, isAuthenticated, isLoginPage])
 
   // Dynamic client-side redirect if auth state drops while on a protected page
@@ -110,7 +115,6 @@ function RootComponent() {
                 : 'max-w-xl mx-auto pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))]'
             )}
           >
-            {pathname.startsWith('/product') && <WarehouseSummary />}
             <Outlet key={user?.id ?? 'guest'} />
           </main>
 

@@ -1,3 +1,4 @@
+import { formatTrackingNumber } from '../../lib/utils/tracking-number'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../../lib/api-client'
 import { queryKeys } from '../../lib/query-keys'
@@ -7,7 +8,7 @@ import { supplyDraftStore } from './supply-request-draft'
 interface Submission {
   owner: string
   productId: number
-  warehouseId: number
+  warehouseId?: number | null
   requestedQuantity: number
   notes: string
   idempotencyKey: string
@@ -16,13 +17,21 @@ interface Submission {
 export function useSupplySubmission(onSuccess: (id: number) => void, onRejected?: (code: string) => void) {
   const client = useQueryClient()
   const mutation = useMutation({
-    mutationFn: (submitted: Submission) => api.supplyRequest.submit({ productId: submitted.productId, warehouseId: submitted.warehouseId, requestedQuantity: submitted.requestedQuantity, notes: submitted.notes, idempotencyKey: submitted.idempotencyKey }),
+    mutationFn: (submitted: Submission) => api.supplyRequest.submit({
+      productId: submitted.productId,
+      warehouseId: submitted.warehouseId ?? undefined,
+      requestedQuantity: submitted.requestedQuantity,
+      notes: submitted.notes,
+      idempotencyKey: submitted.idempotencyKey,
+    }),
     onSuccess: (result, submitted) => {
       const current = supplyDraftStore.getSnapshot()
       if (current.owner !== submitted.owner || current.draft?.submissionKey !== submitted.idempotencyKey) return
       supplyDraftStore.clearIfCurrent(submitted.owner, submitted.idempotencyKey)
-      void client.invalidateQueries({ queryKey: queryKeys.supplyRequests.all })
-      toast.success('درخواست تأمین ثبت شد', `شماره پیگیری: ${result.requestNumber}`)
+      client.setQueryData(queryKeys.supplyRequests.detail(submitted.owner, result.id), result)
+      void client.invalidateQueries({ queryKey: queryKeys.supplyRequests.lists(submitted.owner) })
+      void client.invalidateQueries({ queryKey: queryKeys.activityFeed.all })
+      toast.success('درخواست تأمین ثبت شد', `شماره پیگیری: ${formatTrackingNumber(result.requestNumber)}`)
       onSuccess(result.id)
     },
     onError: (error, submitted) => {
@@ -34,11 +43,19 @@ export function useSupplySubmission(onSuccess: (id: number) => void, onRejected?
       }
     },
   })
-  const submit = () => {
+  const submit = async () => {
     const { owner, draft, persisted } = supplyDraftStore.getSnapshot()
-    if (!owner || !draft?.warehouseId || !persisted || mutation.isPending) return
-    const submitted = { owner, productId: draft.productId, warehouseId: draft.warehouseId, requestedQuantity: draft.requestedQuantity, notes: draft.notes, idempotencyKey: draft.submissionKey }
-    if (supplyDraftStore.markPending(owner, draft.submissionKey)) mutation.mutate(submitted)
+    if (!owner || !draft || !persisted || mutation.isPending) throw new Error('درخواست آمادهٔ ثبت نیست.')
+    const submitted: Submission = {
+      owner,
+      productId: draft.productId,
+      warehouseId: draft.warehouseId ?? undefined,
+      requestedQuantity: draft.requestedQuantity,
+      notes: draft.notes,
+      idempotencyKey: draft.submissionKey,
+    }
+    if (!supplyDraftStore.markPending(owner, draft.submissionKey)) throw new Error('ذخیرهٔ پیش‌نویس ممکن نیست.')
+    return mutation.mutateAsync(submitted)
   }
   return { ...mutation, submit }
 }

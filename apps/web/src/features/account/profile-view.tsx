@@ -161,9 +161,10 @@ async function compressImageFile(file: File, maxDimension = 1920, quality = 0.82
 export function ProfileView() {
   const pendingWrites = useWriteActivity();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user, logout, updateProfile } = useAuth();
+  const queryClient = useQueryClient();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
@@ -175,8 +176,9 @@ export function ProfileView() {
     isFetching: isProfileFetching,
     refetch: refetchProfile,
   } = useQuery({
-    queryKey: queryKeys.auth.profile(),
-    queryFn: () => api.user.profile(),
+    queryKey: queryKeys.auth.profile(user?.id),
+    queryFn: ({ signal }) => api.user.profile(undefined, { signal }),
+    staleTime: 120_000,
     enabled: !!user,
   });
 
@@ -373,12 +375,9 @@ export function ProfileView() {
         },
       ];
 
-      await api.user.update({
-        documents: updatedDocs,
-      });
+      const profile = await api.user.update({ documents: updatedDocs });
+      queryClient.setQueryData(queryKeys.auth.profile(user?.id), profile);
 
-      await refetchProfile();
-      queryClient.invalidateQueries({ queryKey: queryKeys.auth.profile() });
       toast.success(
         "مدرک با موفقیت بارگذاری شد",
         "مدرک شما ثبت شد و در انتظار بررسی و تأیید مدیریت قرار گرفت.",
@@ -418,12 +417,9 @@ export function ProfileView() {
           uploadedAt: d.uploadedAt,
         }));
 
-      await api.user.update({
-        documents: remaining,
-      });
+      const profile = await api.user.update({ documents: remaining });
+      queryClient.setQueryData(queryKeys.auth.profile(user?.id), profile);
 
-      await refetchProfile();
-      queryClient.invalidateQueries({ queryKey: queryKeys.auth.profile() });
       toast.success("مدرک حذف شد", "فایل مورد نظر از لیست مدارک حذف گردید.");
     } catch (err: any) {
       toast.error(

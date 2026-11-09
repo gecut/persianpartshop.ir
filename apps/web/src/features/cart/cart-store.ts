@@ -1,9 +1,6 @@
 import { summarizeQuantities } from '../../lib/utils/unit'
 import type { Product } from '../../types'
-import { useQueries } from '@tanstack/react-query'
-import { api } from '../../lib/api-client'
-import { queryKeys } from '../../lib/query-keys'
-import { mapCatalogProduct, useProducts } from '../products/product-store'
+import { useCatalogIds } from '../products/catalog-data'
 import { selectionStore, useProductSelection } from '../products/selection-store'
 
 export interface CartItem {
@@ -18,7 +15,7 @@ export const cartStore = {
   addItem: async (product: Product, requestedArea: number) => {
     await selectionStore.setQuantity(product.id, requestedArea)
     const draft = selectionStore.getSnapshot()
-    return Boolean(draft.warehouse && !draft.error && draft.quantities[product.id] === requestedArea)
+    return Boolean(!draft.error && draft.quantities[product.id] === requestedArea)
   },
   setProductQuantity: (product: Product, requestedArea: number) => selectionStore.setQuantity(product.id, requestedArea),
   updateRequestedArea: (id: string, amount: number) => amount <= 0 ? selectionStore.unselectProduct(id) : selectionStore.setQuantity(id, amount),
@@ -33,16 +30,10 @@ export const cartStore = {
 }
 export function useCart() {
   const state = useProductSelection()
-  const { allProducts } = useProducts()
-  const missingIds = state.selectedIds.filter(id => !allProducts.some(product => product.id === id))
-  const missingQueries = useQueries({ queries: missingIds.map(id => ({
-    queryKey: queryKeys.products.detail(id),
-    queryFn: () => api.catalog.getById({ id: Number(id) }),
-    staleTime: 60_000,
-  })) })
-  const missingProducts = missingQueries.flatMap(query => query.data ? [mapCatalogProduct(query.data)] : [])
+  const productQuery = useCatalogIds(state.selectedIds)
+  const allProducts = productQuery.data
   const items: CartItem[] = state.selectedIds.map(id => {
-    const product = allProducts.find(item => item.id === id) ?? missingProducts.find(item => item.id === id)
+    const product = allProducts.find(item => item.id === id)
     const quote = state.quotes.find(item => String(item.productId) === id)
     const sqmPerCarton = quote?.sqmPerCarton ?? product?.sqmPerCarton ?? 1
     const requestedArea = state.quantities[id] ?? 0
@@ -59,7 +50,7 @@ export function useCart() {
     quantitySummary: summarizeQuantities(items.map(item => ({ unit: item.unit, quantity: item.deliverableArea }))),
     totalArea: Math.round(items.reduce((sum, item) => sum + item.deliverableArea, 0) * 100) / 100,
     subtotal, discountAmount: 0, taxAmount: 0, finalTotal: subtotal,
-    hasBlockingIssues: state.busy || !state.warehouse || state.quotes.length !== items.length || missingQueries.some(query => !query.data),
+    hasBlockingIssues: state.busy || !state.warehouse || state.quotes.length !== items.length || productQuery.isPending || !!productQuery.error || allProducts.length !== state.selectedIds.length,
     isProductInCart: (id: string) => state.selectedIds.includes(id), getProductCartItem: (id: string) => items.find(item => item.productId === id),
   }
 }

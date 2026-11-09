@@ -2,7 +2,7 @@ import { DataStatus } from '../components/feedback/data-status'
 import { useMemo, useState, useEffect, useRef } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { usePlans } from "../features/plans/plans-store";
-import { useProducts } from "../features/products/product-store";
+import { useCatalogIds } from "../features/products/catalog-data";
 import type { Plan } from "../types";
 import { PlanCard } from "../features/plans/plan-card";
 import { PlanCardSkeleton } from "../components/ui/skeleton";
@@ -15,8 +15,8 @@ export const Route = createFileRoute("/plans")({
 const PLANS_PAGE_SIZE = 12;
 
 function CustomerPlansPage() {
-  const { plans, isLoading: isPlansLoading, error, isFetching, refresh } = usePlans();
-  const { allProducts } = useProducts();
+  const { plans, isLoading: isPlansLoading, error, isFetching, refresh, hasMore: hasRemoteMore, loadMore } = usePlans();
+  const { data: allProducts } = useCatalogIds(plans.flatMap(plan => plan.productIds));
   const isLoading = isPlansLoading && plans.length === 0;
   const validPlans = (plans as Plan[]).filter((p: Plan) => {
     return p.isActive !== false;
@@ -41,7 +41,7 @@ function CustomerPlansPage() {
     return sortedPlans.slice(0, visibleCount);
   }, [sortedPlans, visibleCount]);
 
-  const hasMore = visibleCount < sortedPlans.length;
+  const hasMore = visibleCount < sortedPlans.length || hasRemoteMore;
 
   useEffect(() => {
     if (!hasMore) return;
@@ -52,6 +52,7 @@ function CustomerPlansPage() {
       (entries) => {
         if (entries[0].isIntersecting) {
           setVisibleCount((prev) => Math.min(prev + PLANS_PAGE_SIZE, sortedPlans.length));
+          loadMore();
         }
       },
       { threshold: 0.1, rootMargin: "250px" },

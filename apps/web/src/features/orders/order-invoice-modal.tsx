@@ -1,5 +1,5 @@
+import { formatTrackingNumber } from '../../lib/utils/tracking-number'
 import { formatCartons, formatUnit } from '../../lib/utils/unit'
-import { useMemo } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { Button, Table } from "@heroui/react";
@@ -32,15 +32,7 @@ export function OrderInvoiceModal({
   const taxAmount = order.taxAmount || 0;
   const finalTotal = order.finalTotal || subtotal;
 
-  const formattedInvoiceNumber = useMemo(() => {
-    if (order.orderNumber && /^ptp\s+/i.test(order.orderNumber)) {
-      return order.orderNumber.toLowerCase();
-    }
-    const cleanId = String(order.id)
-      .replace(/^ord-/, "")
-      .replace(/^ptp\s*/i, "");
-    return `ptp ${cleanId}`;
-  }, [order.id, order.orderNumber]);
+  const formattedInvoiceNumber = formatTrackingNumber(order.orderNumber || order.id);
 
   const handlePrint = () => {
     const originalTitle = document.title;

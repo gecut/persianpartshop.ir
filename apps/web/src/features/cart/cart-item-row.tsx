@@ -3,7 +3,7 @@ import React from "react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@heroui/react";
 import type { CartItem } from "./cart-store";
-import { useCart } from "./cart-store";
+import { cartStore } from "./cart-store";
 import { formatToman, toPersianDigits } from "../../lib/utils/currency";
 import {
   PlusIcon,
@@ -22,7 +22,7 @@ export interface CartItemRowProps {
 export const CartItemRow = React.memo(function CartItemRow({
   item,
 }: CartItemRowProps) {
-  const { updateRequestedArea, removeItem } = useCart();
+  const { updateRequestedArea, removeItem } = cartStore;
 
   return (
     <div className="p-3 space-y-2.5 rounded-2xl bg-muted/5">

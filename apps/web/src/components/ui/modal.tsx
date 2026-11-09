@@ -10,6 +10,7 @@ export interface ModalProps {
   isBottomSheetOnMobile?: boolean
   className?: string
   backdropClassName?: string
+  bodyLayout?: 'scroll' | 'panel'
 }
 
 export function Modal({
@@ -20,6 +21,7 @@ export function Modal({
   isBottomSheetOnMobile = true,
   className = '',
   backdropClassName = 'z-50',
+  bodyLayout = 'scroll',
 }: ModalProps) {
   useEffect(() => {
     if (isOpen) {
@@ -71,9 +73,9 @@ export function Modal({
 
             {/* Body */}
             <HeroUIModal.Body
-              className={`p-4 overflow-y-auto overscroll-contain flex-1 ${
-                isBottomSheetOnMobile ? 'pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))]' : ''
-              }`}
+              className={bodyLayout === 'panel'
+                ? 'min-h-0 flex flex-1 flex-col overflow-hidden p-0'
+                : `p-4 overflow-y-auto overscroll-contain flex-1 ${isBottomSheetOnMobile ? 'pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))]' : ''}`}
             >
               {children}
             </HeroUIModal.Body>

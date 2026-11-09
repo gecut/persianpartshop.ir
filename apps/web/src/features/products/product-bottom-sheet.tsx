@@ -27,6 +27,7 @@ export interface ProductBottomSheetProps {
   isOrderingDisabled?: boolean;
   onClose: () => void;
   onToggleSelect?: () => void;
+  onRequestSupply?: (product: Product) => void;
   onOrderDirect?: (product: Product) => void;
 }
 
@@ -46,6 +47,7 @@ export function ProductBottomSheet({
   isOrderingDisabled = false,
   onClose,
   onToggleSelect,
+  onRequestSupply,
   onOrderDirect: _onOrderDirect,
 }: ProductBottomSheetProps) {
   const [activeImageUrl, setActiveImageUrl] = useState<string | null>(null);
@@ -277,6 +279,10 @@ export function ProductBottomSheet({
                       <span className="px-3 py-2 rounded-lg text-xs font-semibold bg-muted/15 text-muted">
                         فقط مشاهده کاتالوگ
                       </span>
+                    ) : isOutOfStock && activeProduct.hasSupplySource && onRequestSupply ? (
+                      <Button size="sm" variant="primary" onPress={() => onRequestSupply(activeProduct)}>
+                        درخواست تأمین
+                      </Button>
                     ) : isOutOfStock ? (
                       <span className="px-3.5 py-2 rounded-lg text-xs font-bold bg-danger/15 text-danger">
                         ناموجود

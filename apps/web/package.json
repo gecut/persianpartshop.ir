@@ -7,7 +7,7 @@
     "dev": "vite --host",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host",
-    "test:pwa": "pnpm build && playwright test"
+    "test:catalog:unit": "bun test tests/catalog-coordinator.test.ts"
   },
   "dependencies": {
     "@fontsource-variable/vazirmatn": "^5.3.0",
@@ -30,7 +30,6 @@
     "zxing-wasm": "3.1.6"
   },
   "devDependencies": {
-    "@playwright/test": "^1.65.0",
     "@tailwindcss/vite": "^4.3.3",
     "@tanstack/router-plugin": "^1.168.42",
     "@types/node": "^26.6.4",

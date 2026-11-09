@@ -3,7 +3,7 @@ import { Button, InputGroup } from '@heroui/react'
 import type { Product } from '../../types'
 import { calculateCartonRequirement } from '../../lib/utils/math'
 import { formatToman, toPersianDigits } from '../../lib/utils/currency'
-import { useCart } from '../cart/cart-store'
+import { cartStore } from '../cart/cart-store'
 import { toast } from '../../components/feedback/toast'
 import { ShoppingCartIcon, BoxIcon, AlertTriangleIcon, CheckCircle2Icon, TomanIcon } from '../../components/ui/icons'
 
@@ -13,7 +13,7 @@ export interface CartonCalculatorProps {
 }
 
 export function CartonCalculator({ product, onAddedToCart }: CartonCalculatorProps) {
-  const { addItem } = useCart()
+  const { addItem } = cartStore
   const inputId = useId()
   const [requestedArea, setRequestedArea] = useState<number>(35)
   const [isAdding, setIsAdding] = useState(false)

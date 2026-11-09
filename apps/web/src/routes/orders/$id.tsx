@@ -1,19 +1,20 @@
+import { TrackingNumber } from '../../components/ui/tracking-number'
+import { formatTrackingNumber } from '../../lib/utils/tracking-number'
 import { DataStatus } from '../../components/feedback/data-status'
 import { customerErrorMessage } from '../../lib/utils/error'
 import { formatCartons, formatUnit, summarizeQuantities } from '../../lib/utils/unit'
 import { prepareReorderDraft } from '../../features/products/selection-store'
 import { useState, useEffect, useMemo } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQueryClient } from "@tanstack/react-query";
-import { queryKeys } from "../../lib/query-keys";
+
+
 import { Modal as HeroUIModal, Button, Dropdown, cn } from "@heroui/react";
 import {
-  useOrders,
+  useOrderDetail, useCancelOrder,
   buildFullOrderTimeline,
 } from "../../features/orders/order-store";
 import {
   ORDER_STATUS_MAP,
-  type Order,
   type OrderItem,
   type Product,
 } from "../../types";
@@ -39,7 +40,7 @@ import {
 } from "../../components/ui/icons";
 import { PreInvoiceModal } from "../../features/checkout/pre-invoice-modal";
 import { OrderInvoiceModal } from "../../features/orders/order-invoice-modal";
-import { useProducts } from "../../features/products/product-store";
+import { useCatalogIds } from "../../features/products/catalog-data";
 import { Counter } from "../../components/ui/counter";
 
 export const Route = createFileRoute("/orders/$id")({
@@ -49,22 +50,8 @@ export const Route = createFileRoute("/orders/$id")({
   component: OrderDetailPage,
 });
 
-function formatInvoiceNumber(
-  order: { id: string | number; orderNumber?: string } | string | number,
-): string {
-  if (typeof order === "object" && order !== null) {
-    if (order.orderNumber && /^ptp\s+/i.test(order.orderNumber)) {
-      return order.orderNumber.toLowerCase();
-    }
-    const cleanId = String(order.id)
-      .replace(/^ord-/, "")
-      .replace(/^PP-1405-|^PP-REQ-|^PP-|^ptp\s*/i, "");
-    return `ptp ${cleanId}`;
-  }
-  const cleanId = String(order)
-    .replace(/^ord-/, "")
-    .replace(/^PP-1405-|^PP-REQ-|^PP-|^ptp\s*/i, "");
-  return `ptp ${cleanId}`;
+function formatInvoiceNumber(order: { id: string | number; orderNumber?: string } | string | number): string {
+  return formatTrackingNumber(typeof order === 'object' ? order.orderNumber || order.id : order)
 }
 
 const CANCELLATION_REASONS = [
@@ -77,23 +64,22 @@ const CANCELLATION_REASONS = [
 function OrderDetailPage() {
   const { orderId } = Route.useLoaderData();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const { getOrderById, fetchOrderById, cancelOrder, orders } = useOrders();
-  const { allProducts } = useProducts();
+
+  const detailQuery = useOrderDetail(orderId);
+  const order = detailQuery.data ?? null;
+  const cancellation = useCancelOrder();
+
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState<string>(
     CANCELLATION_REASONS[0],
   );
   const [isCancelReasonOpen, setIsCancelReasonOpen] = useState(false);
   const [isReorderModalOpen, setIsReorderModalOpen] = useState(false);
+  const { data: allProducts } = useCatalogIds(isReorderModalOpen ? order?.items.map(item => item.productId) ?? [] : []);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
-  const [order, setOrder] = useState<Order | null>(
-    () => getOrderById(orderId) || null,
-  );
-  const [detailError, setDetailError] = useState<unknown>(null);
-  const [detailRefreshing, setDetailRefreshing] = useState(false);
-  const [detailAttempt, setDetailAttempt] = useState(0);
-  const [isLoading, setIsLoading] = useState(!order);
+  const detailError = detailQuery.error;
+  const detailRefreshing = detailQuery.isFetching;
+  const isLoading = detailQuery.isPending;
 
   const isCancelled =
     order?.status === "cancel" ||
@@ -118,31 +104,6 @@ function OrderDetailPage() {
   };
 
   const [timeLeftSeconds, setTimeLeftSeconds] = useState<number>(0);
-
-  useEffect(() => {
-    let isMounted = true;
-    const cached = getOrderById(orderId);
-    if (cached) {
-      setOrder(cached);
-      setTimeLeftSeconds(calculateRemainingSeconds(cached));
-      setIsLoading(false);
-      return;
-    }
-
-    setDetailError(null);
-    setIsLoading(true);
-    fetchOrderById(orderId).then((res) => {
-      if (isMounted) {
-        setOrder(res);
-        setTimeLeftSeconds(calculateRemainingSeconds(res));
-        setIsLoading(false);
-      }
-    }).catch((error: unknown) => { if (isMounted) { setDetailError(error); setIsLoading(false) } });
-
-    return () => {
-      isMounted = false;
-    };
-  }, [orderId, orders, detailAttempt]);
 
   useEffect(() => {
     if (!order || isCancelled || isCompleted) {
@@ -283,32 +244,18 @@ function OrderDetailPage() {
     return { reorderProducts: products, reorderQuantities: quantities };
   }, [order?.items, allProducts]);
 
-  const refreshDetail = async () => {
-    setDetailRefreshing(true);
-    setDetailError(null);
-    try {
-      const latest = await fetchOrderById(orderId);
-      setOrder(latest);
-      setTimeLeftSeconds(calculateRemainingSeconds(latest));
-    } catch (error) {
-      setDetailError(error);
-    } finally {
-      setDetailRefreshing(false);
-    }
-  };
+  const refreshDetail = async () => { await detailQuery.refetch(); };
 
   const handleCancel = async () => {
     if (!order) return;
     try {
-    await cancelOrder(order.id, cancelReason);
-    queryClient.invalidateQueries({ queryKey: queryKeys.products.all });
-    queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
+    await cancellation.mutateAsync({ orderId: order.id, reason: cancelReason });
     setShowCancelModal(false);
     toast.info(
       "سفارش لغو شد",
       `سفارش ${formatInvoiceNumber(order)} با موفقیت لغو شد و موجودی به انبار بازگردانی گردید.`,
     );
-    await refreshDetail();
+
     } catch (error) {
       toast.error('لغو سفارش انجام نشد', customerErrorMessage(error, 'دوباره تلاش کنید.'));
     }
@@ -323,7 +270,7 @@ function OrderDetailPage() {
     return <OrderDetailSkeleton />;
   }
 
-  if (detailError && !order) return <DataStatus error={detailError} onRetry={() => setDetailAttempt(value => value + 1)} />;
+  if (detailError && !order) return <DataStatus error={detailError} onRetry={() => void detailQuery.refetch()} />;
 
   if (!order) {
     return (
@@ -367,13 +314,7 @@ function OrderDetailPage() {
       <div className="bg-muted/5 rounded-2xl p-5 sm:p-6 space-y-4">
         <div>
           <div className="flex items-center gap-2.5 mb-2 flex-wrap">
-            <span
-              className="px-2.5 py-1 rounded-lg bg-primary/10 text-xs font-bold text-primary flex items-center gap-1.5"
-              dir="ltr"
-            >
-              <span className="text-primary text-xs font-semibold">فاکتور</span>
-              <span>{formatInvoiceNumber(order)}</span>
-            </span>
+            <TrackingNumber value={order.orderNumber} />
             <Badge variant={statusConfig.color} size="md">
               {displayStatusLabel}
             </Badge>

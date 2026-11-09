@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { Slider, I18nProvider } from "@heroui/react";
-import { useRafThrottle } from "../../hooks/useRafThrottle";
 
 export interface ThrottledSliderProps {
   value: number;
@@ -29,12 +28,10 @@ export function ThrottledSlider({
     setLocalValue(value);
   }, [value]);
 
-  const commit = useRafThrottle(onChange);
-
   const handleChange = (val: number | number[]) => {
     const num = typeof val === "number" ? val : (val[0] ?? minValue);
     setLocalValue(num);
-    commit(num);
+    onChange(num);
   };
 
   return (

@@ -48,6 +48,7 @@ export function MobileBottomNav() {
   // Do not show bottom nav on product quantity configuration page
   if (
     pathname.startsWith("/product/new") ||
+    pathname.startsWith("/product/supply/") ||
     pathname.startsWith("/products/new")
   ) {
     return null;

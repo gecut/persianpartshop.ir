@@ -15,31 +15,39 @@ export function setAuthErrorHandler(fn: (err: any) => void) {
   onAuthErrorCallback = fn
 }
 
+let foregroundRequests = 0
+export const hasForegroundRequests = () => foregroundRequests > 0
+
 export const api = createApiClient({
   baseURL: import.meta.env.VITE_API_URL || defaultBaseUrl,
-  fetch: async (input, init) => {
+  onCall: (segments, parentSignal) => {
     const token = localStorage.getItem('persianpart_token')
-    const path = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url
-    const isWrite = /\/(?:order\/(?:submit|cancel)|supplyRequest\/(?:submit|cancel)|shopping\/createOrder|user\/update|auth\/(?:verifyOtp|requestOtp))/.test(path)
-    const finish = isWrite ? writeActivity.begin() : () => {}
+    const path = segments.join('/')
+    const isWrite = /^(?:order\/(?:submit|cancel)|supplyRequest\/(?:submit|cancel)|shopping\/createOrder|user\/update|auth\/(?:verifyOtp|requestOtp))$/.test(path)
+    const foreground = path !== 'catalog/syncPage' && path !== 'catalog/facets'
+    if (foreground) foregroundRequests++
+    const finishWrite = isWrite ? writeActivity.begin() : () => {}
     const controller = new AbortController()
-    const abort = () => controller.abort(init?.signal?.reason)
-    if (init?.signal?.aborted) abort()
-    init?.signal?.addEventListener('abort', abort, { once: true })
+    const abort = () => controller.abort(parentSignal?.reason)
+    if (parentSignal?.aborted) abort()
+    parentSignal?.addEventListener('abort', abort, { once: true })
     const timeout = setTimeout(() => controller.abort(new DOMException('زمان انتظار پایان یافت', 'TimeoutError')), 30_000)
-    try {
-      const response = await fetch(input, { ...init, signal: controller.signal })
-      await response.clone().arrayBuffer()
-      if (token !== localStorage.getItem('persianpart_token')) throw new DOMException('حساب کاربری تغییر کرده است', 'AbortError')
-      if (/\/order\/submit/.test(path) && response.ok) writeActivity.clearUncertainOrder()
-      return response
-    } catch (error) {
-      if (/\/order\/submit/.test(path)) writeActivity.markUncertainOrder()
-      throw error
-    } finally {
-      clearTimeout(timeout)
-      init?.signal?.removeEventListener('abort', abort)
-      finish()
+    return {
+      signal: controller.signal,
+      assertCurrent() {
+        if (token !== localStorage.getItem('persianpart_token')) throw new DOMException('حساب کاربری تغییر کرده است', 'AbortError')
+      },
+      finish(error) {
+        clearTimeout(timeout)
+        parentSignal?.removeEventListener('abort', abort)
+        if (path === 'order/submit' && token === localStorage.getItem('persianpart_token')) {
+          if (error) writeActivity.markUncertainOrder()
+          else writeActivity.clearUncertainOrder()
+        }
+        finishWrite()
+        if (foreground) { foregroundRequests--; if (!foregroundRequests) window.dispatchEvent(new Event('persianpart:read-finished')) }
+        if (isWrite) window.dispatchEvent(new Event('persianpart:write-finished'))
+      },
     }
   },
   

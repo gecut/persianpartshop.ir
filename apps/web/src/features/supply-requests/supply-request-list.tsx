@@ -1,3 +1,4 @@
+import { TrackingNumber } from '../../components/ui/tracking-number'
 import { useEffect, useState } from 'react'
 import { Button, Modal } from '@heroui/react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -16,10 +17,10 @@ function RequestSummary({ item, now }: { item: SupplyRequest; now: number }) {
   const remainder = item.cartonsPerPallet ? item.packageCount % item.cartonsPerPallet : 0
   return <div className="space-y-2 text-sm text-start">
     <div className="flex flex-wrap justify-between gap-2"><strong>{item.productName}</strong><span>{labels[item.status]}</span></div>
-    <p dir="ltr" className="text-end text-muted" data-selectable="true">{item.requestNumber}</p>
+    <TrackingNumber value={item.requestNumber} />
     <p>درخواستی: {toPersianDigits(item.requestedQuantity)} {formatUnit(item.unit)}؛ معادل بسته کامل: {toPersianDigits(item.roundedQuantity)} {formatUnit(item.unit)}</p>
     <p>{item.productType === 'tile' ? (pallet ? `${toPersianDigits(pallet)} پالت${remainder ? ` و ${toPersianDigits(remainder)} کارتن` : ''}` : `${toPersianDigits(item.packageCount)} کارتن`) : `${toPersianDigits(item.packageCount)} ${formatUnit(item.unit)}`}</p>
-    <p>انبار: {item.warehouseName} · برآورد زمان ثبت: {formatToman(item.estimatedTotal)} تومان</p>
+    <p>برآورد زمان ثبت: {formatToman(item.estimatedTotal)} تومان</p>
     {(item.status === 'new' || item.status === 'reviewing') && <p>{overdue ? 'مهلت پاسخ گذشته' : `مهلت پاسخ: ${formatPersianDateTime(item.responseDueAt)}`}</p>}
     {item.notes && <p className="whitespace-pre-wrap break-words">یادداشت: {item.notes}</p>}
   </div>

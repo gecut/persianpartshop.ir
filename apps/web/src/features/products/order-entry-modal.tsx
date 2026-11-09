@@ -3,7 +3,7 @@ import { Modal as HeroUIModal, Button, InputGroup } from '@heroui/react'
 import type { Product } from '../../types'
 import { calculateCartonRequirement } from '../../lib/utils/math'
 import { formatToman, toPersianDigits } from '../../lib/utils/currency'
-import { useCart } from '../cart/cart-store'
+import { cartStore } from '../cart/cart-store'
 import { toast } from '../../components/feedback/toast'
 import {
   XIcon,
@@ -28,7 +28,7 @@ export function OrderEntryModal({
   onSuccess,
 }: OrderEntryModalProps) {
   const inputId = useId()
-  const { addItem } = useCart()
+  const { addItem } = cartStore
   const [requestedArea, setRequestedArea] = useState<number>(35)
   const [isAdding, setIsAdding] = useState(false)
 

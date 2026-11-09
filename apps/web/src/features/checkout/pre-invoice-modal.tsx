@@ -1,22 +1,23 @@
+import { useSubmitOrder } from "../orders/use-submit-order";
 import { customerErrorMessage } from '../../lib/utils/error'
 import { formatCartons, summarizeQuantities } from '../../lib/utils/unit'
 import { useProductSelection } from '../products/selection-store'
 import { WarehouseSummary } from '../cart/warehouse-selection'
-import { useEffect, useMemo, useRef } from "react";
+import { useMemo, useRef } from "react";
 import { Button } from "@heroui/react";
 import { AnimatePresence, motion } from "framer-motion";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+
 import { useNavigate } from "@tanstack/react-router";
 import type { Product } from "../../types";
 import { calculateCartonRequirement } from "../../lib/utils/math";
 import { formatToman, toPersianDigits } from "../../lib/utils/currency";
-import { SlideCommit } from "../../components/ui/slide-commit";
+import { CheckoutCommit } from "./checkout-commit";
+import { CheckoutActionFooter } from "./checkout-action-footer";
 import { orderStore } from "../orders/order-store";
 import { selectionStore } from "../products/selection-store";
 import { formatGrade, formatUnit } from "../products/product-store";
 import { toast } from "../../components/feedback/toast";
-import { api } from "../../lib/api-client";
-import { queryKeys, mutationKeys } from "../../lib/query-keys";
+
 import {
   XIcon,
   PencilIcon,
@@ -142,20 +143,10 @@ export function PreInvoiceModal({
   onSuccess,
 }: PreInvoiceModalProps) {
   const draft = useProductSelection();
-  useEffect(() => { if (isOpen) void selectionStore.revalidate() }, [isOpen]);
+
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const idempotencyKeyRef = useRef<string | null>(null);
-  const submitOrderMutation = useMutation({
-    mutationKey: mutationKeys.orders.submit,
-    mutationFn: async (payload: any) => {
-      return await api.order.submit(payload);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.products.all });
-    },
-  });
+  const submitOrderMutation = useSubmitOrder();
 
   // Calculate detailed items and invoice totals
   const invoiceItems = useMemo(() => {
@@ -319,7 +310,7 @@ export function PreInvoiceModal({
           </div>
 
           {/* Financial Summary & Action Footer */}
-          <div className="w-full bg-background border-t border-border/30 shrink-0 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]">
+          <CheckoutActionFooter>
             <div className="w-full max-w-xl mx-auto px-4 py-2.5 space-y-1.5 text-xs">
               {invoiceTotals.totalCartons > 0 && <div className="flex items-center justify-between">
                 <span className="text-xs font-medium text-muted">
@@ -360,25 +351,18 @@ export function PreInvoiceModal({
               </Button>
 
               <div className="flex-1">
-                <SlideCommit
+                <CheckoutCommit
                   label="برای ثبت سفارش بکشید"
                   doneLabel="سفارش تایید شد"
                   errorLabel="خطا در ثبت سفارش"
-                  height={48}
-                  radius={20}
-                  trackColor="rgba(5, 150, 105, 0.12)"
-                  handleColor="#059669"
-                  successColor="#059669"
-                  textColor="var(--color-foreground, #0e0c2d)"
                   disabled={
                     invoiceItems.length === 0 || submitOrderMutation.isPending || draft.busy || !draft.warehouse || draft.quotes.length !== draft.selectedIds.length
                   }
                   onConfirm={handleFinalConfirm}
-                  className="w-full h-12! border-none! shadow-none! [box-shadow:none]!"
                 />
               </div>
             </div>
-          </div>
+          </CheckoutActionFooter>
         </motion.div>
       )}
     </AnimatePresence>

@@ -1,5 +1,7 @@
 import { authStore } from '../auth/auth-store'
-import { selectionStore, prepareReorderDraft } from '../products/selection-store'
+import { queryClient } from '../../lib/query-client'
+import { queryKeys, mutationKeys } from '../../lib/query-keys'
+import { catalogCoordinator } from '../products/catalog-data'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { type Order, type OrderItem, type TimelineStep } from '../../types'
 import { api } from '../../lib/api-client'
@@ -8,69 +10,6 @@ import {
   formatPersianDate,
   formatPersianTimelineTs,
 } from '../../lib/utils/date'
-
-const STORAGE_KEY = 'persianpart_orders_v2'
-
-function getInitialState(): Order[] {
-  if (typeof window === 'undefined') {
-    return []
-  }
-  try {
-    // Purge legacy fake mock orders storage
-    localStorage.removeItem('persianpart_orders')
-
-    const saved = localStorage.getItem(STORAGE_KEY)
-    if (saved) {
-      const parsed = JSON.parse(saved)
-      if (Array.isArray(parsed)) {
-        // Discard any fake IDs
-        const filtered = parsed.filter(
-          (o) => !['ord-101', 'ord-102', 'ord-103', 'ord-104'].includes(o.id) && !o.id.startsWith('ord-fake')
-        )
-          return filtered.map((o) => {
-            if (o.status === 'pending' || o.status === 'completed' || o.status === 'approve' || o.status === 'approved') {
-              delete o.cancelledBy
-            }
-            if (o.date && (o.date.includes('2026') || o.date.includes('2025') || o.date.includes('2024') || o.date.startsWith('20'))) {
-              return {
-                ...o,
-                date: formatPersianDate(o.createdAt || o.date),
-              }
-            }
-            return o
-          })
-      }
-    }
-  } catch {
-    // fallback
-  }
-  return []
-}
-
-let currentOrders: Order[] = getInitialState()
-let ordersOwner = ''
-const accountId = () => authStore.getState().user?.id ?? ''
-function ensureOwner() {
-  const nextOwner = accountId()
-  if (ordersOwner !== nextOwner) {
-    ordersOwner = nextOwner
-    currentOrders = []
-    try { localStorage.removeItem(STORAGE_KEY) } catch { /* Storage may be unavailable. */ }
-  }
-}
-const listeners = new Set<(orders: Order[]) => void>()
-
-function broadcast(orders: Order[]) {
-  currentOrders = orders
-  if (typeof window !== 'undefined') {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(orders))
-    } catch {
-      // ignore
-    }
-  }
-  listeners.forEach((listener) => listener(currentOrders))
-}
 
 export function buildFullOrderTimeline(
   doc: any,
@@ -244,10 +183,7 @@ export function mapDocToOrder(doc: any): Order {
 
   const userObj = typeof doc.user === 'object' && doc.user !== null ? doc.user : null
 
-  const cleanId = String(doc.id).replace(/^ord-/, "").replace(/^ptp\s*/i, "");
-  const orderNumber = doc.orderNumber && /^ptp\s+/i.test(doc.orderNumber)
-    ? doc.orderNumber.toLowerCase()
-    : `ptp ${cleanId}`;
+  const orderNumber = String(doc.orderNumber || doc.id);
 
   return {
     id: String(doc.id),
@@ -273,155 +209,32 @@ export function mapDocToOrder(doc: any): Order {
   }
 }
 
+export const orderDetailOptions = (id: string) => ({
+  queryKey: queryKeys.orders.detail(id, authStore.getState().user?.id),
+  queryFn: async ({ signal }: { signal: AbortSignal }) => mapDocToOrder(await api.order.getById({ id }, { signal })),
+  staleTime: 30_000,
+})
 export const orderStore = {
-  getOrders: () => ordersOwner === accountId() ? currentOrders : [],
-  getOrderById: (id: string) => ordersOwner === accountId() ? currentOrders.find(o => o.id === id || o.orderNumber === id) : undefined,
-
-  fetchOrderById: async (id: string): Promise<Order | null> => {
-    ensureOwner()
-    const expectedOwner = accountId()
-    try {
-      const doc: any = await api.order.getById({ id })
-      if (expectedOwner !== accountId()) return null
-      if (doc && doc.id) {
-        const order = mapDocToOrder(doc)
-        const updated = [order, ...currentOrders.filter((o) => o.id !== order.id)]
-        broadcast(updated)
-        return order
-      }
-    } catch (err) {
-      throw err
-    }
-    return null
-  },
-
-  syncFromApi: async () => {
-    ensureOwner()
-    const expectedOwner = accountId()
-    try {
-      const res = await api.order.list()
-      if (expectedOwner !== accountId()) return
-      broadcast((res.items ?? []).map(mapDocToOrder))
-    } catch {
-      // Keep existing orders if API fails
-    }
-  },
-
   acceptOrder: (doc: unknown): Order => {
-    ensureOwner()
     const order = mapDocToOrder(doc)
-    broadcast([order, ...currentOrders.filter(item => item.id !== order.id)])
+    queryClient.setQueryData(queryKeys.orders.detail(order.id, authStore.getState().user?.id), order)
     return order
-  },
-  createOrder: async (payload: { items: OrderItem[]; notes?: string; deliveryAddress?: string; [key: string]: unknown }): Promise<Order> => {
-    const draft = selectionStore.getSnapshot()
-    if (!draft.warehouse || draft.busy) throw new Error('ابتدا انبار سبد را انتخاب کنید.')
-    const submittedDraft = selectionStore.submissionSnapshot()
-    const doc = await api.order.submit({ warehouseId: draft.warehouse.id, items: payload.items.map(item => ({ productId: item.productId, requestedArea: item.requestedArea })), notes: payload.notes, deliveryAddress: payload.deliveryAddress, idempotencyKey: selectionStore.submissionKey(JSON.stringify([payload.notes ?? '', payload.deliveryAddress ?? null])) })
-    if (!selectionStore.finishSubmission(submittedDraft)) throw new Error('حساب کاربری تغییر کرده است.')
-    const order = orderStore.acceptOrder(doc)
-    return order
-  },
-
-  clearOrders: () => {
-    currentOrders = []
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem(STORAGE_KEY)
-    }
-    listeners.forEach((listener) => listener([]))
-  },
-
-  updateOrder: (
-    orderId: string,
-    payload: {
-      items: OrderItem[]
-      subtotal: number
-      discountAmount: number
-      taxAmount: number
-      finalTotal: number
-      notes?: string
-    }
-  ): Order | null => {
-    void orderId; void payload
-    throw new Error('برای تغییر اقلام، سفارش را لغو و دوباره ثبت کنید.')
-  },
-
-  cancelOrder: async (orderId: string, reason?: string): Promise<boolean> => {
-    const expectedOwner = accountId()
-    const numericId = !isNaN(Number(orderId)) ? Number(orderId) : orderId
-    const doc = await api.order.cancel({ id: numericId, reason })
-    if (expectedOwner !== accountId()) throw new Error('حساب کاربری تغییر کرده است.')
-    orderStore.acceptOrder(doc)
-    return true
-  },
-
-  reorderToCart: async (orderId: string) => {
-    const order = currentOrders.find(item => item.id === orderId)
-    if (!order) return { success: false, warnings: ['سفارش یافت نشد.'] }
-    const success = await prepareReorderDraft(order.items)
-    return { success, warnings: success ? [] : ['ابتدا سبد و موجودی را بررسی کنید.'] }
   },
 }
-
-import { queryKeys, mutationKeys } from '../../lib/query-keys'
-
-export function useOrders() {
-  const queryClient = useQueryClient()
-
-  const { data: orders = orderStore.getOrders(), isLoading, error, isFetching, refetch } = useQuery({
-    queryKey: queryKeys.orders.list(),
-    queryFn: async () => {
-      ensureOwner()
-      const expectedOwner = accountId()
-      const res = await api.order.list()
-      if (expectedOwner !== accountId()) return []
-      if (res.items) {
-        const liveMapped: Order[] = res.items.map(mapDocToOrder)
-        broadcast(liveMapped)
-        return liveMapped
-      }
-      return orderStore.getOrders()
-    },
-    enabled: typeof window !== 'undefined' && Boolean(localStorage.getItem('persianpart_token')),
-    staleTime: 30 * 1000,
-  })
-
-  const cancelMutation = useMutation({
+export function useOrderDetail(id: string) {
+  return useQuery(orderDetailOptions(id))
+}
+export function useCancelOrder() {
+  const client = useQueryClient()
+  return useMutation({
     mutationKey: mutationKeys.orders.cancel,
-    mutationFn: async ({ orderId, reason }: { orderId: string; reason?: string }) => {
-      return await orderStore.cancelOrder(orderId, reason)
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.orders.all })
-      queryClient.invalidateQueries({ queryKey: queryKeys.products.all })
+    mutationFn: ({ orderId, reason }: { orderId: string; reason?: string }) => api.order.cancel({ id: orderId, reason }),
+    onSuccess: doc => {
+      orderStore.acceptOrder(doc)
+      void client.invalidateQueries({ queryKey: queryKeys.activityFeed.all })
+      void client.invalidateQueries({ queryKey: queryKeys.orders.lists() })
+      const order = mapDocToOrder(doc)
+      void catalogCoordinator.ensureIds(order.items.map(item => item.productId), true).catch(() => {})
     },
   })
-
-  return {
-    orders,
-    isLoading,
-    error,
-    isFetching,
-    refetch,
-    getOrderById: orderStore.getOrderById,
-    fetchOrderById: orderStore.fetchOrderById,
-    createOrder: (payload: any) => {
-      const created = orderStore.createOrder(payload)
-      queryClient.invalidateQueries({ queryKey: queryKeys.orders.all })
-      queryClient.invalidateQueries({ queryKey: queryKeys.products.all })
-      return created
-    },
-    updateOrder: (orderId: string, payload: any) => {
-      const updated = orderStore.updateOrder(orderId, payload)
-      queryClient.invalidateQueries({ queryKey: queryKeys.orders.all })
-      queryClient.invalidateQueries({ queryKey: queryKeys.products.all })
-      return updated
-    },
-    cancelOrder: async (orderId: string, reason?: string) => {
-      const res = await cancelMutation.mutateAsync({ orderId, reason })
-      return res
-    },
-
-    reorderToCart: orderStore.reorderToCart,
-  }
 }

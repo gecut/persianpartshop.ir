@@ -17,7 +17,12 @@ export const queryClient = new QueryClient({
   defaultOptions: {
     mutations: { networkMode: 'always', retry: false },
     queries: {
-      staleTime: 60 * 1000,
+      staleTime: 120_000,
+      gcTime: 30 * 60_000,
+      retry: (count, error) => {
+        const code = error && typeof error === 'object' && 'code' in error ? error.code : null
+        return count < 1 && !(error instanceof DOMException && error.name === 'AbortError') && (!code || ['SERVICE_UNAVAILABLE', 'INTERNAL_SERVER_ERROR', 'BAD_GATEWAY', 'GATEWAY_TIMEOUT'].includes(String(code)))
+      },
       refetchOnWindowFocus: true,
     },
   },

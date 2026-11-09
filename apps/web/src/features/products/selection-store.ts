@@ -16,10 +16,20 @@ let state = empty()
 let owner = ''
 let generation = 0
 let queue = Promise.resolve()
+let validating: Promise<void> | null = null
+let stockController: AbortController | null = null
 let choose: ((warehouse: DraftWarehouse | null) => void) | null = null
 const listeners = new Set<() => void>()
 const key = () => `persianpart_draft_v3:${owner}`
 const emit = () => listeners.forEach(listener => listener())
+function invalidateValidation() {
+  generation++
+  stockController?.abort()
+  stockController = null
+  validating = null
+  choose?.(null)
+  choose = null
+}
 function persist() {
   if (!owner) return true
   try { localStorage.setItem(key(), JSON.stringify({ version: 3, selectedIds: state.selectedIds, quantities: state.quantities, warehouse: state.warehouse })); return true }
@@ -44,7 +54,7 @@ function readSaved(value: string | null): SelectionState {
 }
 function setOwner(id: string) {
   if (owner === id) return
-  generation++; choose?.(null); choose = null; owner = id; state = empty()
+  invalidateValidation(); owner = id; state = empty()
   if (id) {
     try {
       const saved = localStorage.getItem(key())
@@ -72,7 +82,7 @@ function setOwner(id: string) {
 }
 function clear() {
   try { localStorage.removeItem(`${key()}:submission`) } catch { /* Memory state remains usable. */ }
-  generation++; choose?.(null); choose = null; state = empty(); persist(); emit()
+  invalidateValidation(); state = empty(); persist(); emit()
 }
 function update(change: (previous: SelectionState) => { selectedIds: string[]; quantities: Record<string, number> }, revalidate = false): Promise<void> {
   const expectedOwner = owner
@@ -84,10 +94,17 @@ function update(change: (previous: SelectionState) => { selectedIds: string[]; q
     if (!next.selectedIds.length) { clear(); return }
     state = { ...state, busy: true, error: null }; emit()
     try {
-      const quote = await api.warehouse.availability({ items: next.selectedIds.map(id => ({ productId: Number(id), requestedArea: next.quantities[id]! })) })
+      stockController = new AbortController()
+      const quote = await api.warehouse.availability({ items: next.selectedIds.map(id => ({ productId: Number(id), requestedArea: next.quantities[id]! })) }, { signal: stockController.signal })
       if (initialGeneration !== generation || owner !== expectedOwner) return
       let warehouse = state.warehouse
-      if (warehouse && !quote.warehouses.some(candidate => candidate.id === warehouse!.id)) throw new Error('موجودی انبار انتخاب‌شده کافی نیست. برای خرید از انبار دیگر ابتدا سبد را ثبت یا خالی کنید.')
+      if (warehouse && !quote.warehouses.some(candidate => candidate.id === warehouse!.id)) {
+        if (!quote.warehouses.length) throw new Error('هیچ انباری قادر به تأمین کل سبد نیست.')
+        state = { ...state, candidates: quote.warehouses }; emit()
+        warehouse = await new Promise<DraftWarehouse | null>(resolve => { choose = resolve })
+        choose = null
+        if (!warehouse || initialGeneration !== generation || owner !== expectedOwner) return
+      }
       if (!warehouse) {
         if (!quote.warehouses.length) throw new Error('هیچ انباری قادر به تأمین کل سبد نیست.')
         if (quote.warehouses.length === 1) warehouse = quote.warehouses[0]!
@@ -137,25 +154,42 @@ export const selectionStore = {
   setQuantity: (id: unknown, amount: number) => {
     const cleanId = normalizeId(id)
     if (!/^[1-9]\d*$/.test(cleanId) || !Number.isFinite(amount) || amount <= 0 || amount > 1_000_000) return Promise.resolve()
-    return update(previous => ({ selectedIds: [...new Set([...previous.selectedIds, cleanId])], quantities: { ...previous.quantities, [cleanId]: amount } }))
+    if (!owner || state.quantities[cleanId] === amount) return Promise.resolve()
+    invalidateValidation()
+    state = { ...state, selectedIds: [...new Set([...state.selectedIds, cleanId])], quantities: { ...state.quantities, [cleanId]: amount }, quotes: [], candidates: [], busy: false, error: null }
+    persist(); emit()
+    return Promise.resolve()
+  },
+  setDraftQuantity: (id: unknown, amount: number) => {
+    const cleanId = normalizeId(id)
+    if (!owner || !state.selectedIds.includes(cleanId) || !Number.isFinite(amount) || amount <= 0 || amount > 1_000_000 || state.quantities[cleanId] === amount) return
+    invalidateValidation()
+    state = { ...state, quantities: { ...state.quantities, [cleanId]: amount }, quotes: [], candidates: [], busy: false, error: null }
+    persist(); emit()
   },
   unselectProduct: (id: unknown) => {
-    generation++; choose?.(null); choose = null
+    invalidateValidation()
     const cleanId = normalizeId(id), quantities = { ...state.quantities }; delete quantities[cleanId]
     const selectedIds = state.selectedIds.filter(item => item !== cleanId)
     state = { ...state, selectedIds, quantities, warehouse: selectedIds.length ? state.warehouse : null, quotes: state.quotes.filter(item => String(item.productId) !== cleanId), busy: false, candidates: [] }; persist(); emit()
   },
   setBatchSelection: (items: Array<{ id: unknown; quantity: number }>) => {
     if (state.selectedIds.length || state.busy) { toast.warning('سبد فعال', 'برای شروع سبد جدید ابتدا سبد فعلی را ثبت یا خالی کنید.'); return Promise.resolve() }
-    return update(previous => previous.selectedIds.length ? { selectedIds: previous.selectedIds, quantities: previous.quantities } : ({ selectedIds: [...new Set(items.map(item => normalizeId(item.id)))], quantities: Object.fromEntries(items.map(item => [normalizeId(item.id), item.quantity])) }))
+    for (const item of items) void selectionStore.setQuantity(item.id, item.quantity)
+    return Promise.resolve()
   },
   reconcileWithProducts: (_ids: unknown[]) => { /* Keep unavailable legacy lines visible for explicit removal. */ },
-  revalidate: () => update(previous => ({ selectedIds: previous.selectedIds, quantities: previous.quantities }), true),
+  revalidate: () => {
+    if (validating) return validating
+    const pending = update(previous => ({ selectedIds: previous.selectedIds, quantities: previous.quantities }), true).finally(() => { if (validating === pending) validating = null })
+    validating = pending
+    return pending
+  },
   clearSelection: clear,
 }
 if (typeof window !== 'undefined') window.addEventListener('storage', event => {
   if (owner && event.key === key()) {
-    generation++; choose?.(null); choose = null
+    invalidateValidation()
     try { state = readSaved(event.newValue) } catch { state = empty() }
     emit()
   }
@@ -174,5 +208,6 @@ export async function prepareReorderDraft(items: Array<{ productId: string; requ
     return false
   }
   await selectionStore.setBatchSelection(items.map(item => ({ id: item.productId, quantity: item.requestedArea || item.deliverableArea })))
+  await selectionStore.revalidate()
   return Boolean(state.warehouse && !state.error && state.selectedIds.length === items.length && items.every(item => state.quantities[item.productId] === (item.requestedArea || item.deliverableArea)))
 }

@@ -20,6 +20,7 @@ import {
 export interface ProductConfigCardProps {
   product: Product;
   onRemove: (productId: string) => void;
+  onRequestSupply?: (product: Product, quantity: number) => void;
 }
 
 const clampArea = (val: number, maxInventory: number) => {
@@ -33,6 +34,7 @@ const clampArea = (val: number, maxInventory: number) => {
 function ProductConfigCardComponent({
   product,
   onRemove,
+  onRequestSupply,
 }: ProductConfigCardProps) {
   const storedQuantity = useProductQuantity(product.id);
 
@@ -45,10 +47,7 @@ function ProductConfigCardComponent({
     maxInventory > 0
       ? Math.min(maxInventory, Math.max(product.sqmPerCarton || 1, 1))
       : 0;
-  const area =
-    maxInventory > 0
-      ? Math.min(maxInventory, Math.max(1, storedQuantity ?? defaultArea))
-      : 0;
+  const area = Math.max(1, storedQuantity ?? defaultArea);
 
   const calc = useMemo(
     () =>
@@ -67,7 +66,7 @@ function ProductConfigCardComponent({
   );
 
   const setArea = (val: number) => {
-    selectionStore.setQuantity(product.id, clampArea(val, maxInventory));
+    selectionStore.setDraftQuantity(product.id, clampArea(val, maxInventory));
   };
 
   return (
@@ -146,6 +145,16 @@ function ProductConfigCardComponent({
         </Button>
       </div>
 
+      {product.hasSupplySource && onRequestSupply && (
+        <div className="flex items-center justify-between gap-2 text-xs">
+          <span className="text-muted">بیشتر از موجودی نیاز دارید؟</span>
+          <Button size="sm" variant="ghost" onPress={() => onRequestSupply(product, area)}>
+            درخواست تأمین
+          </Button>
+        </div>
+      )}
+
+      {calc.isExceedingStock && <p role="status" className="text-xs text-danger">موجودی به‌روز: {toPersianDigits(maxInventory)} {product.productType === 'other' ? formatUnit(product.unit) : 'مترمربع'}؛ مقدار درخواستی شما حفظ شده است.</p>}
       <div className="h-px bg-separator" />
 
       {/* 2. Meterage Controls: NumberField & Slider */}
@@ -153,9 +162,9 @@ function ProductConfigCardComponent({
         <div className="space-y-4 pt-0.5">
           <div className="w-full">
             <ThrottledSlider
-              value={area}
+              value={Math.min(area, Math.max(1, maxInventory))}
               minValue={1}
-              maxValue={maxInventory}
+              maxValue={Math.max(1, maxInventory)}
               step={1}
               onChange={(val) => setArea(val)}
               ariaLabel={`اسلایدر متراژ ${product.name}`}
@@ -167,7 +176,7 @@ function ProductConfigCardComponent({
               <I18nProvider locale="fa-IR">
                 <NumberField
                   minValue={1}
-                  maxValue={maxInventory}
+                  maxValue={Math.max(1, maxInventory)}
                   step={1}
                   value={area}
                   onChange={(val) => setArea(val)}
