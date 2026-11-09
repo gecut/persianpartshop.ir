@@ -21,6 +21,7 @@
     "@tanstack/react-router": "^1.170.41",
     "@tanstack/react-virtual": "^3.14.18",
     "barcode-detector": "3.2.3",
+    "embla-carousel-react": "^8.6.0",
     "framer-motion": "^14.0.0",
     "nuqs": "^2.10.2",
     "ogl": "^1.0.11",

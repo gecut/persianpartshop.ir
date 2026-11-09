@@ -1,0 +1,38 @@
+.product-zoom-hint {
+  /* Wait 2s after image load, fade in, then collapse at 4s. */
+  animation: product-zoom-hint-enter 700ms ease-out 2s both;
+}
+
+.product-zoom-hint__backdrop {
+  /* Clip a fixed surface instead of animating layout or scaling the blur. */
+  clip-path: inset(0 round 1rem);
+  animation: product-zoom-hint-collapse 700ms cubic-bezier(0.22, 1, 0.36, 1) 4s forwards;
+}
+
+.product-zoom-hint__text {
+  animation: product-zoom-hint-caption 700ms cubic-bezier(0.22, 1, 0.36, 1) 4s forwards;
+}
+
+@keyframes product-zoom-hint-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes product-zoom-hint-collapse {
+  to {
+    /* A 14rem × 2rem pill, inset 0.5rem from the image's bottom edge. */
+    clip-path: inset(calc(100% - 2.5rem) max(0px, calc((100% - 14rem) / 2)) 0.5rem round 1rem);
+  }
+}
+
+@keyframes product-zoom-hint-caption {
+  to { transform: translateY(calc(50% - 1.5rem)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .product-zoom-hint,
+  .product-zoom-hint__backdrop,
+  .product-zoom-hint__text {
+    animation-duration: 0s;
+  }
+}

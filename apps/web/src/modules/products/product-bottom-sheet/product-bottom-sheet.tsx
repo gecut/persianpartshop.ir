@@ -33,7 +33,6 @@ export function ProductBottomSheet({
   onRequestSupply,
   onOrderDirect: _onOrderDirect,
 }: ProductBottomSheetProps) {
-  const [activeImageUrl, setActiveImageUrl] = useState<string | null>(null);
   const [zoomImageUrl, setZoomImageUrl] = useState<string | null>(null);
   const [qrOpen, setQrOpen] = useState(false);
 
@@ -87,17 +86,6 @@ export function ProductBottomSheet({
     return items;
   }, [activeProduct]);
 
-  // Sync active image when product changes
-  useEffect(() => {
-    if (
-      activeProduct &&
-      activeProduct.images &&
-      activeProduct.images.length > 0
-    ) {
-      setActiveImageUrl(activeProduct.images[0] ?? null);
-    }
-  }, [activeProduct]);
-
   const { user } = useAuth();
   if (!activeProduct || !isProductAllowedForUser(activeProduct, user)) return null;
 
@@ -106,7 +94,6 @@ export function ProductBottomSheet({
     activeProduct.inStock === false ||
     (Number.isFinite(Number(activeProduct.inventorySqm)) &&
       Number(activeProduct.inventorySqm) <= 0);
-  const currentHeroUrl = activeImageUrl || activeProduct.images[0] || "";
 
   return (
     <>
@@ -150,11 +137,11 @@ export function ProductBottomSheet({
               <Drawer.Body className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 py-2 space-y-2.5 scrollbar-none pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))]">
                 {qrOpen && <Suspense fallback={<p role="status">در حال آماده‌سازی…</p>}><ProductQrDownload productId={activeProduct.id} /></Suspense>}
                 <ProductGallery
+                  key={`${activeProduct.id}-${isOpen}`}
                   productName={activeProduct.name}
-                  heroUrl={currentHeroUrl}
                   items={mediaItems}
+                  isOpen={isOpen}
                   onZoom={setZoomImageUrl}
-                  onSelect={setActiveImageUrl}
                 />
 
                 {/* Price & Selection Action Strip */}
