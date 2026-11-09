@@ -82,15 +82,17 @@ export default defineConfig({
     devMediaPlugin(),
     VitePWA({
       strategies: 'generateSW', registerType: 'prompt', injectRegister: false,
-      includeAssets: ['pwa-192.png', 'pwa-512.png', 'pwa-maskable.png', 'apple-touch-icon.png'],
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
       manifest: {
         name: 'پرشین‌پارت', short_name: 'پرشین‌پارت', lang: 'fa', dir: 'rtl',
         id: '/', scope: '/', start_url: '/product', display: 'standalone',
         theme_color: '#ffffff', background_color: '#ffffff',
         icons: [
-          { src: '/pwa-192.png', sizes: '192x192', type: 'image/png' },
-          { src: '/pwa-512.png', sizes: '512x512', type: 'image/png' },
-          { src: '/pwa-maskable.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          { src: '/favicon.ico', sizes: '16x16 32x32', type: 'image/x-icon' },
+          { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+          { src: '/icon-192-maskable.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
+          { src: '/icon-512-maskable.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
       workbox: {

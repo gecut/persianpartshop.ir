@@ -45,7 +45,7 @@ export function AppHeader() {
         >
           <div className="flex items-center gap-1.5 size-8 rounded-xl overflow-hidden">
             <img
-              src="/assets/images/persian-part-logo.png"
+              src="/icon-192.png"
               alt="پرشین‌پارت"
               className="size-full object-contain"
             />
