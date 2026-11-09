@@ -48,7 +48,6 @@ export interface TimelineStep {
 export interface Order {
   id: string
   orderNumber: string
-  cancellationReason?: string
   date: string
   createdAt?: string
   updatedAt?: string

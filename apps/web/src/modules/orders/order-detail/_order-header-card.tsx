@@ -70,9 +70,9 @@ export function OrderHeaderCard({
                 این سفارش لغو شده است و امکان سفارش مجدد آن وجود ندارد.
               </span>
             </div>
-            {(order.cancellationReason || order.notes) && (
+            {order.notes && (
               <span className="text-[11px] font-semibold text-danger/80">
-                علت: {order.cancellationReason || order.notes}
+                علت: {order.notes}
               </span>
             )}
           </div>

@@ -5,8 +5,14 @@ export function useNow(intervalMs = 30_000): number {
   const [now, setNow] = useState(Date.now)
 
   useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), intervalMs)
-    return () => clearInterval(id)
+    const refresh = () => setNow(Date.now())
+    const id = setInterval(refresh, intervalMs)
+    const onVisible = () => { if (document.visibilityState === 'visible') refresh() }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      clearInterval(id)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
   }, [intervalMs])
 
   return now
