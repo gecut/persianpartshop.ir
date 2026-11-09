@@ -5,8 +5,8 @@ import {
   PackageIcon,
   UserIcon,
   ClipboardListIcon,
-} from "../ui/icons";
-import { PillNav, type PillNavItem } from "../ui/pill-nav";
+} from "@/components/ui/icons";
+import { PillNav, type PillNavItem } from "@/components/ui/pill-nav";
 
 export function MobileBottomNav() {
   const routerState = useRouterState();

@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { SupplyRequestForm } from '../../../features/supply-requests/supply-request-form'
-import { ArrowRightIcon } from '../../../components/ui/icons'
+import { SupplyRequestForm } from '@/modules/supply-requests/supply-request-form'
+import { ArrowRightIcon } from '@/components/ui/icons'
 
 export const Route = createFileRoute('/product/supply/$id')({
   validateSearch: (search: Record<string, unknown>): { from?: 'order' } => ({ from: search.from === 'order' ? 'order' : undefined }),

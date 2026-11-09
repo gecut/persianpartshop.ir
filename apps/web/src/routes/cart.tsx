@@ -1,20 +1,20 @@
-import { formatTrackingNumber } from '../lib/utils/tracking-number'
-import { useSubmitOrder } from "../features/orders/use-submit-order";
-import { useTextDraft } from '../lib/drafts'
-import { customerErrorMessage } from '../lib/utils/error'
-import { selectionStore } from '../features/products/selection-store'
-import { WarehouseSummary } from '../features/cart/warehouse-selection'
+import { formatTrackingNumber } from '@/lib/utils/tracking-number'
+import { useSubmitOrder } from "@/modules/orders/use-submit-order";
+import { useTextDraft } from '@/lib/drafts'
+import { customerErrorMessage } from '@/lib/utils/error'
+import { selectionStore } from '@/modules/products/selection-store'
+import { WarehouseSummary } from '@/modules/cart/warehouse-selection'
 import { useRef, useState, useEffect } from 'react'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 
 import { Button } from '@heroui/react'
-import { useCart } from '../features/cart/cart-store'
-import { CartItemRow } from '../features/cart/cart-item-row'
+import { useCart } from '@/modules/cart/cart-store'
+import { CartItemRow } from '@/modules/cart/cart-item-row'
 
-import { useAuth } from '../features/auth/auth-store'
-import { formatToman, toPersianDigits } from '../lib/utils/currency'
-import { toast } from '../components/feedback/toast'
-import { Modal } from '../components/ui/modal'
+import { useAuth } from '@/modules/auth/auth-store'
+import { formatToman, toPersianDigits } from '@/lib/utils/currency'
+import { toast } from '@/components/feedback/toast'
+import { Modal } from '@/components/ui/modal'
 import {
   ShoppingCartIcon,
   Trash2Icon,
@@ -25,7 +25,7 @@ import {
   StoreIcon,
   MapPinIcon,
   TomanIcon,
-} from '../components/ui/icons'
+} from '@/components/ui/icons'
 
 export const Route = createFileRoute('/cart')({
   component: CartPage,

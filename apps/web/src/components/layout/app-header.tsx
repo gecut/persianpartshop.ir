@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { useAuth } from "../../features/auth/auth-store";
-import { UserIcon } from "../ui/icons";
+import { useAuth } from "@/modules/auth/auth-store";
+import { UserIcon } from "@/components/ui/icons";
 
 export function AppHeader() {
   const { user, isAuthenticated } = useAuth();

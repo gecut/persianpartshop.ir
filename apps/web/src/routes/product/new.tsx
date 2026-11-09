@@ -1,20 +1,20 @@
-import { SupplyRequestModal } from '../../features/supply-requests/supply-request-modal';
-import { SupplyRequestRecovery } from '../../features/supply-requests/supply-request-recovery';
-import { supplyDraftStore } from '../../features/supply-requests/supply-request-draft';
+import { SupplyRequestModal } from '@/modules/supply-requests/supply-request-modal';
+import { SupplyRequestRecovery } from '@/modules/supply-requests/supply-request-recovery';
+import { supplyDraftStore } from '@/modules/supply-requests/supply-request-draft';
 import { useMemo, useEffect, useState, useRef } from "react";
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { Button } from "@heroui/react";
-import { useCatalogIds } from "../../features/products/catalog-data";
+import { useCatalogIds } from "@/modules/products/catalog-data";
 import {
   selectionStore,
   useSelectedIds,
-} from "../../features/products/selection-store";
-import { ProductConfigCard } from "../../features/products/product-config-card";
-import { CartSummary } from "../../features/checkout/cart-summary";
-import type { Product } from "../../types";
-import { toast } from "../../components/feedback/toast";
-import { ArrowRightIcon, BoxIcon } from "../../components/ui/icons";
-import { useAuth, isProductAllowedForUser } from "../../features/auth/auth-store";
+} from "@/modules/products/selection-store";
+import { ProductConfigCard } from "@/modules/products/product-config-card";
+import { CartSummary } from "@/modules/checkout/cart-summary";
+import type { Product } from "@/types";
+import { toast } from "@/components/feedback/toast";
+import { ArrowRightIcon, BoxIcon } from "@/components/ui/icons";
+import { useAuth, isProductAllowedForUser } from "@/modules/auth/auth-store";
 
 export const Route = createFileRoute("/product/new")({
   component: ProductNewConfigurationPage,

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { isQrInsideFrame } from '../src/features/products/qr-frame'
+import { isQrInsideFrame } from '../src/modules/products/qr-frame'
 
 describe('QR scanner frame', () => {
   test('accepts fully visible QR and rejects codes outside or crossing frame', () => {

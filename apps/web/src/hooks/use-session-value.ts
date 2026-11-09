@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { authStore } from '../features/auth/auth-store'
+import { authStore } from '@/modules/auth/auth-store'
 
 export function useSessionValue<T extends string | number>(name: string, initial: T) {
   const key = `persianpart_view:${authStore.getState().user?.id ?? 'guest'}:${name}`

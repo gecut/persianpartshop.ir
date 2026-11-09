@@ -1,13 +1,13 @@
 import '@fontsource-variable/vazirmatn'
-import { isSessionError } from './lib/session-error'
+import { isSessionError } from '@/lib/session-error'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { routeTree } from './routeTree.gen'
-import { authStore } from './features/auth/auth-store'
-import { queryClient, setQueryAuthErrorHandler } from './lib/query-client'
-import './styles/globals.css'
+import { authStore } from '@/modules/auth/auth-store'
+import { queryClient, setQueryAuthErrorHandler } from '@/lib/query-client'
+import '@/styles/globals.css'
 
 // Globally disable text selection except in inputs and editable areas
 if (typeof window !== 'undefined') {

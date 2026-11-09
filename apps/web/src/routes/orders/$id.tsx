@@ -1,9 +1,9 @@
-import { TrackingNumber } from '../../components/ui/tracking-number'
-import { formatTrackingNumber } from '../../lib/utils/tracking-number'
-import { DataStatus } from '../../components/feedback/data-status'
-import { customerErrorMessage } from '../../lib/utils/error'
-import { formatCartons, formatUnit, summarizeQuantities } from '../../lib/utils/unit'
-import { prepareReorderDraft } from '../../features/products/selection-store'
+import { TrackingNumber } from '@/components/ui/tracking-number'
+import { formatTrackingNumber } from '@/lib/utils/tracking-number'
+import { DataStatus } from '@/components/feedback/data-status'
+import { customerErrorMessage } from '@/lib/utils/error'
+import { formatCartons, formatUnit, summarizeQuantities } from '@/lib/utils/unit'
+import { prepareReorderDraft } from '@/modules/products/selection-store'
 import { useState, useEffect, useMemo } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 
@@ -12,18 +12,18 @@ import { Modal as HeroUIModal, Button, Dropdown, cn } from "@heroui/react";
 import {
   useOrderDetail, useCancelOrder,
   buildFullOrderTimeline,
-} from "../../features/orders/order-store";
+} from "@/modules/orders/order-store";
 import {
   ORDER_STATUS_MAP,
   type OrderItem,
   type Product,
-} from "../../types";
-import { OrderTimeline } from "../../features/orders/order-timeline";
-import { Badge } from "../../components/ui/badge";
-import { formatToman, toPersianDigits } from "../../lib/utils/currency";
-import { formatPersianDate } from "../../lib/utils/date";
-import { toast } from "../../components/feedback/toast";
-import { OrderDetailSkeleton } from "../../components/ui/skeleton";
+} from "@/types";
+import { OrderTimeline } from "@/modules/orders/order-timeline";
+import { Badge } from "@/components/ui/badge";
+import { formatToman, toPersianDigits } from "@/lib/utils/currency";
+import { formatPersianDate } from "@/lib/utils/date";
+import { toast } from "@/components/feedback/toast";
+import { OrderDetailSkeleton } from "@/components/ui/skeleton";
 import {
   ArrowRightIcon,
   RefreshCwIcon,
@@ -37,11 +37,11 @@ import {
   ChevronDownIcon,
   CheckIcon,
   FileTextIcon,
-} from "../../components/ui/icons";
-import { PreInvoiceModal } from "../../features/checkout/pre-invoice-modal";
-import { OrderInvoiceModal } from "../../features/orders/order-invoice-modal";
-import { useCatalogIds } from "../../features/products/catalog-data";
-import { Counter } from "../../components/ui/counter";
+} from "@/components/ui/icons";
+import { PreInvoiceModal } from "@/modules/checkout/pre-invoice-modal";
+import { OrderInvoiceModal } from "@/modules/orders/order-invoice-modal";
+import { useCatalogIds } from "@/modules/products/catalog-data";
+import { Counter } from "@/components/ui/counter";
 
 export const Route = createFileRoute("/orders/$id")({
   loader: async ({ params }) => {

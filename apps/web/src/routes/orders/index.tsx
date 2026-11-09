@@ -1,7 +1,7 @@
-import { formatTrackingNumber } from '../../lib/utils/tracking-number'
-import { TrackingNumber } from '../../components/ui/tracking-number'
-import { DataStatus } from '../../components/feedback/data-status'
-import { prepareReorderDraft } from '../../features/products/selection-store'
+import { formatTrackingNumber } from '@/lib/utils/tracking-number'
+import { TrackingNumber } from '@/components/ui/tracking-number'
+import { DataStatus } from '@/components/feedback/data-status'
+import { prepareReorderDraft } from '@/modules/products/selection-store'
 import React, {
   useState,
   useMemo,
@@ -12,16 +12,16 @@ import React, {
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { Button, Modal } from '@heroui/react'
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api } from '../../lib/api-client'
-import { queryKeys } from '../../lib/query-keys'
+import { api } from '@/lib/api-client'
+import { queryKeys } from '@/lib/query-keys'
 import type { ActivityFeedItem, OrderStatus } from '@persianpart/contract'
-import type { Order, Product } from '../../types'
-import { Badge } from '../../components/ui/badge'
-import { formatToman, toPersianDigits } from '../../lib/utils/currency'
-import { formatPersianDate, formatPersianDateTime } from '../../lib/utils/date'
-import { formatUnit } from '../../lib/utils/unit'
-import { toast } from '../../components/feedback/toast'
-import { OrderCardSkeleton } from '../../components/ui/skeleton'
+import type { Order, Product } from '@/types'
+import { Badge } from '@/components/ui/badge'
+import { formatToman, toPersianDigits } from '@/lib/utils/currency'
+import { formatPersianDate, formatPersianDateTime } from '@/lib/utils/date'
+import { formatUnit } from '@/lib/utils/unit'
+import { toast } from '@/components/feedback/toast'
+import { OrderCardSkeleton } from '@/components/ui/skeleton'
 import {
   PackageIcon,
   BoxIcon,
@@ -31,11 +31,11 @@ import {
   RefreshCwIcon,
   ArrowLeftIcon,
   TomanIcon,
-} from '../../components/ui/icons'
-import { PreInvoiceModal } from '../../features/checkout/pre-invoice-modal'
-import { useCatalogIds } from '../../features/products/catalog-data'
-import { orderDetailOptions } from '../../features/orders/order-store'
-import { useAuth } from '../../features/auth/auth-store'
+} from '@/components/ui/icons'
+import { PreInvoiceModal } from '@/modules/checkout/pre-invoice-modal'
+import { useCatalogIds } from '@/modules/products/catalog-data'
+import { orderDetailOptions } from '@/modules/orders/order-store'
+import { useAuth } from '@/modules/auth/auth-store'
 
 export const Route = createFileRoute('/orders/')({
   validateSearch: (search: Record<string, unknown>): {

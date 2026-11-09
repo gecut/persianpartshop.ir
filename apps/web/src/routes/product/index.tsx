@@ -1,12 +1,12 @@
-import { useCatalogProduct } from "../../features/products/catalog-data";
-import { DataStatus } from "../../components/feedback/data-status";
-import { SupplyRequestRecovery } from "../../features/supply-requests/supply-request-recovery";
+import { useCatalogProduct } from "@/modules/products/catalog-data";
+import { DataStatus } from "@/components/feedback/data-status";
+import { SupplyRequestRecovery } from "@/modules/supply-requests/supply-request-recovery";
 import {
   supplyDraftStore,
   useSupplyDraft,
-} from "../../features/supply-requests/supply-request-draft";
+} from "@/modules/supply-requests/supply-request-draft";
 
-import { useSessionValue } from "../../hooks/use-session-value";
+import { useSessionValue } from "@/hooks/use-session-value";
 import {
   useState,
   useMemo,
@@ -19,28 +19,28 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { cn, SearchField, Button } from "@heroui/react";
 import { AnimatePresence, motion } from "framer-motion";
-import { useProducts } from "../../features/products/product-store";
-import { ProductCard } from "../../features/products/product-card";
-import { ProductBottomSheet } from "../../features/products/product-bottom-sheet";
-import { ProductQrScanner } from "../../features/products/product-qr-scanner";
-import { FilterDrawer } from "../../features/products/filter-drawer";
-import type { Product } from "../../types";
-import { useAuth } from "../../features/auth/auth-store";
-import { useCart } from "../../features/cart/cart-store";
+import { useProducts } from "@/modules/products/product-store";
+import { ProductCard } from "@/modules/products/product-card";
+import { ProductBottomSheet } from "@/modules/products/product-bottom-sheet";
+import { ProductQrScanner } from "@/modules/products/product-qr-scanner";
+import { FilterDrawer } from "@/modules/products/filter-drawer";
+import type { Product } from "@/types";
+import { useAuth } from "@/modules/auth/auth-store";
+import { useCart } from "@/modules/cart/cart-store";
 import {
   selectionStore,
   useProductSelection,
-} from "../../features/products/selection-store";
-import { toPersianDigits } from "../../lib/utils/currency";
-import { ProductCardSkeleton } from "../../components/ui/skeleton";
-import { DimensionFilter } from "../../features/products/dimension-filter";
+} from "@/modules/products/selection-store";
+import { toPersianDigits } from "@/lib/utils/currency";
+import { ProductCardSkeleton } from "@/components/ui/skeleton";
+import { DimensionFilter } from "@/modules/products/dimension-filter";
 import {
   FilterIcon,
   XIcon,
   RefreshCwIcon,
   BoxIcon,
   ArrowLeftIcon,
-} from "../../components/ui/icons";
+} from "@/components/ui/icons";
 
 export const Route = createFileRoute("/product/")({
   validateSearch: (

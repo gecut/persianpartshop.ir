@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { LoginCard } from "../features/auth/login-card";
+import { LoginCard } from "@/modules/auth/login-card";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,

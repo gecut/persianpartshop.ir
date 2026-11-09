@@ -2,7 +2,7 @@
 
 import React, { useState, type ElementType, type ReactNode } from "react";
 import { motion } from "framer-motion";
-import { cn } from "../../lib/utils";
+import { cn } from "@/lib/utils";
 import "./pill-nav.css";
 
 export interface PillNavItem {

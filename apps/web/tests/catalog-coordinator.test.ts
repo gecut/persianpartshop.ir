@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { QueryClient } from '@tanstack/react-query'
-import { createCatalogCoordinator } from '../src/features/products/catalog-coordinator'
+import { createCatalogCoordinator } from '../src/modules/products/catalog-coordinator'
 import type { CatalogRecord } from '@persianpart/contract'
 
 const product = (id: number, price = 100): CatalogRecord => ({ id, sku: `P${id}`, name: `Product ${id}`, slug: `p${id}`, createdAt: new Date(2026, 0, id).toISOString(), inventorySqm: 100, stockCartons: 100, availability: 'available', finalCustomerPricePerSqm: price, hasScanCode: false })

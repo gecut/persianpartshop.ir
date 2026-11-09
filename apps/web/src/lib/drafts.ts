@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type SetStateAction } from 'react'
-import { toast } from '../components/feedback/toast'
+import { toast } from '@/components/feedback/toast'
 
 const prefix = 'persianpart_text_v1:'
 export function saveDraft(key: string, value: unknown) {

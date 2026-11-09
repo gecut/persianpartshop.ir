@@ -1,12 +1,12 @@
-import { DataStatus } from '../components/feedback/data-status'
+import { DataStatus } from '@/components/feedback/data-status'
 import { useMemo, useState, useEffect, useRef } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { usePlans } from "../features/plans/plans-store";
-import { useCatalogIds } from "../features/products/catalog-data";
-import type { Plan } from "../types";
-import { PlanCard } from "../features/plans/plan-card";
-import { PlanCardSkeleton } from "../components/ui/skeleton";
-import { ArrowLeftIcon, SparklesIcon } from "../components/ui/icons";
+import { usePlans } from "@/modules/plans/plans-store";
+import { useCatalogIds } from "@/modules/products/catalog-data";
+import type { Plan } from "@/types";
+import { PlanCard } from "@/modules/plans/plan-card";
+import { PlanCardSkeleton } from "@/components/ui/skeleton";
+import { ArrowLeftIcon, SparklesIcon } from "@/components/ui/icons";
 
 export const Route = createFileRoute("/plans")({
   component: CustomerPlansPage,
