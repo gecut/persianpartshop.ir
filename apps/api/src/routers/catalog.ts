@@ -73,7 +73,7 @@ const list = base.catalog.list.handler(async ({ input, context }) => {
     limit,
     page,
     depth: 2,
-    sort: '-createdAt',
+    sort: ['name', 'id'],
   })
 
   const products = await attachWarehouseStock(res.docs as Product[])

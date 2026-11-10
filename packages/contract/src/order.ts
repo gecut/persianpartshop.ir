@@ -335,6 +335,8 @@ export const orderContract = {
       FORBIDDEN: { data: StandardErrorDataSchema.optional() },
       INSUFFICIENT_STOCK: { data: StandardErrorDataSchema.optional() },
       CONFLICT: {},
+      INTERNAL_SERVER_ERROR: {},
+      SERVICE_UNAVAILABLE: {},
       BAD_REQUEST: { data: StandardErrorDataSchema.optional() },
     }),
 
@@ -347,6 +349,10 @@ export const orderContract = {
       NOT_FOUND: {},
       CANCELLATION_DEADLINE_EXPIRED: {},
       INVALID_STATUS_TRANSITION: {},
+      CONFLICT: {},
+      FORBIDDEN: {},
+      INTERNAL_SERVER_ERROR: {},
+      SERVICE_UNAVAILABLE: {},
       BAD_REQUEST: {},
     }),
 

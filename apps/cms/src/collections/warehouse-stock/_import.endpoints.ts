@@ -1,3 +1,4 @@
+import { APIError } from 'payload'
 import { createHmac, timingSafeEqual } from 'node:crypto'
 import { initTransaction, commitTransaction, killTransaction, type Endpoint, type PayloadRequest } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
@@ -7,7 +8,7 @@ import { getOrderTransaction } from '../orders/_transaction'
 import { replaceWarehouseStock } from './_stock-operations'
 import { parseImportCsv } from './_import-csv'
 
-const message = (error: unknown, fallback: string): string => error instanceof Error && error.constructor === Error && /[\u0600-\u06ff]/.test(error.message) ? error.message : fallback
+const message = (error: unknown, fallback: string): string => error instanceof Error && (error.constructor === Error || (error instanceof APIError && error.isPublic)) && /[\u0600-\u06ff]/.test(error.message) ? error.message : fallback
 const sign = (req: PayloadRequest, text: string) => createHmac('sha256', req.payload.secret).update(text).digest('hex')
 
 // Retained for existing callers that need strict stock-only parsing.

@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { isCatalogManager, isSuperAdmin } from '../../access/roles'
+import { isCatalogManager, isSuperAdmin, getAdminUser } from '../../access/roles'
 
 export const CustomerTypes: CollectionConfig = {
   slug: 'customer-types',
@@ -14,7 +14,7 @@ export const CustomerTypes: CollectionConfig = {
     description: 'رده‌های مشتریان و ضریب قیمت (Markup).',
   },
   access: {
-    read: isCatalogManager,
+    read: (args) => isCatalogManager(args) || getAdminUser(args.req.user)?.role === 'support',
     create: isSuperAdmin,
     update: isSuperAdmin,
     delete: isSuperAdmin,
@@ -31,6 +31,7 @@ export const CustomerTypes: CollectionConfig = {
     },
     {
       name: 'markupPercent',
+      min: -100,
       type: 'number',
       required: true,
       defaultValue: 0,

@@ -20,17 +20,19 @@ The admin field offers `support`; legacy helpers also recognize `editor`, which 
 | Read/update orders within lifecycle guards | Yes | Yes | Yes | Yes |
 | Create orders | Yes | Yes | No | Yes |
 | Delete orders | No | No | No | No |
-| Read warehouses/balances | Yes | Yes | No | Yes |
+| Read warehouses | Yes | Yes | Yes | Yes |
+| Read warehouse balances | Yes | Yes | No | Yes |
 | Create/update warehouses and sources | Yes | Yes | No | No |
 | Create balance; CSV preview/apply/export | Yes | Yes | No | No |
-| Direct balance update/delete | No | No | No | No |
+| Change balance amount/revision directly; delete balance | No | No | No | No |
+| Edit balance activity/report metadata | Yes | Yes | No | No |
 | Delete warehouse | No | No | No | No |
 | Create/update plans | Yes | Yes | No | No |
 | Change customer-tier definitions | No | Yes | No | No |
 | Create/manage staff roles | No | Yes | No | No |
 | Read/delete audit logs | No | Yes | No | No |
 
-Staff can read/update their own admin record under the self-access rule; role changes are separately superadmin-only. Server Local API operations default to bypassing collection access, so hooks and internal callers must be considered separately from REST/UI permissions. Service writes orders, which invoke controlled reserve/restore operations; denial of direct balance writes does not prevent that workflow.
+Support may also read customer-tier definitions. Admin/customer synchronization requires an explicit unique account link; a matching phone alone never links or changes an existing customer. Deactivation suspends the linked customer, but reactivation remains manual. Staff can read/update their own admin record under the self-access rule; role changes are separately superadmin-only. Server Local API operations default to bypassing collection access, so hooks and internal callers must be considered separately from REST/UI permissions. Service writes orders, which invoke controlled reserve/restore operations; denial of direct balance writes does not prevent that workflow.
 
 Sources: [admin collection](../apps/cms/src/collections/admins/admins.collection.ts), [users](../apps/cms/src/collections/users/users.collection.ts), [products](../apps/cms/src/collections/products/products.collection.ts), [product price guard](../apps/cms/src/collections/products/_product-access.ts), [warehouses](../apps/cms/src/collections/warehouses/warehouses.collection.ts), [balances](../apps/cms/src/collections/warehouse-stock/warehouse-stock.collection.ts).
 

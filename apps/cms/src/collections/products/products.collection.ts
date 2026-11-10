@@ -163,11 +163,11 @@ export const Products: CollectionConfig = {
               fields: [
                 {
                   name: "sqmPerCarton", type: "number", defaultValue: 1.44, label: "متراژ هر کارتن (مترمربع)",
-                  admin: { width: "50%", description: "مقدار پیش‌فرض را با بسته‌بندی کالا تطبیق دهید. تغییر آن در صورت وجود سفارش باز مجاز نیست." },
+                  admin: { width: "50%", description: "مقدار پیش‌فرض را با بسته‌بندی کالا تطبیق دهید. تغییر آن در صورت وجود سفارش یا درخواست تأمین باز مجاز نیست." },
                 },
                 {
                   name: "piecesPerCarton", type: "number", defaultValue: 4, label: "تعداد قطعه در هر کارتن",
-                  admin: { width: "50%", description: "مقدار پیش‌فرض را بررسی کنید. تغییر آن در صورت وجود سفارش باز مجاز نیست." },
+                  admin: { width: "50%", description: "مقدار پیش‌فرض را بررسی کنید. تغییر آن در صورت وجود سفارش یا درخواست تأمین باز مجاز نیست." },
                 },
               ],
             },

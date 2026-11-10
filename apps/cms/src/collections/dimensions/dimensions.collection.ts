@@ -1,3 +1,4 @@
+import { syncProductDimensions } from './_sync-products.after-change'
 import type { CollectionConfig } from 'payload'
 import { isCatalogManager } from '../../access/roles'
 
@@ -19,6 +20,7 @@ export const Dimensions: CollectionConfig = {
     update: isCatalogManager,
     delete: isCatalogManager,
   },
+  hooks: { afterChange: [syncProductDimensions] },
   fields: [
     {
       name: 'name',
@@ -34,6 +36,7 @@ export const Dimensions: CollectionConfig = {
       fields: [
         {
           name: 'width',
+          validate: (value: number | null | undefined) => (typeof value === 'number' && Number.isFinite(value) && value > 0) || 'اندازه باید عدد مثبت باشد.',
           type: 'number',
           required: true,
           label: 'عرض (cm)',
@@ -44,6 +47,7 @@ export const Dimensions: CollectionConfig = {
         },
         {
           name: 'height',
+          validate: (value: number | null | undefined) => (typeof value === 'number' && Number.isFinite(value) && value > 0) || 'اندازه باید عدد مثبت باشد.',
           type: 'number',
           required: true,
           label: 'طول (cm)',

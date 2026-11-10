@@ -1,3 +1,4 @@
+import { handlePayloadError } from '../payload-error'
 import { createHash } from 'node:crypto'
 import { ORPCError } from '@orpc/server'
 import { calculateSupplyEstimate, getSalesFactor } from '@persianpart/cms/inventory'
@@ -133,11 +134,7 @@ const submit = customerOnly.supplyRequest.submit.handler(async ({ input, context
   } catch (error) {
     const winner = await replay()
     if (winner) return resolveReplay(winner)
-    const detail = error instanceof Error ? error.message : ''
-    if (detail === 'EXACT_STOCK_AVAILABLE') throw new ORPCError('EXACT_STOCK_AVAILABLE', { message: 'موجودی قطعی برای خرید کافی است.' })
-    if (detail === 'SOURCE_UNAVAILABLE') throw new ORPCError('SOURCE_UNAVAILABLE', { message: 'منبع تأمین در دسترس نیست.' })
-    if (detail.includes('FORBIDDEN')) throw new ORPCError('FORBIDDEN')
-    throw new ORPCError('INTERNAL_SERVER_ERROR', { message: 'ثبت درخواست ممکن نشد؛ دوباره تلاش کنید.' })
+    handlePayloadError(error)
   }
 })
 const list = customerOnly.supplyRequest.list.handler(async ({ input, context }) => {
@@ -154,8 +151,7 @@ const cancel = customerOnly.supplyRequest.cancel.handler(async ({ input, context
   if (doc.status === 'cancelled_by_customer') return map(doc)
   try { return map(await sdk.update({ collection: 'supply-requests', id: doc.id, data: { status: 'cancelled_by_customer' }, depth: 0 })) }
   catch (error) {
-    if (error instanceof Error && error.message === 'CANNOT_CANCEL') throw new ORPCError('CANNOT_CANCEL', { message: 'لغو این درخواست ممکن نیست.' })
-    throw new ORPCError('INTERNAL_SERVER_ERROR', { message: 'لغو درخواست ممکن نشد؛ دوباره تلاش کنید.' })
+    handlePayloadError(error)
   }
 })
 export const supplyRequest = { preview, submit, list, detail, cancel }

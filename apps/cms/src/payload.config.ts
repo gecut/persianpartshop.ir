@@ -1,3 +1,7 @@
+import { describeDeleteConflict } from './lib/validation'
+import { restrictBusinessForeignKeys } from './lib/restrict-foreign-keys'
+import { installCommittedSms } from './lib/committed-sms'
+import { protectBusinessRelations } from './lib/protect-relations'
 import { sqliteAdapter } from '@payloadcms/db-sqlite'
 import { postgresAdapter } from '@payloadcms/db-postgres'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
@@ -40,6 +44,8 @@ if (process.env.NODE_ENV === 'production' && !isBuildPhase && !process.env.PAYLO
 }
 
 export default buildConfig({
+  hooks: { afterError: [describeDeleteConflict] },
+  onInit: async payload => { installCommittedSms(payload) },
   i18n: {
     fallbackLanguage: 'fa',
     supportedLanguages: { fa },
@@ -114,7 +120,7 @@ export default buildConfig({
       afterLogin: ['/components/admin/LoginFooter#LoginFooter'],
     },
   },
-  collections: [
+  collections: protectBusinessRelations([
     // کاتالوگ و انبارداری
     Products,
     Categories,
@@ -134,7 +140,7 @@ export default buildConfig({
     Media,
     Admins,
     AuditLogs,
-  ],
+  ]),
   endpoints: [activityFeedEndpoint, catalogBrowseEndpoint, planBrowseEndpoint],
   editor: lexicalEditor(),
   graphQL: {
@@ -146,6 +152,7 @@ export default buildConfig({
   },
   db: databaseUrl.startsWith('postgres')
     ? postgresAdapter({
+        beforeSchemaInit: [restrictBusinessForeignKeys],
         pool: {
           connectionString: databaseUrl,
         },

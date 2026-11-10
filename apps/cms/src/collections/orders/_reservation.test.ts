@@ -77,7 +77,7 @@ test('all updates reject stale locked order status before product writes', async
   for (const status of ['cancelled_by_admin', 'approve', 'completed']) {
     for (const data of [{ status: 'cancelled_by_customer' }, { status: 'approve' }, { notes: 'note' }]) {
       const { apply, queries } = fixture([[{ status }]])
-      await assert.rejects(apply({ operation: 'update', data, originalDoc: { warehouse: 1, id: 1, status: 'pending', items: [item] } }), /status changed/)
+      await assert.rejects(apply({ operation: 'update', data, originalDoc: { warehouse: 1, id: 1, status: 'pending', items: [item] } }), error => error instanceof Error && 'data' in error && (error.data as { code?: string }).code === 'STALE_ORDER')
       assert.equal(queries.length, 1)
     }
   }

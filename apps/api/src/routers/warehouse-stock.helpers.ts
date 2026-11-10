@@ -10,7 +10,7 @@ export async function attachWarehouseStock(products: Product[]) {
     let page = 1
     while (true) {
       const result = await sdk.find({ collection: 'warehouse-stock', select: { product: true, warehouse: true, inventorySqm: true }, where: { and: [
-        { product: { in: products.map(product => product.id) } }, { 'warehouse.isActive': { equals: true } }, { 'warehouse.stockMode': { equals: 'exact' } },
+        { product: { in: products.map(product => product.id) } }, { isActive: { equals: true } }, { 'warehouse.isActive': { equals: true } }, { 'warehouse.stockMode': { equals: 'exact' } },
       ] }, depth: 0, page, limit: 1000 })
       for (const balance of result.docs) {
         const id = typeof balance.product === 'object' ? balance.product.id : balance.product

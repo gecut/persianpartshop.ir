@@ -1,3 +1,5 @@
+import { sendAfterCommit } from '../../lib/committed-sms'
+import { fieldError } from '../../lib/validation'
 import type { CollectionConfig } from "payload";
 import { personalizePlanAfterRead } from "./_personalize-plan.after-read";
 import { isSalesManager, canManagePlans } from "../../access/roles";
@@ -23,6 +25,13 @@ export const Plans: CollectionConfig = {
     delete: canManagePlans,
   },
   hooks: {
+    beforeValidate: [({ data, originalDoc }) => {
+      if (!data) return data
+      const start = data.startsAt === undefined ? originalDoc?.startsAt : data.startsAt
+      const end = data.expiresAt === undefined ? originalDoc?.expiresAt : data.expiresAt
+      if (start && end && new Date(end).getTime() <= new Date(start).getTime()) fieldError('expiresAt', 'پایان طرح باید بعد از شروع آن باشد.')
+      return data
+    }],
     afterRead: [personalizePlanAfterRead],
     afterChange: [
       async ({ doc, previousDoc, operation, req, context }) => {
@@ -63,6 +72,7 @@ export const Plans: CollectionConfig = {
             for (const userId of newRecipientIds) {
               const userDoc: any = await req.payload.findByID({
                 collection: "users",
+                req,
                 id: userId,
                 depth: 0,
               });
@@ -71,9 +81,8 @@ export const Plans: CollectionConfig = {
                 const planTitle = doc.title || "پیشنهاد ویژه";
                 const smsMessage = `همکار گرامی ${userDoc.fullName || ""}\nطرح اختصاصی «${planTitle}» برای شما فعال شد.\nمشاهده جزئیات: persianpartshop.ir/plans`;
 
-                await sendSmsNotification({
-                  receptor: userDoc.phone,
-                  message: smsMessage,
+                await sendAfterCommit(req, `plan:${doc.id}:user:${userId}`, async () => {
+                  await sendSmsNotification({ receptor: userDoc.phone, message: smsMessage })
                 });
               }
             }

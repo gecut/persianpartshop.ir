@@ -1,3 +1,4 @@
+import { validateCategoryParent } from './_validate-parent.before-change'
 import type { CollectionConfig } from 'payload'
 import { isCatalogManager } from '../../access/roles'
 
@@ -18,6 +19,7 @@ export const Categories: CollectionConfig = {
     update: isCatalogManager,
     delete: isCatalogManager,
   },
+  hooks: { beforeChange: [validateCategoryParent] },
   fields: [
     {
       name: 'name',

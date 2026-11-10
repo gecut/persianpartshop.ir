@@ -1,3 +1,4 @@
+import { validateUserChanges } from './_validate-user.before-change'
 import type { CollectionConfig } from "payload";
 import {
   isSalesManager,
@@ -33,88 +34,7 @@ export const Users: CollectionConfig = {
     delete: isSuperAdmin,
   },
   hooks: {
-    beforeValidate: [
-      ({ data }) => {
-        return data;
-      },
-    ],
-    beforeChange: [
-      ({ data, originalDoc, req }) => {
-        // 1. Sync ban state with account status
-        if (data?.status === "suspended") {
-          data.isBanned = true;
-        } else if (data?.status === "active" || data?.status === "pending") {
-          data.isBanned = false;
-          if (originalDoc?.status === "suspended" && !data.banReason) {
-            data.banReason = null;
-          }
-        } else if (data?.isBanned) {
-          data.status = "suspended";
-        }
-
-        // Invariant: If customer cannot see exact stock, they cannot place orders
-        if (data?.hideExactStock === true) {
-          data.disableOrdering = true;
-        }
-
-        // 2. Lock approved documents against customer modification or deletion
-        const isAdmin =
-          (req as any).user?.collection === "admins" ||
-          (req as any).user?.role === "superadmin" ||
-          (req as any).user?.role === "manager";
-
-        if (
-          !isAdmin &&
-          originalDoc?.documents &&
-          Array.isArray(originalDoc.documents)
-        ) {
-          const approvedDocs = originalDoc.documents.filter(
-            (d: any) => d.status === "approved",
-          );
-          if (approvedDocs.length > 0) {
-            const incomingDocs = Array.isArray(data?.documents)
-              ? data.documents
-              : [];
-            for (const approved of approvedDocs) {
-              const matching = incomingDocs.find(
-                (d: any) => String(d.id) === String(approved.id),
-              );
-              if (!matching) {
-                throw new Error(
-                  `مدرک تأیید شده «${approved.title || "ثبت شده"}» قابل حذف نیست.`,
-                );
-              }
-              const origFileId =
-                typeof approved.file === "object" && approved.file !== null
-                  ? approved.file.id
-                  : approved.file;
-              const newFileId =
-                typeof matching.file === "object" && matching.file !== null
-                  ? matching.file.id
-                  : matching.file;
-              if (String(origFileId) !== String(newFileId)) {
-                throw new Error(
-                  `فایل مدرک تأیید شده «${approved.title || "ثبت شده"}» قابل ویرایش یا جایگزینی نیست.`,
-                );
-              }
-              // Force status to remain approved
-              matching.status = "approved";
-            }
-          }
-        }
-
-        // Ensure newly added documents have uploadedAt set
-        if (Array.isArray(data?.documents)) {
-          for (const doc of data.documents) {
-            if (!doc.uploadedAt) {
-              doc.uploadedAt = new Date().toISOString();
-            }
-          }
-        }
-
-        return data;
-      },
-    ],
+    beforeChange: [validateUserChanges],
     afterChange: [
       async ({ doc, previousDoc, operation, req, context }) => {
         if (context?.skipLogging) return;

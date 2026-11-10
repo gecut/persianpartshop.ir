@@ -27,12 +27,12 @@ export function catalogBrowseQuery(input: z.infer<typeof InternalCatalogBrowseSc
     conditions.push(`(lower(p.name) LIKE ${pattern} OR lower(p.sku) LIKE ${pattern} OR lower(COALESCE(b.name,'پرشین پارت')) LIKE ${pattern} OR lower(COALESCE(p.color,'استاندارد')) LIKE ${pattern} OR lower(${dimension}) LIKE ${pattern} OR EXISTS (SELECT 1 FROM products_rels r JOIN tags t ON t.id=r.tags_id WHERE r.parent_id=p.id AND r.path='tags' AND lower(t.name) LIKE ${pattern}))`)
   }
   if (input.supplyMode) conditions.push(`EXISTS (SELECT 1 FROM warehouse_stock s JOIN warehouses w ON w.id=s.warehouse_id WHERE s.product_id=p.id AND s.is_active=true AND w.is_active=true AND w.stock_mode='inquiry')`)
-  else if (input.inStock) conditions.push(`EXISTS (SELECT 1 FROM warehouse_stock s JOIN warehouses w ON w.id=s.warehouse_id WHERE s.product_id=p.id AND w.is_active=true AND w.stock_mode='exact' AND s.inventory_sqm > 0 AND (p.product_type='other' OR s.inventory_sqm >= ROUND(p.sqm_per_carton*100)/100))`)
+  else if (input.inStock) conditions.push(`EXISTS (SELECT 1 FROM warehouse_stock s JOIN warehouses w ON w.id=s.warehouse_id WHERE s.product_id=p.id AND s.is_active=true AND w.is_active=true AND w.stock_mode='exact' AND s.inventory_sqm > 0 AND (p.product_type='other' OR s.inventory_sqm >= ROUND(p.sqm_per_carton*100)/100))`)
   const price = `ROUND(COALESCE(p.base_price_per_sqm,0) * (1 + ${param(input.markupPercent)}::numeric/100))`
-  const order = input.sort === 'cheapest' ? `${price} ASC, p.created_at DESC, p.id DESC` : input.sort === 'expensive' ? `${price} DESC, p.created_at DESC, p.id DESC` : input.sort === 'oldest' ? 'p.created_at ASC, p.id ASC' : 'p.created_at DESC, p.id DESC'
+  const order = input.sort === 'cheapest' ? `${price} ASC, p.created_at DESC, p.id DESC` : input.sort === 'expensive' ? `${price} DESC, p.created_at DESC, p.id DESC` : input.sort === 'oldest' ? 'p.created_at ASC, p.id ASC' : input.sort === 'newest' ? 'p.created_at DESC, p.id DESC' : 'p.name ASC, p.id ASC'
   const limit = param(input.limit)
   const offset = param((input.page - 1) * input.limit)
-  return { text: `WITH matching AS (SELECT p.id, p.created_at, ${price} AS price FROM products p LEFT JOIN brands b ON b.id=p.brand_id LEFT JOIN categories c ON c.id=p.category_id LEFT JOIN dimensions d ON d.id=p.dimension_id WHERE ${conditions.join(' AND ')}) SELECT id, COUNT(*) OVER()::int AS total FROM matching p ORDER BY ${order.replaceAll(price, 'p.price')} LIMIT ${limit} OFFSET ${offset}`, params }
+  return { text: `WITH matching AS (SELECT p.id, p.name, p.created_at, ${price} AS price FROM products p LEFT JOIN brands b ON b.id=p.brand_id LEFT JOIN categories c ON c.id=p.category_id LEFT JOIN dimensions d ON d.id=p.dimension_id WHERE ${conditions.join(' AND ')}) SELECT id, COUNT(*) OVER()::int AS total FROM matching p ORDER BY ${order.replaceAll(price, 'p.price')} LIMIT ${limit} OFFSET ${offset}`, params }
 }
 
 export const catalogBrowseEndpoint: Endpoint = {

@@ -8,7 +8,7 @@ Create a customer with full name, unique phone, tier and account status. Company
 
 Use allowed categories for catalog restrictions. `hideExactStock` also disables ordering; `disableOrdering` can independently disable it. Review uploaded document status separately; document review does not substitute for reading the actual account status.
 
-Create tile and other products with SKU/name/slug and the appropriate metadata. A tile must have a valid carton factor to be ordered. Other uses its primary unit; secondary weight/content is descriptive. Existing stock records prevent changing product type/primary unit. Packaging changes with open orders are rejected. There is no implemented general catalog-completeness scoring service.
+Create tile and other products with SKU/name/slug and the appropriate metadata. A tile must have a valid carton factor to be ordered. Other uses its primary unit; secondary weight/content is descriptive. Existing stock records prevent changing product type/primary unit. Packaging changes with open orders or new/reviewing supply requests are rejected with a tracking reference. There is no implemented general catalog-completeness scoring service.
 
 ## Price and stock CSV
 
@@ -16,11 +16,11 @@ Choose stock, price, or Kimia processing. Stock CSV uses `sku,inventorySqm`; pri
 
 Select an active warehouse for stock and Kimia. File stock is the reconciled sellable quantity after reservations; rows absent from the file remain unchanged. Files are limited to 1 MB and 1,000 rows. Invalid, duplicate, and unknown SKU rows are shown and skipped; valid rows are applied together only after confirmation. A stale preview is rejected. Price is global, while stock is warehouse-specific. Price export pages contain up to 1,000 rows and are suitable for reimport.
 
-Direct balance update/delete and warehouse deletion are blocked. Completed imports have no automatic undo; use a fresh reconciled file for correction.
+Direct balance amount/revision changes, balance deletion and warehouse deletion are blocked. Managers may edit balance activity/report metadata; product and warehouse identity are fixed. Completed imports have no automatic undo; use a fresh reconciled file for correction.
 
 ## Orders and plans
 
-Create an inquiry warehouse and activate a supply source for each product manually. Staff explicitly move requests into review or a final result; merely opening a record does not start review. A result transition attempts an SMS using the explicitly configured `KAVENEGAR_API_KEY` and `WEB_URL`; missing configuration or provider failure does not roll back the status. Delivery is best effort: the notification hook can run before database commit and has no retry queue.
+Create an inquiry warehouse and activate a supply source for each product manually. Staff explicitly move requests into review or a final result; merely opening a record does not start review. A result transition attempts an SMS using the explicitly configured `KAVENEGAR_API_KEY` and `WEB_URL`; missing configuration or provider failure does not roll back the status. Delivery is best effort: notifications are attempted only after the owning transaction commits and have no retry queue. A process failure between commit and delivery can lose a notification.
 
 Orders arrive as `pending` with warehouse and immutable authoritative line amounts. Staff can approve (`approve`), complete, or cancel within the allowed transitions. Print the warehouse name and original quantities; no picking across warehouses. Customers can cancel pending orders within 60 minutes; staff can cancel pending/approved orders before completion. Cancelled/completed orders cannot reopen. No required structured staff-reason field or multi-stage preparing/ready workflow is implemented.
 

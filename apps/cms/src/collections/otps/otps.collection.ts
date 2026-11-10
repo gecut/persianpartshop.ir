@@ -21,6 +21,11 @@ export const Otps: CollectionConfig = {
     delete: ({ req }) => isSuperAdmin({ req }) || isServiceAdmin({ req }),
   },
   hooks: {
+    beforeValidate: [({ data, originalDoc, operation }) => {
+      // An expired code is masked in reads. A full-form echo of that mask is not a revocation.
+      if (operation === 'update' && data?.code === null && originalDoc?.expiresAt && new Date(originalDoc.expiresAt).getTime() <= Date.now()) delete data.code
+      return data
+    }],
     afterRead: [
       ({ doc }: any) => {
         if (doc && doc.expiresAt && doc.code) {

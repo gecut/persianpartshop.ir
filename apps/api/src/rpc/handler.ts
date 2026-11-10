@@ -9,7 +9,7 @@ import {
 import { router } from '../routers'
 
 export const handler = new RPCHandler<any>(router, {
-  errorStatusMap: { ...COMMON_ERROR_STATUS_MAP, EXACT_STOCK_AVAILABLE: 409, SOURCE_UNAVAILABLE: 409, CANNOT_CANCEL: 409 },
+  errorStatusMap: { ...COMMON_ERROR_STATUS_MAP, INSUFFICIENT_STOCK: 409, INVALID_STATUS_TRANSITION: 409, EXACT_STOCK_AVAILABLE: 409, SOURCE_UNAVAILABLE: 409, CANNOT_CANCEL: 409 },
   plugins: [
     new StrictGetMethodPlugin(),
     new RequestHeadersPlugin(),

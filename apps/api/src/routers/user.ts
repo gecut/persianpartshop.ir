@@ -52,6 +52,9 @@ const update = authed.user.update.handler(async ({ input, context }) => {
           message: `مدرک تأیید شده «${approved.title || 'ثبت شده'}» قابل حذف نیست.`,
         })
       }
+      for (const key of ['title', 'documentType', 'status', 'uploadedAt', 'rejectionReason']) {
+        if ((match[key] ?? null) !== (approved[key] ?? null)) throw new ORPCError('FORBIDDEN', { message: 'مدرک تأییدشده فقط توسط مدیر قابل اصلاح است.' })
+      }
       const origFileId =
         typeof approved.file === 'object' && approved.file !== null ? approved.file.id : approved.file
       const newFileId =
@@ -65,15 +68,16 @@ const update = authed.user.update.handler(async ({ input, context }) => {
 
     // Sanitize incoming docs: non-approved documents must have status 'pending' (customer cannot self-approve)
     allowedData.documents = incoming.map((doc: any) => {
-      const isOriginallyApproved = existingApproved.some((a: any) => String(a.id) === String(doc.id))
+      const originallyApproved = existingApproved.find((a: { id?: string | null }) => String(a.id) === String(doc.id))
       const fileId = typeof doc.file === 'object' && doc.file !== null ? doc.file.id : doc.file
+      if (originallyApproved) return { ...originallyApproved, file: fileId }
       return {
         ...(doc.id ? { id: doc.id } : {}),
         documentType: doc.documentType || 'business_license',
         title: doc.title?.trim() || '',
         file: fileId,
-        status: isOriginallyApproved ? 'approved' : 'pending',
-        rejectionReason: isOriginallyApproved ? null : doc.rejectionReason || null,
+        status: 'pending',
+        rejectionReason: null,
         uploadedAt: doc.uploadedAt || new Date().toISOString(),
       }
     })

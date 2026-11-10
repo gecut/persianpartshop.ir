@@ -1,4 +1,4 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, Field } from 'payload'
 import { prepareOrderBeforeValidate } from './_prepare-order.before-validate'
 import { applyReservationBeforeChange } from './_apply-reservation.before-change'
 import { validateTransitionBeforeChange } from './_validate-transition.before-change'
@@ -44,6 +44,7 @@ export const Orders: CollectionConfig = {
     },
     {
       name: 'status',
+      access: { update: ({ doc }) => !['completed', 'cancel', 'cancelled_by_customer', 'cancelled_by_admin'].includes(doc?.status) },
       type: 'select',
       required: true,
       defaultValue: 'pending',
@@ -94,6 +95,8 @@ export const Orders: CollectionConfig = {
         plural: 'اقلام سفارش',
       },
       fields: [
+        { name: 'productName', type: 'text', label: 'نام کالا هنگام ثبت', admin: { readOnly: true } },
+        { name: 'productSku', type: 'text', label: 'کد کالا هنگام ثبت', admin: { readOnly: true } },
         { name: 'productType', type: 'text', admin: { hidden: true } },
         { name: 'unit', type: 'text', label: 'واحد فروش', admin: { readOnly: true } },
         { name: 'salesFactor', type: 'number', admin: { hidden: true } },
@@ -198,6 +201,7 @@ export const Orders: CollectionConfig = {
         { label: 'تحویل و یادداشت', fields: [
           {
       name: 'deliveryAddress',
+      access: { update: ({ doc }) => !['completed', 'cancel', 'cancelled_by_customer', 'cancelled_by_admin'].includes(doc?.status) },
       type: 'textarea',
       label: 'نشانی تحویل',
       admin: {
@@ -219,6 +223,7 @@ export const Orders: CollectionConfig = {
       type: 'select',
       label: 'مرجع لغو',
       admin: {
+        readOnly: true,
         description: 'سمت فرد لغوکننده سفارش.',
         condition: (data) => ['cancelled_by_customer', 'cancelled_by_admin', 'cancel'].includes(data?.status),
       },
@@ -226,7 +231,7 @@ export const Orders: CollectionConfig = {
         { label: 'کاربر', value: 'customer' },
         { label: 'ادمین', value: 'admin' },
       ],
-      defaultValue: 'admin',
+
     },
           {
       name: 'timeline',
@@ -237,6 +242,7 @@ export const Orders: CollectionConfig = {
         plural: 'گاه‌شمار رویدادها',
       },
       admin: {
+        readOnly: true,
         description: 'ثبت زمانی تغییرات وضعیت سفارش.',
       },
       fields: [
@@ -257,3 +263,14 @@ export const Orders: CollectionConfig = {
 
   ],
 }
+
+function protectOrderFields(fields: Field[]): void {
+  for (const field of fields) {
+    if (field.type !== 'ui' && 'name' in field && ['orderNumber', 'user', 'warehouse', 'items', 'subtotal', 'discountAmount', 'taxAmount', 'finalTotal'].includes(field.name)) {
+      field.access = { ...field.access, update: () => false }
+    }
+    if ('fields' in field) protectOrderFields(field.fields)
+    if ('tabs' in field) for (const tab of field.tabs) protectOrderFields(tab.fields)
+  }
+}
+protectOrderFields(Orders.fields)

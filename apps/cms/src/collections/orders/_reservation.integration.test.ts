@@ -31,7 +31,7 @@ test('PostgreSQL reservation atomicity and cancellation races', { skip: !connect
     await db.execute(sql`
       DROP TABLE IF EXISTS warehouse_stock, warehouses, products, orders;
       CREATE TABLE warehouses (id integer PRIMARY KEY, is_active boolean NOT NULL, stock_mode text NOT NULL DEFAULT 'exact');
-      CREATE TABLE warehouse_stock (id serial UNIQUE, warehouse_id integer, product_id integer, inventory_sqm numeric NOT NULL CHECK (inventory_sqm >= 0), revision integer DEFAULT 0, updated_at timestamptz, PRIMARY KEY (warehouse_id, product_id));
+      CREATE TABLE warehouse_stock (id serial UNIQUE, warehouse_id integer, product_id integer, inventory_sqm numeric NOT NULL CHECK (inventory_sqm >= 0), revision integer DEFAULT 0, is_active boolean DEFAULT true, updated_at timestamptz, PRIMARY KEY (warehouse_id, product_id));
       CREATE TABLE products (
         id integer PRIMARY KEY,
         name text,

@@ -1,3 +1,4 @@
+import { businessError } from '../../lib/validation'
 import { sql } from '@payloadcms/db-postgres'
 import type { PayloadRequest } from 'payload'
 import { getOrderTransaction } from '../orders/_transaction'
@@ -36,14 +37,14 @@ export async function reserveWarehouseStock(req: PayloadRequest, warehouseId: nu
   const items = consolidateRequirements(requirements)
   const db = await getOrderTransaction(req)
   const warehouse = await db.execute(sql`SELECT id FROM warehouses WHERE id = ${warehouseId} AND is_active = true AND stock_mode = 'exact' FOR SHARE`)
-  if (warehouse.rows.length !== 1) throw new Error('انبار انتخاب‌شده فعال نیست.')
+  if (warehouse.rows.length !== 1) throw businessError('انبار انتخاب‌شده فعال نیست.', 'WAREHOUSE_UNAVAILABLE')
   for (const item of items) {
     const result = await db.execute(sql`
       UPDATE warehouse_stock SET inventory_sqm = inventory_sqm - ${item.deliverableArea}, revision = revision + 1, updated_at = NOW()
-      WHERE warehouse_id = ${warehouseId} AND product_id = ${item.productId} AND inventory_sqm >= ${item.deliverableArea}
+      WHERE warehouse_id = ${warehouseId} AND product_id = ${item.productId} AND is_active = true AND inventory_sqm >= ${item.deliverableArea}
       RETURNING id
     `)
-    if (result.rows.length !== 1) throw new Error('موجودی انبار برای تأمین سفارش کافی نیست.')
+    if (result.rows.length !== 1) throw businessError('موجودی فعال انبار برای تأمین سفارش کافی نیست.', 'INSUFFICIENT_STOCK')
   }
 }
 
@@ -68,10 +69,10 @@ export async function replaceWarehouseStock(req: PayloadRequest, warehouseId: nu
   if (!Number.isSafeInteger(revision) || revision < 0) throw new Error('نسخهٔ موجودی نامعتبر است.')
   const db = await getOrderTransaction(req)
   const warehouse = await db.execute(sql`SELECT id FROM warehouses WHERE id = ${warehouseId} AND is_active = true AND stock_mode = 'exact' FOR SHARE`)
-  if (warehouse.rows.length !== 1) throw new Error('انبار قطعی فعال نیست.')
+  if (warehouse.rows.length !== 1) throw businessError('انبار قطعی فعال نیست.', 'WAREHOUSE_UNAVAILABLE')
   const result = await db.execute(sql`
     UPDATE warehouse_stock SET inventory_sqm = ${inventorySqm}, revision = revision + 1, updated_at = NOW()
     WHERE warehouse_id = ${warehouseId} AND product_id = ${productId} AND revision = ${revision} RETURNING id
   `)
-  if (result.rows.length !== 1) throw new Error('موجودی تغییر کرده است؛ پیش‌نمایش را دوباره دریافت کنید.')
+  if (result.rows.length !== 1) throw businessError('موجودی تغییر کرده است؛ پیش‌نمایش را دوباره دریافت کنید.', 'STALE_STOCK')
 }

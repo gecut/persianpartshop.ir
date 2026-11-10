@@ -1,7 +1,8 @@
+import { businessError, fieldError, sameRelation } from '../../lib/validation'
 import { getSalesFactor } from '../products/_inventory-math'
 import type { CollectionConfig } from 'payload'
 import { stockImportEndpoints } from './_import.endpoints'
-import { manageWarehouses, readWarehouses } from '../warehouses/warehouses.collection'
+import { manageWarehouses, readWarehouseStock } from '../warehouses/warehouses.collection'
 import { sql } from '@payloadcms/db-postgres'
 import { getOrderTransaction } from '../orders/_transaction'
 
@@ -14,7 +15,7 @@ export const WarehouseStock: CollectionConfig = {
     components: { beforeListTable: ['/collections/warehouse-stock/components/stock-import#StockImport'] },
   },
   endpoints: stockImportEndpoints,
-  access: { read: readWarehouses, create: manageWarehouses, update: manageWarehouses, delete: () => false },
+  access: { read: readWarehouseStock, create: manageWarehouses, update: manageWarehouses, delete: () => false },
   indexes: [{ fields: ['warehouse', 'product'], unique: true }],
   fields: [
     {
@@ -41,6 +42,7 @@ export const WarehouseStock: CollectionConfig = {
     { name: 'product', label: 'محصول', type: 'relationship', relationTo: 'products', required: true, index: true },
     {
       name: 'inventorySqm',
+      access: { update: () => false },
       label: 'موجودی قابل فروش در واحد اصلی کالا',
       type: 'number',
       required: false,
@@ -50,12 +52,24 @@ export const WarehouseStock: CollectionConfig = {
           'برای کاشی مترمربع و برای سایر کالاها تعداد واحد فروش است. در انبار استعلامی خالی (null) است. اصلاح موجودی از مسیر کنترل‌شده انبار انجام می‌شود.',
       },
     },
-    { name: 'revision', type: 'number', required: true, min: 0, defaultValue: 0, admin: { hidden: true } },
+    { name: 'revision', access: { update: () => false }, type: 'number', required: true, min: 0, defaultValue: 0, admin: { hidden: true } },
     { name: 'isActive', label: 'فعال', type: 'checkbox', required: true, defaultValue: true },
     { name: 'lastReportedAt', label: 'تاریخ آخرین گزارش حضور کالا', type: 'date' },
   ],
   hooks: {
-    beforeDelete: [() => { throw new Error('حذف موجودی انبار مجاز نیست؛ مقدار آن را اصلاح کنید.') }],
+    beforeOperation: [async ({ operation, args, req }) => {
+      if (operation !== 'update') return
+      if (!('id' in args)) throw businessError('ویرایش گروهی موجودی مجاز نیست.', 'BULK_UPDATE_FORBIDDEN')
+      const id = Number(args.id)
+      if (!Number.isSafeInteger(id) || id <= 0) fieldError('id', 'شناسهٔ موجودی نامعتبر است.')
+      const db = await getOrderTransaction(req)
+      await db.execute(sql`SELECT id FROM warehouse_stock WHERE id = ${id} FOR UPDATE`)
+      const original = await req.payload.findByID({ collection: 'warehouse-stock', id, depth: 0, req, overrideAccess: true })
+      for (const key of ['inventorySqm', 'revision']) {
+        if (args.data[key] !== undefined && (args.data[key] ?? null) !== (original[key as 'inventorySqm' | 'revision'] ?? null)) fieldError(key, 'عدد موجودی فقط از مسیر کنترل‌شدهٔ انبار قابل تغییر است.')
+      }
+    }],
+    beforeDelete: [() => { throw businessError('حذف موجودی انبار مجاز نیست؛ مقدار آن را اصلاح کنید.') }],
     beforeChange: [
       async ({ data, originalDoc, operation, req }) => {
         const warehouseId = Number(
@@ -63,23 +77,30 @@ export const WarehouseStock: CollectionConfig = {
             ? (data.warehouse ?? originalDoc?.warehouse)?.id
             : (data.warehouse ?? originalDoc?.warehouse)
         )
-        if (!Number.isSafeInteger(warehouseId) || warehouseId <= 0) throw new Error('انبار معتبر نیست.')
+        if (!Number.isSafeInteger(warehouseId) || warehouseId <= 0) fieldError('warehouse', 'انبار معتبر نیست.')
         const db = await getOrderTransaction(req)
         const warehouseResult = await db.execute(sql`SELECT id, stock_mode FROM warehouses WHERE id = ${warehouseId} FOR SHARE`)
-        if (warehouseResult.rows.length !== 1) throw new Error('انبار یافت نشد.')
+        if (warehouseResult.rows.length !== 1) throw businessError('انبار یافت نشد.')
         const stockMode = warehouseResult.rows[0]!.stock_mode
 
         if (operation === 'update') {
-          if (stockMode === 'exact') {
-            throw new Error('موجودی فقط از مسیر کنترل‌شدهٔ انبار قابل تغییر است.')
+          for (const key of ['warehouse', 'product']) {
+            if (data[key] !== undefined && !sameRelation(data[key], originalDoc[key])) fieldError(key, 'محصول و انبار این رکورد قابل تغییر نیستند؛ رکورد جدید بسازید.')
           }
-          data.inventorySqm = null
+          for (const key of ['inventorySqm', 'revision']) {
+            if (data[key] !== undefined && (data[key] ?? null) !== (originalDoc[key] ?? null)) fieldError(key, 'عدد موجودی فقط از مسیر کنترل‌شدهٔ انبار قابل تغییر است.')
+            data[key] = originalDoc[key]
+          }
           return data
         }
 
+        const productId = Number(typeof data.product === 'object' ? data.product?.id : data.product)
+        if (!Number.isSafeInteger(productId) || productId <= 0) fieldError('product', 'محصول معتبر نیست.')
+        await db.execute(sql`SELECT id FROM products WHERE id = ${productId} FOR SHARE`)
+
         // operation === 'create'
         if (stockMode === 'inquiry') {
-          if (data.inventorySqm != null) throw new Error('انبار استعلامی نمی‌تواند موجودی عددی داشته باشد.')
+          if (data.inventorySqm != null) fieldError('inventorySqm', 'انبار استعلامی نمی‌تواند موجودی عددی داشته باشد.')
           data.inventorySqm = null
           data.revision = 0
           if (!data.lastReportedAt) data.lastReportedAt = new Date().toISOString()
@@ -95,13 +116,13 @@ export const WarehouseStock: CollectionConfig = {
             Math.abs(amount * 100 - Math.round(amount * 100)) > 1e-7 ||
             !Number.isSafeInteger(Math.round(amount * 100))
           ) {
-            throw new Error('موجودی باید عددی نامنفی با حداکثر دو رقم اعشار باشد.')
+            fieldError('inventorySqm', 'موجودی باید عددی نامنفی با حداکثر دو رقم اعشار باشد.')
           }
           data.revision = 0
           return data
         }
 
-        throw new Error('نوع انبار نامعتبر است.')
+        throw businessError('نوع انبار نامعتبر است.')
       },
     ],
   },

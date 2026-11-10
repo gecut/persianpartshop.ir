@@ -83,7 +83,7 @@ export const ProductCard = React.memo(function ProductCard({
             <span className="text-[11px] sm:text-xs font-light text-muted/90 block truncate">
               {product.brand}
             </span>
-            <h3 className="text-xs min-[390px]:text-xs sm:text-sm font-medium text-foreground leading-[1.35] mt-0.5 break-words">
+            <h3 className="text-xs min-[390px]:text-xs sm:text-sm font-medium text-foreground leading-[1.35] mt-0.5 wrap-break-word">
               {product.name}
             </h3>
           </div>
@@ -122,9 +122,12 @@ export const ProductCard = React.memo(function ProductCard({
             ) : (
               <>
                 {product.dimensions?.width && product.dimensions?.height && (
-                  <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-muted/10 text-foreground">
-                    {toPersianDigits(product.dimensions.width)} ×{" "}
-                    {toPersianDigits(product.dimensions.height)}
+                  <span className="flex gap-0.5 px-2 py-1 rounded-lg text-xs font-bold bg-muted/10 text-foreground">
+                    <span className="flex gap-0.5 opacity-70">
+                      <span>{toPersianDigits(product.dimensions.height)}</span>
+                      <span className="opacity-70">&times;</span>
+                      <span>{toPersianDigits(product.dimensions.width)}</span>
+                    </span>
                   </span>
                 )}
                 {product.grade && (

@@ -179,11 +179,11 @@ export interface Product {
    */
   basePricePerSqm?: number | null;
   /**
-   * مقدار پیش‌فرض را با بسته‌بندی کالا تطبیق دهید. تغییر آن در صورت وجود سفارش باز مجاز نیست.
+   * مقدار پیش‌فرض را با بسته‌بندی کالا تطبیق دهید. تغییر آن در صورت وجود سفارش یا درخواست تأمین باز مجاز نیست.
    */
   sqmPerCarton?: number | null;
   /**
-   * مقدار پیش‌فرض را بررسی کنید. تغییر آن در صورت وجود سفارش باز مجاز نیست.
+   * مقدار پیش‌فرض را بررسی کنید. تغییر آن در صورت وجود سفارش یا درخواست تأمین باز مجاز نیست.
    */
   piecesPerCarton?: number | null;
   cartonsPerPallet?: number | null;
@@ -433,6 +433,8 @@ export interface Order {
   user: number | User;
   warehouse: number | Warehouse;
   items: {
+    productName?: string | null;
+    productSku?: string | null;
     productType?: string | null;
     unit?: string | null;
     salesFactor?: number | null;
@@ -746,6 +748,10 @@ export interface SupplyRequest {
  */
 export interface Admin {
   id: number;
+  /**
+   * فقط این حساب با مدیر همگام می‌شود؛ شمارهٔ مشابه به‌تنهایی ارتباط ایجاد نمی‌کند.
+   */
+  customer?: (number | null) | User;
   /**
    * نام و نام خانوادگی جهت ثبت در لاگ‌ها
    */
@@ -1063,6 +1069,8 @@ export interface OrdersSelect<T extends boolean = true> {
   items?:
     | T
     | {
+        productName?: T;
+        productSku?: T;
         productType?: T;
         unit?: T;
         salesFactor?: T;
@@ -1253,6 +1261,7 @@ export interface MediaSelect<T extends boolean = true> {
  * via the `definition` "admins_select".
  */
 export interface AdminsSelect<T extends boolean = true> {
+  customer?: T;
   name?: T;
   phone?: T;
   role?: T;

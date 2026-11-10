@@ -1,3 +1,4 @@
+import { handlePayloadError } from '../payload-error'
 import { createHash } from 'node:crypto'
 import { call } from '@orpc/server'
 import { warehouse } from './warehouse'
@@ -212,38 +213,7 @@ export const submit = authed.order.submit.handler(async ({ input, context, error
       return sanitizeOrderForCustomer(racedOrder)
     }
 
-    const rawMsg =
-      err?.errors?.[0]?.message ||
-      err?.message ||
-      (typeof err === 'string' ? err : 'خطا در ثبت سفارش')
-
-    let message = String(rawMsg)
-    try {
-      if (message.startsWith('{') && message.endsWith('}')) {
-        const parsed = JSON.parse(message)
-        message = parsed?.errors?.[0]?.message || parsed?.message || message
-      }
-    } catch {}
-
-    if (message.includes('موجودی ناکافی')) {
-      throw errors.INSUFFICIENT_STOCK({ message, data: { message } })
-    }
-
-    if (
-      message.includes('نامعتبر') ||
-      message.includes('یافت نشد') ||
-      message.includes('غیرفعال') ||
-      message.includes('الزامی') ||
-      message.includes('تکرار') ||
-      message.includes('خالی')
-    ) {
-      throw errors.BAD_REQUEST({ message, data: { message } })
-    }
-
-    throw errors.BAD_REQUEST({
-      message: message || 'خطا در ثبت سفارش.',
-      data: { message: message || 'خطا در ثبت سفارش.' },
-    })
+    handlePayloadError(err)
   }
 
   return sanitizeOrderForCustomer(orderDoc)
@@ -311,7 +281,7 @@ const cancel = authed.order.cancel.handler(async ({ input, context, errors }) =>
       cancelledBy: isAdmin ? 'admin' : 'customer',
       notes: updatedNotes,
     },
-  })
+  }).catch(handlePayloadError)
   return sanitizeOrderForCustomer(cancelled)
 })
 

@@ -1,5 +1,5 @@
+import { syncAdminCustomer } from './_sync-customer.before-change'
 import type { CollectionConfig } from 'payload'
-import type { User } from '../../payload-types'
 import { isActiveBeforeLogin } from './_is-active.before-login'
 import {
   isSuperAdmin,
@@ -23,6 +23,7 @@ export const Admins: CollectionConfig = {
     useAPIKey: true,
   },
   hooks: {
+    beforeChange: [syncAdminCustomer],
     beforeLogin: [isActiveBeforeLogin],
     afterLogin: [
       async ({ user, req }) => {
@@ -77,73 +78,7 @@ export const Admins: CollectionConfig = {
           details,
         })
 
-        // Sync customer account in users collection so admin can act as a regular customer
-        if (doc.phone && doc.role !== 'support') {
-          try {
-            const raw = String(doc.phone).trim()
-            const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹']
-            const normalized = raw.replace(/[۰-۹]/g, (d) => String(persianDigits.indexOf(d)))
-            if (/^09\d{9}$/.test(normalized)) {
-              const existingUsers = await req.payload.find({
-                collection: 'users',
-                req,
-                where: {
-                  or: [
-                    { phone: { equals: normalized } },
-                    { phone: { equals: raw } },
-                  ],
-                },
-                limit: 1,
-              })
 
-              const adminRoleLabel = doc.role === 'superadmin' ? 'مدیر ارشد' : 'مدیر'
-              if (existingUsers.docs.length === 0) {
-                const defaultTypeRes = await req.payload.find({
-                  collection: 'customer-types',
-                  req,
-                  sort: 'id',
-                  limit: 1,
-                })
-                const customerType = defaultTypeRes.docs[0] ?? await req.payload.create({
-                  collection: 'customer-types',
-                  req,
-                  data: { name: 'مشتری عادی', slug: 'regular', markupPercent: 0, isActive: true },
-                })
-
-                await req.payload.create({
-                  collection: 'users',
-                  req,
-                  data: {
-                    fullName: doc.name,
-                    phone: normalized,
-                    customerType: customerType.id,
-                    status: doc.isActive !== false ? 'active' : 'suspended',
-                    notes: `حساب مشتری ایجاد شده برای ${adminRoleLabel} (${doc.name})`,
-                  },
-                  context: { skipLogging: true },
-                })
-              } else {
-                const existing = existingUsers.docs[0]
-                const updates: Partial<User> = {}
-                if (existing.fullName !== doc.name) updates.fullName = doc.name
-                if (doc.isActive === false && existing.status === 'active') {
-                  updates.status = 'suspended'
-                }
-                if (Object.keys(updates).length > 0) {
-                  await req.payload.update({
-                    collection: 'users',
-                    req,
-                    id: existing.id,
-                    data: updates,
-                    context: { skipLogging: true },
-                  })
-                }
-              }
-            }
-          } catch {
-            throw new Error('Admin customer account synchronization failed')
-          }
-        }
       },
     ],
     afterDelete: [
@@ -167,6 +102,7 @@ export const Admins: CollectionConfig = {
     delete: isSuperAdmin,
   },
   fields: [
+    { name: 'customer', type: 'relationship', relationTo: 'users', unique: true, label: 'حساب مشتری مرتبط', access: { create: isSuperAdminField, update: isSuperAdminField }, admin: { description: 'فقط این حساب با مدیر همگام می‌شود؛ شمارهٔ مشابه به‌تنهایی ارتباط ایجاد نمی‌کند.' } },
     {
       name: 'name',
       type: 'text',

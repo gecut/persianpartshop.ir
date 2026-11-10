@@ -43,11 +43,11 @@ Same customer/key/fingerprint replays an existing order before new availability 
 
 Supply requests use `new`, `reviewing`, `supplied`, `unavailable`, and `cancelled_by_customer`. The customer can cancel only before review has started; staff may correct a non-cancelled status. The response deadline is 48 continuous hours from creation and overdue requests remain open.
 
-Persisted transitions are `pending → approve → completed`; `pending` can cancel by customer/admin and `approve` can cancel by admin. Cancelled/completed orders are terminal. Contract legacy aliases do not imply additional supported persisted transitions.
+Persisted transitions are `pending → approve → completed`; `pending` can cancel by customer/admin and `approve` can cancel by admin. Cancelled/completed orders are terminal; staff may still edit notes, while delivery address and status remain fixed. Contract legacy aliases do not imply additional supported persisted transitions.
 
 Customer self-cancellation requires `pending` and a request within 60 minutes of `createdAt`. Passing the deadline changes the customer display; it does not itself persist an automatic status transition. Administrative cancellation can release pending/approved reservations. Restore uses the exact original deliverable quantities and original warehouse, even if that warehouse has since been deactivated. Repeated cancellation must not restore twice.
 
-Order user, warehouse/snapshots, items, amounts, number and retry identity are protected after creation. Changes require cancellation and a fresh order. Custom order submission returns «ثبت سفارش اختصاصی فعلاً فعال نیست.»
+Order user, warehouse/snapshots, items, amounts, number and retry identity are protected after creation. Changes require cancellation and a fresh order. Product packaging changes are blocked by pending/approved orders and new/reviewing supply requests. Names and SKUs are snapshotted on new order lines; legacy missing snapshots are not reconstructed as historical facts. Custom order submission returns «ثبت سفارش اختصاصی فعلاً فعال نیست.»
 
 ## Reorder and CSV
 

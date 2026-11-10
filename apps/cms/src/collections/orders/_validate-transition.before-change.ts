@@ -1,96 +1,58 @@
 import type { CollectionBeforeChangeHook } from 'payload'
+import { businessError, fieldError, sameRelation } from '../../lib/validation'
 
-const isCancelled = (s?: string) =>
-  s === 'cancel' ||
-  s === 'cancelled' ||
-  s === 'cancelled_by_customer' ||
-  s === 'cancelled_by_admin'
+const cancelled = (status: string) => ['cancel', 'cancelled', 'cancelled_by_customer', 'cancelled_by_admin'].includes(status)
+const itemFields = ['id', 'productType', 'unit', 'salesFactor', 'cartonsPerPallet', 'productName', 'productSku', 'requestedArea', 'cartonCount', 'deliverableArea', 'unitPrice', 'totalPrice']
 
-export const validateTransitionBeforeChange: CollectionBeforeChangeHook = async ({
-  data,
-  originalDoc,
-  operation,
-}) => {
+function sameItems(incoming: unknown, stored: unknown): boolean {
+  if (!Array.isArray(incoming) || !Array.isArray(stored) || incoming.length !== stored.length) return false
+  return incoming.every((item, index) => {
+    const old = stored[index]
+    if (!item || !old || !sameRelation(item.product, old.product)) return false
+    return itemFields.every(key => (item[key] ?? null) === (old[key] ?? null))
+  })
+}
+
+function sameTimeline(incoming: unknown, stored: unknown): boolean {
+  const old = stored ?? []
+  if (incoming == null && Array.isArray(old) && old.length === 0) return true
+  return Array.isArray(incoming) && Array.isArray(old) && incoming.length === old.length && incoming.every((entry, i) =>
+    ['id', 'status', 'timestamp'].every(key => (entry[key] ?? null) === (old[i]?.[key] ?? null)))
+}
+
+export const validateTransitionBeforeChange: CollectionBeforeChangeHook = async ({ data, originalDoc, operation }) => {
   if (operation === 'create') {
-    if (data.status && data.status !== 'pending') {
-      throw new Error('سفارش جدید فقط می‌تواند در وضعیت "pending" ایجاد شود.')
-    }
+    if (data.status && data.status !== 'pending') fieldError('status', 'سفارش جدید فقط در وضعیت ثبت‌شده ایجاد می‌شود.')
+    data.status = 'pending'
+    data.cancelledBy = null
+    data.timeline = [{ timestamp: new Date().toISOString(), status: 'pending' }]
+    return data
   }
-
-  if (operation === 'update' && originalDoc) {
-    for (const field of ['warehouse', 'warehouseName', 'warehouseCode', 'requestFingerprint']) {
-      const id = (value: unknown) => value && typeof value === 'object' && 'id' in value ? value.id : value
-      if (data[field] !== undefined && String(id(data[field])) !== String(id(originalDoc[field]))) throw new Error('تغییر انبار سفارش ممنوع است.')
-    }
-    const fromStatus = originalDoc.status
-    const toStatus = data.status || fromStatus
-
-    // Immutable items and financial amounts after creation
-    if (data.items && JSON.stringify(data.items) !== JSON.stringify(originalDoc.items)) {
-      throw new Error('ویرایش اقلام سفارش پس از ثبت ممنوع است. برای تغییر، سفارش را لغو و مجدداً ثبت نمایید.')
-    }
-    if (data.subtotal !== undefined && data.subtotal !== originalDoc.subtotal) {
-      throw new Error('ویرایش مبالغ مالی سفارش پس از ثبت ممنوع است.')
-    }
-    if (data.discountAmount !== undefined && data.discountAmount !== originalDoc.discountAmount) {
-      throw new Error('ویرایش مبالغ مالی سفارش پس از ثبت ممنوع است.')
-    }
-    if (data.taxAmount !== undefined && data.taxAmount !== originalDoc.taxAmount) {
-      throw new Error('ویرایش مبالغ مالی سفارش پس از ثبت ممنوع است.')
-    }
-    if (data.finalTotal !== undefined && data.finalTotal !== originalDoc.finalTotal) {
-      throw new Error('ویرایش مبالغ مالی سفارش پس از ثبت ممنوع است.')
-    }
-    if (data.trackingNumber !== undefined && data.trackingNumber !== originalDoc.trackingNumber) {
-      throw new Error('تغییر شمارهٔ پیگیری ممنوع است.')
-    }
-    if (data.orderNumber && data.orderNumber !== originalDoc.orderNumber) {
-      throw new Error('تغییر شماره سفارش ممنوع است.')
-    }
-    if (data.idempotencyKey && data.idempotencyKey !== originalDoc.idempotencyKey) {
-      throw new Error('تغییر کلید تکرار سفارش ممنوع است.')
-    }
-    if (data.user && String(data.user) !== String(typeof originalDoc.user === 'object' && originalDoc.user ? originalDoc.user.id : originalDoc.user)) {
-      throw new Error('تغییر مشتری سفارش ممنوع است.')
-    }
-
-    // Terminal statuses cannot transition: cancelled or completed
-    if (isCancelled(fromStatus)) {
-      throw new Error('سفارش لغو شده در وضعیت پایانی است و قابل بازگشایی یا تغییر وضعیت نیست.')
-    }
-    if (fromStatus === 'completed') {
-      throw new Error('سفارش تکمیل شده در وضعیت نهایی است و قابل تغییر نیست.')
-    }
-
-    // Allowed transitions from pending:
-    // pending -> approve
-    // pending -> cancelled_by_customer | cancelled_by_admin | cancel
-    if (fromStatus === 'pending') {
-      const allowed = ['pending', 'approve', 'cancelled_by_customer', 'cancelled_by_admin', 'cancel']
-      if (!allowed.includes(toStatus)) {
-        throw new Error(`انتقال وضعیت از '${fromStatus}' به '${toStatus}' مجاز نیست.`)
-      }
-    }
-
-    // Allowed transitions from approve:
-    // approve -> completed | cancelled_by_admin (staff cancellation before delivery)
-    if (fromStatus === 'approve') {
-      const allowed = ['approve', 'completed', 'cancelled_by_admin']
-      if (!allowed.includes(toStatus)) {
-        throw new Error(`انتقال وضعیت از حواله صادرشده (${fromStatus}) به ${toStatus} مجاز نیست.`)
-      }
-    }
-
-    // If status changed, record timeline entry
-    if (toStatus !== fromStatus) {
-      const existingTimeline = Array.isArray(originalDoc.timeline) ? originalDoc.timeline : []
-      const newEntry = {
-        timestamp: new Date().toISOString(),
-        status: toStatus,
-      }
-      data.timeline = [...existingTimeline, newEntry]
-    }
+  if (!originalDoc) throw new Error('Missing original order')
+  for (const key of ['user', 'warehouse']) {
+    if (data[key] !== undefined && !sameRelation(data[key], originalDoc[key])) fieldError(key, 'مشتری و انبار سفارش پس از ثبت قابل تغییر نیستند.')
   }
-
+  for (const key of ['createdAt', 'trackingNumber', 'orderNumber', 'idempotencyKey', 'requestFingerprint', 'warehouseName', 'warehouseCode', 'subtotal', 'discountAmount', 'taxAmount', 'finalTotal']) {
+    if (data[key] !== undefined && (data[key] ?? null) !== (originalDoc[key] ?? null)) fieldError(key, 'این مقدار پس از ثبت سفارش قابل تغییر نیست.')
+  }
+  if (data.items !== undefined && !sameItems(data.items, originalDoc.items)) fieldError('items', 'ویرایش اقلام سفارش پس از ثبت ممنوع است؛ سفارش را لغو و مجدداً ثبت کنید.')
+  if (data.timeline !== undefined && !sameTimeline(data.timeline, originalDoc.timeline)) fieldError('timeline', 'گاه‌شمار سفارش فقط توسط سامانه ثبت می‌شود.')
+  const from = originalDoc.status
+  let to = data.status === undefined ? from : data.status
+  if (to === 'cancel' && from !== 'cancel') to = data.cancelledBy === 'customer' ? 'cancelled_by_customer' : 'cancelled_by_admin'
+  const terminal = from === 'completed' || cancelled(from)
+  const allowed = terminal ? [from] : from === 'pending'
+    ? ['pending', 'approve', 'cancelled_by_customer', 'cancelled_by_admin']
+    : from === 'approve' ? ['approve', 'completed', 'cancelled_by_admin'] : [from]
+  if (!allowed.includes(to)) throw businessError('تغییر وضعیت انتخاب‌شده برای این سفارش مجاز نیست.', 'INVALID_STATUS_TRANSITION')
+  if (terminal && data.deliveryAddress !== undefined && (data.deliveryAddress ?? '') !== (originalDoc.deliveryAddress ?? '')) fieldError('deliveryAddress', 'پس از تکمیل یا لغو سفارش فقط یادداشت قابل ویرایش است.')
+  const changed = to !== from
+  const actor = to === 'cancelled_by_customer' ? 'customer' : to === 'cancelled_by_admin' ? 'admin' : originalDoc.cancelledBy ?? null
+  if (!changed && data.cancelledBy !== undefined && (data.cancelledBy ?? null) !== (originalDoc.cancelledBy ?? null)) fieldError('cancelledBy', 'مرجع لغو فقط هنگام لغو سفارش تعیین می‌شود.')
+  data.status = to
+  if (changed) {
+    data.cancelledBy = cancelled(to) ? actor : null
+    data.timeline = [...(originalDoc.timeline ?? []), { timestamp: new Date().toISOString(), status: to }]
+  }
   return data
 }

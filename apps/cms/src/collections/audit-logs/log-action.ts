@@ -1,3 +1,6 @@
+import { sql } from '@payloadcms/db-postgres'
+import { getOrderTransaction } from '../orders/_transaction'
+import type { PayloadRequest } from 'payload'
 import type { Payload } from 'payload'
 
 export interface LogActionParams {
@@ -17,7 +20,7 @@ export interface LogActionParams {
   entity: 'products' | 'users' | 'admins' | 'auth' | 'orders'
   target: string
   details?: string
-  req?: any
+  req?: PayloadRequest
   adminId?: string | number | null
   adminName?: string | null
   ip?: string | null
@@ -56,6 +59,9 @@ export async function logAction({
   adminName,
   ip,
 }: LogActionParams) {
+  const transaction = req?.payload.db.name === 'postgres' && await req.transactionID != null ? await getOrderTransaction(req) : null
+  // Audit writes are sequential within a request; a savepoint contains a rejected insert.
+  if (transaction) await transaction.execute(sql`SAVEPOINT audit_write`)
   try {
     const finalIp = ip || (req ? getClientIp(req) : '')
     const finalAdminId =
@@ -70,7 +76,12 @@ export async function logAction({
         ? req.user.name || req.user.email || `مدیر #${req.user.id}`
         : 'سیستم')
 
-    await payload.create({
+    if (transaction) {
+      // Nested Payload operations roll back their entire transaction on error, even with a savepoint.
+      // This internal audit insert uses the owning session directly so only its savepoint is rolled back.
+      await transaction.execute(sql`INSERT INTO audit_logs (action, entity, target, details, admin_id, admin_name, ip, created_at, updated_at)
+        VALUES (${action}, ${entity}, ${target}, ${details || ''}, ${finalAdminId ? Number(finalAdminId) : null}, ${finalAdminName}, ${finalIp}, NOW(), NOW())`)
+    } else await payload.create({
       collection: 'audit-logs',
       data: {
         action,
@@ -84,8 +95,13 @@ export async function logAction({
       req,
       context: { skipLogging: true },
     })
+    if (transaction) await transaction.execute(sql`RELEASE SAVEPOINT audit_write`)
   } catch (err) {
+    if (transaction) {
+      await transaction.execute(sql`ROLLBACK TO SAVEPOINT audit_write`)
+      await transaction.execute(sql`RELEASE SAVEPOINT audit_write`)
+    }
     // Logging failure should not disrupt business flow
-    console.error('Audit log write error:', err)
+    console.error('Audit log write failed', { name: err instanceof Error ? err.name : 'UnknownError' })
   }
 }

@@ -36,7 +36,10 @@ test('catalog SQL applies permissions, search, stock and price order before pagi
       return (await pool.query<{ id: number; total: number }>(query.text, query.params)).rows
     }
     assert.equal((await read())[0]!.total, 325)
-    assert.equal((await read())[0]!.id, 649)
+    assert.equal((await read({ sort: 'newest' }))[0]!.id, 649)
+    await pool.query("UPDATE products SET name = CASE id WHEN 1 THEN 'آزمایش الف' WHEN 3 THEN 'آزمایش ب' WHEN 5 THEN 'آزمایش الف' ELSE name END WHERE id IN (1,3,5)")
+    assert.deepEqual((await read({ search: 'آزمایش', limit: 2, page: 1 })).map(row => row.id), [1, 5])
+    assert.deepEqual((await read({ search: 'آزمایش', limit: 2, page: 2 })).map(row => row.id), [3])
     assert.deepEqual((await read({ search: 'SKU-649' })).map(row => row.id), [649])
     assert.deepEqual((await read({ search: 'ویژه' })).map(row => row.id), [649])
     assert.deepEqual((await read({ tags: ['ویژه'], grades: ['درجه ۱'], dimension: '60×120', brands: ['برند الف'] })).map(row => row.id), [649])

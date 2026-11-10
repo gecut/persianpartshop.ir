@@ -1,26 +1,9 @@
 import type { CollectionAfterReadHook } from 'payload'
 
 export const personalizePlanAfterRead: CollectionAfterReadHook = ({ doc, context }) => {
-  const contextName =
-    (context as any)?.name ||
-    (context as any)?.user?.fullName ||
-    (context as any)?.user?.companyName
-
-  if (contextName) {
-    doc.dynamicTitle = `${contextName} عزیز، این طرح برای شماست`
-    const replaceText = (str: string) => {
-      if (!str) return str
-      return str
-        .replace(/\{\{\s*user\.name\s*\}\}/gi, contextName)
-        .replace(/\{\{\s*name\s*\}\}/gi, contextName)
-        .replace(/\{name\}/gi, contextName)
-        .replace(/\[نام\s*کاربر\]/gi, contextName)
-    }
-    if (doc.title) doc.title = replaceText(doc.title)
-    if (doc.content) doc.content = replaceText(doc.content)
-  } else {
-    doc.dynamicTitle = doc.title
-  }
-
-  return doc
+  const user: unknown = context?.user
+  const contextUser = user && typeof user === 'object' ? user : null
+  const name = context?.name || (contextUser && 'fullName' in contextUser ? contextUser.fullName : null) || (contextUser && 'companyName' in contextUser ? contextUser.companyName : null)
+  // Customer DTO mapping owns interpolation; raw templates remain safe to round-trip through admin.
+  return { ...doc, dynamicTitle: typeof name === 'string' && name ? name + ' عزیز، این طرح برای شماست' : doc.title }
 }

@@ -46,19 +46,20 @@ export function useProducts(supplyMode = false) {
   useEffect(() => { const timer = setTimeout(() => setSearch(queryFilters.q), 300); return () => clearTimeout(timer) }, [queryFilters.q]);
   const browseInput = useMemo(() => ({ search, dimension: queryFilters.dimension, brands: queryFilters.brands, colors: queryFilters.colors, grades: queryFilters.grades, tags: queryFilters.tags, category: queryFilters.category, inStock: queryFilters.inStock, supplyMode, sort: queryFilters.sort, limit: 24 }), [search, queryFilters, supplyMode]);
   const needsBrowse = !!(search.trim() || queryFilters.dimension || queryFilters.brands.length || queryFilters.colors.length || queryFilters.grades.length || queryFilters.tags.length || queryFilters.category || queryFilters.inStock || supplyMode || queryFilters.sort !== 'default');
+  const useRemoteBrowse = queryFilters.sort === 'default' || (!catalog.complete && needsBrowse);
   const browse = useInfiniteQuery({
     queryKey: queryKeys.products.browse(owner, browseInput),
     queryFn: ({ pageParam, signal }) => catalogCoordinator.browse({ ...browseInput, page: pageParam }, signal),
     initialPageParam: 1,
     getNextPageParam: (last, pages) => last.hasMore ? pages.length + 1 : undefined,
-    enabled: !!owner && !catalog.complete && needsBrowse && search === queryFilters.q,
+    enabled: !!owner && useRemoteBrowse && search === queryFilters.q,
     staleTime: 120_000,
   });
   const error = browse.error ?? catalog.error;
-  const isFetching = catalog.fetching || (!catalog.complete && browse.isFetching);
-  const isLoading = !productsList.length && !error;
+  const isFetching = catalog.fetching || (useRemoteBrowse && browse.isFetching);
+  const isLoading = useRemoteBrowse ? !browse.data && !error : !productsList.length && !error;
   const isLiveConnected = !error;
-  const refetch = () => catalogCoordinator.refresh();
+  const refetch = () => { if (useRemoteBrowse) void browse.refetch(); return catalogCoordinator.refresh(); };
 
   const filters: FilterState = useMemo(
     () => ({
@@ -287,11 +288,11 @@ export function useProducts(supplyMode = false) {
   };
 
   return {
-    products: !catalog.complete && browse.data && search === queryFilters.q && needsBrowse
-      ? browse.data.pages.flatMap(page => page.ids).flatMap(id => productsList.find(product => product.id === id) ?? [])
+    products: useRemoteBrowse
+      ? (browse.data?.pages.flatMap(page => page.ids).flatMap(id => productsList.find(product => product.id === id) ?? []) ?? [])
       : filteredProducts,
-    hasRemoteMore: !catalog.complete && needsBrowse && !!browse.hasNextPage,
-    loadMore: () => { if (!catalog.complete && browse.hasNextPage && !browse.isFetching) void browse.fetchNextPage() },
+    hasRemoteMore: useRemoteBrowse && !!browse.hasNextPage,
+    loadMore: () => { if (useRemoteBrowse && browse.hasNextPage && !browse.isFetching) void browse.fetchNextPage() },
     complete: catalog.complete,
     allProducts: productsList,
     dimensions: dimensionsQuery.data ?? [],

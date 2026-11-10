@@ -1,3 +1,4 @@
+import { businessError } from '../../lib/validation'
 import type { CollectionBeforeChangeHook } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getOrderTransaction } from './_transaction'
@@ -57,7 +58,7 @@ export const applyReservationBeforeChange: CollectionBeforeChangeHook = async ({
     `)
     const current = locked.rows[0]
     if (locked.rows.length !== 1 || current?.status !== originalDoc.status) {
-      throw new Error('Order status changed. Reload the order before updating.')
+      throw businessError('وضعیت سفارش تغییر کرده است؛ صفحه را دوباره دریافت کنید.', 'STALE_ORDER')
     }
   }
 
@@ -79,7 +80,7 @@ export const applyReservationBeforeChange: CollectionBeforeChangeHook = async ({
     !isCancelledStatus(originalDoc.status)
   ) {
     if (originalDoc.status !== 'pending' && originalDoc.status !== 'approve') {
-      throw new Error(`سفارش در وضعیت '${originalDoc.status}' قابل لغو نیست.`)
+      throw businessError(`سفارش در وضعیت '${originalDoc.status}' قابل لغو نیست.`)
     }
 
     const items = reservationItems(originalDoc.items)
