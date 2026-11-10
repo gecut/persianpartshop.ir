@@ -38,8 +38,6 @@ services:
       CMS_API_KEY: ${CMS_API_KEY}
       CDN_URL: ${CDN_URL:-https://${CDN_DOMAIN:-cdn.persianpart.shop}}
       CORS_ORIGINS: ${CORS_ORIGINS:-https://${CMS_DOMAIN:-admin.persianpart.shop},https://${WEB_DOMAIN:-persianpart.shop},https://${API_DOMAIN:-api.persianpart.shop},https://${CDN_DOMAIN:-cdn.persianpart.shop},http://localhost:3000,http://localhost:5173,http://localhost:5174,http://localhost:5175}
-      KAVENEGAR_API_KEY: ${KAVENEGAR_API_KEY:-46437751615871547A59364B75376339706E72384266734A596F3476644B653641356171462F557A5747383D}
-      KAVENEGAR_OTP_TEMPLATE: ${KAVENEGAR_OTP_TEMPLATE:-gcotp}
       MEDIA_DIR: /app/media
     volumes:
       - persianpart_media_data:/app/media
