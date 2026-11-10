@@ -2,8 +2,7 @@ import { catalogScope } from './catalog-sync'
 import { base } from '../rpc/base'
 import { ORPCError } from '@orpc/server'
 import { generateToken } from '../lib/jwt'
-import { sendKavenegarOtp } from '../lib/kavenegar'
-import { createOtp, verifyOtp as verifyStoredOtp, invalidateOtp, normalizeDigits } from '../lib/otp'
+import { createOtp, verifyOtp as verifyStoredOtp, normalizeDigits } from '../lib/otp'
 import {
   toPersianDigits,
   findUserByPhone,
@@ -56,24 +55,8 @@ async function processRequestOtp(rawPhone: string) {
     otpData = await createOtp(phone, userDoc.id)
   } catch (err: any) {
     throw new ORPCError('BAD_REQUEST', {
-      message: err.message || 'لطفاً کمی صبر کنید و دوباره تلاش نمایید.',
+      message: err.message || 'خطا در صدور یا ارسال کد تایید. لطفاً کمی صبر کنید و دوباره تلاش نمایید.',
     })
-  }
-
-  try {
-    await sendKavenegarOtp({
-      receptor: phone,
-      token: otpData.code,
-      template: 'gcotp',
-    })
-  } catch (smsErr) {
-    // Invalidate the issued code if SMS sending fails
-    await invalidateOtp(phone, otpData.code)
-    if (process.env.NODE_ENV === 'production') {
-      throw new ORPCError('INTERNAL_SERVER_ERROR', {
-        message: 'خطا در ارسال پیامک کد تایید از طریق وب‌سرویس. لطفاً لحظاتی بعد مجدداً تلاش کنید.',
-      })
-    }
   }
 
   return {
