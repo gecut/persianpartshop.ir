@@ -1,10 +1,10 @@
-import { sendAfterCommit } from '../../lib/committed-sms'
 import { fieldError } from '../../lib/validation'
-import type { CollectionConfig } from "payload";
-import { personalizePlanAfterRead } from "./_personalize-plan.after-read";
-import { isSalesManager, canManagePlans } from "../../access/roles";
-import { logAction } from "../audit-logs/log-action";
-import { sendSmsNotification } from "../../lib/sms";
+import type { CollectionConfig } from 'payload'
+import { personalizePlanAfterRead } from './_personalize-plan.after-read'
+import { isSalesManager, canManagePlans } from '../../access/roles'
+import { logAction } from '../audit-logs/log-action'
+import { SMS_TEMPLATES } from '../../modules/sms/constants'
+import { enqueueSms } from '../../modules/sms/queue-service'
 
 export const Plans: CollectionConfig = {
   slug: "plans",
@@ -50,45 +50,52 @@ export const Plans: CollectionConfig = {
             : "ویرایش مشخصات طرح فروش اختصاصی",
         });
 
-        // 2. Send SMS to newly assigned users
+        // 2. Enqueue SMS to newly assigned users (only for active plans)
         try {
+          if (doc.isActive === false) return;
+
           const currentUsers: number[] = Array.isArray(doc.users)
             ? doc.users.map((u: any) =>
-                typeof u === "object" && u !== null ? u.id : Number(u),
+                typeof u === 'object' && u !== null ? u.id : Number(u),
               )
-            : [];
+            : []
 
           const prevUsers: number[] = Array.isArray(previousDoc?.users)
             ? previousDoc.users.map((u: any) =>
-                typeof u === "object" && u !== null ? u.id : Number(u),
+                typeof u === 'object' && u !== null ? u.id : Number(u),
               )
-            : [];
+            : []
+
+          const wasActive = previousDoc?.isActive !== false
+          const newlyActivated = !isCreate && !wasActive && doc.isActive === true
 
           const newRecipientIds = currentUsers.filter(
-            (id) => isCreate || !prevUsers.includes(id),
-          );
+            (id) => isCreate || newlyActivated || !prevUsers.includes(id),
+          )
 
           if (newRecipientIds.length > 0) {
+            const planTitle = (doc.title || 'پیشنهاد ویژه').trim().slice(0, 40)
             for (const userId of newRecipientIds) {
               const userDoc: any = await req.payload.findByID({
-                collection: "users",
+                collection: 'users',
                 req,
                 id: userId,
                 depth: 0,
-              });
+                overrideAccess: true,
+              })
 
               if (userDoc?.phone) {
-                const planTitle = doc.title || "پیشنهاد ویژه";
-                const smsMessage = `همکار گرامی ${userDoc.fullName || ""}\nطرح اختصاصی «${planTitle}» برای شما فعال شد.\nمشاهده جزئیات: persianpartshop.ir/plans`;
-
-                await sendAfterCommit(req, `plan:${doc.id}:user:${userId}`, async () => {
-                  await sendSmsNotification({ receptor: userDoc.phone, message: smsMessage })
-                });
+                await enqueueSms(req.payload, {
+                  receptor: userDoc.phone,
+                  template: SMS_TEMPLATES.PLAN_ASSIGNED,
+                  tokens: { token: planTitle },
+                  req,
+                })
               }
             }
           }
         } catch (smsErr) {
-          console.error("Plan SMS dispatch error:", smsErr);
+          req.payload.logger.error({ msg: '[PlanSMS] Error enqueueing plan SMS', err: smsErr })
         }
       },
     ],

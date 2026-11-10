@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import { isSuperAdmin } from '../../access/roles'
 import { isServiceAdmin } from './_otp-access'
+import { sendOtpBeforeChange } from './_send-otp.before-change'
 
 export const Otps: CollectionConfig = {
   slug: 'otps',
@@ -26,6 +27,7 @@ export const Otps: CollectionConfig = {
       if (operation === 'update' && data?.code === null && originalDoc?.expiresAt && new Date(originalDoc.expiresAt).getTime() <= Date.now()) delete data.code
       return data
     }],
+    beforeChange: [sendOtpBeforeChange],
     afterRead: [
       ({ doc }: any) => {
         if (doc && doc.expiresAt && doc.code) {

@@ -83,6 +83,7 @@ export interface Config {
     media: Media;
     admins: Admin;
     'audit-logs': AuditLog;
+    'sms-queue': SmsQueue;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -106,6 +107,7 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     admins: AdminsSelect<false> | AdminsSelect<true>;
     'audit-logs': AuditLogsSelect<false> | AuditLogsSelect<true>;
+    'sms-queue': SmsQueueSelect<false> | SmsQueueSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -115,8 +117,12 @@ export interface Config {
     defaultIDType: number;
   };
   fallbackLocale: null;
-  globals: {};
-  globalsSelect: {};
+  globals: {
+    'notification-settings': NotificationSetting;
+  };
+  globalsSelect: {
+    'notification-settings': NotificationSettingsSelect<false> | NotificationSettingsSelect<true>;
+  };
   locale: null;
   widgets: {
     collections: CollectionsWidget;
@@ -820,6 +826,42 @@ export interface AuditLog {
   createdAt: string;
 }
 /**
+ * صف و تاریخچه ارسال پیامک‌های سیستمی.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sms-queue".
+ */
+export interface SmsQueue {
+  id: number;
+  receptor: string;
+  template:
+    | 'otp'
+    | 'order-registered'
+    | 'order-approved'
+    | 'order-cancelled'
+    | 'admin-new-order'
+    | 'admin-order-cancelled'
+    | 'supply-result'
+    | 'admin-new-supply-request'
+    | 'plan-assigned';
+  tokens:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  status: 'pending' | 'retry_scheduled' | 'sent' | 'failed';
+  attempts: number;
+  lastError?: string | null;
+  nextRetryAt?: string | null;
+  sentAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -906,6 +948,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'audit-logs';
         value: number | AuditLog;
+      } | null)
+    | ({
+        relationTo: 'sms-queue';
+        value: number | SmsQueue;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -1305,6 +1351,22 @@ export interface AuditLogsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sms-queue_select".
+ */
+export interface SmsQueueSelect<T extends boolean = true> {
+  receptor?: T;
+  template?: T;
+  tokens?: T;
+  status?: T;
+  attempts?: T;
+  lastError?: T;
+  nextRetryAt?: T;
+  sentAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv_select".
  */
 export interface PayloadKvSelect<T extends boolean = true> {
@@ -1342,6 +1404,44 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * مدیریت شماره‌های تماس مدیران جهت دریافت پیامک‌های سیستمی و نوتیفیکیشن‌ها
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "notification-settings".
+ */
+export interface NotificationSetting {
+  id: number;
+  adminPhones?:
+    | {
+        phone: string;
+        name?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  enableOrderNotifications?: boolean | null;
+  enableSupplyNotifications?: boolean | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "notification-settings_select".
+ */
+export interface NotificationSettingsSelect<T extends boolean = true> {
+  adminPhones?:
+    | T
+    | {
+        phone?: T;
+        name?: T;
+        id?: T;
+      };
+  enableOrderNotifications?: T;
+  enableSupplyNotifications?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

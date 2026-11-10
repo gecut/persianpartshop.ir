@@ -4,6 +4,7 @@ import { applyReservationBeforeChange } from './_apply-reservation.before-change
 import { validateTransitionBeforeChange } from './_validate-transition.before-change'
 import { isSalesManager, canCreateOrder, canUpdateOrder } from '../../access/roles'
 import { lockOrderBeforeOperation } from './_lock-order.before-operation'
+import { notifyOrderAfterChange } from './_notify-order.after-change'
 
 export const Orders: CollectionConfig = {
   slug: 'orders',
@@ -27,6 +28,7 @@ export const Orders: CollectionConfig = {
     beforeOperation: [lockOrderBeforeOperation],
     beforeValidate: [prepareOrderBeforeValidate],
     beforeChange: [validateTransitionBeforeChange, applyReservationBeforeChange],
+    afterChange: [notifyOrderAfterChange],
   },
   fields: [
     { name: 'trackingNumber', type: 'number', required: true, unique: true, label: 'شمارهٔ پیگیری', admin: { readOnly: true } },

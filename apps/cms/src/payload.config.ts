@@ -26,6 +26,9 @@ import { Warehouses } from './collections/warehouses/warehouses.collection'
 import { WarehouseStock } from './collections/warehouse-stock/warehouse-stock.collection'
 import { SupplyRequests } from './collections/supply-requests/supply-requests.collection'
 import { AuditLogs } from './collections/audit-logs'
+import { SmsQueue } from './collections/sms-queue/sms-queue.collection'
+import { NotificationSettings } from './globals/notification-settings.global'
+import { startSmsQueueWorker } from './modules/sms/queue-worker'
 import { activityFeedEndpoint } from './endpoints/activity-feed.endpoint'
 import { catalogBrowseEndpoint, planBrowseEndpoint } from './endpoints/catalog-browse.endpoint'
 
@@ -45,7 +48,12 @@ if (process.env.NODE_ENV === 'production' && !isBuildPhase && !process.env.PAYLO
 
 export default buildConfig({
   hooks: { afterError: [describeDeleteConflict] },
-  onInit: async payload => { installCommittedSms(payload) },
+  onInit: async payload => {
+    installCommittedSms(payload)
+    if (!isBuildPhase) {
+      startSmsQueueWorker(payload)
+    }
+  },
   i18n: {
     fallbackLanguage: 'fa',
     supportedLanguages: { fa },
@@ -140,7 +148,10 @@ export default buildConfig({
     Media,
     Admins,
     AuditLogs,
+    // پیامک و صف اعلان‌ها
+    SmsQueue,
   ]),
+  globals: [NotificationSettings],
   endpoints: [activityFeedEndpoint, catalogBrowseEndpoint, planBrowseEndpoint],
   editor: lexicalEditor(),
   graphQL: {

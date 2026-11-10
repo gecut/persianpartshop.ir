@@ -1,11 +1,12 @@
-import { sendAfterCommit } from '../../lib/committed-sms'
 import { businessError, fieldError } from '../../lib/validation'
 import { nextTrackingNumber } from '../../lib/tracking-number'
 import { createHash } from 'node:crypto'
 import { sql } from '@payloadcms/db-postgres'
 import type { CollectionConfig } from 'payload'
 import { getAdminUser, isSalesManager } from '../../access/roles'
-import { sendSmsNotification } from '../../lib/sms'
+import { SMS_TEMPLATES } from '../../modules/sms/constants'
+import { enqueueSms } from '../../modules/sms/queue-service'
+import { getNotificationSettings } from '../../globals/notification-settings.global'
 import { getOrderTransaction } from '../orders/_transaction'
 import { calculateSupplyEstimate, getSalesFactor } from '../products/_inventory-math'
 
@@ -140,16 +141,56 @@ export const SupplyRequests: CollectionConfig = {
       })
       return data
     }],
-    afterChange: [async ({ doc, previousDoc, operation, req }) => {
-      if (operation !== 'update' || doc.status === previousDoc.status || !['supplied', 'unavailable'].includes(doc.status)) return
+    afterChange: [async ({ doc, previousDoc, operation, req, context }) => {
+      if (context?.skipSms) return
       try {
-        const webUrl = process.env.WEB_URL?.replace(/\/+$/, '')
-        if (!webUrl) { console.error('[SMS] Web URL is not configured'); return }
-        const user = await req.payload.findByID({ collection: 'users', id: idOf(doc.user), depth: 0, req })
-        if (user.phone) await sendAfterCommit(req, `supply:${doc.id}:${doc.status}`, async () => {
-          await sendSmsNotification({ receptor: user.phone, message: `نتیجه درخواست ${doc.trackingNumber} ثبت شد. مشاهده: ${webUrl}/orders?view=supply&requestId=${doc.id}` })
-        })
-      } catch { console.error('[SMS] Supply notification failed') }
+        const settings = await getNotificationSettings(req.payload, req)
+        if (!settings.enableSupplyNotifications) return
+
+        const isCreate = operation === 'create'
+        const trackingToken = String(doc.trackingNumber ?? doc.requestNumber ?? doc.id)
+        const userId = idOf(doc.user)
+        let userDoc: any = null
+        if (userId) {
+          try {
+            userDoc = await req.payload.findByID({ collection: 'users', id: userId, depth: 0, req, overrideAccess: true })
+          } catch {
+            // User lookup fallback
+          }
+        }
+        const customerName = userDoc?.fullName || userDoc?.companyName || userDoc?.name || 'مشتری'
+        const customerPhone = userDoc?.phone || ''
+
+        if (isCreate) {
+          if (settings.adminPhones.length > 0) {
+            for (const adminPhone of settings.adminPhones) {
+              await enqueueSms(req.payload, {
+                receptor: adminPhone,
+                template: SMS_TEMPLATES.ADMIN_NEW_SUPPLY_REQUEST,
+                tokens: {
+                  token: trackingToken,
+                  token2: customerName,
+                },
+                req,
+              })
+            }
+          }
+          return
+        }
+
+        if (operation === 'update' && previousDoc && doc.status !== previousDoc.status && ['supplied', 'unavailable'].includes(doc.status)) {
+          if (customerPhone) {
+            await enqueueSms(req.payload, {
+              receptor: customerPhone,
+              template: SMS_TEMPLATES.SUPPLY_RESULT,
+              tokens: { token: trackingToken },
+              req,
+            })
+          }
+        }
+      } catch (err) {
+        req.payload.logger.error({ msg: '[SupplyRequestSMS] Supply notification failed', err })
+      }
     }],
   },
   fields: [
