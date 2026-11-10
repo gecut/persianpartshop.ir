@@ -13,11 +13,28 @@ function sameItems(incoming: unknown, stored: unknown): boolean {
   })
 }
 
+function sameTimestamp(incoming: unknown, stored: unknown): boolean {
+  if (incoming == null || incoming === '') return stored == null || stored === ''
+  if (!(typeof incoming === 'string' || incoming instanceof Date) || !(typeof stored === 'string' || stored instanceof Date)) return false
+  const time = new Date(incoming).getTime()
+  return Number.isFinite(time) && time === new Date(stored).getTime()
+}
+
+function sameEvent(incoming: unknown, stored: unknown): boolean {
+  if (!incoming || !stored || typeof incoming !== 'object' || typeof stored !== 'object' || Array.isArray(incoming) || Array.isArray(stored)) return false
+  const status = 'status' in incoming ? incoming.status : null
+  const oldStatus = 'status' in stored ? stored.status : null
+  return (status ?? '') === (oldStatus ?? '') && sameTimestamp(
+    'timestamp' in incoming ? incoming.timestamp : null,
+    'timestamp' in stored ? stored.timestamp : null,
+  )
+}
+
 function sameTimeline(incoming: unknown, stored: unknown): boolean {
   const old = stored ?? []
   if (incoming == null && Array.isArray(old) && old.length === 0) return true
-  return Array.isArray(incoming) && Array.isArray(old) && incoming.length === old.length && incoming.every((entry, i) =>
-    ['id', 'status', 'timestamp'].every(key => (entry[key] ?? null) === (old[i]?.[key] ?? null)))
+  // Form-generated row IDs and equivalent date serializations are not history edits.
+  return Array.isArray(incoming) && Array.isArray(old) && incoming.length === old.length && incoming.every((entry, i) => sameEvent(entry, old[i]))
 }
 
 export const validateTransitionBeforeChange: CollectionBeforeChangeHook = async ({ data, originalDoc, operation }) => {
@@ -36,7 +53,11 @@ export const validateTransitionBeforeChange: CollectionBeforeChangeHook = async 
     if (data[key] !== undefined && (data[key] ?? null) !== (originalDoc[key] ?? null)) fieldError(key, 'این مقدار پس از ثبت سفارش قابل تغییر نیست.')
   }
   if (data.items !== undefined && !sameItems(data.items, originalDoc.items)) fieldError('items', 'ویرایش اقلام سفارش پس از ثبت ممنوع است؛ سفارش را لغو و مجدداً ثبت کنید.')
-  if (data.timeline !== undefined && !sameTimeline(data.timeline, originalDoc.timeline)) fieldError('timeline', 'گاه‌شمار سفارش فقط توسط سامانه ثبت می‌شود.')
+  if (data.timeline !== undefined) {
+    if (!sameTimeline(data.timeline, originalDoc.timeline)) fieldError('timeline', 'گاه‌شمار سفارش فقط توسط سامانه ثبت می‌شود.')
+    // Never persist the client echo, including its row IDs and timestamp representation.
+    data.timeline = originalDoc.timeline
+  }
   const from = originalDoc.status
   let to = data.status === undefined ? from : data.status
   if (to === 'cancel' && from !== 'cancel') to = data.cancelledBy === 'customer' ? 'cancelled_by_customer' : 'cancelled_by_admin'

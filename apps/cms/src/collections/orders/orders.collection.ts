@@ -51,16 +51,17 @@ export const Orders: CollectionConfig = {
       label: 'وضعیت سفارش',
       admin: {
         position: 'sidebar',
-        description: 'مرحله جاری پردازش در انبار و حسابداری.',
+        description: 'پس از بررسی، حواله را صادر و پس از تحویل، سفارش را تکمیل کنید.',
       },
       options: [
-        { label: 'سفارش ثبت شده (در حال بررسی)', value: 'pending' },
-        { label: 'حواله ثبت شده (تکمیل شده)', value: 'approve' },
-        { label: 'تکمیل شده', value: 'completed' },
-        { label: 'لغو توسط کاربر', value: 'cancelled_by_customer' },
-        { label: 'لغو توسط ادمین', value: 'cancelled_by_admin' },
-        { label: 'لغو شده', value: 'cancel' },
+        { label: 'ثبت‌شده (در انتظار بررسی)', value: 'pending' },
+        { label: 'حواله صادرشده (در انتظار تحویل)', value: 'approve' },
+        { label: 'تکمیل‌شده (تحویل نهایی)', value: 'completed' },
+        { label: 'لغوشده توسط مشتری', value: 'cancelled_by_customer' },
+        { label: 'لغوشده توسط مدیریت', value: 'cancelled_by_admin' },
+        { label: 'لغوشده (سابقهٔ قدیمی)', value: 'cancel' },
       ],
+      filterOptions: ({ options, data }) => options.filter(option => typeof option === 'string' || option.value !== 'cancel' || data.status === 'cancel'),
     },
     {
       name: 'orderNumber',
@@ -266,7 +267,7 @@ export const Orders: CollectionConfig = {
 
 function protectOrderFields(fields: Field[]): void {
   for (const field of fields) {
-    if (field.type !== 'ui' && 'name' in field && ['orderNumber', 'user', 'warehouse', 'items', 'subtotal', 'discountAmount', 'taxAmount', 'finalTotal'].includes(field.name)) {
+    if (field.type !== 'ui' && 'name' in field && ['orderNumber', 'user', 'warehouse', 'items', 'subtotal', 'discountAmount', 'taxAmount', 'finalTotal', 'timeline'].includes(field.name)) {
       field.access = { ...field.access, update: () => false }
     }
     if ('fields' in field) protectOrderFields(field.fields)

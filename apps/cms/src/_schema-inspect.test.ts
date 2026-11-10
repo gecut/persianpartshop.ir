@@ -358,7 +358,9 @@ test('full migrations: schema coverage, CRUD, and warehouse rollback', { skip: !
     assert.equal(order.items[0]!.productSku, product.sku)
     const form = await payload.findByID({ collection: 'orders', id: order.id, depth: 2 })
     const formItems = form.items.map(item => Object.fromEntries(Object.entries(item).reverse()))
-    await payload.update({ collection: 'orders', id: order.id, user: supportActor, overrideAccess: false, data: { ...form, items: formItems, notes: 'full form note', deliveryAddress: 'address' } as never })
+    const echoedTimeline = form.timeline?.map(({ id: _id, ...event }) => ({ ...event, timestamp: event.timestamp?.replace('Z', '+00:00') }))
+    const formSaved = await payload.update({ collection: 'orders', id: order.id, user: supportActor, overrideAccess: false, data: { ...form, items: formItems, timeline: echoedTimeline, notes: 'full form note', deliveryAddress: 'address' } as never })
+    assert.deepEqual(formSaved.timeline, form.timeline, 'form row IDs and date formatting must not replace persisted history')
     await assert.rejects(payload.update({ collection: 'orders', id: order.id, user: managerActor, overrideAccess: false, data: { user: null } as never }))
     await assert.rejects(payload.update({ collection: 'orders', id: order.id, data: { timeline: [{ status: 'completed' }] } }))
     await assert.rejects(payload.update({ collection: 'products', id: product.id, data: { sqmPerCarton: 2 } }), error => error instanceof Error && 'data' in error && (error.data as { code?: string }).code === 'PACKAGING_HAS_OPEN_ACTIVITY')
@@ -403,9 +405,11 @@ test('full migrations: schema coverage, CRUD, and warehouse rollback', { skip: !
       collection: 'orders',
       id: order.id,
       user: { ...service, collection: 'admins' },
-      data: { status: 'approve' },
+      data: { status: 'approve', timeline: echoedTimeline },
     })
     assert.equal(approved.status, 'approve')
+    assert.deepEqual(approved.timeline?.[0], form.timeline?.[0])
+    assert.equal(approved.timeline?.length, (form.timeline?.length ?? 0) + 1)
 
     // Activity Feed Endpoint check (CTE query in PostgreSQL)
     const feedReq = await createLocalReq({ user: { ...service, role: 'service', collection: 'admins' } }, payload)

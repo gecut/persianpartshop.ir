@@ -420,7 +420,7 @@ export interface Order {
   warehouseCode?: string | null;
   idempotencyKey?: string | null;
   /**
-   * مرحله جاری پردازش در انبار و حسابداری.
+   * پس از بررسی، حواله را صادر و پس از تحویل، سفارش را تکمیل کنید.
    */
   status: 'pending' | 'approve' | 'completed' | 'cancelled_by_customer' | 'cancelled_by_admin' | 'cancel';
   /**

@@ -4,6 +4,8 @@
 
 Open orders allow status, delivery address and notes changes. Completed/cancelled orders allow notes only. Identity, financial amounts, line snapshots and timeline are server-owned. Order guards inspect raw input under the order lock before Payload removes fields denied by field permissions; this lets the admin display disabled controls without silently accepting attempts to change protected values.
 
+Timeline form echoes compare event statuses and timestamp instants, tolerating equivalent timezone/precision formats and generated/missing form row IDs. Valid echoes are discarded in favor of persisted history; real event changes remain rejected. Status changes append exactly one server-owned event. Admin labels distinguish review, voucher issuance and final delivery; the legacy generic cancellation option is shown only on existing legacy records.
+
 Packaging changes are blocked by pending/approved orders and new/reviewing supply requests. Product/warehouse identity on balances is permanent. Managers can edit activity/report metadata; numeric balances and revisions belong to reservation, restoration and CSV operations. Inactive balances never fulfill a purchase, but cancellation can restore their original reservation.
 
 Reference deletion checks cover configured relationship/upload fields, arrays and many-to-many fields. Database foreign keys protect the same dependencies during races. Child ownership cascades remain intact. Ordinary delete errors name a blocking record and explain whether to remove the relationship or deactivate the reference instead.
@@ -50,3 +52,5 @@ No test requires modifying the application database. An unset live-test variable
 | Production build | CMS and Web passed; API build is the same no-emit compiler check |
 
 All PostgreSQL and browser changes used a temporary instance on a separate loopback port. The application database was not migrated or edited. Before deployment, apply the new migration through the normal CMS migration command and explicitly link existing admin/customer accounts where appropriate.
+
+The timeline-echo follow-up passed 90 CMS unit tests, the full Payload/PostgreSQL integration suite (including full-form echoes on both notes and status updates), TypeScript and the CMS production build.
