@@ -15,6 +15,8 @@ Reviewed: 2026-11-07 (Asia/Tehran).
 | [06 — Operations](06-admin-and-operations.md) | Administration, CSV, migration/seed and verification commands |
 | [07 — Warehouses](07-warehouses.md) | Warehouse decision record and detailed operational contract |
 | [08 — PWA](08-pwa.md) | Installation, offline shell, drafts, upgrades and browser verification |
+| [09 — Hook integrity](09-hook-integrity.md) | Form state, persistence, query hook rules, and storage invariants |
+| [10 — TS-Pattern Standard](10-ts-pattern-standard.md) | Standard rules and tiers for pattern matching across apps/web |
 | [CSV example](examples/warehouse-stock.csv) | Stock import syntax only; not actual stock data |
 
 Keep a rule in its owning document and link elsewhere. In particular document 07 preserves the warehouse decisions, while model/rule/runbook documents describe their current implementation without contradictory fallback banners.
