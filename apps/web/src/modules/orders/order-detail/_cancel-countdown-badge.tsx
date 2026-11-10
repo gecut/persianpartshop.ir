@@ -1,8 +1,7 @@
-
-
 import { cn } from "@heroui/react"
 import { ClockIcon } from "@/components/ui/icons"
 import { Counter } from "@/components/ui/counter/counter"
+import { match } from 'ts-pattern'
 
 interface CancelCountdownBadgeProps {
   isWithin60Minutes: boolean;
@@ -10,24 +9,33 @@ interface CancelCountdownBadgeProps {
 }
 
 export function CancelCountdownBadge({ isWithin60Minutes, timeLeftSeconds }: CancelCountdownBadgeProps) {
+  const badgeConfig = match(isWithin60Minutes)
+    .with(true, () => ({
+      badgeClass: "bg-warning/15 text-warning",
+      iconClass: "text-warning",
+      text: "مهلت لغو سفارش: ",
+    }))
+    .with(false, () => ({
+      badgeClass: "bg-muted/10 text-muted",
+      iconClass: "text-muted",
+      text: "مهلت لغو سفارش به پایان رسید",
+    }))
+    .exhaustive();
+
   return (
     <span
       className={cn(
         "px-2.5 py-1 rounded-xl text-xs font-bold flex items-center gap-1.5 border-none shadow-none",
-        isWithin60Minutes
-          ? "bg-warning/15 text-warning"
-          : "bg-muted/10 text-muted",
+        badgeConfig.badgeClass,
       )}
     >
       <ClockIcon
         size={20}
-        className={cn(
-          isWithin60Minutes ? "text-warning" : "text-muted",
-        )}
+        className={badgeConfig.iconClass}
       />
       <span className="inline-flex items-center gap-1.5">
-        <span>{isWithin60Minutes ? "مهلت لغو سفارش: " : "مهلت لغو سفارش به پایان رسید"}</span>
-        {isWithin60Minutes ? (
+        <span>{badgeConfig.text}</span>
+        {isWithin60Minutes && (
           <span
             className="inline-flex items-center gap-0.5 font-bold tracking-wider"
             dir="ltr"
@@ -60,8 +68,6 @@ export function CancelCountdownBadge({ isWithin60Minutes, timeLeftSeconds }: Can
               tabular
             />
           </span>
-        ) : (
-          ""
         )}
       </span>
     </span>

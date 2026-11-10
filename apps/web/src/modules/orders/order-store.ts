@@ -10,22 +10,15 @@ import {
   formatPersianDate,
   formatPersianTimelineTs,
 } from '@/lib/utils/date'
+import { match, P } from 'ts-pattern'
 
 export function buildFullOrderTimeline(
   doc: any,
   persianDate?: string,
   force60MinutesPassed?: boolean
 ): TimelineStep[] {
-  const status = doc.status || 'pending'
-  const isCancelled =
-    status === 'cancel' ||
-    status === 'cancelled' ||
-    status === 'cancelled_by_customer' ||
-    status === 'cancelled_by_admin'
-  const isCancelledByCustomer =
-    isCancelled &&
-    (status === 'cancelled_by_customer' || doc.cancelledBy === 'customer')
-
+  const status: string = typeof doc.status === 'string' ? doc.status : 'pending'
+  const cancelledBy: string | undefined = typeof doc.cancelledBy === 'string' ? doc.cancelledBy : undefined
   const pDate = persianDate || (doc.createdAt ? formatPersianDate(doc.createdAt) : '')
 
   const formatTs = (ts?: string) => {
@@ -35,16 +28,21 @@ export function buildFullOrderTimeline(
 
   const createdAtMs = doc.createdAt ? new Date(doc.createdAt).getTime() : Date.now()
   const is60MinutesPassed = force60MinutesPassed ?? (Date.now() >= createdAtMs + 60 * 60 * 1000)
-  const isApproved = status === 'completed' || status === 'approve' || status === 'approved'
 
   // Cancellation Flow
-  if (isCancelled) {
-    const cancelTitle = isCancelledByCustomer ? 'لغو توسط کاربر' : 'لغو توسط ادمین'
+  const cancelConfig = match([status, cancelledBy] as const)
+    .with([P.union('cancel', 'cancelled', 'cancelled_by_customer', 'cancelled_by_admin'), P._], () => {
+      const isCancelledByCustomer = status === 'cancelled_by_customer' || cancelledBy === 'customer'
+      return {
+        title: isCancelledByCustomer ? 'لغو توسط کاربر' : 'لغو توسط ادمین',
+        desc: isCancelledByCustomer
+          ? doc.notes || 'سفارش توسط کاربر لغو گردید.'
+          : doc.notes || 'سفارش توسط واحد بازرگانی / ادمین لغو گردید.',
+      }
+    })
+    .otherwise(() => null)
 
-    const cancelDesc = isCancelledByCustomer
-      ? doc.notes || 'سفارش توسط کاربر لغو گردید.'
-      : doc.notes || 'سفارش توسط واحد بازرگانی / ادمین لغو گردید.'
-
+  if (cancelConfig) {
     const steps: TimelineStep[] = [
       {
         id: 'step-1',
@@ -67,8 +65,8 @@ export function buildFullOrderTimeline(
 
     steps.push({
       id: 'step-cancel',
-      title: cancelTitle,
-      description: cancelDesc,
+      title: cancelConfig.title,
+      description: cancelConfig.desc,
       timestamp: formatTs(doc.updatedAt) || '',
       status: 'cancelled',
     })
@@ -80,9 +78,22 @@ export function buildFullOrderTimeline(
   // Stage 1: سفارش ثبت شده
   // Stage 2: در حال بررسی واحد بازرگانی (تایید پس از ۶۰ دقیقه)
   // Stage 3: تکمیل شده (صدور حواله نهایی)
+  const isApproved = match(status)
+    .with(P.union('completed', 'approve', 'approved'), () => true)
+    .otherwise(() => false)
+
   const step1Status: 'completed' = 'completed'
-  const step2Status: 'completed' | 'current' = (isApproved || is60MinutesPassed) ? 'completed' : 'current'
-  const step3Status: 'completed' | 'current' | 'pending' = isApproved ? 'completed' : is60MinutesPassed ? 'current' : 'pending'
+  const step2Status = match([isApproved, is60MinutesPassed] as const)
+    .with([true, P._], () => 'completed' as const)
+    .with([false, true], () => 'completed' as const)
+    .with([false, false], () => 'current' as const)
+    .exhaustive()
+
+  const step3Status = match([isApproved, is60MinutesPassed] as const)
+    .with([true, P._], () => 'completed' as const)
+    .with([false, true], () => 'current' as const)
+    .with([false, false], () => 'pending' as const)
+    .exhaustive()
 
   const step1Timestamp = formatTs(doc.createdAt) || pDate
   const step2Timestamp = (isApproved || is60MinutesPassed)
@@ -124,23 +135,34 @@ export function buildFullOrderTimeline(
 export function mapDocToOrder(doc: any): Order {
   const createdAt = doc.createdAt || new Date().toISOString()
   const persianDate = formatPersianDate(createdAt)
-  const normalizedStatus = doc.status === 'processing' ? 'pending' : (doc.status || 'pending')
+  const statusStr: string = typeof doc.status === 'string' ? doc.status : ''
+  const normalizedStatus: string = statusStr === 'processing' ? 'pending' : (statusStr || 'pending')
+  const cancelledByVal: string | undefined = typeof doc.cancelledBy === 'string' ? doc.cancelledBy : undefined
 
   const createdAtMs = new Date(createdAt).getTime()
   const is60MinutesPassed = Date.now() >= createdAtMs + 60 * 60 * 1000
 
-  let statusLabel = 'سفارش ثبت شده'
-  if (normalizedStatus === 'pending') {
-    statusLabel = is60MinutesPassed ? 'در حال بررسی واحد بازرگانی' : 'سفارش ثبت شده'
-  } else if (normalizedStatus === 'completed' || normalizedStatus === 'approve' || normalizedStatus === 'approved') {
-    statusLabel = 'تکمیل شده'
-  } else if (normalizedStatus === 'cancelled_by_customer') {
-    statusLabel = 'لغو توسط کاربر'
-  } else if (normalizedStatus === 'cancelled_by_admin') {
-    statusLabel = 'لغو توسط ادمین'
-  } else if (normalizedStatus === 'cancel' || normalizedStatus === 'cancelled') {
-    statusLabel = doc.cancelledBy === 'customer' ? 'لغو توسط کاربر' : 'لغو توسط ادمین'
-  }
+  const statusLabel = match([normalizedStatus, is60MinutesPassed, cancelledByVal] as const)
+    .with(['pending', true, P._], () => 'در حال بررسی واحد بازرگانی')
+    .with(['pending', false, P._], () => 'سفارش ثبت شده')
+    .with([P.union('completed', 'approve', 'approved'), P._, P._], () => 'تکمیل شده')
+    .with(['cancelled_by_customer', P._, P._], () => 'لغو توسط کاربر')
+    .with(['cancelled_by_admin', P._, P._], () => 'لغو توسط ادمین')
+    .with([P.union('cancel', 'cancelled'), P._, 'customer'], () => 'لغو توسط کاربر')
+    .with([P.union('cancel', 'cancelled'), P._, P._], () => 'لغو توسط ادمین')
+    .otherwise(() => {
+      console.warn(`[Order] Unknown order status received: ${normalizedStatus}`)
+      return 'سفارش ثبت شده'
+    })
+
+  const cancelledBy: 'customer' | 'admin' | undefined = match([normalizedStatus, cancelledByVal] as const)
+    .with(['cancelled_by_customer', P._], () => 'customer' as const)
+    .with(['cancelled_by_admin', P._], () => 'admin' as const)
+    .with([P.union('cancel', 'cancelled'), 'customer'], () => 'customer' as const)
+    .with([P.union('cancel', 'cancelled'), 'admin'], () => 'admin' as const)
+    .otherwise(() => undefined)
+
+  const cdnUrl = import.meta.env.VITE_CDN_URL
 
   const items: OrderItem[] = (doc.items || []).map((i: any) => {
     const prod = typeof i.product === 'object' && i.product !== null ? i.product : null
@@ -153,13 +175,12 @@ export function mapDocToOrder(doc: any): Order {
           ? prod.dimension
           : ''
     const grade = prod?.grade ? formatGrade(prod.grade) : ''
-    const cdnUrl = import.meta.env.VITE_CDN_URL
-    const coverUrl =
-      prod?.cover?.url ||
-      (prod?.cover?.filename && cdnUrl ? `${cdnUrl}/${encodeURIComponent(prod.cover.filename)}` : '') ||
-      (prod?.cover?.filename ? `/api/media/file/${prod.cover.filename}` : '') ||
-      (typeof prod?.cover === 'string' && prod.cover.startsWith('/') ? prod.cover : '') ||
-      '/assets/images/placeholder.svg'
+    const coverUrl = match(prod?.cover)
+      .with({ url: P.select(P.string) }, (url) => url)
+      .with({ filename: P.select(P.string) }, (fn) => (cdnUrl ? `${cdnUrl}/${encodeURIComponent(fn)}` : `/api/media/file/${fn}`))
+      .with(P.string.regex(/^\//), (path) => path)
+      .otherwise(() => '/assets/images/placeholder.svg')
+
     return {
       productId: String(prod?.id || i.product || ''),
       productName: i.productName || prod?.name || 'قطعه',
@@ -183,7 +204,7 @@ export function mapDocToOrder(doc: any): Order {
 
   const userObj = typeof doc.user === 'object' && doc.user !== null ? doc.user : null
 
-  const orderNumber = String(doc.orderNumber || doc.id);
+  const orderNumber = String(doc.orderNumber || doc.id)
 
   return {
     id: String(doc.id),
@@ -191,7 +212,7 @@ export function mapDocToOrder(doc: any): Order {
     date: persianDate,
     createdAt,
     status: normalizedStatus as any,
-    cancelledBy: doc.cancelledBy || (normalizedStatus === 'cancelled_by_customer' ? 'customer' : normalizedStatus === 'cancelled_by_admin' ? 'admin' : undefined),
+    cancelledBy,
     statusLabel,
     storeName: userObj?.companyName || 'بازرگانی دهقان (پرشین پارت)',
     customerName: userObj?.fullName || 'خریدار محترم',

@@ -35,7 +35,9 @@ function persist() {
   try { localStorage.setItem(key(), JSON.stringify({ version: 3, selectedIds: state.selectedIds, quantities: state.quantities, warehouse: state.warehouse })); return true }
   catch { state = { ...state, error: 'پیش‌نویس ذخیره نشد؛ فضای ذخیره‌سازی در دسترس نیست.' }; toast.warning('پیش‌نویس ذخیره نشد', state.error!); emit(); return false }
 }
-window.addEventListener('persianpart:flush-drafts', event => { if (!persist() && event instanceof CustomEvent) event.detail.fail() })
+if (typeof window !== 'undefined') {
+  window.addEventListener('persianpart:flush-drafts', event => { if (!persist() && event instanceof CustomEvent) event.detail.fail() })
+}
 function readSaved(value: string | null): SelectionState {
   const next = empty()
   if (!value) return next

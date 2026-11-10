@@ -40,7 +40,7 @@ export function ProductListView() {
     dimensions,
     dimensionsQuery,
     filters,
-    setFilter,
+    dispatchFilter,
     resetFilters,
     activeFilterCount,
     isLoading,
@@ -188,7 +188,7 @@ export function ProductListView() {
         searchQuery={filters.searchQuery}
         canUseProductQr={Boolean(user?.canUseProductQr)}
         activeFilterCount={activeFilterCount}
-        onSearchChange={(value) => setFilter("searchQuery", value)}
+        onSearchChange={(value) => dispatchFilter({ type: "searchQuery", query: value })}
         onScan={() => setIsScannerOpen(true)}
         onOpenFilter={() => setIsFilterOpen(true)}
       />
@@ -200,7 +200,7 @@ export function ProductListView() {
         isLoading={dimensionsQuery.isPending}
         error={dimensionsQuery.isError && !dimensionsQuery.data}
         onRetry={() => void dimensionsQuery.refetch()}
-        onSelect={(dimension) => setFilter("selectedDimension", dimension)}
+        onSelect={(dimension) => dispatchFilter({ type: "selectedDimension", dimension })}
       />
 
       <FilterDrawer

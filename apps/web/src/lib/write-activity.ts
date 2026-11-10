@@ -34,9 +34,11 @@ function announce() {
   refresh()
 }
 channel?.addEventListener('message', refresh)
-window.addEventListener('storage', event => { if (event.key?.startsWith(prefix)) refresh() })
-window.setInterval(() => { if (localCount + mutationCount) announce(); else refresh() }, 5_000)
-window.addEventListener('pagehide', () => { try { localStorage.removeItem(prefix + tabId) } catch { /* Optional cleanup. */ } })
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', event => { if (event.key?.startsWith(prefix)) refresh() })
+  window.setInterval(() => { if (localCount + mutationCount) announce(); else refresh() }, 5_000)
+  window.addEventListener('pagehide', () => { try { localStorage.removeItem(prefix + tabId) } catch { /* Optional cleanup. */ } })
+}
 export const writeActivity = {
   count: refresh,
   setMutationCount(count: number) { mutationCount = count; announce() },

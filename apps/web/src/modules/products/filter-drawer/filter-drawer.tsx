@@ -27,7 +27,7 @@ export function FilterDrawer({
 }: FilterDrawerProps) {
   const hook = productHook || catalogHook!;
 
-  const { filters, toggleArrayFilter, setFilter, resetFilters, dimensions } =
+  const { filters, toggleArrayFilter, dispatchFilter, resetFilters, dimensions } =
     hook;
 
 
@@ -68,12 +68,12 @@ export function FilterDrawer({
             {/* Body */}
             <Drawer.Body className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 py-3 space-y-3 scrollbar-none">
               {/* Only In Stock */}
-              {!supplyMode && <InStockFilter filters={filters} setFilter={setFilter} />}
+              {!supplyMode && <InStockFilter filters={filters} dispatchFilter={dispatchFilter} />}
 
               {/* Sorting */}
               <SortFilter
                 filters={filters}
-                setFilter={setFilter}
+                dispatchFilter={dispatchFilter}
                 isOpen={isSortOpen}
                 onOpenChange={setIsSortOpen}
               />
@@ -81,7 +81,7 @@ export function FilterDrawer({
               {/* Dimensions */}
               <DimensionSelect
                 filters={filters}
-                setFilter={setFilter}
+                dispatchFilter={dispatchFilter}
                 dimensions={dimensions}
                 isOpen={isDimOpen}
                 onOpenChange={setIsDimOpen}

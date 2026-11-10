@@ -4,6 +4,7 @@ import { customerErrorMessage } from '@/lib/utils/error'
 import { selectionStore } from '@/modules/products/selection-store'
 import { useRef } from 'react'
 import { useNavigate } from '@tanstack/react-router'
+import { match, P } from 'ts-pattern'
 
 import { useCart } from '@/modules/cart/cart-store'
 
@@ -37,16 +38,37 @@ export function useCartCheckout({
   const isSubmitting = submitOrderMutation.isPending
 
   const handleCheckoutSubmit = async () => {
-    if (!isAuthenticated || !user) {
-      toast.warning('نیاز به ورود', 'لطفاً ابتدا وارد حساب کاربری شوید.')
-      navigate({ to: '/login' })
-      return
-    }
+    const canProceed = match([isAuthenticated, Boolean(user), items.length === 0, hasBlockingIssues, Boolean(warehouse)] as const)
+      .with([false, P._, P._, P._, P._], () => 'NEEDS_LOGIN' as const)
+      .with([P._, false, P._, P._, P._], () => 'NEEDS_LOGIN' as const)
+      .with([true, true, true, P._, P._], () => 'EMPTY_CART' as const)
+      .with([true, true, false, true, P._], () => 'BLOCKED' as const)
+      .with([true, true, false, false, false], () => 'NO_WAREHOUSE' as const)
+      .with([true, true, false, false, true], () => 'READY' as const)
+      .exhaustive()
 
-    if (items.length === 0 || hasBlockingIssues || !warehouse) {
-      toast.error('خطای ثبت سفارش', 'امکان ثبت سفارش با اقلام ناموجود یا سبد خالی وجود ندارد.')
-      return
-    }
+    const shouldContinue = match(canProceed)
+      .with('NEEDS_LOGIN', () => {
+        toast.warning('نیاز به ورود', 'لطفاً ابتدا وارد حساب کاربری شوید.')
+        navigate({ to: '/login' })
+        return false
+      })
+      .with('EMPTY_CART', () => {
+        toast.error('خطای ثبت سفارش', 'سبد خرید شما خالی است.')
+        return false
+      })
+      .with('BLOCKED', () => {
+        toast.error('خطای ثبت سفارش', 'امکان ثبت سفارش با اقلام دارای تداخل موجودی وجود ندارد.')
+        return false
+      })
+      .with('NO_WAREHOUSE', () => {
+        toast.error('خطای ثبت سفارش', 'لطفاً ابتدا انبار تحویل را انتخاب کنید.')
+        return false
+      })
+      .with('READY', () => true)
+      .exhaustive()
+
+    if (!shouldContinue) return
 
     try {
       idempotencyKeyRef.current = selectionStore.submissionKey(orderNotes || '')

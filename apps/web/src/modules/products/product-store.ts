@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
-
+import { match } from "ts-pattern";
 
 import { api } from "@/lib/api-client";
 
@@ -27,6 +27,18 @@ export interface FilterState {
   viewMode: ViewMode;
   sortBy: SortOption;
 }
+
+export type ProductFilterAction =
+  | { type: "searchQuery"; query: string | null }
+  | { type: "selectedDimension"; dimension: string | null }
+  | { type: "selectedBrands"; brands: string[] }
+  | { type: "selectedColors"; colors: string[] }
+  | { type: "selectedGrades"; grades: string[] }
+  | { type: "selectedTags"; tags: string[] }
+  | { type: "selectedCategory"; category: string | null }
+  | { type: "onlyInStock"; onlyInStock: boolean }
+  | { type: "viewMode"; mode: ViewMode }
+  | { type: "sortBy"; sort: SortOption };
 
 export function useProducts(supplyMode = false) {
   const [queryFilters, setQueryFilters] = useQueryStates(productFilterParsers, {
@@ -180,22 +192,13 @@ export function useProducts(supplyMode = false) {
     });
 
     // Sorting
-    switch (filters.sortBy) {
-      case "cheapest":
-        return [...list].sort(
-          (a, b) => a.finalCustomerPricePerSqm - b.finalCustomerPricePerSqm
-        );
-      case "expensive":
-        return [...list].sort(
-          (a, b) => b.finalCustomerPricePerSqm - a.finalCustomerPricePerSqm
-        );
-      case "oldest":
-        return [...list].reverse();
-      case "newest":
-        return list;
-      default:
-        return list;
-    }
+    return match(filters.sortBy)
+      .with("cheapest", () => [...list].sort((a, b) => a.finalCustomerPricePerSqm - b.finalCustomerPricePerSqm))
+      .with("expensive", () => [...list].sort((a, b) => b.finalCustomerPricePerSqm - a.finalCustomerPricePerSqm))
+      .with("oldest", () => [...list].reverse())
+      .with("newest", () => list)
+      .with("default", () => list)
+      .exhaustive();
   }, [filters, productsList, supplyMode]);
 
   const resetFilters = () => {
@@ -213,53 +216,19 @@ export function useProducts(supplyMode = false) {
     else setQueryFilters(null);
   };
 
-  const setFilter = <K extends keyof FilterState>(
-    key: K,
-    value: FilterState[K]
-  ) => {
-    switch (key) {
-      case "searchQuery":
-        setQueryFilters({ q: (value as string) || null });
-        break;
-      case "selectedDimension":
-        setQueryFilters({ dimension: (value as string | null) || null });
-        break;
-      case "selectedBrands":
-        setQueryFilters({
-          brands: (value as string[]).length > 0 ? (value as string[]) : null,
-        });
-        break;
-      case "selectedColors":
-        setQueryFilters({
-          colors: (value as string[]).length > 0 ? (value as string[]) : null,
-        });
-        break;
-      case "selectedGrades":
-        setQueryFilters({
-          grades: (value as string[]).length > 0 ? (value as string[]) : null,
-        });
-        break;
-      case "selectedTags":
-        setQueryFilters({
-          tags: (value as string[]).length > 0 ? (value as string[]) : null,
-        });
-        break;
-      case "selectedCategory":
-        setQueryFilters({ category: (value as string | null) || null });
-        break;
-      case "onlyInStock":
-        setQueryFilters({ inStock: value ? true : null });
-        break;
-      case "viewMode":
-        setViewMode(value as ViewMode);
-        break;
-      case "sortBy":
-        setQueryFilters({
-          sort:
-            (value as SortOption) === "default" ? null : (value as SortOption),
-        });
-        break;
-    }
+  const dispatchFilter = (action: ProductFilterAction) => {
+    match(action)
+      .with({ type: "searchQuery" }, ({ query }) => setQueryFilters({ q: query || null }))
+      .with({ type: "selectedDimension" }, ({ dimension }) => setQueryFilters({ dimension }))
+      .with({ type: "selectedBrands" }, ({ brands }) => setQueryFilters({ brands: brands.length ? brands : null }))
+      .with({ type: "selectedColors" }, ({ colors }) => setQueryFilters({ colors: colors.length ? colors : null }))
+      .with({ type: "selectedGrades" }, ({ grades }) => setQueryFilters({ grades: grades.length ? grades : null }))
+      .with({ type: "selectedTags" }, ({ tags }) => setQueryFilters({ tags: tags.length ? tags : null }))
+      .with({ type: "selectedCategory" }, ({ category }) => setQueryFilters({ category }))
+      .with({ type: "onlyInStock" }, ({ onlyInStock }) => setQueryFilters({ inStock: onlyInStock ? true : null }))
+      .with({ type: "viewMode" }, ({ mode }) => setViewMode(mode))
+      .with({ type: "sortBy" }, ({ sort }) => setQueryFilters({ sort: sort === "default" ? null : sort }))
+      .exhaustive();
   };
 
   const toggleArrayFilter = (
@@ -304,7 +273,7 @@ export function useProducts(supplyMode = false) {
     error,
     isFetching,
     refetch,
-    setFilter,
+    dispatchFilter,
     toggleArrayFilter,
     resetFilters,
   };

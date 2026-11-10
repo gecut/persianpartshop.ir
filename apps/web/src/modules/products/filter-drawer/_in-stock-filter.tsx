@@ -6,14 +6,14 @@ type ProductsHook = ReturnType<typeof useProducts>;
 
 interface InStockFilterProps {
   filters: ProductsHook["filters"];
-  setFilter: ProductsHook["setFilter"];
+  dispatchFilter: ProductsHook["dispatchFilter"];
 }
 
-export function InStockFilter({ filters, setFilter }: InStockFilterProps) {
+export function InStockFilter({ filters, dispatchFilter }: InStockFilterProps) {
   return (
     <div
       className="py-4 px-4 rounded-2xl bg-muted/5 flex items-center justify-between cursor-pointer select-none"
-      onClick={() => setFilter("onlyInStock", !filters.onlyInStock)}
+      onClick={() => dispatchFilter({ type: "onlyInStock", onlyInStock: !filters.onlyInStock })}
     >
       <div>
         <span className="text-xs font-black text-foreground block">
@@ -27,7 +27,7 @@ export function InStockFilter({ filters, setFilter }: InStockFilterProps) {
       <Switch
         isSelected={filters.onlyInStock}
         onChange={(isSelected) =>
-          setFilter("onlyInStock", isSelected)
+          dispatchFilter({ type: "onlyInStock", onlyInStock: isSelected })
         }
         aria-label="فقط کالاهای موجود"
         className="group rounded-full"

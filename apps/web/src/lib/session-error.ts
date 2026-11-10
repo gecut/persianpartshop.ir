@@ -1,8 +1,17 @@
-function record(value: unknown): Record<string, unknown> { return value && typeof value === 'object' ? value as Record<string, unknown> : {} }
-export function isSessionError(error: unknown) {
-  const outer = record(error)
-  const nested = record(outer.error)
-  const data = record(outer.data)
-  const nestedData = record(nested.data)
-  return outer.code === 'UNAUTHORIZED' || nested.code === 'UNAUTHORIZED' || outer.status === 401 || data.code === 'USER_BANNED' || nestedData.code === 'USER_BANNED'
+import { match, P } from 'ts-pattern'
+
+export function isSessionError(error: unknown): boolean {
+  return match(error)
+    .with(
+      P.union(
+        { code: 'UNAUTHORIZED' },
+        { status: P.union(401, '401') },
+        { data: { code: 'USER_BANNED' } },
+        { error: { code: 'UNAUTHORIZED' } },
+        { error: { status: P.union(401, '401') } },
+        { error: { data: { code: 'USER_BANNED' } } }
+      ),
+      () => true
+    )
+    .otherwise(() => false)
 }

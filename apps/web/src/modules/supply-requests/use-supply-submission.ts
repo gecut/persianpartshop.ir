@@ -4,6 +4,7 @@ import { api } from '@/lib/api-client'
 import { queryKeys } from '@/lib/query-keys'
 import { toast } from '@/components/feedback/toast'
 import { supplyDraftStore } from './supply-request-draft'
+import { match, P } from 'ts-pattern'
 
 interface Submission {
   owner: string
@@ -35,12 +36,16 @@ export function useSupplySubmission(onSuccess: (id: number) => void, onRejected?
       onSuccess(result.id)
     },
     onError: (error, submitted) => {
-      const code = typeof error === 'object' && error !== null && 'code' in error && typeof error.code === 'string' ? error.code : ''
       // These errors are returned only after the server checked for a successful replay.
-      if (code === 'EXACT_STOCK_AVAILABLE' || code === 'SOURCE_UNAVAILABLE') {
-        supplyDraftStore.clearPending(submitted.owner, submitted.idempotencyKey)
-        onRejected?.(code)
-      }
+      match(error as unknown)
+        .with(
+          { code: P.union('EXACT_STOCK_AVAILABLE', 'SOURCE_UNAVAILABLE') },
+          ({ code }) => {
+            supplyDraftStore.clearPending(submitted.owner, submitted.idempotencyKey)
+            onRejected?.(code)
+          }
+        )
+        .otherwise(() => {})
     },
   })
   const submit = async () => {

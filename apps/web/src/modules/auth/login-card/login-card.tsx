@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
+import { match } from "ts-pattern";
 import type { CodeSlotsStatus } from "@/components/ui/code-slots/code-slots";
 import { useAuth } from "@/modules/auth/auth-store";
 import { toast } from "@/components/feedback/toast";
@@ -145,28 +146,31 @@ export function LoginCard() {
 
         {/* Step Transition */}
         <AnimatePresence mode="wait">
-          {step === "phone" ? (
-            <LoginPhoneStep
-              key="step-phone"
-              phone={phone}
-              isLoading={isLoading}
-              onPhoneChange={setPhone}
-              onSubmit={handleSendPhone}
-            />
-          ) : (
-            <LoginOtpStep
-              key="step-otp"
-              phone={phone}
-              otpCode={otpCode}
-              otpStatus={otpStatus}
-              isLoading={isLoading}
-              countdown={countdown}
-              onEditPhone={handleEditPhone}
-              onCodeChange={handleOtpChange}
-              onVerify={handleVerifyOtp}
-              onResend={() => handleSendPhone()}
-            />
-          )}
+          {match(step)
+            .with("phone", () => (
+              <LoginPhoneStep
+                key="step-phone"
+                phone={phone}
+                isLoading={isLoading}
+                onPhoneChange={setPhone}
+                onSubmit={handleSendPhone}
+              />
+            ))
+            .with("otp", () => (
+              <LoginOtpStep
+                key="step-otp"
+                phone={phone}
+                otpCode={otpCode}
+                otpStatus={otpStatus}
+                isLoading={isLoading}
+                countdown={countdown}
+                onEditPhone={handleEditPhone}
+                onCodeChange={handleOtpChange}
+                onVerify={handleVerifyOtp}
+                onResend={() => handleSendPhone()}
+              />
+            ))
+            .exhaustive()}
         </AnimatePresence>
 
         {/* Footer B2B Notice */}

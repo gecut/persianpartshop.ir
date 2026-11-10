@@ -15,12 +15,12 @@ const SORT_OPTIONS = [
 
 interface SortFilterProps {
   filters: ProductsHook["filters"];
-  setFilter: ProductsHook["setFilter"];
+  dispatchFilter: ProductsHook["dispatchFilter"];
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
 }
 
-export function SortFilter({ filters, setFilter, isOpen: isSortOpen, onOpenChange: setIsSortOpen }: SortFilterProps) {
+export function SortFilter({ filters, dispatchFilter, isOpen: isSortOpen, onOpenChange: setIsSortOpen }: SortFilterProps) {
   const currentSortLabel =
     SORT_OPTIONS.find((s) => s.id === filters.sortBy)?.label || "پیش‌فرض";
 
@@ -58,7 +58,7 @@ export function SortFilter({ filters, setFilter, isOpen: isSortOpen, onOpenChang
             selectedKeys={new Set([filters.sortBy || "default"])}
             onSelectionChange={(keys) => {
               const selected = SORT_OPTIONS.find((opt) => opt.id === Array.from(keys)[0]);
-              if (selected) setFilter("sortBy", selected.id);
+              if (selected) dispatchFilter({ type: "sortBy", sort: selected.id });
               setIsSortOpen(false);
             }}
           >

@@ -3,6 +3,18 @@ import { useNow } from "@/lib/use-now";
 import type { Plan } from "@/modules/plans/plan-types"
 import { toPersianDigits } from "@/lib/utils/currency";
 import { formatPersianDate } from "@/lib/utils/date";
+import { match, P } from "ts-pattern";
+
+function formatDiffRemaining(diffMs: number, suffix: string): string {
+  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+  const diffHours = Math.ceil(diffMs / (1000 * 60 * 60));
+  return match([diffDays > 1, diffDays === 1, diffHours > 1] as const)
+    .with([true, P._, P._], () => `${toPersianDigits(diffDays)} روز ${suffix}`)
+    .with([false, true, P._], () => `۱ روز ${suffix}`)
+    .with([false, false, true], () => `${toPersianDigits(diffHours)} ساعت ${suffix}`)
+    .with([false, false, false], () => `کمتر از ۱ ساعت ${suffix}`)
+    .exhaustive();
+}
 
 export function usePlanTimeStatus(plan: Plan) {
   // Time & Status computations
@@ -16,13 +28,11 @@ export function usePlanTimeStatus(plan: Plan) {
     const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
     const diffHours = Math.ceil(diffMs / (1000 * 60 * 60));
 
-    if (diffDays > 1) {
-      upcomingDaysText = `${toPersianDigits(diffDays)} روز دیگر تا شروع این طرح مانده`;
-    } else if (diffHours > 1) {
-      upcomingDaysText = `${toPersianDigits(diffHours)} ساعت دیگر تا شروع این طرح مانده`;
-    } else {
-      upcomingDaysText = "کمتر از ۱ ساعت تا شروع این طرح مانده";
-    }
+    upcomingDaysText = match([diffDays > 1, diffHours > 1] as const)
+      .with([true, P._], () => `${toPersianDigits(diffDays)} روز دیگر تا شروع این طرح مانده`)
+      .with([false, true], () => `${toPersianDigits(diffHours)} ساعت دیگر تا شروع این طرح مانده`)
+      .with([false, false], () => "کمتر از ۱ ساعت تا شروع این طرح مانده")
+      .exhaustive();
   }
 
   const expireTime = plan.expiresAt ? new Date(plan.expiresAt).getTime() : null;
@@ -38,50 +48,26 @@ export function usePlanTimeStatus(plan: Plan) {
 
   const remainingDaysText = useMemo(() => {
     if (!expireTime || isExpired) return "";
-    const diffMs = expireTime - now;
-    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-    const diffHours = Math.ceil(diffMs / (1000 * 60 * 60));
-    if (diffDays > 1) {
-      return `${toPersianDigits(diffDays)} روز مانده به پایان`;
-    }
-    if (diffDays === 1) {
-      return "۱ روز مانده به پایان";
-    }
-    if (diffHours > 1) {
-      return `${toPersianDigits(diffHours)} ساعت مانده به پایان`;
-    }
-    return "کمتر از ۱ ساعت مانده به پایان";
+    return formatDiffRemaining(expireTime - now, "مانده به پایان");
   }, [expireTime, isExpired, now]);
 
   const timeBadgeText = useMemo(() => {
-    if (isExpired) {
-      return plan.expiresAt
-        ? `پایان: ${formatPersianDate(plan.expiresAt)}`
-        : "پایان یافته";
-    }
-    if (isUpcoming) {
-      if (startTime) {
-        const diffMs = startTime - now;
-        const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-        const diffHours = Math.ceil(diffMs / (1000 * 60 * 60));
-        if (diffDays > 1)
-          return `${toPersianDigits(diffDays)} روز مانده تا شروع`;
-        if (diffDays === 1) return "۱ روز مانده تا شروع";
-        if (diffHours > 1)
-          return `${toPersianDigits(diffHours)} ساعت مانده تا شروع`;
-        return "کمتر از ۱ ساعت تا شروع";
-      }
-      return plan.startsAt
-        ? `شروع: ${formatPersianDate(plan.startsAt)}`
-        : "به‌زودی";
-    }
-    if (remainingDaysText) {
-      return remainingDaysText;
-    }
-    if (plan.expiresAt) {
-      return `پایان: ${formatPersianDate(plan.expiresAt)}`;
-    }
-    return "بدون محدودیت زمانی";
+    return match([isExpired, isUpcoming] as const)
+      .with([true, P._], () =>
+        plan.expiresAt ? `پایان: ${formatPersianDate(plan.expiresAt)}` : "پایان یافته"
+      )
+      .with([false, true], () => {
+        if (startTime) {
+          return formatDiffRemaining(startTime - now, "مانده تا شروع");
+        }
+        return plan.startsAt ? `شروع: ${formatPersianDate(plan.startsAt)}` : "به‌زودی";
+      })
+      .with([false, false], () => {
+        if (remainingDaysText) return remainingDaysText;
+        if (plan.expiresAt) return `پایان: ${formatPersianDate(plan.expiresAt)}`;
+        return "بدون محدودیت زمانی";
+      })
+      .exhaustive();
   }, [
     isExpired,
     isUpcoming,
@@ -93,9 +79,11 @@ export function usePlanTimeStatus(plan: Plan) {
   ]);
 
   const timeBadgeClass = useMemo(() => {
-    if (isExpired) return "bg-danger/10 text-danger";
-    if (isUpcoming) return "bg-warning/10 text-warning";
-    return "bg-primary/10 text-primary";
+    return match([isExpired, isUpcoming] as const)
+      .with([true, P._], () => "bg-danger/10 text-danger")
+      .with([false, true], () => "bg-warning/10 text-warning")
+      .with([false, false], () => "bg-primary/10 text-primary")
+      .exhaustive();
   }, [isExpired, isUpcoming]);
 
   return {

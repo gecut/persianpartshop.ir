@@ -8,13 +8,13 @@ type ProductsHook = ReturnType<typeof useProducts>;
 
 interface DimensionSelectProps {
   filters: ProductsHook["filters"];
-  setFilter: ProductsHook["setFilter"];
+  dispatchFilter: ProductsHook["dispatchFilter"];
   dimensions: ProductsHook["dimensions"];
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
 }
 
-export function DimensionSelect({ filters, setFilter, dimensions, isOpen: isDimOpen, onOpenChange: setIsDimOpen }: DimensionSelectProps) {
+export function DimensionSelect({ filters, dispatchFilter, dimensions, isOpen: isDimOpen, onOpenChange: setIsDimOpen }: DimensionSelectProps) {
   const currentDimLabel = filters.selectedDimension
     ? toPersianDigits(filters.selectedDimension)
     : "همه ابعاد";
@@ -55,10 +55,10 @@ export function DimensionSelect({ filters, setFilter, dimensions, isOpen: isDimO
             }
             onSelectionChange={(keys) => {
               const selected = Array.from(keys)[0] as string;
-              setFilter(
-                "selectedDimension",
-                !selected || selected === "all" ? null : dimensions.find((dim) => String(dim.id) === selected)?.name ?? null,
-              );
+              dispatchFilter({
+                type: "selectedDimension",
+                dimension: !selected || selected === "all" ? null : dimensions.find((dim) => String(dim.id) === selected)?.name ?? null,
+              });
               setIsDimOpen(false);
             }}
           >

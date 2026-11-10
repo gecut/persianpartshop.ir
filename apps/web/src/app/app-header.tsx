@@ -1,39 +1,20 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useAuth } from "@/modules/auth/auth-store";
 import { UserIcon } from "@/components/ui/icons";
+import { match, P } from "ts-pattern";
 
 export function AppHeader() {
   const { user, isAuthenticated } = useAuth();
   const routerState = useRouterState();
   const pathname = routerState.location.pathname;
 
-  let pageName: string;
-
-  switch (true) {
-    case pathname.startsWith("/product") || pathname === "/":
-      pageName = "محصولات";
-      break;
-
-    case pathname.startsWith("/plans"):
-      pageName = "طرح‌ها";
-      break;
-
-    case pathname.startsWith("/orders"):
-      pageName = "سفارش‌ها";
-      break;
-
-    case pathname.startsWith("/login"):
-      pageName = "ورود";
-      break;
-
-    case pathname === "/account":
-      pageName = "حساب من";
-      break;
-
-    default:
-      pageName = "";
-      break;
-  }
+  const pageName = match(pathname)
+    .with(P.when((p: string) => p.startsWith("/product") || p === "/"), () => "محصولات")
+    .with(P.when((p: string) => p.startsWith("/plans")), () => "طرح‌ها")
+    .with(P.when((p: string) => p.startsWith("/orders")), () => "سفارش‌ها")
+    .with(P.when((p: string) => p.startsWith("/login")), () => "ورود")
+    .with("/account", () => "حساب من")
+    .otherwise(() => "");
 
   return (
     <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md pt-[env(safe-area-inset-top,0px)]">

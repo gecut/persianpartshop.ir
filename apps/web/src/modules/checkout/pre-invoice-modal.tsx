@@ -6,6 +6,7 @@ import { WarehouseSummary } from '@/modules/cart/warehouse-summary'
 import { useMemo, useRef } from "react"
 import { Button } from "@heroui/react"
 import { AnimatePresence, motion } from "framer-motion"
+import { match, P } from "ts-pattern"
 
 import { useNavigate } from "@tanstack/react-router"
 import type { Product } from "@/modules/products/product-types"
@@ -71,30 +72,49 @@ export function PreInvoiceModal({
   }, [invoiceItems]);
 
   const handleFinalConfirm = async () => {
-    if (invoiceItems.length !== draft.selectedIds.length || invoiceItems.some(item => draft.quantities[item.product.id] !== item.requestedArea)) throw new Error('سبد تغییر کرده است؛ پیش‌فاکتور را دوباره دریافت کنید.');
-    if (!draft.warehouse || draft.busy || draft.quotes.length !== draft.selectedIds.length) throw new Error('ابتدا انبار و موجودی سبد را بررسی کنید.');
+    const isCartMismatched = invoiceItems.length !== draft.selectedIds.length || invoiceItems.some(item => draft.quantities[item.product.id] !== item.requestedArea);
+    const hasWarehouse = Boolean(draft.warehouse);
+    const isBusy = draft.busy;
+    const hasQuotesMismatch = draft.quotes.length !== draft.selectedIds.length;
+    const token = typeof window !== "undefined" ? localStorage.getItem("persianpart_token") : null;
+
+    const validationState = match([Boolean(token), isCartMismatched, hasWarehouse, isBusy, hasQuotesMismatch] as const)
+      .with([false, P._, P._, P._, P._], () => 'NEEDS_LOGIN' as const)
+      .with([true, true, P._, P._, P._], () => 'CART_CHANGED' as const)
+      .with([true, false, false, P._, P._], () => 'NO_WAREHOUSE' as const)
+      .with([true, false, true, true, P._], () => 'BUSY' as const)
+      .with([true, false, true, false, true], () => 'QUOTES_MISMATCH' as const)
+      .with([true, false, true, false, false], () => 'VALID' as const)
+      .exhaustive();
+
+    const proceed = match(validationState)
+      .with('NEEDS_LOGIN', () => {
+        toast.warning(
+          "نیاز به ورود",
+          "جهت ثبت و نهایی‌سازی سفارش، ابتدا وارد حساب کاربری خود شوید.",
+        );
+        onClose();
+        navigate({ to: "/login" });
+        return false;
+      })
+      .with('CART_CHANGED', () => {
+        throw new Error('سبد تغییر کرده است؛ پیش‌فاکتور را دوباره دریافت کنید.');
+      })
+      .with(P.union('NO_WAREHOUSE', 'BUSY', 'QUOTES_MISMATCH'), () => {
+        throw new Error('ابتدا انبار و موجودی سبد را بررسی کنید.');
+      })
+      .with('VALID', () => true)
+      .exhaustive();
+
+    if (!proceed) return;
+
     let createdId = "";
-
-
-    const token =
-      typeof window !== "undefined"
-        ? localStorage.getItem("persianpart_token")
-        : null;
-    if (!token) {
-      toast.warning(
-        "نیاز به ورود",
-        "جهت ثبت و نهایی‌سازی سفارش، ابتدا وارد حساب کاربری خود شوید.",
-      );
-      onClose();
-      navigate({ to: "/login" });
-      return;
-    }
 
     try {
       idempotencyKeyRef.current = selectionStore.submissionKey("ثبت سفارش از لیست محصولات");
       const submittedDraft = selectionStore.submissionSnapshot();
       const res = await submitOrderMutation.mutateAsync({
-        warehouseId: draft.warehouse.id,
+        warehouseId: draft.warehouse!.id,
         items: invoiceItems.map((item) => ({
           productId: isNaN(Number(item.product.id))
             ? item.product.id
