@@ -411,6 +411,24 @@ test('full migrations: schema coverage, CRUD, and warehouse rollback', { skip: !
     assert.deepEqual(approved.timeline?.[0], form.timeline?.[0])
     assert.equal(approved.timeline?.length, (form.timeline?.length ?? 0) + 1)
 
+    // Pre-hook orders can have no timeline. Payload admin serializes an empty array as 0,
+    // which beforeOperation sees before the normal field sanitizers run.
+    const legacy = await payload.create({ collection: 'orders', data: {
+      trackingNumber: 0, orderNumber: '', user: user.id, warehouse: warehouse.id, status: 'pending',
+      items: [{ product: product.id, requestedArea: 1 }], subtotal: 0, finalTotal: 0,
+    } as never })
+    await pool.query('DELETE FROM orders_timeline WHERE _parent_id=$1', [legacy.id])
+    for (const timeline of [0, '0']) {
+      const saved = await payload.update({ collection: 'orders', id: legacy.id, user: supportActor, overrideAccess: false, data: { notes: 'legacy empty form', timeline } as never })
+      assert.deepEqual(saved.timeline, [])
+    }
+    const legacyApproved = await payload.update({ collection: 'orders', id: legacy.id, user: supportActor, overrideAccess: false, data: { status: 'approve', timeline: 0 } as never })
+    assert.equal(legacyApproved.status, 'approve')
+    assert.equal(legacyApproved.timeline?.length, 1)
+    assert.equal(legacyApproved.timeline?.[0]?.status, 'approve')
+    await assert.rejects(payload.update({ collection: 'orders', id: legacy.id, user: supportActor, overrideAccess: false, data: { notes: 'cannot erase history', timeline: 0 } as never }))
+    await payload.update({ collection: 'orders', id: legacy.id, user: supportActor, overrideAccess: false, data: { status: 'cancelled_by_admin' } })
+
     // Activity Feed Endpoint check (CTE query in PostgreSQL)
     const feedReq = await createLocalReq({ user: { ...service, role: 'service', collection: 'admins' } }, payload)
     Object.assign(feedReq, { url: `http://localhost/api/activity-feed?userId=${user.id}&limit=10&filter=all` })

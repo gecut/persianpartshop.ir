@@ -32,6 +32,9 @@ function sameEvent(incoming: unknown, stored: unknown): boolean {
 
 function sameTimeline(incoming: unknown, stored: unknown): boolean {
   const old = stored ?? []
+  // Payload admin serializes an empty array as 0. This raw-input guard runs
+  // before Payload's field sanitizer converts 0 / '0' into [].
+  if (incoming === 0 || incoming === '0') return Array.isArray(old) && old.length === 0
   if (incoming == null && Array.isArray(old) && old.length === 0) return true
   // Form-generated row IDs and equivalent date serializations are not history edits.
   return Array.isArray(incoming) && Array.isArray(old) && incoming.length === old.length && incoming.every((entry, i) => sameEvent(entry, old[i]))

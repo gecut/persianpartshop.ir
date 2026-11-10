@@ -76,3 +76,14 @@ test('history status, time, order and event count cannot be changed through a fo
     [timeline[1], timeline[0]], [], [...timeline, { status: 'completed' }],
   ]) await assert.rejects(apply({ status: 'completed', timeline: incoming }, doc))
 })
+
+test('legacy empty timelines accept the raw empty-array sentinel emitted by Payload admin', async () => {
+  for (const timeline of [0, '0']) {
+    const result = await apply({ status: 'approve', timeline })
+    assert.equal(result.status, 'approve')
+    assert.equal(result.timeline.length, 1)
+    assert.equal(result.timeline[0].status, 'approve')
+    const withHistory = { ...original, timeline: [{ status: 'pending', timestamp: '2026-11-10T08:30:00Z' }] }
+    await assert.rejects(apply({ status: 'approve', timeline }, withHistory))
+  }
+})
