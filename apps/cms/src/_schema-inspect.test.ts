@@ -42,7 +42,7 @@ test('full migrations: schema coverage, CRUD, and warehouse rollback', { skip: !
 
   try {
     await control.query(`CREATE DATABASE "${name}"`)
-    assert.equal(migrations.length, 4)
+    assert.equal(migrations.length, 5)
 
     // Exercise the production upgrade path with existing baseline data.
     await db.transaction(transaction => migrations[0]!.up({ db: transaction, payload } as unknown as MigrateUpArgs))
@@ -62,6 +62,9 @@ test('full migrations: schema coverage, CRUD, and warehouse rollback', { skip: !
     await db.transaction(transaction => migrations[3]!.up({ db: transaction, payload } as unknown as MigrateUpArgs))
     await db.transaction(transaction => migrations[3]!.down({ db: transaction, payload } as unknown as MigrateDownArgs))
     await db.transaction(transaction => migrations[3]!.up({ db: transaction, payload } as unknown as MigrateUpArgs))
+    await db.transaction(transaction => migrations[4]!.up({ db: transaction, payload } as unknown as MigrateUpArgs))
+    await db.transaction(transaction => migrations[4]!.down({ db: transaction, payload } as unknown as MigrateDownArgs))
+    await db.transaction(transaction => migrations[4]!.up({ db: transaction, payload } as unknown as MigrateUpArgs))
     const upgraded = await pool.query('SELECT warehouse_id, inventory_sqm, revision, is_active, last_reported_at FROM warehouse_stock WHERE product_id=$1 ORDER BY warehouse_id', [productId])
     assert.equal(upgraded.rows.length, 2)
     assert.equal(Number(upgraded.rows[0].inventory_sqm), 42.5)
