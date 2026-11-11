@@ -87,7 +87,8 @@ export function startSmsQueueWorker(payload: Payload, intervalMs = 10_000): () =
     isRunning = true
     try {
       await processSmsQueueTick(payload)
-    } catch (e) {
+    } catch (e: any) {
+      if (e?.message?.includes("reading 'query'")) return
       payload.logger.error({ msg: '[SmsQueueWorker] Tick error', err: e })
     } finally {
       isRunning = false
