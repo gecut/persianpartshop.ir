@@ -6,7 +6,7 @@ export const NotificationSettings: GlobalConfig = {
   slug: 'notification-settings',
   label: 'تنظیمات اعلان‌ها و پیامک',
   admin: {
-    group: 'مدیریت و امنیت',
+    group: 'پیامک و اعلان‌ها',
     description: 'مدیریت شماره‌های تماس مدیران جهت دریافت پیامک‌های سیستمی و نوتیفیکیشن‌ها',
   },
   access: {

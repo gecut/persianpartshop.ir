@@ -17,11 +17,13 @@ export const Products: CollectionConfig = {
     defaultColumns: [
       "name",
       "sku",
-      "sqmPerCarton",
+      "category",
+      "brand",
+      "dimension",
+      "basePricePerSqm",
       "isActive",
-      "updatedAt",
     ],
-    group: "کاتالوگ و انبارداری",
+    group: "محصولات و کاتالوگ",
     description: "کاتالوگ و موجودی محصولات.",
   },
   access: {

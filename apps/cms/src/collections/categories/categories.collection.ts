@@ -10,8 +10,8 @@ export const Categories: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'name',
-    defaultColumns: ['name', 'slug', 'ordering', 'isActive'],
-    group: 'کاتالوگ و انبارداری',
+    defaultColumns: ['name', 'parent', 'ordering', 'isActive'],
+    group: 'محصولات و کاتالوگ',
   },
   access: {
     read: () => true,

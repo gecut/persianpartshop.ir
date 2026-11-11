@@ -10,8 +10,8 @@ export const Dimensions: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'name',
-    defaultColumns: ['name', 'width', 'height', 'slug', 'isActive', 'createdAt'],
-    group: 'کاتالوگ و انبارداری',
+    defaultColumns: ['name', 'width', 'height', 'isActive'],
+    group: 'محصولات و کاتالوگ',
     description: 'ابعاد استاندارد کاشی و سرامیک.',
   },
   access: {

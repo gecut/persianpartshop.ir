@@ -15,7 +15,7 @@ export const Plans: CollectionConfig = {
   admin: {
     useAsTitle: "title",
     defaultColumns: ["title", "isActive", "startsAt", "expiresAt", "createdAt"],
-    group: "فروش و مشتریان",
+    group: "مشتریان و فروش",
     description: "طرح‌ها، بسته‌ها و پیشنهادات ویژه مشتریان.",
   },
   access: {

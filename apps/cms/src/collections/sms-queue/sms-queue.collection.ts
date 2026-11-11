@@ -12,7 +12,7 @@ export const SmsQueue: CollectionConfig = {
   admin: {
     useAsTitle: 'receptor',
     defaultColumns: ['receptor', 'template', 'status', 'attempts', 'sentAt', 'createdAt'],
-    group: 'مدیریت و امنیت',
+    group: 'پیامک و اعلان‌ها',
     description: 'صف و تاریخچه ارسال پیامک‌های سیستمی.',
   },
   access: {
@@ -75,6 +75,7 @@ export const SmsQueue: CollectionConfig = {
       defaultValue: 'pending',
       index: true,
       label: 'وضعیت ارسال',
+      admin: { readOnly: true },
       options: [
         { label: 'در انتظار ارسال', value: 'pending' },
         { label: 'برنامه‌ریزی تلاش مجدد', value: 'retry_scheduled' },
@@ -88,22 +89,26 @@ export const SmsQueue: CollectionConfig = {
       required: true,
       defaultValue: 0,
       label: 'تعداد دفعات تلاش',
+      admin: { readOnly: true },
     },
     {
       name: 'lastError',
       type: 'text',
       label: 'متن آخرین خطا',
+      admin: { readOnly: true },
     },
     {
       name: 'nextRetryAt',
       type: 'date',
       index: true,
       label: 'زمان تلاش مجدد',
+      admin: { readOnly: true },
     },
     {
       name: 'sentAt',
       type: 'date',
       label: 'زمان تحویل به درگاه',
+      admin: { readOnly: true },
     },
   ],
 }

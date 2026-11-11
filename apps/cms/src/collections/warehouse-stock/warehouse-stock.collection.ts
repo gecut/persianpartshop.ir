@@ -10,8 +10,8 @@ export const WarehouseStock: CollectionConfig = {
   slug: 'warehouse-stock',
   labels: { singular: 'موجودی انبار', plural: 'موجودی انبارها' },
   admin: {
-    defaultColumns: ['warehouse', 'product', 'inventorySqm', 'stockCartons', 'isActive'],
-    group: 'کاتالوگ و انبارداری',
+    defaultColumns: ['product', 'warehouse', 'inventorySqm', 'stockCartons', 'isActive', 'lastReportedAt'],
+    group: 'انبار و موجودی',
     components: { beforeListTable: ['/collections/warehouse-stock/components/stock-import#StockImport'] },
   },
   endpoints: stockImportEndpoints,
@@ -38,8 +38,8 @@ export const WarehouseStock: CollectionConfig = {
         ],
       },
     },
-    { name: 'warehouse', label: 'انبار', type: 'relationship', relationTo: 'warehouses', required: true, index: true },
-    { name: 'product', label: 'محصول', type: 'relationship', relationTo: 'products', required: true, index: true },
+    { name: 'warehouse', label: 'انبار', type: 'relationship', relationTo: 'warehouses', required: true, index: true, admin: { description: 'پس از ایجاد رکورد قابل تغییر نیست.' } },
+    { name: 'product', label: 'محصول', type: 'relationship', relationTo: 'products', required: true, index: true, admin: { description: 'پس از ایجاد رکورد قابل تغییر نیست.' } },
     {
       name: 'inventorySqm',
       access: { update: () => false },

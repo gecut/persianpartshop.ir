@@ -19,7 +19,7 @@ export const readWarehouses: Access = (args) => readWarehouseStock(args) || getA
 export const Warehouses: CollectionConfig = {
   slug: 'warehouses',
   labels: { singular: 'انبار', plural: 'انبارها' },
-  admin: { useAsTitle: 'name', group: 'کاتالوگ و انبارداری' },
+  admin: { useAsTitle: 'name', defaultColumns: ['name', 'code', 'stockMode', 'isActive'], group: 'انبار و موجودی' },
   access: { read: readWarehouses, create: manageWarehouses, update: manageWarehouses, delete: () => false },
   fields: [
     { name: 'code', label: 'کد انبار', type: 'text', required: true, unique: true, admin: { description: 'پس از ایجاد انبار قابل تغییر نیست.' } },

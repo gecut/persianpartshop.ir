@@ -16,6 +16,7 @@ export const Media: CollectionConfig = {
   },
   admin: {
     group: 'رسانه و محتوا',
+    defaultColumns: ['filename', 'alt', 'mimeType', 'filesize', 'updatedAt'],
     description: 'مدیریت تصاویر کالاها، لوگوها و فایل\u200cهای سیستم',
   },
   access: {
@@ -66,9 +67,8 @@ export const Media: CollectionConfig = {
       },
     },
     withMetadata: false,
-    adminThumbnail: ({ doc }) => {
-      const filename = (doc as any)?.filename
-      return buildCdnUrl(filename) || ''
-    },
+    ...(process.env.CDN_URL ? {
+      adminThumbnail: ({ doc }: { doc: { filename?: string | null } }) => buildCdnUrl(doc.filename) || '',
+    } : {}),
   },
 }

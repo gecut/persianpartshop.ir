@@ -15,7 +15,7 @@ export const Orders: CollectionConfig = {
   admin: {
     useAsTitle: 'trackingNumber',
     defaultColumns: ['trackingNumber', 'user', 'warehouse', 'status', 'finalTotal', 'createdAt'],
-    group: 'فروش و مشتریان',
+    group: 'سفارش و تأمین',
     description: 'فهرست و وضعیت سفارشات.',
   },
   access: {

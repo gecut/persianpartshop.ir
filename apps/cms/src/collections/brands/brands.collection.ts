@@ -9,8 +9,8 @@ export const Brands: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'name',
-    defaultColumns: ['name', 'slug', 'isActive'],
-    group: 'کاتالوگ و انبارداری',
+    defaultColumns: ['name', 'logo', 'isActive'],
+    group: 'محصولات و کاتالوگ',
   },
   access: {
     read: () => true,

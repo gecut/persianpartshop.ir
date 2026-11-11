@@ -10,7 +10,7 @@ export const Tags: CollectionConfig = {
   admin: {
     useAsTitle: 'name',
     defaultColumns: ['name', 'slug', 'isActive'],
-    group: 'کاتالوگ و انبارداری',
+    group: 'محصولات و کاتالوگ',
   },
   access: {
     read: () => true,
