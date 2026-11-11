@@ -66,10 +66,16 @@ export function useProducts(supplyMode = false) {
     getNextPageParam: (last, pages) => last.hasMore ? pages.length + 1 : undefined,
     enabled: !!owner && useRemoteBrowse && search === queryFilters.q,
     staleTime: 120_000,
+    refetchOnReconnect: 'always',
   });
   const error = browse.error ?? catalog.error;
+  const loadError = useRemoteBrowse
+    ? !browse.data && browse.error
+    : !catalog.complete && !productsList.length && catalog.error;
   const isFetching = catalog.fetching || (useRemoteBrowse && browse.isFetching);
-  const isLoading = useRemoteBrowse ? !browse.data && !error : !productsList.length && !error;
+  const isLoading = useRemoteBrowse
+    ? !browse.data && !loadError
+    : !catalog.complete && !productsList.length && !loadError;
   const isLiveConnected = !error;
   const refetch = () => { if (useRemoteBrowse) void browse.refetch(); return catalogCoordinator.refresh(); };
 
@@ -268,6 +274,7 @@ export function useProducts(supplyMode = false) {
     dimensionsQuery,
     filters,
     isLoading,
+    loadError,
     activeFilterCount,
     isLiveConnected,
     error,

@@ -18,6 +18,7 @@ export interface UserProfile {
   hideExactStock?: boolean
   disableOrdering?: boolean
   canUseProductQr?: boolean
+  showProductImageWatermark: boolean
   allowedCategories?: any[]
   allowedCategoryIds?: number[]
 }
@@ -124,8 +125,9 @@ function getInitialState(): AuthState {
     const saved = localStorage.getItem(STORAGE_KEY)
     if (token && saved) {
       const parsed = JSON.parse(saved)
-      if (parsed.user && parsed.user.hideExactStock) {
-        parsed.user.disableOrdering = true
+      if (parsed.user) {
+        if (parsed.user.hideExactStock) parsed.user.disableOrdering = true
+        parsed.user.showProductImageWatermark = parsed.user.showProductImageWatermark === true
       }
       return { isAuthenticated: true, user: parsed.user || null, pendingPhone: null }
     }
@@ -193,6 +195,7 @@ export const authStore = {
         hideExactStock,
         disableOrdering,
         canUseProductQr: Boolean(userData.canUseProductQr),
+        showProductImageWatermark: userData.showProductImageWatermark === true,
         allowedCategories,
         allowedCategoryIds,
       }
@@ -264,6 +267,7 @@ export const authStore = {
       hideExactStock: 'hideExactStock' in raw ? Boolean(raw.hideExactStock) : previous.hideExactStock,
       disableOrdering: 'disableOrdering' in raw ? Boolean(raw.disableOrdering) || Boolean(raw.hideExactStock) : previous.disableOrdering,
       canUseProductQr: 'canUseProductQr' in raw ? Boolean(raw.canUseProductQr) : previous.canUseProductQr,
+      showProductImageWatermark: 'showProductImageWatermark' in raw ? raw.showProductImageWatermark === true : previous.showProductImageWatermark,
     }
     if (JSON.stringify(user) !== JSON.stringify(previous)) broadcast({ ...currentState, user })
   },

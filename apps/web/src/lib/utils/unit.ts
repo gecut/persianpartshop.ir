@@ -1,4 +1,4 @@
-import { toPersianDigits } from './currency'
+import { toPersianDigits } from "./currency";
 
 export function formatUnit(rawUnit?: string | null): string {
   if (!rawUnit) return "عدد";
@@ -18,6 +18,7 @@ export function formatUnit(rawUnit?: string | null): string {
     m: "متر",
     cm: "سانتی‌متر",
     "سانتی متر": "سانتی‌متر",
+    // prettier-ignore
     "سانتی‌متر": "سانتی‌متر",
     g: "گرم",
     gram: "گرم",
@@ -28,17 +29,51 @@ export function formatUnit(rawUnit?: string | null): string {
   return mapping[rawUnit] || rawUnit;
 }
 
-export function summarizeQuantities(items: Array<{ unit: string; quantity: number }>): string {
-  const totals = new Map<string, number>()
-  for (const item of items) totals.set(item.unit, (totals.get(item.unit) ?? 0) + item.quantity)
-  return [...totals].map(([unit, quantity]) => `${toPersianDigits(Math.round(quantity * 100) / 100)} ${formatUnit(unit)}`).join('، ')
+export function summarizeQuantities(
+  items: Array<{ unit: string; quantity: number }>
+): string {
+  const totals = new Map<string, number>();
+  for (const item of items)
+    totals.set(item.unit, (totals.get(item.unit) ?? 0) + item.quantity);
+  return [...totals]
+    .map(
+      ([unit, quantity]) =>
+        `${toPersianDigits(Math.round(quantity * 100) / 100)} ${formatUnit(
+          unit
+        )}`
+    )
+    .join("، ");
 }
 
-export function formatCartons(count: number, cartonsPerPallet?: number | null): string {
-  if (!Number.isSafeInteger(count) || count < 0) return ''
-  if (!Number.isSafeInteger(cartonsPerPallet) || !cartonsPerPallet || cartonsPerPallet < 1) return `${toPersianDigits(count)} کارتن`
-  const pallets = Math.floor(count / cartonsPerPallet)
-  const cartons = count % cartonsPerPallet
-  if (!pallets) return `${toPersianDigits(count)} کارتن`
-  return `${toPersianDigits(pallets)} پالت${cartons ? ` و ${toPersianDigits(cartons)} کارتن` : ''}`
+export function parseCartons(
+  count: number,
+  cartonsPerPallet?: number | null
+): { cartons?: number; pallets?: number } {
+  if (!Number.isSafeInteger(count) || count < 0) return {};
+  if (
+    !Number.isSafeInteger(cartonsPerPallet) ||
+    !cartonsPerPallet ||
+    cartonsPerPallet < 1
+  )
+    return { cartons: count };
+
+  const pallets = Math.floor(count / cartonsPerPallet);
+  const cartons = count % cartonsPerPallet;
+
+  if (!pallets) return { cartons: count };
+
+  return { cartons, pallets };
+}
+
+export function formatCartons(
+  count: number,
+  cartonsPerPallet?: number | null
+): string {
+  const { cartons, pallets } = parseCartons(count, cartonsPerPallet);
+  const result: string[] = [];
+
+  if (pallets) result.push(`${toPersianDigits(pallets)} پالت`);
+  if (cartons) result.push(`${toPersianDigits(cartons)} کارتن`);
+
+  return result.join(" و ");
 }

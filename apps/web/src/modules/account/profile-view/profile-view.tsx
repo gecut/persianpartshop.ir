@@ -1,5 +1,5 @@
 import { PwaAccountButton } from '@/modules/pwa/pwa-account-button'
-import { DataStatus } from '@/components/feedback/data-status'
+import { QueryLoadError } from '@/components/feedback/query-load-error'
 import { useTextDraft } from '@/lib/drafts'
 import { useWriteActivity } from '@/lib/write-activity'
 import { useState } from "react"
@@ -31,14 +31,14 @@ export function ProfileView() {
   // Profile Query from API to get documents and real-time status
   const {
     data: profileDoc,
-    isLoading: isProfileLoading,
+    isPending: isProfilePending,
     error: profileError,
-    isFetching: isProfileFetching,
     refetch: refetchProfile,
   } = useQuery({
     queryKey: queryKeys.auth.profile(user?.id),
     queryFn: ({ signal }) => api.user.profile(undefined, { signal }),
     staleTime: 120_000,
+    refetchOnReconnect: 'always',
     enabled: !!user,
   });
 
@@ -108,7 +108,6 @@ export function ProfileView() {
   return (
     <div className="space-y-3.5 w-full">
       <PwaAccountButton />
-      <DataStatus error={profileError} hasData={!!profileDoc} fetching={isProfileFetching} onRetry={() => void refetchProfile()} />
       <ProfileHeaderCard
         name={user.name}
         storeName={user.storeName}
@@ -122,14 +121,18 @@ export function ProfileView() {
         onEdit={() => setIsEditing(true)}
       />
 
-      <DocumentsSection
-        documents={documents}
-        isLoading={isProfileLoading}
-        deletingId={docs.isDeletingDocId}
-        onUpload={docs.openUploadModal}
-        onPreview={setPreviewDoc}
-        onDelete={docs.handleDeleteDocument}
-      />
+      {profileError && !profileDoc ? (
+        <QueryLoadError message="دریافت مدارک حساب ممکن نشد." onRetry={() => void refetchProfile()} />
+      ) : (
+        <DocumentsSection
+          documents={documents}
+          isLoading={isProfilePending}
+          deletingId={docs.isDeletingDocId}
+          onUpload={docs.openUploadModal}
+          onPreview={setPreviewDoc}
+          onDelete={docs.handleDeleteDocument}
+        />
+      )}
 
       <EditProfileDrawer
         isOpen={isEditing}

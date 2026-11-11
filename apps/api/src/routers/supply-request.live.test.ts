@@ -37,7 +37,16 @@ liveTest('live HTTP: supply eligibility, errors, replay, ownership and cancellat
   expect(replay.body.json.id).toBe(created.body.json.id)
   expect((await request('submit', { ...input, requestedQuantity: 201 })).body.json.code).toBe('CONFLICT')
   expect((await request('detail', { id: created.body.json.id })).body.json.id).toBe(created.body.json.id)
-  const anotherUser = await sdk.create({ collection: 'users', data: { phone: `0912${String(Math.floor(Math.random() * 10000000)).padStart(7, '0')}`, fullName: 'Other fixture', status: 'active', customerType: typeof user.customerType === 'object' ? user.customerType.id : user.customerType! } })
+  const anotherUser = await sdk.create({
+    collection: 'users',
+    data: {
+      phone: `0912${String(Math.floor(Math.random() * 10000000)).padStart(7, '0')}`,
+      fullName: 'Other fixture',
+      status: 'active',
+      customerType: typeof user.customerType === 'object' ? user.customerType.id : user.customerType!,
+      showProductImageWatermark: false,
+    },
+  })
   const otherToken = await generateToken({ id: anotherUser.id, role: 'customer' })
   const otherDetail = await fetch('http://127.0.0.1:55175/api/rpc/supplyRequest/detail', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${otherToken}` }, body: JSON.stringify({ json: { id: created.body.json.id } }) })
   expect(otherDetail.status).toBe(404)

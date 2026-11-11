@@ -1,6 +1,5 @@
 import { Outlet, useRouterState } from '@tanstack/react-router'
 import { NuqsAdapter } from 'nuqs/adapters/tanstack-router'
-import { DataStatus } from '@/components/feedback/data-status'
 import { ToastContainer } from '@/components/feedback/toast'
 import { AppHeader } from '@/app/app-header'
 import { MobileBottomNav } from '@/app/mobile-bottom-nav'
@@ -11,12 +10,12 @@ import { PwaControls } from '@/modules/pwa/pwa-controls'
 import { cn } from '@/lib/utils'
 
 export function RootLayoutView() {
-  const { isAuthenticated, user } = useAuth()
+  const { user } = useAuth()
   const routerState = useRouterState()
   const pathname = routerState.location.pathname
   const isLoginPage = pathname === '/login'
 
-  const { sessionError, refetchSession } = useSessionSync(isLoginPage)
+  useSessionSync(isLoginPage)
 
   return (
     <NuqsAdapter>
@@ -35,8 +34,7 @@ export function RootLayoutView() {
         >
           {!isLoginPage && <AppHeader />}
           <ToastContainer />
-          <PwaControls />
-          {isAuthenticated && sessionError && <DataStatus error={sessionError} hasData onRetry={() => void refetchSession()} />}
+          <PwaControls allowInstallInvitation={!isLoginPage} />
           <WarehouseSelection />
           {/* Main App Content Area */}
           <main

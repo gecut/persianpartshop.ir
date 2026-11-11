@@ -63,6 +63,7 @@ export async function findUserByPhone(phone: string) {
           phone: normalized,
           customerType: customerTypeId,
           status: 'active',
+          showProductImageWatermark: false,
           notes: `حساب کاربری فروشگاه ایجاد شده برای مدیر سامانه (${admin.name})`,
         },
       })
@@ -113,6 +114,7 @@ export function formatCustomerProfile(userDoc: any) {
     hideExactStock,
     disableOrdering,
     canUseProductQr: Boolean(userDoc.canUseProductQr),
+    showProductImageWatermark: userDoc.showProductImageWatermark === true,
     allowedCategories: userDoc.allowedCategories || [],
     allowedCategoryIds,
     status: userDoc.status || 'pending',

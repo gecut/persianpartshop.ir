@@ -1,12 +1,15 @@
 import { useState, useRef, useEffect, useCallback, type TouchEvent as ReactTouchEvent, type MouseEvent as ReactMouseEvent } from 'react'
 import { Modal as HeroUIModal } from '@heroui/react'
 import { XIcon } from './icons'
+import { ProductImageWatermark } from './product-image-watermark'
+import { useImageWatermarkPosition } from './_use-image-watermark-position'
 
 export interface ImageViewerModalProps {
   isOpen: boolean
   onClose: () => void
   imageUrl: string
   title?: string
+  showProductImageWatermark?: boolean
 }
 
 export function ImageViewerModal({
@@ -14,6 +17,7 @@ export function ImageViewerModal({
   onClose,
   imageUrl,
   title = 'تصویر محصول',
+  showProductImageWatermark = false,
 }: ImageViewerModalProps) {
   const [scale, setScale] = useState<number>(1)
   const [position, setPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
@@ -21,6 +25,10 @@ export function ImageViewerModal({
 
   const containerRef = useRef<HTMLDivElement | null>(null)
   const imgRef = useRef<HTMLImageElement | null>(null)
+  const [loadedImageUrl, setLoadedImageUrl] = useState<string | null>(null)
+  const showWatermark = isOpen && showProductImageWatermark &&
+    loadedImageUrl === imageUrl && imageUrl !== '/assets/images/placeholder.svg'
+  const watermarkRef = useImageWatermarkPosition(showWatermark, containerRef, imgRef)
 
   // Tracking refs for mouse/touch interactions
   const isDraggingRef = useRef<boolean>(false)
@@ -427,10 +435,13 @@ export function ImageViewerModal({
               onDoubleClick={handleDoubleClick}
             >
               <img
+                key={imageUrl}
                 ref={imgRef}
                 src={imageUrl}
                 alt={title}
                 draggable={false}
+                onLoad={() => setLoadedImageUrl(imageUrl)}
+                onError={() => setLoadedImageUrl(null)}
                 className="max-w-[92vw] max-h-[86vh] w-auto h-auto object-contain rounded-2xl select-none pointer-events-none will-change-transform drop-shadow-2xl"
                 style={{
                   transform: `translate3d(${position.x}px, ${position.y}px, 0) scale(${scale})`,
@@ -440,6 +451,11 @@ export function ImageViewerModal({
                     : 'transform 0.28s cubic-bezier(0.16, 1, 0.3, 1)',
                 }}
               />
+              {showWatermark && (
+                <div ref={watermarkRef} className="pointer-events-none absolute invisible">
+                  <ProductImageWatermark />
+                </div>
+              )}
             </div>
           </HeroUIModal.Dialog>
         </HeroUIModal.Container>

@@ -602,6 +602,10 @@ export interface User {
    * اجازهٔ اسکن و دریافت QR محصولات قابل مشاهده.
    */
   canUseProductQr?: boolean | null;
+  /**
+   * نمایش نشان بازرگانی زمانیان روی عکس‌های بزرگ گالری و در بزرگ‌نمایی محصول.
+   */
+  showProductImageWatermark: boolean;
   disableOrdering?: boolean | null;
   /**
    * یادداشت‌های اختصاصی مدیران فروش درباره سابقه مشتری.
@@ -1201,6 +1205,7 @@ export interface UsersSelect<T extends boolean = true> {
   allowedCategories?: T;
   hideExactStock?: T;
   canUseProductQr?: T;
+  showProductImageWatermark?: T;
   disableOrdering?: T;
   notes?: T;
   banReason?: T;

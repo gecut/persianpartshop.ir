@@ -3,10 +3,10 @@
 import { memo, useMemo } from "react";
 import { NumberField, I18nProvider, Button } from "@heroui/react";
 import { MoneyBagOutlineIcon } from "@solar-icons/react";
-import type { Product } from "./product-types"
+import type { Product } from "./product-types";
 import { calculateCartonRequirement } from "@/lib/utils/math";
 import { formatToman, toPersianDigits } from "@/lib/utils/currency";
-import { formatCartons } from "@/lib/utils/unit";
+import { parseCartons } from "@/lib/utils/unit";
 import { formatGrade, formatUnit } from "./product-store";
 import { selectionStore, useProductQuantity } from "./selection-store";
 import { ThrottledSlider } from "@/components/ui/throttled-slider";
@@ -16,6 +16,7 @@ import {
   SolarBoxIcon,
   TomanIcon,
 } from "@/components/ui/icons";
+import { match, P } from "ts-pattern";
 
 export interface ProductConfigCardProps {
   product: Product;
@@ -55,14 +56,9 @@ function ProductConfigCardComponent({
         area,
         product.sqmPerCarton,
         product.finalCustomerPricePerSqm,
-        maxInventory,
+        maxInventory
       ),
-    [
-      area,
-      product.sqmPerCarton,
-      product.finalCustomerPricePerSqm,
-      maxInventory,
-    ],
+    [area, product.sqmPerCarton, product.finalCustomerPricePerSqm, maxInventory]
   );
 
   const setArea = (val: number) => {
@@ -82,7 +78,7 @@ function ProductConfigCardComponent({
               onError={(e) => {
                 if (
                   !e.currentTarget.src.endsWith(
-                    "/assets/images/placeholder.svg",
+                    "/assets/images/placeholder.svg"
                   )
                 ) {
                   e.currentTarget.src = "/assets/images/placeholder.svg";
@@ -101,8 +97,10 @@ function ProductConfigCardComponent({
               ) : product.weight ? (
                 <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-muted/10 text-foreground">
                   {formatUnit(product.unit)} {toPersianDigits(product.weight)}
-                  {(product.secondary_unit || product.secondaryUnit)
-                    ? ` ${formatUnit(product.secondary_unit || product.secondaryUnit)}`
+                  {product.secondary_unit || product.secondaryUnit
+                    ? ` ${formatUnit(
+                        product.secondary_unit || product.secondaryUnit
+                      )}`
                     : ""}
                 </span>
               ) : (
@@ -148,13 +146,25 @@ function ProductConfigCardComponent({
       {product.hasSupplySource && onRequestSupply && (
         <div className="flex items-center justify-between gap-2 text-xs">
           <span className="text-muted">بیشتر از موجودی نیاز دارید؟</span>
-          <Button size="sm" variant="ghost" onPress={() => onRequestSupply(product, area)}>
+          <Button
+            size="sm"
+            variant="ghost"
+            onPress={() => onRequestSupply(product, area)}
+          >
             درخواست تأمین
           </Button>
         </div>
       )}
 
-      {calc.isExceedingStock && <p role="status" className="text-xs text-danger">موجودی به‌روز: {toPersianDigits(maxInventory)} {product.productType === 'other' ? formatUnit(product.unit) : 'مترمربع'}؛ مقدار درخواستی شما حفظ شده است.</p>}
+      {calc.isExceedingStock && (
+        <p role="status" className="text-xs text-danger">
+          موجودی به‌روز: {toPersianDigits(maxInventory)}{" "}
+          {product.productType === "other"
+            ? formatUnit(product.unit)
+            : "مترمربع"}
+          ؛ مقدار درخواستی شما حفظ شده است.
+        </p>
+      )}
       <div className="h-px bg-separator" />
 
       {/* 2. Meterage Controls: NumberField & Slider */}
@@ -206,32 +216,76 @@ function ProductConfigCardComponent({
         </div>
       </div>
 
-      <div className="rounded-2xl grid grid-cols-2 gap-2 text-xs">
-        <div className="p-2.5 bg-muted/5 rounded-2xl flex items-center gap-2.5">
+      <div className="rounded-2xl flex gap-2 text-xs">
+        <div className="p-2.5 bg-muted/5 rounded-2xl flex flex-1 items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl bg-primary/15 text-primary flex items-center justify-center shrink-0">
             <SolarRulerIcon size={14} />
           </div>
           <div className="min-w-0 flex-1">
-            <span className="text-xs text-muted font-medium block leading-tight mb-1">
-              {product.productType === 'other' ? 'مقدار تحویلی' : 'متراژ تحویلی'}
-            </span>
-            <span className="font-bold text-foreground text-sm leading-normal  block">
+            <div className="text-xs text-muted font-medium leading-tight mb-1">
+              {product.productType === "other"
+                ? "مقدار تحویلی"
+                : "متراژ تحویلی"}
+            </div>
+            <div className="font-bold text-foreground text-sm leading-normal tabular-nums">
               {toPersianDigits(calc.deliverableArea)}
-            </span>
+            </div>
           </div>
         </div>
 
-        <div className="p-2.5 bg-muted/5 rounded-2xl flex items-center gap-2.5">
+        <div className="p-2.5 bg-muted/5 rounded-2xl flex flex-1 items-center gap-2.5 min-w-42">
           <div className="w-8 h-8 rounded-xl bg-primary/15 text-primary flex items-center justify-center shrink-0">
             <SolarBoxIcon size={14} />
           </div>
           <div className="min-w-0 flex-1">
-            <span className="text-xs text-muted font-medium block leading-tight mb-1">
-              {product.productType === 'other' ? 'تعداد واحد فروش' : 'تعداد کارتن'}
-            </span>
-            <span className="font-bold text-primary text-sm leading-normal  block">
-              {product.productType === 'other' ? `${toPersianDigits(calc.cartonCount)} ${formatUnit(product.unit)}` : formatCartons(calc.cartonCount, product.cartonsPerPallet)}
-            </span>
+            <div className="text-xs text-muted font-medium leading-tight mb-1">
+              {product.productType === "other" ? "مقدار" : "تعداد کارتن"}
+            </div>
+            <div className="font-bold text-primary text-nowrap text-sm leading-normal">
+              {match({
+                productType: product.productType,
+                value: parseCartons(calc.cartonCount, product.cartonsPerPallet),
+              })
+                .with(
+                  {
+                    productType: "tile",
+                    value: { cartons: P.number, pallets: P.number },
+                  },
+                  ({ value }) => (
+                    <>
+                      <span className="tabular-nums">
+                        {toPersianDigits(value.pallets)}
+                      </span>{" "}
+                      <span className="text-xs font-medium">پالت و</span>{" "}
+                      <span className="tabular-nums">
+                        {toPersianDigits(value.cartons)}
+                      </span>{" "}
+                      <span className="text-xs font-medium">کارتن</span>
+                    </>
+                  )
+                )
+                .with(
+                  {
+                    productType: "tile",
+                    value: { cartons: P.number },
+                  },
+                  ({ value }) => (
+                    <>
+                      <span className="tabular-nums">
+                        {toPersianDigits(value.cartons)}
+                      </span>{" "}
+                      <span className="text-xs font-medium">کارتن</span>
+                    </>
+                  )
+                )
+                .with({ productType: "other" }, () => (
+                  <>
+                    {toPersianDigits(calc.cartonCount)}{" "}
+                    {formatUnit(product.unit)}
+                  </>
+                ))
+                .otherwise(() => null)}
+            </div>
           </div>
         </div>
       </div>
@@ -245,7 +299,9 @@ function ProductConfigCardComponent({
             مبلغ برآورد
           </span>
           <span className="font-bold text-background text-sm leading-normal inline-flex items-center gap-1">
-            <span>{formatToman(calc.totalPrice)}</span>
+            <span className="tabular-nums">
+              {formatToman(Math.ceil(calc.totalPrice / 100) * 100)}
+            </span>
             <TomanIcon className="size-4" />
           </span>
         </div>

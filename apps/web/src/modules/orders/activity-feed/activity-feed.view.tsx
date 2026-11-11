@@ -1,4 +1,4 @@
-import { DataStatus } from '@/components/feedback/data-status'
+import { QueryLoadError } from '@/components/feedback/query-load-error'
 import { prepareReorderDraft } from '@/modules/products/selection-store'
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react'
 import { useNavigate, getRouteApi } from '@tanstack/react-router'
@@ -42,8 +42,8 @@ export function ActivityFeedView() {
     data,
     fetchNextPage,
     hasNextPage,
-    isFetchingNextPage,
-    isLoading,
+    isFetchNextPageError,
+    isPending,
     error,
     isFetching,
     refetch,
@@ -57,6 +57,9 @@ export function ActivityFeedView() {
         limit: 20,
       }, { signal }),
     staleTime: 30_000,
+    refetchInterval: 30_000,
+    refetchOnReconnect: 'always',
+    enabled: Boolean(user),
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.nextCursor : null),
   })
@@ -70,12 +73,12 @@ export function ActivityFeedView() {
   const observerTargetRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
-    if (!hasNextPage || isFetchingNextPage) return
+    if (!hasNextPage || isFetching || isFetchNextPageError) return
 
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0]?.isIntersecting) {
-          void fetchNextPage()
+          void fetchNextPage({ cancelRefetch: false })
         }
       },
       { rootMargin: '300px', threshold: 0.1 },
@@ -86,7 +89,7 @@ export function ActivityFeedView() {
     return () => {
       if (el) observer.unobserve(el)
     }
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
+  }, [hasNextPage, isFetching, isFetchNextPageError, fetchNextPage])
 
   // Supply detail query & cancel mutation
   const supplyDetail = useQuery({
@@ -183,22 +186,14 @@ export function ActivityFeedView() {
       {filter === 'order' && (
         <ActivityStatusTabs orderStatus={orderStatus} onSelect={setOrderStatusFilter} />
       )}
-
-
-      {error && <DataStatus
-          error={error}
-          hasData={items.length > 0}
-          fetching={isFetching}
-          onRetry={() => void refetch()}
-        />}
-
-      {/* Loading Skeletons */}
-      {isLoading ? (
+      {isPending ? (
         <div className="space-y-2.5">
           <OrderCardSkeleton />
           <OrderCardSkeleton />
           <OrderCardSkeleton />
         </div>
+      ) : error && !data ? (
+        <QueryLoadError message="دریافت فهرست سفارش‌ها ممکن نشد." onRetry={() => void refetch()} />
       ) : items.length === 0 ? (
         <ActivityEmptyState filter={filter} />
       ) : (

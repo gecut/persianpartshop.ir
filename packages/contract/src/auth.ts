@@ -35,10 +35,12 @@ export const VerifyOtpInputSchema = z.object({
 
 export type VerifyOtpInput = z.infer<typeof VerifyOtpInputSchema>
 
+const SessionUserSchema = CustomerProfileSchema.pick({ showProductImageWatermark: true }).passthrough()
+
 export const CustomerAuthResponseSchema = z.object({
   token: z.string(),
   customer: CustomerProfileSchema.optional(),
-  user: z.any().optional(),
+  user: SessionUserSchema.optional(),
 })
 
 export type CustomerAuthResponse = z.infer<typeof CustomerAuthResponseSchema>
@@ -69,7 +71,7 @@ export const authContract = {
     .meta(openapi({ method: 'GET', path: '/auth/session', summary: 'وضعیت نشست کاربر جاری' }))
     .output(
       z.object({
-        user: z.any().nullable(),
+        user: SessionUserSchema.nullable(),
         catalogScopeKey: z.string().optional(),
       })
     ),

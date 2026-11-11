@@ -1,0 +1,122 @@
+@font-face {
+  font-family: Vazirmatn;
+  src: url("../../../apps/web/node_modules/@fontsource-variable/vazirmatn/files/vazirmatn-arabic-wght-normal.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+:root {
+  font: 16px/1.6 Vazirmatn, Tahoma, sans-serif;
+  color-scheme: light;
+  color: #1c2330;
+  background: #f6f5f2;
+  accent-color: #353366;
+  --stamp-opacity: .58;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; }
+main { max-inline-size: 75rem; margin-inline: auto; padding: clamp(1rem, 5vw, 4rem); }
+h1, h2, p { margin: 0; }
+h1 { font-size: clamp(1.55rem, 4vw, 2.6rem); }
+header p { color: #565d69; margin-block-start: .25rem; }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid #7570d7; outline-offset: 3px; }
+
+.settings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem 2rem;
+  margin-block: 1.5rem;
+  padding: .5rem 1rem;
+  background: #fff;
+  border: 1px solid #deddd8;
+  border-radius: .75rem;
+}
+
+.settings label { display: inline-flex; align-items: center; gap: .5rem; min-block-size: 44px; }
+.opacity-control output { min-inline-size: 3ch; }
+#mark-opacity { inline-size: clamp(5rem, 26vw, 9rem); }
+
+.samples { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+.sample {
+  padding: 0;
+  text-align: start;
+  overflow: hidden;
+  border: 1px solid #deddd8;
+  border-radius: .85rem;
+  background: #fff;
+}
+
+.sample-name { display: block; padding: .65rem .85rem; font-weight: 650; }
+.photo { display: block; position: relative; aspect-ratio: 1; background: #e4e0d9; }
+.photo img { display: block; inline-size: 100%; block-size: 100%; object-fit: cover; }
+[data-tone="ink"] { --stamp-ink: #171840; --stamp-shadow: rgb(255 255 255 / .55); }
+[data-tone="paper"] { --stamp-ink: #fff; --stamp-shadow: rgb(0 0 0 / .7); }
+
+.stamp {
+  position: absolute;
+  inset-block-end: var(--stamp-inset, 10px);
+  inset-inline-end: var(--stamp-inset, 10px);
+  display: inline-flex;
+  align-items: center;
+  gap: .35em;
+  color: var(--stamp-ink);
+  opacity: var(--stamp-opacity);
+  font-size: var(--stamp-size, clamp(11px, 1.4vw, 15px));
+  font-weight: 680;
+  line-height: 1.4;
+  white-space: nowrap;
+  filter: drop-shadow(0 1px 1px var(--stamp-shadow));
+  pointer-events: none;
+  user-select: none;
+}
+
+.stamp i {
+  inline-size: 1.18em;
+  block-size: 1.18em;
+  background: currentColor;
+  mask: url("zamanian-logo-mask.png") center / contain no-repeat;
+}
+
+[data-hide-mark] .stamp { visibility: hidden; }
+
+dialog {
+  inline-size: min(70rem, calc(100% - 1rem));
+  block-size: min(52rem, calc(100% - 1rem));
+  max-inline-size: none;
+  max-block-size: none;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid #42454e;
+  border-radius: 1rem;
+  color: #f8f8fa;
+  background: #17191f;
+}
+
+dialog[open] { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; }
+dialog::backdrop { background: rgb(12 13 18 / .75); }
+body:has(dialog[open]) { overflow: hidden; }
+.viewer-toolbar { display: flex; align-items: center; justify-content: space-between; gap: .5rem; padding: .5rem .75rem; }
+.viewer-toolbar h2 { font-size: 1rem; }
+.viewer-toolbar button {
+  min-inline-size: 44px;
+  min-block-size: 44px;
+  padding-inline: .65rem;
+  background: #282b34;
+  border: 1px solid #4c515d;
+  border-radius: .5rem;
+}
+
+.viewer-toolbar button:disabled { opacity: .55; cursor: default; }
+.zoom-controls { justify-content: center; flex-wrap: wrap; }
+.zoom-controls p { font-size: .82rem; color: #c1c4d1; }
+#stage { position: relative; overflow: hidden; touch-action: none; user-select: none; }
+#stage[data-zoomed] { cursor: grab; }
+#stage:active[data-zoomed] { cursor: grabbing; }
+#viewer-photo { display: block; position: absolute; top: 0; left: 0; transform-origin: top left; pointer-events: none; }
+#visible-photo { position: absolute; pointer-events: none; --stamp-inset: 14px; --stamp-size: clamp(13px, 2vw, 17px); }
+
+@media (max-width: 42rem) {
+  .samples { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; }
+}

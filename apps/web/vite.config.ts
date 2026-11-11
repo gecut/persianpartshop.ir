@@ -96,7 +96,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['index.html', 'assets/**/*.{js,css,woff2}'],
+        globPatterns: ['index.html', 'assets/**/*.{js,css,woff2}', 'assets/images/zamanian-logo-mask.png'],
         globIgnores: ['**/*wasm*', '**/*qr-*'],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         navigateFallback: '/index.html',
@@ -134,11 +134,11 @@ export default defineConfig({
     allowedHosts: true,
     proxy: {
       "/api/media": {
-        target: "http://localhost:5175",
+        target: "https://cdn.beta.persianpartshop.ir",
         changeOrigin: true,
       },
       "/api": {
-        target: "http://localhost:5175",
+        target: "https://api.beta.persianpartshop.ir",
         changeOrigin: true,
       },
     },

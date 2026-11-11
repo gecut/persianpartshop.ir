@@ -24,7 +24,7 @@ export const Users: CollectionConfig = {
       "companyName",
       "createdAt",
     ],
-    group: "فروش و مشتریان",
+    group: "مشتریان و فروش",
     description: "فهرست مشتریان و خریداران تجاری.",
   },
   access: {
@@ -86,6 +86,9 @@ export const Users: CollectionConfig = {
               changes.length > 0
                 ? changes.join(" | ")
                 : "ویرایش مشخصات مشتری";
+          }
+          if (previousDoc?.showProductImageWatermark !== doc.showProductImageWatermark) {
+            details += ` | نمایش واترمارک تصاویر محصول: ${doc.showProductImageWatermark ? "فعال" : "غیرفعال"}`;
           }
         }
 
@@ -453,6 +456,15 @@ export const Users: CollectionConfig = {
       label: "اسکن و دریافت QR محصولات",
       access: { update: canManageUsersField, create: canManageUsersField },
       admin: { description: "اجازهٔ اسکن و دریافت QR محصولات قابل مشاهده." },
+    },
+          {
+      name: "showProductImageWatermark",
+      type: "checkbox",
+      required: true,
+      defaultValue: false,
+      label: "نمایش واترمارک تصاویر محصول",
+      access: { update: canManageUsersField, create: canManageUsersField },
+      admin: { description: "نمایش نشان بازرگانی زمانیان روی عکس‌های بزرگ گالری و در بزرگ‌نمایی محصول." },
     },
           {
       name: "disableOrdering",

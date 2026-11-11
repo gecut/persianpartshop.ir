@@ -141,6 +141,7 @@ export function ProductBottomSheet({
                   productName={activeProduct.name}
                   items={mediaItems}
                   isOpen={isOpen}
+                  showProductImageWatermark={user?.showProductImageWatermark === true}
                   onZoom={setZoomImageUrl}
                 />
 
@@ -188,6 +189,7 @@ export function ProductBottomSheet({
           onClose={() => setZoomImageUrl(null)}
           imageUrl={zoomImageUrl}
           title={activeProduct.name}
+          showProductImageWatermark={user?.showProductImageWatermark === true}
         />
       )}
     </>

@@ -1442,7 +1442,7 @@ export async function runSeed() {
     } else {
       const created = await payload.create({
         collection: "users",
-        data: userData,
+        data: { ...userData, showProductImageWatermark: false },
       });
       id = created.id;
     }

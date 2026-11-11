@@ -80,7 +80,7 @@ export function dispatchFilter(action: ProductFilterAction) {
 // ✅ درست: رندرینگ استاندارد، خوانا و تایپ‌سیف
 {matchQuery(ordersQuery, {
   pending: () => <OrdersSkeleton />,
-  error: (err) => <DataStatus error={err} onRetry={ordersQuery.refetch} />,
+  error: () => <QueryLoadError message="دریافت سفارش‌ها ممکن نشد." onRetry={() => void ordersQuery.refetch()} />,
   empty: () => <OrdersEmptyState />,
   data: (orders) => orders.map(o => <OrderCard key={o.id} order={o} />),
 })}

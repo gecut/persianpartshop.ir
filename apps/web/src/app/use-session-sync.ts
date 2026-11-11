@@ -17,7 +17,7 @@ export function useSessionSync(isLoginPage: boolean) {
   useEffect(() => { supplyDraftStore.setOwner(isAuthenticated && user ? String(user.id) : '') }, [isAuthenticated, user?.id])
 
   // One shared session check; no periodic polling.
-  const { data: sessionData, error: sessionError, refetch: refetchSession } = useQuery({
+  const { data: sessionData, error: sessionError } = useQuery({
     queryKey: queryKeys.auth.session(user?.id),
     queryFn: async () => {
       const token = typeof window !== 'undefined' ? localStorage.getItem('persianpart_token') : null
@@ -27,6 +27,7 @@ export function useSessionSync(isLoginPage: boolean) {
     enabled: isAuthenticated && !isLoginPage,
     staleTime: 60_000,
     refetchOnWindowFocus: true,
+    refetchOnReconnect: 'always',
     retry: false,
   })
 
@@ -36,7 +37,10 @@ export function useSessionSync(isLoginPage: boolean) {
     if (sessionError && typeof sessionError === 'object' && 'code' in sessionError && sessionError.code === 'FORBIDDEN') authStore.logout()
     else if (!sessionError && sessionData && !sessionData.user) authStore.logout()
     else if (sessionData?.user) {
-      authStore.acceptProfile(sessionData.user)
+      authStore.acceptProfile({
+        ...sessionData.user,
+        showProductImageWatermark: sessionData.user.showProductImageWatermark === true,
+      })
       if (sessionData.catalogScopeKey) catalogCoordinator.acceptScope(sessionData.catalogScopeKey)
     }
   }, [sessionData, sessionError, isAuthenticated, isLoginPage])
@@ -50,6 +54,4 @@ export function useSessionSync(isLoginPage: boolean) {
       })
     }
   }, [isAuthenticated, isLoginPage, navigate, routerState.location.href])
-
-  return { sessionError, refetchSession }
 }

@@ -132,7 +132,7 @@ async function processVerifyOtp(rawPhone: string, rawCode: string) {
 
   return {
     token,
-    user: safeUser,
+    user: { ...safeUser, showProductImageWatermark: userDoc.showProductImageWatermark === true },
     customer: formatCustomerProfile(userDoc),
   }
 }
@@ -172,7 +172,10 @@ export const auth = base.auth.router({
       const tier = safeUser.customerType
       const safeTier = tier && typeof tier === 'object' ? { id: tier.id, name: tier.name } : tier
       const scope = await catalogScope(context)
-      return { user: { ...safeUser, customerType: safeTier }, catalogScopeKey: scope.scopeKey }
+      return {
+        user: { ...safeUser, customerType: safeTier, showProductImageWatermark: userDoc.showProductImageWatermark === true },
+        catalogScopeKey: scope.scopeKey,
+      }
     } catch (err) {
       if (err instanceof ORPCError) throw err
       throw new ORPCError('SERVICE_UNAVAILABLE', { message: 'بررسی نشست موقتاً در دسترس نیست؛ دوباره تلاش کنید.' })

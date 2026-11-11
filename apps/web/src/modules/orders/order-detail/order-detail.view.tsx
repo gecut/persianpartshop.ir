@@ -1,4 +1,4 @@
-import { DataStatus } from '@/components/feedback/data-status'
+import { QueryLoadError } from '@/components/feedback/query-load-error'
 import { customerErrorMessage } from '@/lib/utils/error'
 import { prepareReorderDraft } from '@/modules/products/selection-store'
 import { useState, useMemo } from "react"
@@ -43,7 +43,6 @@ export function OrderDetailView() {
   const { data: allProducts } = useCatalogIds(isReorderModalOpen ? order?.items.map(item => item.productId) ?? [] : []);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const detailError = detailQuery.error;
-  const detailRefreshing = detailQuery.isFetching;
   const isLoading = detailQuery.isPending;
 
   const isCancelled = match(order?.status)
@@ -104,8 +103,6 @@ export function OrderDetailView() {
     [order?.items, allProducts],
   );
 
-  const refreshDetail = async () => { await detailQuery.refetch(); };
-
   const handleCancel = async () => {
     if (!order) return;
     try {
@@ -129,7 +126,9 @@ export function OrderDetailView() {
     { isPending: isLoading, isError: Boolean(detailError && !order), error: detailError, data: order },
     {
       pending: () => <OrderDetailSkeleton />,
-      error: (err) => <DataStatus error={err} onRetry={() => void detailQuery.refetch()} />,
+      error: () => (
+        <QueryLoadError message="دریافت جزئیات سفارش ممکن نشد." onRetry={() => void detailQuery.refetch()} />
+      ),
       empty: () => (
         <div className="w-full max-w-xl mx-auto px-4 py-16 text-center space-y-3">
           <h2 className="text-sm font-bold text-foreground">
@@ -149,7 +148,6 @@ export function OrderDetailView() {
       ),
       data: (loadedOrder) => (
         <div className="w-full px-3 py-3 space-y-3 select-none">
-          <DataStatus error={detailError} hasData fetching={detailRefreshing} onRetry={() => void refreshDetail()} />
           {/* Top Breadcrumb */}
           <nav className="flex items-center gap-2 text-xs text-muted">
             <Link

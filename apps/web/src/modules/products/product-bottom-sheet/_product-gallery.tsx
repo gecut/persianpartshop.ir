@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { Button } from "@heroui/react"
 import useEmblaCarousel from "embla-carousel-react"
+import { ProductImageWatermark } from "@/components/ui/product-image-watermark"
 import { ProductZoomHint } from "./_product-zoom-hint"
 
 export interface GalleryMediaItem {
@@ -14,10 +15,11 @@ interface ProductGalleryProps {
   productName: string;
   items: GalleryMediaItem[];
   isOpen: boolean;
+  showProductImageWatermark: boolean;
   onZoom: (url: string) => void;
 }
 
-export function ProductGallery({ productName, items, isOpen, onZoom }: ProductGalleryProps) {
+export function ProductGallery({ productName, items, isOpen, showProductImageWatermark, onZoom }: ProductGalleryProps) {
   const [mainRef, mainApi] = useEmblaCarousel({ direction: "rtl" });
   const [thumbRef, thumbApi] = useEmblaCarousel({ direction: "rtl", containScroll: "keepSnaps", dragFree: true });
   const [selected, setSelected] = useState(0);
@@ -52,9 +54,9 @@ export function ProductGallery({ productName, items, isOpen, onZoom }: ProductGa
           <div className="flex h-full touch-pan-y">
             {items.map((item, index) => (
               <button
-                key={item.id}
+                key={item.url}
                 type="button"
-                className="min-w-0 flex-[0_0_100%] h-full cursor-zoom-in"
+                className="relative min-w-0 flex-[0_0_100%] h-full cursor-zoom-in"
                 onClick={() => onZoom(item.url)}
                 tabIndex={index === selected ? 0 : -1}
                 aria-label={`بزرگ‌نمایی ${item.label}`}
@@ -65,8 +67,16 @@ export function ProductGallery({ productName, items, isOpen, onZoom }: ProductGa
                   draggable={false}
                   className="w-full h-full object-cover"
                   onLoad={(event) => { if (!event.currentTarget.dataset.failed) setLoadedUrls((urls) => urls.includes(item.url) ? urls : [...urls, item.url]); }}
-                  onError={(event) => { if (!event.currentTarget.dataset.failed) { event.currentTarget.dataset.failed = "true"; event.currentTarget.src = "/assets/images/placeholder.svg"; } }}
+                  onError={(event) => {
+                    if (event.currentTarget.dataset.failed) return;
+                    event.currentTarget.dataset.failed = "true";
+                    event.currentTarget.src = "/assets/images/placeholder.svg";
+                    setLoadedUrls((urls) => urls.filter((url) => url !== item.url));
+                  }}
                 />
+                {showProductImageWatermark && item.url !== "/assets/images/placeholder.svg" && loadedUrls.includes(item.url) && (
+                  <ProductImageWatermark />
+                )}
               </button>
             ))}
           </div>

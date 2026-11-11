@@ -1,5 +1,5 @@
 import { useCatalogProduct } from "@/modules/products/catalog-data"
-import { DataStatus } from "@/components/feedback/data-status"
+import { QueryLoadError } from "@/components/feedback/query-load-error"
 import { SupplyRequestRecovery } from "@/modules/supply-requests/supply-request-recovery"
 import { supplyDraftStore, useSupplyDraft } from "@/modules/supply-requests/supply-request-draft"
 
@@ -44,7 +44,7 @@ export function ProductListView() {
     resetFilters,
     activeFilterCount,
     isLoading,
-    error,
+    loadError,
     isFetching,
     refetch,
   } = productHook;
@@ -168,20 +168,11 @@ export function ProductListView() {
           });
         }}
       />
-      {error && (
-        <DataStatus
-          error={error}
-          hasData={allProducts.length > 0}
-          fetching={isFetching}
-          onRetry={() => void refetch()}
-        />
+      {productId && !sharedProduct.data && sharedProduct.error && (
+        <QueryLoadError message="دریافت محصول این لینک ممکن نشد." onRetry={() => void sharedProduct.refetch()} />
       )}
-      {productId && (sharedProduct.isPending || sharedProduct.error) && (
-        <DataStatus
-          error={sharedProduct.error}
-          fetching={sharedProduct.isFetching}
-          onRetry={() => void sharedProduct.refetch()}
-        />
+      {productId && sharedProduct.isPending && (
+        <p role="status" className="text-sm text-muted">در حال دریافت محصول…</p>
       )}
       {/* 1. Search Bar & Advanced Filters Trigger */}
       <ProductSearchBar
@@ -238,8 +229,9 @@ export function ProductListView() {
             <ProductCardSkeleton key={idx} viewMode="list" />
           ))}
         </div>
-      ) : (error || !navigator.onLine) &&
-        !allProducts.length ? null : products.length === 0 && !isFetching ? (
+      ) : loadError ? (
+        <QueryLoadError message="دریافت فهرست محصولات ممکن نشد." onRetry={() => void refetch()} />
+      ) : products.length === 0 && !isFetching ? (
         <EmptyProducts onReset={resetFilters} />
       ) : (
         <ProductVirtualList

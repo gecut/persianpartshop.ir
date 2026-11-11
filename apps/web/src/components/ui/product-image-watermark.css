@@ -1,0 +1,32 @@
+.product-image-watermark {
+  position: absolute;
+  inset-block-end: 12px;
+  inset-inline-end: 12px;
+  display: inline-flex;
+  inline-size: max-content;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background-color: rgb(0 0 0 / 64%);
+  backdrop-filter: blur(6px);
+  color: white;
+  pointer-events: none;
+  user-select: none;
+}
+
+.product-image-watermark__content {
+  display: inline-flex;
+  align-items: center;
+  gap: .35em;
+  opacity: .8;
+  font-size: .8125rem;
+  font-weight: 650;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.product-image-watermark__logo {
+  inline-size: 1.15em;
+  block-size: 1.15em;
+  background-color: currentColor;
+  mask: url('/assets/images/zamanian-logo-mask.png') center / contain no-repeat;
+}

@@ -1,4 +1,4 @@
-import { DataStatus } from '@/components/feedback/data-status'
+import { QueryLoadError } from '@/components/feedback/query-load-error'
 import { useMemo, useState, useEffect, useRef } from "react";
 import { Link } from "@tanstack/react-router"
 import { usePlans } from "./plans-store";
@@ -12,9 +12,8 @@ import { ArrowLeftIcon, SparklesIcon } from "@/components/ui/icons";
 const PLANS_PAGE_SIZE = 12;
 
 export function PlansView() {
-  const { plans, isLoading: isPlansLoading, error, isFetching, refresh, hasMore: hasRemoteMore, loadMore } = usePlans();
+  const { plans, isLoading, loadError, isFetching, isFetchNextPageError, refresh, hasMore: hasRemoteMore, loadMore } = usePlans();
   const { data: allProducts } = useCatalogIds(plans.flatMap(plan => plan.productIds));
-  const isLoading = isPlansLoading && plans.length === 0;
   const validPlans = (plans as Plan[]).filter((p: Plan) => {
     return p.isActive !== false;
   });
@@ -49,7 +48,7 @@ export function PlansView() {
       (entries) => {
         if (entries[0].isIntersecting) {
           setVisibleCount((prev) => Math.min(prev + PLANS_PAGE_SIZE, sortedPlans.length));
-          loadMore();
+          if (hasRemoteMore && !isFetching && !isFetchNextPageError) void loadMore({ cancelRefetch: false });
         }
       },
       { threshold: 0.1, rootMargin: "250px" },
@@ -57,17 +56,18 @@ export function PlansView() {
 
     observer.observe(target);
     return () => observer.disconnect();
-  }, [hasMore, sortedPlans.length]);
+  }, [hasMore, hasRemoteMore, isFetching, isFetchNextPageError, loadMore, sortedPlans.length]);
 
   return (
     <div className="w-full px-4 py-3 space-y-3.5 text-start pb-8">
-      <DataStatus error={error} hasData={plans.length > 0} fetching={isFetching} onRetry={() => void refresh()} />
-      {isLoading && plans.length === 0 ? (
+      {isLoading ? (
         <div className="grid grid-cols-1 gap-4 items-stretch">
           <PlanCardSkeleton />
           <PlanCardSkeleton />
         </div>
-      ) : (error || !navigator.onLine) && !plans.length ? null : sortedPlans.length === 0 ? (
+      ) : loadError ? (
+        <QueryLoadError message="دریافت طرح‌ها ممکن نشد." onRetry={() => void refresh()} />
+      ) : sortedPlans.length === 0 ? (
         <div className="bg-muted/5 rounded-2xl p-8 text-center space-y-3">
           <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto">
             <SparklesIcon size={26} />

@@ -10,7 +10,7 @@ export function SupplyRequestRecovery({ onSuccess }: { onSuccess: (id: number) =
     toast.warning('درخواست ثبت نشده است', code === 'EXACT_STOCK_AVAILABLE' ? 'اکنون موجودی قطعی برای خرید کافی است.' : 'منبع تأمین اکنون در دسترس نیست.')
   })
   if (!draft?.pending) return null
-  return <Alert status="warning" role="status" className="status-alert">
+  return <Alert status="warning" role="status" className="supply-recovery-alert">
     <Alert.Indicator aria-hidden="true"><ClockCircleIcon size={20} /></Alert.Indicator>
     <Alert.Content>
       <Alert.Title>درخواست قبلی در انتظار پیگیری</Alert.Title>

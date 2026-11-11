@@ -75,8 +75,19 @@ export function usePlans() {
     initialPageParam: 1,
     getNextPageParam: (last, pages) => last.hasMore ? pages.length + 1 : undefined,
     enabled: !!user,
-    staleTime: 120_000,
+    staleTime: 60_000,
+    refetchInterval: 60_000,
+    refetchOnReconnect: 'always',
   })
   const plans = useMemo(() => query.data?.pages.flatMap(page => page.items.map(mapApiPlanToPlan)) ?? [], [query.data, user])
-  return { plans, isLoading: query.isPending, error: query.error, isFetching: query.isFetching, refresh: query.refetch, hasMore: !!query.hasNextPage, loadMore: () => { if (query.hasNextPage && !query.isFetching) void query.fetchNextPage() } }
+  return {
+    plans,
+    isLoading: query.isPending,
+    loadError: query.data ? null : query.error,
+    isFetching: query.isFetching,
+    isFetchNextPageError: query.isFetchNextPageError,
+    refresh: query.refetch,
+    hasMore: query.hasNextPage,
+    loadMore: query.fetchNextPage,
+  }
 }

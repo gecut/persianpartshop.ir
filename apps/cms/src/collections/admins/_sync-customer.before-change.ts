@@ -25,7 +25,13 @@ export const syncAdminCustomer: CollectionBeforeChangeHook = async ({ data, orig
       const tier = tiers.docs[0] ?? await req.payload.create({ collection: 'customer-types', req, data: { name: 'مشتری عادی', slug: 'regular', markupPercent: 0, isActive: true } })
       const customer = await req.payload.create({
         collection: 'users', req,
-        data: { fullName: effective.name, phone: effective.phone, customerType: tier.id, status: effective.isActive === false ? 'suspended' : 'active' },
+        data: {
+          fullName: effective.name,
+          phone: effective.phone,
+          customerType: tier.id,
+          status: effective.isActive === false ? 'suspended' : 'active',
+          showProductImageWatermark: false,
+        },
         context: { skipLogging: true },
       })
       data.customer = customer.id

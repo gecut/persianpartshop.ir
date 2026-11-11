@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { skipToken, useQuery } from '@tanstack/react-query'
 import { CatalogRecordSchema } from '@persianpart/contract'
 import { api, hasForegroundRequests } from '@/lib/api-client'
 import { queryClient } from '@/lib/query-client'
@@ -36,7 +36,12 @@ window.addEventListener('persianpart:write-finished', () => { if (!catalogCoordi
 export function useCatalogData(start = false, mapAll = true) {
   const { user } = useAuth()
   const owner = user?.id ?? ''
-  const result = useQuery<CatalogSnapshot>({ queryKey: queryKeys.products.catalog(owner), enabled: false, staleTime: Infinity, gcTime: Infinity })
+  const result = useQuery<CatalogSnapshot>({
+    queryKey: queryKeys.products.catalog(owner),
+    queryFn: skipToken,
+    staleTime: Infinity,
+    gcTime: Infinity,
+  })
   useEffect(() => {
     catalogCoordinator.setOwner(owner)
     if (owner) {

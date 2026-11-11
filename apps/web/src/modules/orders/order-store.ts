@@ -234,6 +234,8 @@ export const orderDetailOptions = (id: string) => ({
   queryKey: queryKeys.orders.detail(id, authStore.getState().user?.id),
   queryFn: async ({ signal }: { signal: AbortSignal }) => mapDocToOrder(await api.order.getById({ id }, { signal })),
   staleTime: 30_000,
+  refetchInterval: 30_000,
+  refetchOnReconnect: 'always' as const,
 })
 export const orderStore = {
   acceptOrder: (doc: unknown): Order => {
@@ -250,7 +252,9 @@ export function useCancelOrder() {
   return useMutation({
     mutationKey: mutationKeys.orders.cancel,
     mutationFn: ({ orderId, reason }: { orderId: string; reason?: string }) => api.order.cancel({ id: orderId, reason }),
-    onSuccess: doc => {
+    onSuccess: async (doc, { orderId }) => {
+      const detailKey = queryKeys.orders.detail(orderId, authStore.getState().user?.id)
+      await client.cancelQueries({ queryKey: detailKey, exact: true })
       orderStore.acceptOrder(doc)
       void client.invalidateQueries({ queryKey: queryKeys.activityFeed.all })
       void client.invalidateQueries({ queryKey: queryKeys.orders.lists() })

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>نمونهٔ واترمارک تصاویر محصول</title>
+    <link rel="stylesheet" href="watermark.css">
+    <script src="viewer.js" defer></script>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>واترمارک تصاویر محصول</h1>
+        <p>برای بررسی جزئیات و زوم، یکی از عکس‌ها را باز کنید.</p>
+      </header>
+
+      <div class="settings">
+        <label><input id="show-mark" type="checkbox" checked> نمایش واترمارک</label>
+        <label class="opacity-control" for="mark-opacity">
+          شدت نمایش
+          <input id="mark-opacity" type="range" min="25" max="90" value="58" dir="ltr">
+          <output id="opacity-value" for="mark-opacity">۵۸٪</output>
+        </label>
+      </div>
+
+      <section class="samples" aria-label="عکس‌های نمونه">
+        <button class="sample" type="button" data-tone="ink" data-title="کالاکاتا گلد">
+          <span class="photo">
+            <img src="../../../apps/web/public/api/media/file/tile-calacatta-gold.jpg" alt="" width="1024" height="1024" draggable="false">
+            <span class="stamp" aria-hidden="true"><i></i>بازرگانی زمانیان</span>
+          </span>
+          <span class="sample-name">کالاکاتا گلد</span>
+        </button>
+        <button class="sample" type="button" data-tone="paper" data-title="مارکینا مشکی">
+          <span class="photo">
+            <img src="../../../apps/web/public/api/media/file/tile-marquina-black.jpg" alt="" width="1024" height="1024" draggable="false">
+            <span class="stamp" aria-hidden="true"><i></i>بازرگانی زمانیان</span>
+          </span>
+          <span class="sample-name">مارکینا مشکی</span>
+        </button>
+        <button class="sample" type="button" data-tone="ink" data-title="تراورتن بژ">
+          <span class="photo">
+            <img src="../../../apps/web/public/api/media/file/tile-travertine-beige.jpg" alt="" width="1024" height="1024" draggable="false">
+            <span class="stamp" aria-hidden="true"><i></i>بازرگانی زمانیان</span>
+          </span>
+          <span class="sample-name">تراورتن بژ</span>
+        </button>
+      </section>
+    </main>
+
+    <dialog aria-labelledby="viewer-title">
+      <div class="viewer-toolbar">
+        <h2 id="viewer-title"></h2>
+        <button id="close-viewer" type="button" autofocus>بستن</button>
+      </div>
+      <div id="stage">
+        <img id="viewer-photo" alt="" draggable="false">
+        <div id="visible-photo">
+          <span class="stamp" aria-hidden="true"><i></i>بازرگانی زمانیان</span>
+        </div>
+      </div>
+      <div class="viewer-toolbar zoom-controls" aria-label="کنترل زوم">
+        <button id="zoom-in" type="button" aria-label="بزرگ‌نمایی">+</button>
+        <button id="zoom-out" type="button" aria-label="کوچک‌نمایی">−</button>
+        <button id="zoom-reset" type="button" aria-label="بازنشانی زوم">۱۰۰٪</button>
+        <p>برای جابه‌جایی عکسِ زوم‌شده، آن را بکشید.</p>
+      </div>
+    </dialog>
+  </body>
+</html>

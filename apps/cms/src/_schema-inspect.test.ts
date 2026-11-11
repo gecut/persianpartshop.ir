@@ -42,7 +42,7 @@ test('full migrations: schema coverage, CRUD, and warehouse rollback', { skip: !
 
   try {
     await control.query(`CREATE DATABASE "${name}"`)
-    assert.equal(migrations.length, 6)
+    assert.equal(migrations.length, 7)
 
     // Exercise the production upgrade path with existing baseline data.
     await db.transaction(transaction => migrations[0]!.up({ db: transaction, payload } as unknown as MigrateUpArgs))
@@ -68,6 +68,24 @@ test('full migrations: schema coverage, CRUD, and warehouse rollback', { skip: !
     await db.transaction(transaction => migrations[5]!.up({ db: transaction, payload } as unknown as MigrateUpArgs))
     await db.transaction(transaction => migrations[5]!.down({ db: transaction, payload } as unknown as MigrateDownArgs))
     await db.transaction(transaction => migrations[5]!.up({ db: transaction, payload } as unknown as MigrateUpArgs))
+    const legacyTier = await pool.query<{ id: number }>("INSERT INTO customer_types (name, slug) VALUES ('Legacy tier', 'legacy-watermark') RETURNING id")
+    const legacyCustomer = await pool.query<{ id: number }>(
+      "INSERT INTO users (full_name, phone, customer_type_id) VALUES ('Legacy customer', '09120000090', $1) RETURNING id",
+      [legacyTier.rows[0]!.id],
+    )
+    const watermarkMigration = migrations[6]!
+    await db.transaction(transaction => watermarkMigration.up({ db: transaction, payload } as unknown as MigrateUpArgs))
+    await db.transaction(transaction => watermarkMigration.down({ db: transaction, payload } as unknown as MigrateDownArgs))
+    await db.transaction(transaction => watermarkMigration.up({ db: transaction, payload } as unknown as MigrateUpArgs))
+    assert.equal((await pool.query(
+      'SELECT show_product_image_watermark FROM users WHERE id = $1', [legacyCustomer.rows[0]!.id],
+    )).rows[0]?.show_product_image_watermark, false)
+    assert.equal((await pool.query(
+      "INSERT INTO users (full_name, phone, customer_type_id) VALUES ('New customer', '09120000091', $1) RETURNING show_product_image_watermark",
+      [legacyTier.rows[0]!.id],
+    )).rows[0]?.show_product_image_watermark, false)
+    await pool.query('DELETE FROM users WHERE customer_type_id = $1', [legacyTier.rows[0]!.id])
+    await pool.query('DELETE FROM customer_types WHERE id = $1', [legacyTier.rows[0]!.id])
     const upgraded = await pool.query('SELECT warehouse_id, inventory_sqm, revision, is_active, last_reported_at FROM warehouse_stock WHERE product_id=$1 ORDER BY warehouse_id', [productId])
     assert.equal(upgraded.rows.length, 2)
     assert.equal(Number(upgraded.rows[0].inventory_sqm), 42.5)
@@ -140,6 +158,7 @@ test('full migrations: schema coverage, CRUD, and warehouse rollback', { skip: !
     const linked = await payload.find({ collection: 'users', where: { phone: { equals: '09129999999' } }, depth: 0 })
     assert.equal(linked.totalDocs, 1)
     assert.equal(linked.docs[0]!.status, 'active')
+    assert.equal(linked.docs[0]!.showProductImageWatermark, false)
     const bootstrapTier = await payload.findByID({ collection: 'customer-types', id: linked.docs[0]!.customerType as number })
     assert.equal(bootstrapTier.slug, 'regular')
     await payload.update({ collection: 'admins', id: firstAdmin.id, data: { name: 'Updated Bootstrap Admin' } })
@@ -169,9 +188,10 @@ test('full migrations: schema coverage, CRUD, and warehouse rollback', { skip: !
     })
     const user = await payload.create({
       collection: 'users',
-      data: { phone: '09120000001', fullName: 'آرش دهقان', customerType: tier.id, status: 'active' },
+      data: { phone: '09120000001', fullName: 'آرش دهقان', customerType: tier.id, status: 'active', showProductImageWatermark: false },
     })
     assert.equal(user.canUseProductQr, false)
+    assert.equal(user.showProductImageWatermark, false)
 
     // Dimensions & Products
     const dimension = await payload.create({
@@ -218,6 +238,24 @@ test('full migrations: schema coverage, CRUD, and warehouse rollback', { skip: !
     await payload.update({ collection: 'admins', id: support.id, data: { name: 'Changed support', phone: user.phone }, user: supportActor, overrideAccess: false })
     assert.equal((await payload.findByID({ collection: 'users', id: user.id, depth: 0 })).fullName, user.fullName)
     await assert.rejects(payload.update({ collection: 'users', id: user.id, data: { fullName: 'unauthorized' }, user: supportActor, overrideAccess: false }))
+    for (const enabled of [true, false]) {
+      const updated = await payload.update({
+        collection: 'users', id: user.id, data: { showProductImageWatermark: enabled }, user: managerActor, overrideAccess: false,
+      })
+      assert.equal(updated.showProductImageWatermark, enabled)
+      const logs = await payload.find({
+        collection: 'audit-logs',
+        where: {
+          target: { equals: `${user.fullName} (${user.phone})` },
+          details: { contains: `نمایش واترمارک تصاویر محصول: ${enabled ? 'فعال' : 'غیرفعال'}` },
+        },
+      })
+      assert.equal(logs.totalDocs, 1)
+    }
+    await assert.rejects(payload.update({
+      collection: 'users', id: user.id, data: { showProductImageWatermark: true }, user: supportActor, overrideAccess: false,
+    }))
+    console.log('product image watermark migration, permissions and audit log: PASS')
     await payload.create({ collection: 'warehouse-stock', data: { isActive: true, revision: 0, product: product.id, warehouse: inquiry.id, lastReportedAt: new Date().toISOString() }, user: managerActor, overrideAccess: false })
     await assert.rejects(payload.create({ collection: 'warehouse-stock', data: { isActive: true, revision: 0, product: product.id, warehouse: inquiry.id, lastReportedAt: new Date().toISOString() }, user: managerActor, overrideAccess: false }))
     await assert.rejects(payload.create({ collection: 'warehouse-stock', data: { isActive: true, revision: 0, product: product.id, warehouse: inquiry.id, lastReportedAt: new Date().toISOString() }, user: supportActor, overrideAccess: false }))
