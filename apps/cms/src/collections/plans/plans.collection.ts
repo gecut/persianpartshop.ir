@@ -88,7 +88,10 @@ export const Plans: CollectionConfig = {
                 await enqueueSms(req.payload, {
                   receptor: userDoc.phone,
                   template: SMS_TEMPLATES.PLAN_ASSIGNED,
-                  tokens: { token: planTitle },
+                  tokens: {
+                    token: String(doc.id),
+                    token10: planTitle,
+                  },
                   req,
                 })
               }
