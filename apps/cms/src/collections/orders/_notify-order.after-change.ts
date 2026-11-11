@@ -61,7 +61,7 @@ export const notifyOrderAfterChange: CollectionAfterChangeHook = async ({
             template: SMS_TEMPLATES.ADMIN_NEW_ORDER,
             tokens: {
               token: trackingToken,
-              token2: customerName,
+              token10: customerName,
             },
             req,
           })
@@ -107,7 +107,7 @@ export const notifyOrderAfterChange: CollectionAfterChangeHook = async ({
               template: SMS_TEMPLATES.ADMIN_ORDER_CANCELLED,
               tokens: {
                 token: trackingToken,
-                token2: customerName,
+                token10: customerName,
               },
               req,
             })

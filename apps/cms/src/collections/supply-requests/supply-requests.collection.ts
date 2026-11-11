@@ -169,7 +169,7 @@ export const SupplyRequests: CollectionConfig = {
                 template: SMS_TEMPLATES.ADMIN_NEW_SUPPLY_REQUEST,
                 tokens: {
                   token: trackingToken,
-                  token2: customerName,
+                  token10: customerName,
                 },
                 req,
               })

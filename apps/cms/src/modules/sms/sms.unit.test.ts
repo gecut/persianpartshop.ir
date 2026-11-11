@@ -37,11 +37,14 @@ test('SMS client utilities: maskPhone, maskEndpoint, sanitizeToken, normalizeRec
   assert.equal(sanitizeToken('۱۲۳۴'), '1234')
   // Arabic digits normalized
   assert.equal(sanitizeToken('١٢٣٤٥٦٧٨٩٠'), '1234567890')
-  // Spaces replaced with ZWNJ (\u200C)
-  assert.equal(sanitizeToken('شرکت بازرگانی پرشین'), 'شرکت\u200Cبازرگانی\u200Cپرشین')
-  assert.equal(sanitizeToken('  طرح   ویژه  همکاران  '), 'طرح\u200Cویژه\u200Cهمکاران')
-  // Leading and trailing ZWNJ trimmed
-  assert.equal(sanitizeToken('\u200Cسلام همکار\u200C'), 'سلام\u200Cهمکار')
+  // When spaces are not allowed (standard token), spaces and ZWNJs are stripped completely
+  assert.equal(sanitizeToken('شرکت بازرگانی پرشین'), 'شرکتبازرگانیپرشین')
+  assert.equal(sanitizeToken('  طرح   ویژه  همکاران  '), 'طرحویژههمکاران')
+  assert.equal(sanitizeToken('\u200Cسلام همکار\u200C'), 'سلامهمکار')
+  // When spaces are allowed (token10/token20), spaces are collapsed into single spaces and capped
+  assert.equal(sanitizeToken('شرکت  بازرگانی   پرشین', { allowSpaces: true }), 'شرکت بازرگانی پرشین')
+  assert.equal(sanitizeToken('  طرح   ویژه  همکاران  ', { allowSpaces: true }), 'طرح ویژه همکاران')
+  assert.equal(sanitizeToken('یک دو سه چهار پنج شش هفت هشت', { allowSpaces: true, maxSpaces: 5 }), 'یک دو سه چهار پنج شش')
 
   // 4. normalizeReceptor
   assert.equal(normalizeReceptor(''), '')
@@ -136,7 +139,7 @@ test('sendKavenegarPattern: live fetch with successful status and token paramete
       receptor: '۰۹۱۲۳۴۵۶۷۸۹',
       tokens: {
         token: '10042',
-        token2: 'علی محمدی',
+        token10: 'علی محمدی',
       },
     })
 
@@ -148,7 +151,7 @@ test('sendKavenegarPattern: live fetch with successful status and token paramete
     assert.equal(parsedParams.get('receptor'), '09123456789')
     assert.equal(parsedParams.get('template'), 'admin-new-order')
     assert.equal(parsedParams.get('token'), '10042')
-    assert.equal(parsedParams.get('token2'), 'علی\u200Cمحمدی')
+    assert.equal(parsedParams.get('token10'), 'علی محمدی')
   } finally {
     ;(process.env as any).NODE_ENV = origEnv
     globalThis.fetch = origFetch

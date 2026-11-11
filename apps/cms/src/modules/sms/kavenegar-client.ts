@@ -36,7 +36,15 @@ export function maskEndpoint(endpoint: string): string {
   return endpoint.replace(/\/v1\/[^/]+/, '/v1/***')
 }
 
-export function sanitizeToken(value: string | number | undefined | null): string {
+export interface SanitizeTokenOptions {
+  allowSpaces?: boolean
+  maxSpaces?: number
+}
+
+export function sanitizeToken(
+  value: string | number | undefined | null,
+  options: SanitizeTokenOptions = {}
+): string {
   if (value === null || value === undefined) return ''
   const str = String(value).trim()
   const persianDigits = '۰۱۲۳۴۵۶۷۸۹'
@@ -45,9 +53,22 @@ export function sanitizeToken(value: string | number | undefined | null): string
   for (let i = 0; i < 10; i++) {
     normalized = normalized.replaceAll(persianDigits[i]!, String(i)).replaceAll(arabicDigits[i]!, String(i))
   }
-  return normalized
-    .replace(/^[\s\u200C]+|[\s\u200C]+$/g, '')
-    .replace(/\s+/g, '\u200C')
+  // Strip control characters, newlines, carriage returns, tabs, and zero-width characters (e.g. ZWNJ which triggers 431)
+  normalized = normalized.replace(/[\r\n\t\f\v\u200B-\u200D\uFEFF]+/g, ' ')
+
+  if (options.allowSpaces) {
+    normalized = normalized.replace(/\s+/g, ' ').trim()
+    if (options.maxSpaces !== undefined) {
+      const parts = normalized.split(' ')
+      if (parts.length > options.maxSpaces + 1) {
+        normalized = parts.slice(0, options.maxSpaces + 1).join(' ')
+      }
+    }
+    return normalized
+  }
+
+  // When spaces are forbidden (standard token/token2/token3), remove them completely without separators
+  return normalized.replace(/\s+/g, '')
 }
 
 export async function sendKavenegarPattern<T extends SmsTemplateName>(
@@ -73,14 +94,29 @@ export async function sendKavenegarPattern<T extends SmsTemplateName>(
 
   const endpoint = `https://api.kavenegar.com/v1/${apiKey}/verify/lookup.json`
 
+  const tokensObj = params.tokens as any
   const bodyParams = new URLSearchParams({
     receptor: cleanReceptor,
     template: params.template,
-    token: sanitizeToken((params.tokens as any).token),
+    token: sanitizeToken(tokensObj.token, {
+      allowSpaces: params.template === SMS_TEMPLATES.PLAN_ASSIGNED,
+      maxSpaces: 5,
+    }),
   })
 
-  if ('token2' in params.tokens && (params.tokens as any).token2) {
-    bodyParams.set('token2', sanitizeToken((params.tokens as any).token2))
+  // Support token10 (Kavenegar standard for names with up to 5 spaces)
+  if ('token10' in tokensObj && tokensObj.token10) {
+    bodyParams.set('token10', sanitizeToken(tokensObj.token10, { allowSpaces: true, maxSpaces: 5 }))
+  }
+
+  // Support token20 (longer texts with up to 8 spaces)
+  if ('token20' in tokensObj && tokensObj.token20) {
+    bodyParams.set('token20', sanitizeToken(tokensObj.token20, { allowSpaces: true, maxSpaces: 8 }))
+  }
+
+  // Backward-compatibility: if token2 is provided and token10 is not set
+  if ('token2' in tokensObj && tokensObj.token2 && !bodyParams.has('token10')) {
+    bodyParams.set('token2', sanitizeToken(tokensObj.token2, { allowSpaces: false }))
   }
 
   try {
