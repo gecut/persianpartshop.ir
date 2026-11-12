@@ -175,7 +175,7 @@ export interface Product {
    * مثلاً سفید، طوسی یا کرم.
    */
   color?: string | null;
-  grade?: ('grade_1' | 'grade_2' | 'grade_3' | 'grade_4') | null;
+  grade?: ('grade_1' | 'grade_2' | 'grade_3' | 'grade_4' | 'grade_d' | 'grade_c' | 'cg3') | null;
   dimension?: (number | null) | Dimension;
   width?: number | null;
   height?: number | null;

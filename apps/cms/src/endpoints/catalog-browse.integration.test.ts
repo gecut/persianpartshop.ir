@@ -3,9 +3,10 @@ import { test } from 'node:test'
 import { createRequire } from 'node:module'
 import { randomUUID } from 'node:crypto'
 import { drizzle } from '@payloadcms/db-postgres/drizzle/node-postgres'
-import type { MigrateUpArgs, PostgresAdapter } from '@payloadcms/db-postgres'
+import type { MigrateDownArgs, MigrateUpArgs, PostgresAdapter } from '@payloadcms/db-postgres'
 import type { PayloadRequest } from 'payload'
 import { migrations } from '../migrations'
+import * as productGrades from '../migrations/20261112_120000_product_grades'
 import { catalogBrowseQuery, InternalCatalogBrowseSchema, catalogBrowseEndpoint, planBrowseEndpoint } from './catalog-browse.endpoint'
 
 const require = createRequire(import.meta.url)
@@ -22,7 +23,11 @@ test('catalog SQL applies permissions, search, stock and price order before pagi
   try {
     await control.query(`CREATE DATABASE "${name}"`)
     const db = drizzle(pool)
-    for (const migration of migrations) await migration.up({ db } as unknown as MigrateUpArgs)
+    const gradeMigrationIndex = migrations.findIndex(migration => migration.up === productGrades.up)
+    assert.ok(gradeMigrationIndex >= 0)
+    for (const migration of migrations.slice(0, gradeMigrationIndex)) {
+      await db.transaction(tx => migration.up({ db: tx } as unknown as MigrateUpArgs))
+    }
     await pool.query("INSERT INTO categories (id,name,slug) VALUES (1,'عمومی','general'),(2,'محدود','restricted')")
     await pool.query("INSERT INTO brands (id,name,slug) VALUES (1,'برند الف','a')")
     await pool.query("INSERT INTO dimensions (id,name,slug,width,height) VALUES (1,'60×120','60-120',60,120)")
@@ -31,6 +36,22 @@ test('catalog SQL applies permissions, search, stock and price order before pagi
     await pool.query("INSERT INTO products_rels (parent_id,path,tags_id) VALUES (649,'tags',1)")
     await pool.query("INSERT INTO warehouses (id,code,name,stock_mode) VALUES (1,'E','Exact','exact'),(2,'I','Inquiry','inquiry')")
     await pool.query("INSERT INTO warehouse_stock (product_id,warehouse_id,inventory_sqm,revision) VALUES (649,1,100,0),(647,2,NULL,0)")
+    await pool.query("UPDATE products SET grade = (CASE id WHEN 2 THEN 'grade_2' WHEN 4 THEN 'grade_3' WHEN 6 THEN 'grade_4' END)::enum_products_grade WHERE id IN (2,4,6,8)")
+    const productRows = async () => (await pool.query('SELECT * FROM products ORDER BY id')).rows
+    const originalProducts = await productRows()
+    const upgrade = () => db.transaction(tx => productGrades.up({ db: tx } as unknown as MigrateUpArgs))
+    const downgrade = () => db.transaction(tx => productGrades.down({ db: tx } as unknown as MigrateDownArgs))
+    await upgrade()
+    assert.deepEqual(await productRows(), originalProducts)
+    await downgrade()
+    assert.deepEqual(await productRows(), originalProducts)
+    const { rows: [restored] } = await pool.query("SELECT enum_range(NULL::enum_products_grade)::text AS grades")
+    assert.equal(restored.grades, '{grade_1,grade_2,grade_3,grade_4}')
+    await upgrade()
+    await upgrade()
+    for (const migration of migrations.slice(gradeMigrationIndex + 1)) {
+      await db.transaction(tx => migration.up({ db: tx } as unknown as MigrateUpArgs))
+    }
     const read = async (filters: Record<string, unknown> = {}) => {
       const query = catalogBrowseQuery(InternalCatalogBrowseSchema.parse({ allowedCategoryIds: [1], markupPercent: 10, ...filters }))
       return (await pool.query<{ id: number; total: number }>(query.text, query.params)).rows
@@ -51,6 +72,17 @@ test('catalog SQL applies permissions, search, stock and price order before pagi
     assert.equal((await read({ sort: 'cheapest', page: 2, limit: 1 }))[0]!.id, 647)
     assert.deepEqual(await read({ category: 'محدود' }), [])
     assert.deepEqual(await read({ search: "%' OR 1=1 --" }), [])
+    await pool.query("UPDATE products SET grade = (CASE id WHEN 1 THEN 'grade_d' WHEN 3 THEN 'grade_c' WHEN 5 THEN 'cg3' END)::enum_products_grade WHERE id IN (1,3,5)")
+    const upgradedProducts = await productRows()
+    await assert.rejects(downgrade, (error: unknown) =>
+      error instanceof Error && error.cause instanceof Error &&
+      'code' in error.cause && error.cause.code === '22P02')
+    assert.deepEqual(await productRows(), upgradedProducts)
+    assert.deepEqual((await read({ grades: ['گرید D'] })).map(row => row.id), [1])
+    assert.deepEqual((await read({ grades: ['گرید C'] })).map(row => row.id), [3])
+    assert.deepEqual((await read({ grades: ['CG3'] })).map(row => row.id), [5])
+    assert.deepEqual((await read({ grades: ['گرید D', 'CG3'] })).map(row => row.id), [1, 5])
+    assert.deepEqual(await read({ grades: ['ناشناخته'] }), [])
     const req = (body: unknown, role = 'service') => ({ user: { collection: 'admins', id: 1, role }, json: async () => body, payload: { db: { pool } } }) as unknown as PayloadRequest
     assert.equal((await catalogBrowseEndpoint.handler(req({}, 'support'))).status, 403)
     const catalogResponse = await catalogBrowseEndpoint.handler(req({ allowedCategoryIds: [1], markupPercent: 10, search: 'SKU-649' }))

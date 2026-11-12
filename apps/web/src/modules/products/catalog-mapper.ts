@@ -1,5 +1,5 @@
 import type { Product } from "./product-types"
-import type { CatalogRecord } from "@persianpart/contract"
+import { PRODUCT_GRADE_OPTIONS, type CatalogRecord } from "@persianpart/contract"
 import { toPersianDigits } from "@/lib/utils/currency"
 import { match, P } from "ts-pattern"
 
@@ -23,11 +23,9 @@ export function resolveMediaUrl(media: unknown): string {
 export function formatGrade(rawGrade?: string | null): string {
   if (!rawGrade) return "";
   const gradeStr = String(rawGrade).trim();
+  const option = PRODUCT_GRADE_OPTIONS.find(({ value }) => value === gradeStr);
+  if (option) return option.label;
   const mapping: Record<string, string> = {
-    grade_1: "درجه ۱",
-    grade_2: "درجه ۲",
-    grade_3: "درجه ۳",
-    grade_4: "درجه ۴",
     grade: "درجه ۱",
     "1": "درجه ۱",
     "2": "درجه ۲",

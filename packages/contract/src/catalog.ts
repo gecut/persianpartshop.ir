@@ -9,6 +9,16 @@ import {
   createPaginatedResponseSchema,
 } from './common'
 
+export const PRODUCT_GRADE_OPTIONS = [
+  { value: 'grade_1', label: 'درجه ۱' },
+  { value: 'grade_2', label: 'درجه ۲' },
+  { value: 'grade_3', label: 'درجه ۳' },
+  { value: 'grade_4', label: 'درجه ۴' },
+  { value: 'grade_d', label: 'گرید D' },
+  { value: 'grade_c', label: 'گرید C' },
+  { value: 'cg3', label: 'CG3' },
+] as const
+
 // ============================================================================
 // 1. Automotive Spare Parts Schemas
 // ============================================================================

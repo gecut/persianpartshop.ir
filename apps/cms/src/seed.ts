@@ -4,7 +4,7 @@ import path from "path";
 import { getPayloadClient } from "./payload.js";
 import { validateSeedTarget } from "./_seed-target.js";
 import { supplyKeyHash } from './collections/supply-requests/supply-requests.collection.js';
-import type { WarehouseStock } from './payload-types.js';
+import type { Product, WarehouseStock } from './payload-types.js';
 
 interface CategorySeed {
   name: string;
@@ -394,7 +394,7 @@ interface ProductSeed {
   categorySlug: string;
   brandSlug: string;
   color: string;
-  grade: "grade_1" | "grade_2" | "grade_3" | "grade_4";
+  grade: NonNullable<Product["grade"]>;
   tagSlugs: string[];
   width: number;
   height: number;

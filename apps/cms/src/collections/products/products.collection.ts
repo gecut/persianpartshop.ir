@@ -1,4 +1,5 @@
 import type { CollectionConfig } from "payload";
+import { PRODUCT_GRADE_OPTIONS } from "@persianpart/contract";
 import { syncSlugAndDimensions } from "./_sync-slug-and-dimensions.before-validate";
 import { getAdminUser, isCatalogManager } from "../../access/roles";
 import { logAction } from "../audit-logs/log-action";
@@ -135,10 +136,7 @@ export const Products: CollectionConfig = {
                 { name: "color", type: "text", label: "رنگ غالب", admin: { width: "50%", description: "مثلاً سفید، طوسی یا کرم." } },
                 {
                   name: "grade", type: "select", label: "درجه کیفی", admin: { width: "50%" },
-                  options: [
-                    { label: "درجه ۱", value: "grade_1" }, { label: "درجه ۲", value: "grade_2" },
-                    { label: "درجه ۳", value: "grade_3" }, { label: "درجه ۴", value: "grade_4" },
-                  ],
+                  options: [...PRODUCT_GRADE_OPTIONS],
                 },
               ],
             },

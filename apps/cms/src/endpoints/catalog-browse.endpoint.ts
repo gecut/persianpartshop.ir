@@ -1,6 +1,6 @@
 import type { Endpoint } from 'payload'
 import { z } from 'zod'
-import { CatalogBrowseInputSchema } from '@persianpart/contract'
+import { CatalogBrowseInputSchema, PRODUCT_GRADE_OPTIONS } from '@persianpart/contract'
 import { getAdminUser } from '../access/roles'
 
 export const InternalCatalogBrowseSchema = CatalogBrowseInputSchema.extend({
@@ -15,10 +15,15 @@ export function catalogBrowseQuery(input: z.infer<typeof InternalCatalogBrowseSc
   const conditions = ['p.is_active = true']
   if (input.allowedCategoryIds.length) conditions.push(`p.category_id = ANY(${param(input.allowedCategoryIds)}::int[])`)
   const dimension = `CASE WHEN p.product_type = 'other' THEN CASE WHEN p.weight > 0 THEN p.weight::text || ' کیلوگرم' ELSE '' END ELSE COALESCE(d.name, COALESCE(p.width,60)::text || '×' || COALESCE(p.height,120)::text) END`
-  const grade = `CASE WHEN p.grade::text LIKE 'grade_%' THEN 'درجه ' || translate(replace(p.grade::text,'grade_',''),'1234','۱۲۳۴') ELSE p.grade::text END`
+  if (input.grades.length) {
+    const gradeValues = PRODUCT_GRADE_OPTIONS
+      .filter(({ label }) => input.grades.includes(label))
+      .map(({ value }) => value)
+    conditions.push(`p.grade::text = ANY(${param(gradeValues)}::text[])`)
+  }
   if (input.dimension) conditions.push(`${dimension} = ${param(input.dimension.replace(/x/gi, '×').trim())}`)
   if (input.category) conditions.push(`COALESCE(c.name,'عمومی') = ${param(input.category)}`)
-  for (const [values, expression] of [[input.brands, "COALESCE(b.name,'پرشین پارت')"], [input.colors, "COALESCE(NULLIF(p.color,''),'استاندارد')"], [input.grades, grade]] as const) {
+  for (const [values, expression] of [[input.brands, "COALESCE(b.name,'پرشین پارت')"], [input.colors, "COALESCE(NULLIF(p.color,''),'استاندارد')"]] as const) {
     if (values.length) conditions.push(`${expression} = ANY(${param(values)}::text[])`)
   }
   if (input.tags.length) conditions.push(`EXISTS (SELECT 1 FROM products_rels r JOIN tags t ON t.id=r.tags_id WHERE r.parent_id=p.id AND r.path='tags' AND t.name=ANY(${param(input.tags)}::text[]))`)
