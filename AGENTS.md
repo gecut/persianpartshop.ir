@@ -207,3 +207,12 @@ pnpm --filter @persianpart/web test:catalog:unit      # bun test (catalog coordi
 - Use logical Tailwind CSS utilities (e.g., `ms-`, `me-`, `ps-`, `pe-`, `start-`, `end-`) rather than fixed directional utilities (`ml-`, `mr-`, `left-`, `right-`) to ensure seamless bidirectional rendering.
 - Numbers, monetary amounts, and product codes must be handled with explicit localization formatting (`src/lib/utils/currency.ts`, `src/lib/utils/date.ts`), following the existing helpers.
 - Load the **`rtl-persian-ui`** skill before writing or reviewing any Persian-facing screen; it carries the full rule set (ZWNJ, mixed-direction text, Jalali dates, safe areas).
+
+---
+
+## 7. Git Commit Policy
+
+- **Explicit request only**: Never commit unprompted. Only inspect and commit pending changes when the user explicitly asks; never push, `--amend` on hook failure, rewrite history, or use `--no-verify` unless instructed.
+- **Analyze & pack before staging**: Inspect `git status --porcelain`, `git diff`, `git diff --staged`, and `git log --oneline -10`. Respect active merge/rebase/conflict states, never commit secrets (`.env`, keys, credentials), and pack edits into cohesive, single-purpose groups before staging (`git add -- <paths>`).
+- **Prefer granular, purposeful commits**: Many small, atomic commits are preferred over fewer monolithic ones — **every commit must have a clear standalone reason and purpose** (never split arbitrarily).
+- **Complete messages (`git-commit` skill)**: Load/follow the `git-commit` skill (`/git-commit`) using Conventional Commits 1.0.0: `<type>(<scope>): <imperative summary>` (`<= 72` chars, no trailing period; `feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert`), plus a body explaining **what** changed and **why** (and `BREAKING CHANGE:` / `Token: value` footers when relevant). Verify each commit with `git log -1 --stat` and clean remainder via `git status --porcelain`.
