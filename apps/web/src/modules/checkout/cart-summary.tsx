@@ -52,7 +52,7 @@ export function CartSummary({
             } finally { setChecking(false); }
           }}
           isDisabled={!totals.hasValidQuantities || checking || busy}
-          className="w-full h-12 px-4 rounded-2xl bg-primary hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed text-primary-foreground text-sm font-bold flex items-center justify-center gap-2 transition-all active:scale-98 cursor-pointer select-none touch-manipulation"
+          className="w-full control-height-12 px-4 bg-primary hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed text-primary-foreground text-sm font-bold flex items-center justify-center gap-2 transition-all active:scale-98 cursor-pointer select-none touch-manipulation"
         >
           <span>{checking ? "در حال بررسی موجودی…" : warehouse ? `تأیید · ${warehouse.name}` : "تأیید"}</span>
           <ArrowLeftIcon size={16} />

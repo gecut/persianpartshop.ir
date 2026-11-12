@@ -71,7 +71,7 @@ export function PlanConditionsSheet({
                   type="button"
                   onPress={() => onClose()}
                   aria-label="بستن"
-                  className="size-9 rounded-2xl bg-muted/10 hover:bg-muted/20 text-muted hover:text-foreground flex items-center justify-center cursor-pointer transition-colors shrink-0"
+                  className="w-9 control-height-9 bg-muted/10 hover:bg-muted/20 text-muted hover:text-foreground flex items-center justify-center cursor-pointer transition-colors shrink-0"
                 >
                   <XIcon size={16} />
                 </Button>

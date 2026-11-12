@@ -61,7 +61,7 @@ export function ProductQrScanner({ onClose, onProduct }: ProductQrScannerProps) 
           <Modal.Dialog className="w-full rounded-2xl bg-surface p-4 shadow-lg">
             <Modal.Header className="relative flex min-h-10 items-center justify-center px-12">
               <Modal.Heading className="text-center text-base font-bold">اسکن محصول</Modal.Heading>
-              <Button isIconOnly variant="ghost" aria-label="بستن اسکنر" onPress={close} className="absolute end-0 top-0 size-10 rounded-2xl bg-muted/10 text-muted"><XIcon size={18} /></Button>
+              <Button isIconOnly variant="ghost" aria-label="بستن اسکنر" onPress={close} className="absolute end-0 top-0 w-10 control-height-10 bg-muted/10 text-muted"><XIcon size={18} /></Button>
             </Modal.Header>
             <Modal.Body className="space-y-3 pt-3">
               <p className="text-center text-sm text-muted">کد QR محصول را داخل کادر بگیرید.</p>

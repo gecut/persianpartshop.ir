@@ -18,7 +18,7 @@ export function SignedOutCard({ onLogin }: SignedOutCardProps) {
       <Button
         type="button"
         onPress={onLogin}
-        className="w-full h-10 px-4 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs cursor-pointer"
+        className="w-full control-height-10 px-4 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs cursor-pointer"
       >
         ورود به حساب کاربری
       </Button>

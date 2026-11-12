@@ -37,7 +37,7 @@ export function ProductOrderCta({ activeFlow, supplyId, selectedCount, busy, war
               void navigate({ to: "/product/new" });
           });
         }}
-        className="h-12 px-5 rounded-2xl bg-[#252745] text-background flex items-center gap-3 whitespace-nowrap active:scale-95 transition-transform hover:bg-[#2e3155]"
+        className="control-height-12 px-5 bg-control-emphasis text-background flex items-center gap-3 whitespace-nowrap active:scale-95 transition-transform hover:bg-control-emphasis-hover"
       >
         <span className="min-w-6 h-6 px-1.5 rounded-lg bg-success/15 text-success font-bold text-xs flex items-center justify-center">
           {toPersianDigits(activeFlow === "supply" ? 1 : selectedCount)}

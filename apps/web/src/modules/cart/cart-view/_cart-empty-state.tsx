@@ -20,7 +20,7 @@ export function CartEmptyState() {
         <div className="pt-2 flex flex-col gap-2">
           <Link
             to="/product"
-            className="w-full h-10 px-4 rounded-2xl bg-primary hover:bg-primary/90 active:scale-98 text-primary-foreground text-xs font-bold transition-all cursor-pointer flex items-center justify-center"
+            className="w-full control-height-10 px-4 bg-primary hover:bg-primary/90 active:scale-98 text-primary-foreground text-xs font-bold transition-all cursor-pointer flex items-center justify-center"
           >
             مشاهده محصولات
           </Link>

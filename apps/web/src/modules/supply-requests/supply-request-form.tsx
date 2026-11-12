@@ -100,7 +100,7 @@ export function SupplyRequestForm({ productId, presentation, onSuccess, onPurcha
     <div className={presentation === 'modal' ? 'min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-4 text-start' : 'space-y-4 text-start'}>
     <section className="bg-muted/4 rounded-2xl p-4 space-y-4" aria-label="محصول انتخاب‌شده">
       <div className="flex gap-3 items-center"><img src={product.images[0] || '/assets/images/placeholder.svg'} alt="" className="size-16 rounded-2xl object-cover bg-muted/10" /><div className="min-w-0"><h2 className="text-sm font-bold text-foreground break-words">{product.name}</h2><p className="text-xs text-muted mt-2"><bdi dir="ltr">{product.sku}</bdi>{product.brand && ` · ${product.brand}`}</p></div></div>
-      {!reviewing && <><div className="space-y-2"><label htmlFor="supply-quantity" className="text-xs font-bold">مقدار درخواستی ({unit})</label><input id="supply-quantity" type="number" inputMode="decimal" min="0.01" max="1000000" step={product.productType === 'other' ? '1' : '0.01'} disabled={draft.pending || checking} value={draft.requestedQuantity || ''} onChange={event => supplyDraftStore.update({ requestedQuantity: Number(event.target.value) })} className="w-full h-12 px-3 rounded-2xl bg-muted/5 text-sm font-bold outline-primary" /></div><div className="space-y-2"><label htmlFor="supply-notes" className="text-xs font-bold">یادداشت (اختیاری)</label><textarea id="supply-notes" disabled={draft.pending || checking} maxLength={2000} value={draft.notes} onChange={event => supplyDraftStore.update({ notes: event.target.value })} rows={3} className="w-full p-3 rounded-2xl bg-muted/5 text-sm outline-primary" /></div></>}
+      {!reviewing && <><div className="space-y-2"><label htmlFor="supply-quantity" className="text-xs font-bold">مقدار درخواستی ({unit})</label><input id="supply-quantity" type="number" inputMode="decimal" min="0.01" max="1000000" step={product.productType === 'other' ? '1' : '0.01'} disabled={draft.pending || checking} value={draft.requestedQuantity || ''} onChange={event => supplyDraftStore.update({ requestedQuantity: Number(event.target.value) })} className="w-full control-height-12 px-3 bg-muted/5 text-sm font-bold outline-primary" /></div><div className="space-y-2"><label htmlFor="supply-notes" className="text-xs font-bold">یادداشت (اختیاری)</label><textarea id="supply-notes" disabled={draft.pending || checking} maxLength={2000} value={draft.notes} onChange={event => supplyDraftStore.update({ notes: event.target.value })} rows={3} className="w-full p-3 rounded-2xl bg-muted/5 text-sm outline-primary" /></div></>}
       {reviewing && (quantityAdjusted || draft.notes) && <dl className="space-y-3 text-xs">
         {quantityAdjusted && quote && <div className="flex flex-wrap justify-between gap-2"><dt className="text-muted">مقدار اولیهٔ شما</dt><dd>{toPersianDigits(quote.requestedQuantity)} {unit}</dd></div>}
         {draft.notes && <div className="space-y-2"><dt className="text-muted">یادداشت</dt><dd className="whitespace-pre-wrap break-words">{draft.notes}</dd></div>}
@@ -131,7 +131,7 @@ export function SupplyRequestForm({ productId, presentation, onSuccess, onPurcha
       </dl>}
       {!quote && <p role="status" className="mx-auto w-full max-w-xl px-4 py-2.5 text-xs text-muted">{!valid ? 'مقدار معتبر وارد کنید.' : preview.error || checkError ? 'برآورد در دسترس نیست.' : 'در حال محاسبهٔ برآورد…'}</p>}
       <div className="mx-auto flex w-full max-w-xl items-center gap-2.5 px-4 pt-1">
-        {reviewing && <Button type="button" variant="secondary" isDisabled={submissionDisabled || draft.pending} onPress={() => setReview(null)} className="h-12 shrink-0 gap-1.5 rounded-2xl px-4 text-xs font-bold sm:text-sm"><PencilIcon size={16} /><span>ویرایش</span></Button>}
+        {reviewing && <Button type="button" variant="secondary" isDisabled={submissionDisabled || draft.pending} onPress={() => setReview(null)} className="control-height-12 shrink-0 gap-1.5 px-4 text-xs font-bold sm:text-sm"><PencilIcon size={16} /><span>ویرایش</span></Button>}
         <div className="min-w-0 flex-1">
           {reviewing || draft.pending ? <CheckoutCommit
             key={`${owner}:${draft.submissionKey}`}
@@ -146,7 +146,7 @@ export function SupplyRequestForm({ productId, presentation, onSuccess, onPurcha
             isPending={checking}
             isDisabled={submissionDisabled || !canContinue}
             onPress={() => void confirm()}
-            className="h-12 gap-2 rounded-2xl px-4 text-sm font-bold active:scale-98 touch-manipulation"
+            className="control-height-12 gap-2 px-4 text-sm font-bold active:scale-98 touch-manipulation"
           >
             <span>{checking ? 'در حال بررسی…' : 'بررسی درخواست'}</span>
             <ArrowLeftIcon size={16} />

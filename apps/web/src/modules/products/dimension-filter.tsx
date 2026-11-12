@@ -30,7 +30,7 @@ export function DimensionFilter({
         {[64, 80, 80, 88, 80, 64, 80, 80, 88, 80].map((width, index) => (
           <Skeleton
             key={index}
-            className="h-10 shrink-0 rounded-2xl"
+            className="control-height-10 shrink-0"
             style={{ width }}
           />
         ))}
@@ -56,7 +56,7 @@ export function DimensionFilter({
                 onSelect(selected ? null : dimension?.name ?? null)
               }
               className={cn(
-                "h-10 shrink-0 group select-none whitespace-nowrap rounded-2xl px-4 text-xs font-bold transition-colors duration-200",
+                "control-height-10 shrink-0 group select-none whitespace-nowrap px-4 text-xs font-bold transition-colors duration-200",
                 selected
                   ? "bg-primary text-primary-foreground"
                   : "bg-muted/5 hover:bg-default/20 text-foreground"

@@ -57,7 +57,7 @@ export function MobileBottomNav() {
   return (
     <>
       <nav
-        className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] inset-x-0 mx-auto w-[calc(100%-32px)] max-w-xl z-40 p-1.5 rounded-2xl bg-[#252745] backdrop-blur-xl border-none shadow-none"
+        className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] inset-x-0 mx-auto w-[calc(100%-32px)] max-w-xl z-40 p-1.5 rounded-2xl bg-navigation-surface backdrop-blur-xl border-none shadow-none"
         aria-label="منوی ناوبری"
       >
         <PillNav
@@ -72,10 +72,6 @@ export function MobileBottomNav() {
           bounce={0.7}
           stretch={1}
           surface="none"
-          tileColor="#252745"
-          highlightColor="#ffffff"
-          highlightTextColor="#1c1696"
-          textColor="#ffffff"
           orientation="vertical"
           className="w-full h-14 whitespace-nowrap text-xs border-none! shadow-none! [box-shadow:none]!"
         />

@@ -9,7 +9,7 @@ interface EmptyProductsProps {
 export function EmptyProducts({ onReset }: EmptyProductsProps) {
   return (
     <div className="bg-muted/5 rounded-2xl p-8 text-center my-4 space-y-2.5">
-      <div className="size-12 rounded-2xl bg-default/20 text-muted flex items-center justify-center mx-auto">
+      <div className="w-12 control-height-12 bg-default/20 text-muted flex items-center justify-center mx-auto">
         <BoxIcon size={24} />
       </div>
       <h3 className="text-sm font-extrabold text-foreground">
@@ -21,7 +21,7 @@ export function EmptyProducts({ onReset }: EmptyProductsProps) {
       <Button
         type="button"
         onClick={onReset}
-        className="inline-flex items-center gap-1.5 h-10 px-4 rounded-2xl bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 transition-colors cursor-pointer"
+        className="inline-flex items-center gap-1.5 control-height-10 px-4 bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 transition-colors cursor-pointer"
       >
         <RefreshCwIcon size={13} />
         <span>پاک کردن فیلترها</span>

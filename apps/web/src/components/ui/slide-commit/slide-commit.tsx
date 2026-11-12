@@ -59,10 +59,10 @@ export function SlideCommit({
   onConfirm,
   onDone,
   onError,
-  trackColor = "rgba(5, 150, 105, 0.12)",
-  handleColor = "#059669",
-  successColor = "#059669",
-  dangerColor = "#dc2626",
+  trackColor,
+  handleColor,
+  successColor,
+  dangerColor,
   textColor,
   width = "100%",
   height = 48,
@@ -388,18 +388,24 @@ export function SlideCommit({
   const done = phase === "done";
 
   const cssVariables: Record<string, string> = {
-    "--sc-track": trackColor,
-    "--sc-ink": handleColor,
-    "--sc-ok": successColor,
-    "--sc-no": dangerColor,
-    "--sc-on-ink": onColor(handleColor),
-    "--sc-on-ok": onColor(successColor),
-    "--sc-on-no": onColor(dangerColor),
     "--sc-radius": `${r}px`,
     "--sc-grip-r": `${gripR}px`,
     "--sc-pad": `${PAD}px`,
     "--sc-font": `${fontSize}px`,
   };
+  if (trackColor !== undefined) cssVariables["--sc-track"] = trackColor;
+  if (handleColor !== undefined) {
+    cssVariables["--sc-ink"] = handleColor;
+    cssVariables["--sc-on-ink"] = onColor(handleColor);
+  }
+  if (successColor !== undefined) {
+    cssVariables["--sc-ok"] = successColor;
+    cssVariables["--sc-on-ok"] = onColor(successColor);
+  }
+  if (dangerColor !== undefined) {
+    cssVariables["--sc-no"] = dangerColor;
+    cssVariables["--sc-on-no"] = onColor(dangerColor);
+  }
   if (textColor) {
     cssVariables["--sc-label"] = textColor;
   }

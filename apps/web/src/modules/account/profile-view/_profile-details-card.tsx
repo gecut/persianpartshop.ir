@@ -47,7 +47,7 @@ export function ProfileDetailsCard({ name, storeName, phone, onEdit }: ProfileDe
         <Button
           type="button"
           onPress={onEdit}
-          className="h-12 w-full px-4 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition-all"
+          className="control-height-12 w-full px-4 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition-all"
         >
           <PencilIcon size={16} />
           <span>ویرایش اطلاعات</span>

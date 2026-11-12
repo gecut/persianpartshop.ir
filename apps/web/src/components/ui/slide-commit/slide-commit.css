@@ -1,12 +1,12 @@
 .slide-commit {
-  --sc-track: rgba(5, 150, 105, 0.12);
-  --sc-ink: #059669;
-  --sc-ok: #059669;
-  --sc-no: #dc2626;
-  --sc-label: var(--color-foreground, #0e0c2d);
-  --sc-on-ink: #ffffff;
-  --sc-on-ok: #ffffff;
-  --sc-on-no: #ffffff;
+  --sc-track: color-mix(in srgb, var(--success) 12%, transparent);
+  --sc-ink: var(--success);
+  --sc-ok: var(--success);
+  --sc-no: var(--danger);
+  --sc-label: var(--foreground);
+  --sc-on-ink: var(--success-foreground);
+  --sc-on-ok: var(--success-foreground);
+  --sc-on-no: var(--danger-foreground);
   --sc-radius: 20px;
   --sc-grip-r: 16px;
   --sc-pad: 0px;
@@ -34,7 +34,7 @@
   position: relative;
   width: 100%;
   height: 100%;
-  border-radius: var(--sc-radius);
+  border-radius: calc(var(--sc-radius) * var(--corner-radius-scale));
   background: var(--sc-track);
   cursor: grab;
   touch-action: none;
@@ -101,7 +101,7 @@
   left: var(--sc-pad);
   width: calc(100% - var(--sc-pad) * 2);
   height: calc(100% - var(--sc-pad) * 2);
-  border-radius: var(--sc-grip-r, 16px);
+  border-radius: calc(var(--sc-grip-r) * var(--corner-radius-scale));
   background: var(--sc-ink);
   color: var(--sc-on-ink);
   outline: none;
@@ -128,7 +128,7 @@
 .slide-commit__content {
   position: absolute;
   inset: 0;
-  border-radius: var(--sc-grip-r, 16px);
+  border-radius: calc(var(--sc-grip-r) * var(--corner-radius-scale));
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;

@@ -94,7 +94,7 @@ export function ProductNewView() {
         <Button
           type="button"
           onPress={handleBackToProducts}
-          className="h-10 px-6 rounded-2xl bg-primary text-primary-foreground text-xs font-bold transition-all shadow-md active:scale-98 cursor-pointer"
+          className="control-height-10 px-6 bg-primary text-primary-foreground text-xs font-bold transition-all shadow-md active:scale-98 cursor-pointer"
         >
           رفتن به صفحه محصولات
         </Button>

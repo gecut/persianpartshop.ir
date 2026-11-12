@@ -37,7 +37,7 @@ export function CancelOrderModal({
       >
         <HeroUIModal.Container className="pointer-events-none w-full max-w-sm h-auto p-0 flex flex-col items-center">
           <HeroUIModal.Dialog className="pointer-events-auto relative w-full bg-surface rounded-2xl flex flex-col z-10 overflow-hidden animate-modal-enter text-center p-6 space-y-4">
-            <div className="w-12 h-12 rounded-2xl bg-danger/15 text-danger flex items-center justify-center mx-auto">
+            <div className="w-12 control-height-12 bg-danger/15 text-danger flex items-center justify-center mx-auto">
               <AlertTriangleIcon size={24} />
             </div>
             <div>
@@ -67,7 +67,7 @@ export function CancelOrderModal({
                 <Button
                   type="button"
                   variant="secondary"
-                  className="w-full justify-between h-11 px-3.5 rounded-2xl bg-muted/5 text-foreground font-semibold text-xs flex items-center cursor-pointer hover:bg-muted/10 transition-colors border-none shadow-none"
+                  className="w-full justify-between control-height-11 px-3.5 bg-muted/5 text-foreground font-semibold text-xs flex items-center cursor-pointer hover:bg-muted/10 transition-colors border-none shadow-none"
                 >
                   <span className="truncate">{cancelReason}</span>
                   <ChevronDownIcon
@@ -132,14 +132,14 @@ export function CancelOrderModal({
               <Button
                 type="button"
                 onPress={() => onClose()}
-                className="h-10 w-full px-4 rounded-2xl bg-muted/5 text-foreground text-xs font-bold hover:bg-muted/15 cursor-pointer transition-all"
+                className="control-height-10 w-full px-4 bg-muted/5 text-foreground text-xs font-bold hover:bg-muted/15 cursor-pointer transition-all"
               >
                 انصراف
               </Button>
               <Button
                 type="button"
                 onPress={onConfirm}
-                className="h-10 w-full px-4 rounded-2xl bg-danger hover:bg-danger/90 text-danger-foreground text-xs font-bold cursor-pointer transition-all"
+                className="control-height-10 w-full px-4 bg-danger hover:bg-danger/90 text-danger-foreground text-xs font-bold cursor-pointer transition-all"
               >
                 تأیید لغو سفارش
               </Button>

@@ -7,7 +7,6 @@ export function CheckoutCommit(props: CheckoutCommitProps) {
     {...props}
     height={48}
     radius={20}
-    textColor="var(--color-foreground, #0e0c2d)"
     className="w-full h-12! border-none! shadow-none! [box-shadow:none]!"
   />
 }

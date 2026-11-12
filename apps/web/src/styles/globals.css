@@ -8,7 +8,7 @@
     gap: 0.75rem;
     padding: 1rem;
     border: 1px solid var(--border);
-    border-radius: 1rem;
+    border-radius: calc(1rem * var(--corner-radius-scale));
     background: var(--surface-secondary);
     box-shadow: none;
     text-align: start;
@@ -19,9 +19,9 @@
     width: 2.5rem;
     height: 2.5rem;
     padding: 0;
-    border-radius: 0.75rem;
-    background: var(--secondary);
-    color: var(--primary);
+    border-radius: calc(0.75rem * var(--corner-radius-scale));
+    background: var(--color-secondary);
+    color: var(--accent);
   }
 
   .supply-recovery-alert .alert__content {
@@ -53,26 +53,10 @@
   }
 }
 
-
-
-
-@supports (corner-shape: superellipse(1.5)) {
-  *,
-  ::before,
-  ::after {
-    corner-shape: superellipse(1.5);
-    -webkit-corner-shape: superellipse(1.5);
-  }
-
-  :root {
-    --radius: 1rem;
-  }
-}
-
 html,
 body,
 #root {
-  background-color: #ffffff;
+  background-color: var(--background);
   color-scheme: light;
   margin: 0;
   padding: 0;
@@ -85,20 +69,6 @@ body,
 
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom, 0px);
-}
-.rounded-full,
-[class*="rounded-full"],
-[class*="rounded-[9999px]"],
-[data-slot="thumb"],
-[data-slot="track"],
-[data-slot="slider-thumb"],
-[data-slot="slider-thumb"]::after,
-[data-slot="slider-track"],
-.slider__thumb,
-.slider__thumb::after,
-.slider__track {
-  corner-shape: round !important;
-  -webkit-corner-shape: round !important;
 }
 
 [data-slot="slider-thumb"],
@@ -118,65 +88,40 @@ body,
 
 @theme {
   --font-sans:
-    "Vazirmatn", -apple-system, BlinkMacSystemFont,
+    "Vazirmatn Variable", "Vazirmatn", -apple-system, BlinkMacSystemFont,
     "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --font-body:
-    "Vazirmatn", -apple-system, BlinkMacSystemFont,
-    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --color-secondary: #eeeefe;
+  --color-login-background: #f8f8fa;
+  --color-navigation-surface: #252745;
+  --color-navigation-muted: #9da0b5;
+  --color-control-emphasis: #252745;
+  --color-control-emphasis-hover: #2e3155;
+}
 
-  /* HeroUI Semantic Color Tokens */
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
+@theme inline {
+  --color-primary: var(--accent);
+  --color-primary-foreground: var(--accent-foreground);
+  --color-secondary-foreground: var(--accent);
+  --radius-stepper-button: calc(0.25rem * var(--corner-radius-scale));
+}
 
-  --color-success: var(--success);
-  --color-success-foreground: var(--success-foreground);
-  --color-warning: var(--warning);
-  --color-warning-foreground: var(--warning-foreground);
-  --color-danger: var(--danger);
-  --color-danger-foreground: var(--danger-foreground);
+/* A fixed-height control can have its native radius clamped to half its height. */
+@utility control-height-* {
+  height: calc(var(--spacing) * --value(integer));
+  border-radius: var(--radius-2xl);
 
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-surface: var(--surface);
-  --color-surface-foreground: var(--surface-foreground);
-  --color-surface-secondary: var(--surface-secondary);
-  --color-surface-secondary-foreground: var(--surface-secondary-foreground);
-  --color-muted: var(--muted);
-  --color-default: var(--default);
-  --color-default-foreground: var(--default-foreground);
-  --color-border: var(--border);
-  --color-separator: var(--separator);
-  --color-focus: var(--focus);
+  @supports not (corner-shape: superellipse(1.5)) {
+    border-radius: min(
+      var(--radius-2xl),
+      calc(var(--spacing) * --value(integer) * var(--corner-radius-scale) / 2)
+    );
+  }
 }
 
 :root {
-  font-family:
-    "Vazirmatn Variable",
-    "Vazirmatn",
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    Roboto,
-    Helvetica,
-    Arial,
-    sans-serif;
-  --font-sans:
-    "Vazirmatn Variable", "Vazirmatn", -apple-system, BlinkMacSystemFont,
-    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-
-  /* Primary Brand (#1C1696 Persian Deep Indigo) */
-  --primary: #1c1696;
-  --primary-foreground: #ffffff;
   --accent: #1c1696;
   --accent-foreground: #ffffff;
 
-  /* Secondary (Derived subtle indigo-tinted surface) */
-  --secondary: #eeeefe;
-  --secondary-foreground: #1c1696;
   --surface-secondary: #f4f4fd;
   --surface-secondary-foreground: #0e0c2d;
 
@@ -202,24 +147,92 @@ body,
   --border: #e0e2f0;
   --separator: #ebedf5;
   --focus: #1c1696;
+
+  /* Match the diagonal of the native superellipse with a round corner. */
+  --corner-radius-scale: 0.75;
+  --radius: calc(1rem * var(--corner-radius-scale));
 }
 
+@supports (corner-shape: superellipse(1.5)) {
+  :root {
+    --corner-radius-scale: 1;
+  }
+
+  *,
+  ::before,
+  ::after {
+    corner-shape: superellipse(1.5);
+  }
+
+  .rounded-full,
+  .rounded-full\!,
+  [data-slot="thumb"],
+  [data-slot="track"],
+  [data-slot="slider-thumb"],
+  [data-slot="slider-thumb"]::after,
+  [data-slot="slider-track"],
+  .slider__thumb,
+  .slider__thumb::after,
+  .slider__track {
+    corner-shape: round;
+  }
+}
+
+@supports not (corner-shape: superellipse(1.5)) {
+  @layer components {
+    /* HeroUI caps these surfaces at 32px before the fallback is applied. */
+    .alert,
+    .card,
+    .dropdown__popover,
+    .modal__dialog,
+    .popover,
+    .select__popover,
+    .toast {
+      border-radius: min(calc(32px * var(--corner-radius-scale)), var(--radius-3xl));
+    }
+
+    .table-root--primary {
+      border-radius: min(calc(32px * var(--corner-radius-scale)), calc(var(--radius) * 2.5));
+    }
+
+    /* HeroUI's default button height changes with size and at the md breakpoint. */
+    .button {
+      --button-height: --spacing(10);
+      border-radius: calc(var(--button-height) * var(--corner-radius-scale) / 2);
+    }
+
+    .button--sm {
+      --button-height: --spacing(9);
+    }
+
+    .button--lg {
+      --button-height: --spacing(11);
+    }
+
+    @variant md {
+      .button {
+        --button-height: --spacing(9);
+      }
+
+      .button--sm {
+        --button-height: --spacing(8);
+      }
+
+      .button--lg {
+        --button-height: --spacing(10);
+      }
+    }
+  }
+}
+
+:root,
 html,
 body,
 button,
 input,
 textarea,
 select {
-  font-family:
-    "Vazirmatn Variable",
-    "Vazirmatn",
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    Roboto,
-    Helvetica,
-    Arial,
-    sans-serif;
+  font-family: var(--font-sans);
 }
 
 body {
@@ -236,7 +249,7 @@ body {
   -webkit-touch-callout: none !important;
   font-feature-settings: "ss01" 1;
   line-height: 1.6;
-  background-color: #ffffff;
+  background-color: var(--background);
   color: var(--foreground);
 }
 
@@ -292,13 +305,13 @@ input::selection,
 textarea::selection,
 [contenteditable="true"]::selection,
 [data-selectable="true"]::selection {
-  background: rgba(28, 22, 150, 0.2) !important;
+  background: color-mix(in srgb, var(--accent) 20%, transparent) !important;
   color: inherit !important;
 }
 /* Prevent iOS input focus zoom & double-tap delay/zoom */
 html {
   -webkit-text-size-adjust: 100%;
-  background-color: #ffffff;
+  background-color: var(--background);
 }
 
 html,
@@ -519,103 +532,6 @@ h6 {
 }
 
 /* --------------------------------------------------------------------------
-   LOGIN PATTERNED AMBIENT BACKGROUND (#1C1696)
-   - Central Geometric Grid with Radial Fade to Edges
-   -------------------------------------------------------------------------- */
-@keyframes loginCenterGlow {
-  0% {
-    transform: scale(0.92);
-    opacity: 0.28;
-  }
-  50% {
-    transform: scale(1.08);
-    opacity: 0.45;
-  }
-  100% {
-    transform: scale(0.92);
-    opacity: 0.28;
-  }
-}
-
-@keyframes loginRingPulse {
-  0% {
-    transform: scale(0.98);
-    opacity: 0.12;
-  }
-  50% {
-    transform: scale(1.03);
-    opacity: 0.24;
-  }
-  100% {
-    transform: scale(0.98);
-    opacity: 0.12;
-  }
-}
-
-@keyframes loginPatternSweep {
-  0% {
-    transform: translateY(-100%);
-    opacity: 0;
-  }
-  20% {
-    opacity: 0.35;
-  }
-  80% {
-    opacity: 0.35;
-  }
-  100% {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-}
-
-.login-center-glow {
-  animation: loginCenterGlow 10s ease-in-out infinite alternate;
-  will-change: transform, opacity;
-}
-
-.login-ring-1 {
-  animation: loginRingPulse 12s ease-in-out infinite alternate;
-  will-change: transform, opacity;
-}
-
-.login-ring-2 {
-  animation: loginRingPulse 16s ease-in-out infinite alternate 2s;
-  will-change: transform, opacity;
-}
-
-.login-ring-3 {
-  animation: loginRingPulse 20s ease-in-out infinite alternate 4s;
-  will-change: transform, opacity;
-}
-
-.login-pattern-sweep {
-  background: linear-gradient(
-    180deg,
-    transparent 0%,
-    rgba(28, 22, 150, 0.08) 45%,
-    rgba(42, 34, 196, 0.16) 50%,
-    rgba(28, 22, 150, 0.08) 55%,
-    transparent 100%
-  );
-  animation: loginPatternSweep 9s ease-in-out infinite;
-  will-change: transform;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .login-center-glow,
-  .login-ring-1,
-  .login-ring-2,
-  .login-ring-3,
-  .login-pattern-sweep {
-    animation: none !important;
-  }
-}
-/* --------------------------------------------------------------------------
-   CORNER-SHAPE SQUIRCLE SPECIFICATION (CSS Backgrounds & Borders Level 4)
-   -------------------------------------------------------------------------- */
-
-/* --------------------------------------------------------------------------
    PRINT STYLES FOR OFFICIAL PRE-INVOICE
    -------------------------------------------------------------------------- */
 @media print {
@@ -631,8 +547,8 @@ h6 {
     min-height: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
-    background: #ffffff !important;
-    color: #0e0c2d !important;
+    background: var(--background) !important;
+    color: var(--foreground) !important;
     overflow: visible !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
@@ -657,7 +573,7 @@ h6 {
     max-width: 100% !important;
     margin: 0 auto !important;
     padding: 0 !important;
-    background: #ffffff !important;
+    background: var(--background) !important;
     overflow: visible !important;
   }
 
@@ -683,7 +599,7 @@ h6 {
     padding: 0 20px !important;
     box-shadow: none !important;
     border: none !important;
-    background: #ffffff !important;
+    background: var(--background) !important;
     border-radius: 0 !important;
   }
 
@@ -715,7 +631,7 @@ h6 {
   #printable-invoice table th,
   #printable-invoice [data-slot="th"],
   #printable-invoice [role="columnheader"] {
-    background-color: rgba(28, 22, 150, 0.05) !important;
+    background-color: color-mix(in srgb, var(--accent) 5%, transparent) !important;
     color: #0c0a2a !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
@@ -723,14 +639,14 @@ h6 {
 
   #printable-invoice table th:first-child,
   #printable-invoice table [role="columnheader"]:first-child {
-    border-start-start-radius: 0.75rem !important;
-    border-end-start-radius: 0.75rem !important;
+    border-start-start-radius: calc(0.75rem * var(--corner-radius-scale)) !important;
+    border-end-start-radius: calc(0.75rem * var(--corner-radius-scale)) !important;
   }
 
   #printable-invoice table th:last-child,
   #printable-invoice table [role="columnheader"]:last-child {
-    border-start-end-radius: 0.75rem !important;
-    border-end-end-radius: 0.75rem !important;
+    border-start-end-radius: calc(0.75rem * var(--corner-radius-scale)) !important;
+    border-end-end-radius: calc(0.75rem * var(--corner-radius-scale)) !important;
   }
 }
 

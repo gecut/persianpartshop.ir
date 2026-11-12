@@ -28,7 +28,7 @@ export function ProfileHeaderCard({ name, storeName, onLogout }: ProfileHeaderCa
         <Button
           type="button"
           onPress={onLogout}
-          className="h-10 px-4 rounded-2xl bg-danger/15 text-danger hover:bg-danger/20 text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer active:scale-95"
+          className="control-height-10 px-4 bg-danger/15 text-danger hover:bg-danger/20 text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer active:scale-95"
           aria-label="خروج از حساب"
         >
           <LogOutIcon size={14} />

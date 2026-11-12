@@ -63,7 +63,7 @@ export function Modal({
                 </HeroUIModal.Heading>
                 <HeroUIModal.CloseTrigger
                   onClick={onClose}
-                  className="size-9 rounded-2xl -me-1 text-muted hover:text-foreground bg-muted/10 hover:bg-muted/20 flex items-center justify-center transition-all cursor-pointer active:scale-90"
+                  className="w-9 control-height-9 -me-1 text-muted hover:text-foreground bg-muted/10 hover:bg-muted/20 flex items-center justify-center transition-all cursor-pointer active:scale-90"
                   aria-label="بستن پنجره"
                 >
                   <XIcon size={18} />

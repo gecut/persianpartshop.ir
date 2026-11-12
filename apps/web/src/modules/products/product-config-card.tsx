@@ -4,6 +4,7 @@ import { memo, useMemo } from "react";
 import { NumberField, I18nProvider, Button } from "@heroui/react";
 import { MoneyBagOutlineIcon } from "@solar-icons/react";
 import type { Product } from "./product-types";
+import { productImageCors, retryWithoutImageCors } from "./_product-image-cors";
 import { calculateCartonRequirement } from "@/lib/utils/math";
 import { formatToman, toPersianDigits } from "@/lib/utils/currency";
 import { parseCartons } from "@/lib/utils/unit";
@@ -72,10 +73,13 @@ function ProductConfigCardComponent({
         <div className="flex items-center gap-3 min-w-0">
           <div className="size-16 rounded-2xl overflow-hidden shrink-0 bg-muted/10">
             <img
+              key={product.images[0]}
+              crossOrigin={productImageCors(product.images[0] || "")}
               src={product.images[0] || "/assets/images/placeholder.svg"}
               alt={product.name}
               className="w-full h-full object-cover"
               onError={(e) => {
+                if (retryWithoutImageCors(e.currentTarget)) return;
                 if (
                   !e.currentTarget.src.endsWith(
                     "/assets/images/placeholder.svg"
@@ -199,9 +203,9 @@ function ProductConfigCardComponent({
                   className="max-w-36  shadow-none! [box-shadow:none]! border-none!"
                 >
                   <NumberField.Group className="rounded-2xl bg-muted/10 transition-colors overflow-hidden shadow-none! [box-shadow:none]! border-none! ring-0!">
-                    <NumberField.DecrementButton className="flex items-center justify-center text-muted hover:text-foreground active:scale-90 transition-all rounded cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed [&_svg]:size-3 shadow-none! [box-shadow:none]! border-none!" />
+                    <NumberField.DecrementButton className="flex items-center justify-center text-muted hover:text-foreground active:scale-90 transition-all rounded-stepper-button cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed [&_svg]:size-3 shadow-none! [box-shadow:none]! border-none!" />
                     <NumberField.Input className="font-bold text-center text-foreground shadow-none! [box-shadow:none]! border-none! ring-0!" />
-                    <NumberField.IncrementButton className="flex items-center justify-center text-muted hover:text-foreground active:scale-90 transition-all rounded cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed [&_svg]:size-3 shadow-none! [box-shadow:none]! border-none!" />
+                    <NumberField.IncrementButton className="flex items-center justify-center text-muted hover:text-foreground active:scale-90 transition-all rounded-stepper-button cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed [&_svg]:size-3 shadow-none! [box-shadow:none]! border-none!" />
                   </NumberField.Group>
                 </NumberField>
               </I18nProvider>

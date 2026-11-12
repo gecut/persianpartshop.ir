@@ -102,7 +102,7 @@ export function LoginOtpStep({
         <Button
           type="button"
           onPress={() => onVerify()}
-          className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-primary text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90 active:scale-95"
+          className="flex control-height-12 w-full cursor-pointer items-center justify-center gap-2 bg-primary text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90 active:scale-95"
         >
           {isLoading ? (
             <RefreshCwIcon size={18} className="animate-spin" />

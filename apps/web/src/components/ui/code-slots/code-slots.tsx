@@ -57,12 +57,12 @@ export function CodeSlots({
   caret = true,
   disabled = false,
   autoFocus = false,
-  accentColor = "#1c1696",
-  successColor = "#059669",
+  accentColor,
+  successColor,
   inkColor,
   slotColor,
   digitColor,
-  dangerColor = "#ff3b30",
+  dangerColor,
   slotSize = 52,
   gap = 10,
   radius = 13,
@@ -448,15 +448,15 @@ export function CodeSlots({
     (status === "error" || !view[active]);
 
   const cssVariables: Record<string, string> = {
-    "--cs-accent": accentColor,
-    "--cs-success": successColor,
-    "--cs-danger": dangerColor,
     "--cs-size": `${slotSize}px`,
     "--cs-height": `${height}px`,
     "--cs-gap": `${gap}px`,
     "--cs-radius": `${Math.min(radius, slotSize / 2)}px`,
     "--cs-font": `${Math.round(slotSize * 0.46)}px`,
   };
+  if (accentColor !== undefined) cssVariables["--cs-accent"] = accentColor;
+  if (successColor !== undefined) cssVariables["--cs-success"] = successColor;
+  if (dangerColor !== undefined) cssVariables["--cs-danger"] = dangerColor;
   if (inkColor) cssVariables["--cs-ink"] = inkColor;
   if (slotColor) cssVariables["--cs-slot"] = slotColor;
   if (digitColor) cssVariables["--cs-digit"] = digitColor;

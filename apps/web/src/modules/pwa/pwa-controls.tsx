@@ -118,7 +118,7 @@ export function PwaControls({ allowInstallInvitation }: { allowInstallInvitation
   return <>
     {!online && <div role="status" className="flex items-center justify-center gap-2 bg-warning/15 px-3 py-2 text-xs leading-5 text-warning-foreground">
       <WiFiOffIcon aria-hidden="true" size={16} className="shrink-0 text-warning" />
-      <span>اینترنت قطع است؛ اطلاعات ذخیره‌شده نمایش داده می‌شود.</span>
+      <span>اتصال اینترنت قطع است.</span>
     </div>}
     {(showUpdate || showInvitation) && <div className="mx-auto w-full max-w-xl px-4 py-3">
       {showUpdate ? (

@@ -22,14 +22,14 @@ export function RootLayoutView() {
       <div
         className={cn(
           'flex justify-center select-none w-full max-w-full overflow-x-hidden',
-          isLoginPage ? 'h-dvh overflow-hidden bg-[#f8f8fa]' : 'min-h-dvh bg-background'
+          isLoginPage ? 'h-dvh overflow-hidden bg-login-background' : 'min-h-dvh bg-background'
         )}
         dir="rtl"
       >
         <div
           className={cn(
             'w-full text-foreground font-sans antialiased flex flex-col max-w-full overflow-x-hidden',
-            isLoginPage ? 'h-dvh overflow-hidden bg-[#f8f8fa]' : 'min-h-dvh bg-background'
+            isLoginPage ? 'h-dvh overflow-hidden bg-login-background' : 'min-h-dvh bg-background'
           )}
         >
           {!isLoginPage && <AppHeader />}

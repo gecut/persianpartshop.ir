@@ -77,7 +77,7 @@ export function CheckoutConfirmModal({
           <Button
             type="button"
             onPress={() => onClose()}
-            className="h-10 px-4 rounded-2xl bg-muted/10 text-foreground text-xs font-bold hover:bg-muted/15 transition-colors cursor-pointer"
+            className="control-height-10 px-4 bg-muted/10 text-foreground text-xs font-bold hover:bg-muted/15 transition-colors cursor-pointer"
           >
             بازگشت به سبد
           </Button>
@@ -85,7 +85,7 @@ export function CheckoutConfirmModal({
             type="button"
             onPress={onSubmit}
             isDisabled={isSubmitting}
-            className="h-10 px-4 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+            className="control-height-10 px-4 bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
           >
             {isSubmitting ? (
               <RefreshCwIcon size={16} className="animate-spin" />

@@ -82,7 +82,7 @@ export function OrderHeaderCard({
           <Button
             type="button"
             onPress={onShowInvoice}
-            className="flex-1 h-10 px-4 rounded-2xl bg-muted/10 hover:bg-muted/15 text-foreground text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
+            className="flex-1 control-height-10 px-4 bg-muted/10 hover:bg-muted/15 text-foreground text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
           >
             <FileTextIcon size={16} />
             <span>دریافت پیش‌فاکتور</span>
@@ -92,7 +92,7 @@ export function OrderHeaderCard({
             <Button
               type="button"
               onPress={onShowCancel}
-              className="flex-1 h-10 px-4 rounded-2xl bg-danger/15 text-danger hover:bg-danger/20 text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
+              className="flex-1 control-height-10 px-4 bg-danger/15 text-danger hover:bg-danger/20 text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
             >
               <XIcon size={16} />
               <span>لغو سفارش</span>
@@ -102,7 +102,7 @@ export function OrderHeaderCard({
           <Button
             type="button"
             onPress={onReorder}
-            className="flex-1 h-10 px-4 whitespace-nowrap rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            className="flex-1 control-height-10 px-4 whitespace-nowrap bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
           >
             <RefreshCwIcon size={16} />
             <span>سفارش مجدد</span>

@@ -18,7 +18,7 @@ export function ActivityStatusTabs({ orderStatus, onSelect }: ActivityStatusTabs
     ] as const).map(({ key, label, icon: Icon }) => (
       <Button key={key ?? 'all'} variant="ghost"
         aria-pressed={orderStatus === key} onPress={() => onSelect(key)}
-        className={`h-18 flex-1 min-w-0 p-1.5 flex flex-col gap-1 rounded-2xl text-[10.5px] sm:text-xs ${orderStatus === key ? 'bg-[#252745] text-background' : 'bg-muted/5 text-muted'}`}>
+        className={`h-18 flex-1 min-w-0 p-1.5 flex flex-col gap-1 rounded-2xl text-[10.5px] sm:text-xs ${orderStatus === key ? 'bg-control-emphasis text-background' : 'bg-muted/5 text-muted'}`}>
         <Icon size={24} aria-hidden /><span>{label}</span>
       </Button>
     ))}

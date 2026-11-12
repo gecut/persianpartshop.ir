@@ -87,7 +87,7 @@ export const ActivityOrderCard = React.memo(function ActivityOrderCard({
                 size="sm"
                 variant="ghost"
                 onPress={() => onReorder(item.id)}
-                className="h-10 px-4 rounded-2xl bg-muted/10 hover:bg-muted/15 text-foreground text-xs font-bold transition-all flex items-center gap-1 cursor-pointer active:scale-95 shrink-0"
+                className="control-height-10 px-4 bg-muted/10 hover:bg-muted/15 text-foreground text-xs font-bold transition-all flex items-center gap-1 cursor-pointer active:scale-95 shrink-0"
                 aria-label="سفارش مجدد اقلام"
               >
                 <RefreshCwIcon size={13} />
@@ -98,7 +98,7 @@ export const ActivityOrderCard = React.memo(function ActivityOrderCard({
             <Link
               to="/orders/$id"
               params={{ id: String(item.id) }}
-              className="h-10 px-4 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold transition-all flex items-center gap-1 cursor-pointer active:scale-95 shrink-0"
+              className="control-height-10 px-4 bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold transition-all flex items-center gap-1 cursor-pointer active:scale-95 shrink-0"
             >
               <span>پیگیری</span>
               <ArrowLeftIcon size={13} />

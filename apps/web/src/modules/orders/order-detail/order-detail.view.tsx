@@ -139,7 +139,7 @@ export function OrderDetailView() {
           </p>
           <Link
             to="/orders"
-            className="inline-flex items-center gap-1.5 h-10 px-4 rounded-2xl bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90"
+            className="inline-flex items-center gap-1.5 control-height-10 px-4 bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90"
           >
             <ArrowRightIcon size={14} />
             <span>مشاهده همه سفارش‌ها</span>

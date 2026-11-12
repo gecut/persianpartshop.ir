@@ -1,10 +1,10 @@
 .code-slots {
-  --cs-accent: var(--color-primary, #1c1696);
-  --cs-success: var(--color-success, #059669);
-  --cs-ink: var(--color-foreground, #0e0c2d);
-  --cs-slot: color-mix(in srgb, var(--muted, #696688) 5%, transparent);
-  --cs-digit: var(--color-foreground, #0e0c2d);
-  --cs-danger: var(--color-danger, #dc2626);
+  --cs-accent: var(--accent);
+  --cs-success: var(--success);
+  --cs-ink: var(--foreground);
+  --cs-slot: color-mix(in srgb, var(--muted) 5%, transparent);
+  --cs-digit: var(--foreground);
+  --cs-danger: #ff3b30;
   --cs-size: 56px;
   --cs-height: 56px;
   --cs-gap: 12px;
@@ -63,9 +63,9 @@
   z-index: 5;
   display: grid;
   place-items: center;
-  border-radius: var(--cs-radius);
+  border-radius: calc(var(--cs-radius) * var(--corner-radius-scale));
   background: var(--cs-success);
-  color: #ffffff;
+  color: var(--success-foreground);
   pointer-events: none;
   border: none !important;
   box-shadow: none !important;
@@ -81,7 +81,7 @@
   width: var(--cs-size);
   height: var(--cs-size);
   aspect-ratio: 1 / 1;
-  border-radius: var(--cs-radius);
+  border-radius: calc(var(--cs-radius) * var(--corner-radius-scale));
   overflow: hidden;
   background: var(--cs-slot);
   transition: background-color 0.2s ease;
@@ -108,9 +108,9 @@
 }
 
 .code-slots__slot[data-active] {
-  background: color-mix(in srgb, var(--cs-accent, #1c1696) 8%, transparent) !important;
-  outline: 1px solid var(--cs-accent, #1c1696) !important;
-  box-shadow: 0 0 0 1px var(--cs-accent, #1c1696) !important;
+  background: color-mix(in srgb, var(--cs-accent) 8%, transparent) !important;
+  outline: 1px solid var(--cs-accent) !important;
+  box-shadow: 0 0 0 1px var(--cs-accent) !important;
 }
 
 @keyframes cs-shake {

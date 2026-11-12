@@ -5,7 +5,7 @@
   display: inline-flex;
   inline-size: max-content;
   padding: 4px 8px;
-  border-radius: 8px;
+  border-radius: calc(8px * var(--corner-radius-scale));
   background-color: rgb(0 0 0 / 64%);
   backdrop-filter: blur(6px);
   color: white;

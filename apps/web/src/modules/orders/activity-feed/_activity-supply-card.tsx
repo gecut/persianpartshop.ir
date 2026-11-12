@@ -104,7 +104,7 @@ export const ActivitySupplyCard = React.memo(function ActivitySupplyCard({
             size="sm"
             variant="primary"
             onPress={() => onOpenDetail(item.id)}
-            className="h-10 px-4 rounded-2xl font-bold text-xs"
+            className="control-height-10 px-4 font-bold text-xs"
           >
             پیگیری
             <ArrowLeftIcon size={13} />

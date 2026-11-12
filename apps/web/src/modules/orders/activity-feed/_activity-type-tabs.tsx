@@ -19,7 +19,7 @@ export function ActivityTypeTabs({ filter, onSelect }: ActivityTypeTabsProps) {
         variant="ghost"
         aria-pressed={filter === key}
         onPress={() => onSelect(key)}
-        className={`h-18 flex-1 min-w-0 p-1.5 flex flex-col gap-1 rounded-2xl text-xs ${filter === key ? 'bg-[#252745] text-background' : 'bg-muted/5 text-muted'}`}
+        className={`h-18 flex-1 min-w-0 p-1.5 flex flex-col gap-1 rounded-2xl text-xs ${filter === key ? 'bg-control-emphasis text-background' : 'bg-muted/5 text-muted'}`}
       >
         <Icon size={24} aria-hidden />
         <span>{label}</span>

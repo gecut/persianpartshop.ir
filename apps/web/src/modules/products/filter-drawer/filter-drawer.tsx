@@ -59,7 +59,7 @@ export function FilterDrawer({
                 type="button"
                 onClick={onClose}
                 aria-label="بستن"
-                className="size-10 rounded-2xl bg-muted/10 hover:bg-muted/20 text-muted hover:text-foreground flex items-center justify-center cursor-pointer transition-colors shrink-0"
+                className="w-10 control-height-10 bg-muted/10 hover:bg-muted/20 text-muted hover:text-foreground flex items-center justify-center cursor-pointer transition-colors shrink-0"
               >
                 <XIcon />
               </Button>
@@ -97,7 +97,7 @@ export function FilterDrawer({
               <Button
                 type="button"
                 onClick={resetFilters}
-                className="h-12 w-full px-4 rounded-2xl bg-muted/10 hover:bg-muted/20 text-foreground text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+                className="control-height-12 w-full px-4 bg-muted/10 hover:bg-muted/20 text-foreground text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
               >
                 <RefreshCwIcon size={14} />
                 <span>پاک کردن</span>
@@ -106,7 +106,7 @@ export function FilterDrawer({
               <Button
                 type="button"
                 onClick={onClose}
-                className="h-12 px-4 w-full rounded-2xl bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 transition-colors flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+                className="control-height-12 px-4 w-full bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 transition-colors flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
               >
                 <span>
                   مشاهده نتایج ({toPersianDigits(hook.products.length)})

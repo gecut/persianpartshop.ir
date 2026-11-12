@@ -122,12 +122,12 @@ export function ProductBottomSheet({
                   </Drawer.Heading>
                 </div>
 
-                {user?.canUseProductQr && activeProduct.hasScanCode && <Button type="button" isIconOnly variant="ghost" onPress={() => setQrOpen(value => !value)} aria-label="دریافت QR محصول" aria-expanded={qrOpen} className="size-10 shrink-0 rounded-2xl bg-muted/10 text-muted hover:bg-muted/20 hover:text-foreground"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><path d="M14 14h2v2h-2zM19 14v2M14 19h2M19 19h1"/></svg></Button>}
+                {user?.canUseProductQr && activeProduct.hasScanCode && <Button type="button" isIconOnly variant="ghost" onPress={() => setQrOpen(value => !value)} aria-label="دریافت QR محصول" aria-expanded={qrOpen} className="w-10 control-height-10 shrink-0 bg-muted/10 text-muted hover:bg-muted/20 hover:text-foreground"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><path d="M14 14h2v2h-2zM19 14v2M14 19h2M19 19h1"/></svg></Button>}
                 <Button
                   type="button"
                   onClick={onClose}
                   aria-label="بستن"
-                  className="size-10 rounded-2xl bg-muted/10 hover:bg-muted/20 text-muted hover:text-foreground flex items-center justify-center cursor-pointer transition-colors shrink-0"
+                  className="w-10 control-height-10 bg-muted/10 hover:bg-muted/20 text-muted hover:text-foreground flex items-center justify-center cursor-pointer transition-colors shrink-0"
                 >
                   <XIcon />
                 </Button>

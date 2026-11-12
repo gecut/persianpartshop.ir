@@ -30,10 +30,6 @@ export interface PillNavProps {
   itemStyle?: "pill" | "plain";
   hoverEffect?: "fill" | "glide" | "none";
   indicator?: "dot" | "pill" | "none";
-  highlightColor?: string;
-  highlightTextColor?: string;
-  tileColor?: string;
-  textColor?: string;
   bounce?: number;
   stretch?: number;
   collapse?: "auto" | "always" | "never";
@@ -145,7 +141,7 @@ export function PillNav({
                       : "flex-row gap-2 px-3 py-1.5",
                     isActive
                       ? "text-white"
-                      : "text-[#9da0b5] hover:text-background",
+                      : "text-navigation-muted hover:text-background",
                   )}
                 >
                   {item.icon && (

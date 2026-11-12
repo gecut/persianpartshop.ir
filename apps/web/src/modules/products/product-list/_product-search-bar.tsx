@@ -18,7 +18,7 @@ export function ProductSearchBar({ searchQuery, canUseProductQr, activeFilterCou
     <div className="flex items-center gap-2">
       <div className="relative flex-1 text-base">
         <SearchField name="search">
-          <SearchField.Group className="h-12 border-0 shadow-none bg-muted/5 rounded-2xl px-3 flex items-center">
+          <SearchField.Group className="control-height-12 border-0 shadow-none bg-muted/5 px-3 flex items-center">
             <SearchField.SearchIcon />
             <SearchField.Input
               onChange={(e) => onSearchChange(e.target.value)}
@@ -46,7 +46,7 @@ export function ProductSearchBar({ searchQuery, canUseProductQr, activeFilterCou
           variant="ghost"
           onPress={() => onScan()}
           aria-label="اسکن محصول"
-          className="size-12 shrink-0 rounded-2xl bg-muted/5 text-muted hover:bg-default/20 hover:text-foreground"
+          className="w-12 control-height-12 shrink-0 bg-muted/5 text-muted hover:bg-default/20 hover:text-foreground"
         >
           <svg
             aria-hidden="true"
@@ -69,9 +69,9 @@ export function ProductSearchBar({ searchQuery, canUseProductQr, activeFilterCou
         onClick={() => onOpenFilter()}
         aria-label="فیلترهای پیشرفته"
         className={cn(
-          "w-auto h-12 px-4 rounded-2xl font-bold text-xs flex items-center justify-center shrink-0 cursor-pointer active:scale-95 select-none transition-colors duration-250",
+          "w-auto control-height-12 px-4 font-bold text-xs flex items-center justify-center shrink-0 cursor-pointer active:scale-95 select-none transition-colors duration-250",
           activeFilterCount > 0
-            ? "bg-[#252745] text-"
+            ? "bg-control-emphasis"
             : "bg-muted/5 text-muted hover:bg-default/20 hover:text-foreground"
         )}
       >

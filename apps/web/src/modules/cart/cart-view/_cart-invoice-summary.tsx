@@ -96,7 +96,7 @@ export function CartInvoiceSummary({
           type="button"
           onPress={async () => { await selectionStore.revalidate(); const draft = selectionStore.getSnapshot(); if (draft.warehouse && !draft.error && draft.quotes.length === itemsLength) onOpenCheckout() }}
           isDisabled={hasBlockingIssues || itemsLength === 0 || isOrderingDisabled}
-          className="w-full h-11 rounded-2xl bg-primary hover:bg-primary/90 active:scale-98 text-primary-foreground font-bold text-sm flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full control-height-11 bg-primary hover:bg-primary/90 active:scale-98 text-primary-foreground font-bold text-sm flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <span>{isOrderingDisabled ? 'ثبت سفارش غیرفعال است (فقط مشاهده)' : 'ادامه ثبت سفارش'}</span>
           {!isOrderingDisabled && <ArrowRightIcon size={15} />}

@@ -20,7 +20,7 @@ export function LogoutConfirmModal({ isOpen, isConfirmDisabled, onCancel, onConf
       >
         <HeroUIModal.Container className="pointer-events-none w-full max-w-sm h-auto p-0 flex flex-col items-center">
           <HeroUIModal.Dialog className="pointer-events-auto relative w-full bg-surface rounded-2xl flex flex-col z-10 overflow-hidden animate-modal-enter text-center p-6 space-y-4">
-            <div className="w-12 h-12 rounded-2xl bg-danger/15 text-danger flex items-center justify-center mx-auto">
+            <div className="w-12 control-height-12 bg-danger/15 text-danger flex items-center justify-center mx-auto">
               <LogOutIcon size={24} />
             </div>
             <div>
@@ -35,7 +35,7 @@ export function LogoutConfirmModal({ isOpen, isConfirmDisabled, onCancel, onConf
               <Button
                 type="button"
                 onPress={onCancel}
-                className="h-12 px-4 w-full rounded-2xl bg-muted/10 text-foreground text-xs font-bold hover:bg-muted/15 cursor-pointer transition-all"
+                className="control-height-12 px-4 w-full bg-muted/10 text-foreground text-xs font-bold hover:bg-muted/15 cursor-pointer transition-all"
               >
                 انصراف
               </Button>
@@ -43,7 +43,7 @@ export function LogoutConfirmModal({ isOpen, isConfirmDisabled, onCancel, onConf
                 type="button"
                 isDisabled={isConfirmDisabled}
                 onPress={onConfirm}
-                className="h-12 px-4 w-full rounded-2xl bg-danger/15 text-danger hover:bg-danger/20 font-bold text-xs cursor-pointer transition-all"
+                className="control-height-12 px-4 w-full bg-danger/15 text-danger hover:bg-danger/20 font-bold text-xs cursor-pointer transition-all"
               >
                 تأیید خروج
               </Button>

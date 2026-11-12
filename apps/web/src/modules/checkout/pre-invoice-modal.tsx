@@ -188,7 +188,7 @@ export function PreInvoiceModal({
                 type="button"
                 onClick={handleClose}
                 aria-label="بازگشت"
-                className="h-10 px-3.5 rounded-2xl bg-muted/10 hover:bg-muted/15 text-foreground text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors shrink-0"
+                className="control-height-10 px-3.5 bg-muted/10 hover:bg-muted/15 text-foreground text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors shrink-0"
               >
                 <ArrowRightIcon size={16} />
                 <span>بازگشت</span>
@@ -207,7 +207,7 @@ export function PreInvoiceModal({
                 type="button"
                 onClick={handleClose}
                 aria-label="بستن پیش‌فاکتور"
-                className="size-10 rounded-2xl bg-muted/10 hover:bg-muted/20 text-muted hover:text-foreground flex items-center justify-center cursor-pointer transition-colors shrink-0"
+                className="w-10 control-height-10 bg-muted/10 hover:bg-muted/20 text-muted hover:text-foreground flex items-center justify-center cursor-pointer transition-colors shrink-0"
               >
                 <XIcon size={18} />
               </Button>
@@ -257,7 +257,7 @@ export function PreInvoiceModal({
               <Button
                 type="button"
                 onPress={handleEditClick}
-                className="w-auto h-12 px-4 rounded-2xl bg-muted/10 hover:bg-muted/15 text-foreground text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer active:scale-95 touch-manipulation shrink-0"
+                className="w-auto control-height-12 px-4 bg-muted/10 hover:bg-muted/15 text-foreground text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer active:scale-95 touch-manipulation shrink-0"
               >
                 <PencilIcon size={16} />
                 <span>ویرایش</span>

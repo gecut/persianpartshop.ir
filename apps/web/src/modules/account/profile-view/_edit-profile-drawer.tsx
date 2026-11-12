@@ -52,7 +52,7 @@ export function EditProfileDrawer({ isOpen, formData, setFormData, phone, isSave
                 type="button"
                 onClick={onCancel}
                 aria-label="بستن"
-                className="size-10 rounded-2xl bg-muted/10 hover:bg-muted/20 text-muted hover:text-foreground flex items-center justify-center cursor-pointer transition-colors shrink-0"
+                className="w-10 control-height-10 bg-muted/10 hover:bg-muted/20 text-muted hover:text-foreground flex items-center justify-center cursor-pointer transition-colors shrink-0"
               >
                 <XIcon />
               </Button>
@@ -138,14 +138,14 @@ export function EditProfileDrawer({ isOpen, formData, setFormData, phone, isSave
                 <Button
                   type="button"
                   onClick={onCancel}
-                  className="h-12 px-4 rounded-2xl bg-muted/10 hover:bg-muted/15 text-foreground font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                  className="control-height-12 px-4 bg-muted/10 hover:bg-muted/15 text-foreground font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                 >
                   <XIcon size={15} />
                   <span>انصراف</span>
                 </Button>
                 <Button
                   type="submit" isDisabled={isSaveDisabled}
-                  className="flex-1 h-12 px-4 rounded-2xl bg-success/15 text-success hover:bg-success/20 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-98"
+                  className="flex-1 control-height-12 px-4 bg-success/15 text-success hover:bg-success/20 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-98"
                 >
                   <CheckIcon size={15} />
                   <span>ذخیره تغییرات</span>
