@@ -3,6 +3,8 @@
   inset-block-end: 12px;
   inset-inline-end: 12px;
   display: inline-flex;
+  align-items: center;
+  gap: 6px;
   inline-size: max-content;
   padding: 4px 8px;
   border-radius: calc(8px * var(--corner-radius-scale));
@@ -13,20 +15,28 @@
   user-select: none;
 }
 
-.product-image-watermark__content {
-  display: inline-flex;
-  align-items: center;
-  gap: .35em;
-  opacity: .8;
-  font-size: .8125rem;
-  font-weight: 650;
-  line-height: 1.4;
+.product-image-watermark__text {
+  display: grid;
+  text-align: start;
   white-space: nowrap;
 }
 
+.product-image-watermark__title {
+  font-size: .8125rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.product-image-watermark__subtitle {
+  font-size: .6875rem;
+  font-weight: 550;
+  line-height: 1.35;
+  opacity: .85;
+}
+
 .product-image-watermark__logo {
-  inline-size: 1.15em;
-  block-size: 1.15em;
+  block-size: 2.125rem;
+  aspect-ratio: 49 / 112;
   background-color: currentColor;
-  mask: url('/assets/images/zamanian-logo-mask.png') center / contain no-repeat;
+  mask: url('/assets/images/persepolis-watermark.webp') center / contain no-repeat;
 }

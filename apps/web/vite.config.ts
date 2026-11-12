@@ -100,7 +100,7 @@ export default defineConfig(({ mode }) => ({
       injectManifest: {
         globPatterns: [
           'index.html', 'assets/**/*.{js,css,woff2}', 'assets/images/persian-part-logo.png',
-          'assets/images/zamanian-logo-mask.png', 'assets/images/placeholder.svg',
+          'assets/images/persepolis-watermark.webp', 'assets/images/placeholder.svg',
         ],
         globIgnores: ['**/*wasm*', '**/*qr-*'],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,

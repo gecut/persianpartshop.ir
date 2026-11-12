@@ -77,7 +77,10 @@ export function ProductGallery({ productName, items, isOpen, showProductImageWat
                   }}
                 />
                 {showProductImageWatermark && item.url !== "/assets/images/placeholder.svg" && loadedUrls.includes(item.url) && (
-                  <ProductImageWatermark />
+                  // Leave room for the zoom hint after it collapses into its bottom pill.
+                  <span className="pointer-events-none absolute inset-x-0 top-0 bottom-9">
+                    <ProductImageWatermark />
+                  </span>
                 )}
               </button>
             ))}
