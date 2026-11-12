@@ -13,7 +13,7 @@
     "migrate:cms": "pnpm --filter @persianpart/cms migrate",
     "migrate:cms:status": "pnpm --filter @persianpart/cms migrate:status",
     "seed:cms": "pnpm --filter @persianpart/cms seed",
-    "dev:all":"pnpm --filter @persianpart/web dev & pnpm --filter @persianpart/cms dev & pnpm --filter @persianpart/api dev"
+    "dev:all": "pnpm --filter @persianpart/web dev & pnpm --filter @persianpart/cms dev & pnpm --filter @persianpart/api dev"
   },
   "packageManager": "pnpm@11.18.0"
 }
