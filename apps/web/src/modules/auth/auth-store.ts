@@ -201,13 +201,13 @@ export const authStore = {
       }
 
       clearTanStackCache()
-      window.dispatchEvent(new Event('persianpart:account-change'))
       window.dispatchEvent(new Event('persianpart:login-success'))
       broadcast({
         isAuthenticated: true,
         user: userProfile,
         pendingPhone: null,
       })
+      window.dispatchEvent(new Event('persianpart:account-change'))
       queryClient.setQueryData(queryKeys.auth.session(userProfile.id), { user: userData })
       return true
     } catch (err: any) {
@@ -287,11 +287,16 @@ window.addEventListener('storage', event => {
     return
   }
   if (event.key !== STORAGE_KEY && event.key !== TOKEN_KEY) return
-  clearTanStackCache()
-  selectionStore.setOwner('')
-  currentState = getInitialState()
+  const next = getInitialState()
+  const changedSession = event.key === TOKEN_KEY ||
+    currentState.user?.id !== next.user?.id || currentState.isAuthenticated !== next.isAuthenticated
+  if (changedSession) {
+    clearTanStackCache()
+    selectionStore.setOwner('')
+  }
+  currentState = next
   listeners.forEach(listener => listener(currentState))
-  window.dispatchEvent(new Event('persianpart:account-change'))
+  if (changedSession) window.dispatchEvent(new Event('persianpart:account-change'))
 })
 
 import { useMutation } from '@tanstack/react-query'

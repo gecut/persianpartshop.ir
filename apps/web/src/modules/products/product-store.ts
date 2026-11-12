@@ -46,7 +46,7 @@ export function useProducts(supplyMode = false) {
   });
   const [viewMode, setViewMode] = useState<ViewMode>("list");
 
-  const { state: catalog, products: productsList, owner } = useCatalogData(true);
+  const { state: catalog, products: productsList, owner, online, isRestoring } = useCatalogData(true);
   const dimensionsQuery = useQuery({
     queryKey: queryKeys.products.facets(owner),
     queryFn: ({ signal }) => api.catalog.facets(undefined, { signal }),
@@ -64,20 +64,19 @@ export function useProducts(supplyMode = false) {
     queryFn: ({ pageParam, signal }) => catalogCoordinator.browse({ ...browseInput, page: pageParam }, signal),
     initialPageParam: 1,
     getNextPageParam: (last, pages) => last.hasMore ? pages.length + 1 : undefined,
-    enabled: !!owner && useRemoteBrowse && search === queryFilters.q,
+    enabled: !!owner && online && !isRestoring && useRemoteBrowse && search === queryFilters.q,
     staleTime: 120_000,
     refetchOnReconnect: 'always',
   });
+  const hasCatalog = catalog.complete || productsList.length > 0;
+  const showingRemote = online && useRemoteBrowse && !!browse.data;
+  const hasContent = hasCatalog || showingRemote;
   const error = browse.error ?? catalog.error;
-  const loadError = useRemoteBrowse
-    ? !browse.data && browse.error
-    : !catalog.complete && !productsList.length && catalog.error;
-  const isFetching = catalog.fetching || (useRemoteBrowse && browse.isFetching);
-  const isLoading = useRemoteBrowse
-    ? !browse.data && !loadError
-    : !catalog.complete && !productsList.length && !loadError;
-  const isLiveConnected = !error;
-  const refetch = () => { if (useRemoteBrowse) void browse.refetch(); return catalogCoordinator.refresh(); };
+  const loadError = !hasContent && online && !isRestoring && error;
+  const isFetching = catalog.fetching || (online && useRemoteBrowse && browse.isFetching);
+  const isLoading = online && !isRestoring && !hasContent && !loadError;
+  const isLiveConnected = online && !error;
+  const refetch = () => { if (navigator.onLine && useRemoteBrowse && !isRestoring) void browse.refetch(); return catalogCoordinator.refresh(); };
 
   const filters: FilterState = useMemo(
     () => ({
@@ -263,12 +262,19 @@ export function useProducts(supplyMode = false) {
   };
 
   return {
-    products: useRemoteBrowse
+    products: showingRemote
       ? (browse.data?.pages.flatMap(page => page.ids).flatMap(id => productsList.find(product => product.id === id) ?? []) ?? [])
       : filteredProducts,
-    hasRemoteMore: useRemoteBrowse && !!browse.hasNextPage,
-    loadMore: () => { if (useRemoteBrowse && browse.hasNextPage && !browse.isFetching) void browse.fetchNextPage() },
+    hasRemoteMore: showingRemote && !!browse.hasNextPage,
+    fetchingRemoteMore: showingRemote && browse.isFetchingNextPage,
+    loadMore: () => { if (showingRemote && browse.hasNextPage && !browse.isFetching) void browse.fetchNextPage() },
     complete: catalog.complete,
+    isRestoring,
+    offlineWithoutCatalog: !online && !hasCatalog && !isRestoring,
+    showingSavedCatalog: !!catalog.restoredAt,
+    showingPartialCatalog: hasCatalog && !catalog.complete && !showingRemote,
+    hasCatalog,
+    online,
     allProducts: productsList,
     dimensions: dimensionsQuery.data ?? [],
     dimensionsQuery,

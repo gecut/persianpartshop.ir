@@ -1,4 +1,5 @@
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
+import type { RuntimeCaching } from "workbox-build";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 import tailwindcss from "@tailwindcss/vite";
@@ -69,8 +70,20 @@ function devMediaPlugin() {
   };
 }
 
+function catalogImageMatcher(mode: string): RuntimeCaching["urlPattern"] {
+  const env = loadEnv(mode, process.cwd(), "VITE_");
+  const cdnOrigin = new URL(env.VITE_CDN_URL || "https://cdn.persianpart.shop").origin;
+  // Workbox serializes this callback into sw.js without its build-time closure.
+  return new Function(
+    "{ url, request, sameOrigin }",
+    `return request.destination === "image" &&
+      ((sameOrigin && url.pathname.startsWith("/assets/images/")) ||
+       url.origin === ${JSON.stringify(cdnOrigin)})`,
+  ) as RuntimeCaching["urlPattern"];
+}
+
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   cacheDir: process.env.VITE_CACHE_DIR || 'node_modules/.vite',
   plugins: [
     TanStackRouterVite({
@@ -96,17 +109,15 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['index.html', 'assets/**/*.{js,css,woff2}', 'assets/images/zamanian-logo-mask.png'],
+        globPatterns: ['index.html', 'assets/**/*.{js,css,woff2}', 'assets/images/zamanian-logo-mask.png', 'assets/images/placeholder.svg'],
         globIgnores: ['**/*wasm*', '**/*qr-*'],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         navigateFallback: '/index.html',
-        navigateFallbackAllowlist: [/^\/(?:$|product(?:\/|$)|cart(?:\/|$)|orders(?:\/|$)|plans(?:\/|$)|account(?:\/|$)|login(?:\/|$))/],
-        navigateFallbackDenylist: [/\.[a-z0-9]+$/i, /^\/api(?:\/|$)/],
+        navigateFallbackAllowlist: [/^\/(?=\?|$)|^\/(?:product|cart|orders|plans|account|login)(?=[/?]|$)/],
+        navigateFallbackDenylist: [/^[^?]*\.[a-z0-9]+(?=\?|$)/i, /^\/api(?=[/?]|$)/],
         cleanupOutdatedCaches: true,
         runtimeCaching: [{
-          urlPattern: ({ url, request, sameOrigin }) => request.destination === 'image' &&
-            ((sameOrigin && url.pathname.startsWith('/assets/images/')) ||
-              (url.origin === (process.env.VITE_CDN_URL || 'https://cdn.persianpart.shop') && url.pathname.startsWith('/'))),
+          urlPattern: catalogImageMatcher(mode),
           handler: 'StaleWhileRevalidate', options: { cacheName: 'catalog-images-v1', expiration: { maxEntries: 100, maxAgeSeconds: 7 * 24 * 60 * 60 }, cacheableResponse: { statuses: [200] } },
         }],
       },
@@ -143,4 +154,4 @@ export default defineConfig({
       },
     },
   },
-});
+}));

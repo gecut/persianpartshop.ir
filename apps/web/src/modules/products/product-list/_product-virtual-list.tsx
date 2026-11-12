@@ -14,6 +14,7 @@ interface ProductVirtualListProps {
   listContainerRef: RefObject<HTMLDivElement | null>;
   observerTargetRef: RefObject<HTMLDivElement | null>;
   hasMore: boolean;
+  fetchingRemoteMore: boolean;
   cartIdSet: Set<string>;
   selectedIdSet: Set<string>;
   supplyId: number | undefined;
@@ -22,7 +23,7 @@ interface ProductVirtualListProps {
   onOpenBottomSheet: (product: Product) => void;
 }
 
-export function ProductVirtualList({ virtualizer, virtualItems, visibleProducts, listContainerRef, observerTargetRef, hasMore, cartIdSet, selectedIdSet, supplyId, isOrderingDisabled, onToggleSelect, onOpenBottomSheet }: ProductVirtualListProps) {
+export function ProductVirtualList({ virtualizer, virtualItems, visibleProducts, listContainerRef, observerTargetRef, hasMore, fetchingRemoteMore, cartIdSet, selectedIdSet, supplyId, isOrderingDisabled, onToggleSelect, onOpenBottomSheet }: ProductVirtualListProps) {
   return (
     <div className="w-full">
       <div
@@ -73,7 +74,7 @@ export function ProductVirtualList({ virtualizer, virtualItems, visibleProducts,
       {/* Infinite Scroll Loading Sentinel */}
       {hasMore && (
         <div ref={observerTargetRef} className="pt-2">
-          <ProductCardSkeleton />
+          {fetchingRemoteMore && <ProductCardSkeleton />}
         </div>
       )}
     </div>

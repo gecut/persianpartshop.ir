@@ -47,6 +47,13 @@ export function ProductListView() {
     loadError,
     isFetching,
     refetch,
+    isRestoring,
+    offlineWithoutCatalog,
+    showingSavedCatalog,
+    showingPartialCatalog,
+    hasCatalog,
+    complete,
+    online,
   } = productHook;
   const { user } = useAuth();
   const isOrderingDisabled =
@@ -79,10 +86,10 @@ export function ProductListView() {
 
   // Reconcile selected IDs with live products to eliminate any phantom/ghost IDs
   useEffect(() => {
-    if (!isLoading && allProducts && allProducts.length > 0) {
+    if (complete && !showingSavedCatalog && allProducts.length > 0) {
       reconcileWithProducts(allProducts.map((p) => p.id));
     }
-  }, [isLoading, allProducts, reconcileWithProducts]);
+  }, [complete, showingSavedCatalog, allProducts, reconcileWithProducts]);
 
   // Count only valid selected products
   const selectedCount = selectedIds.length;
@@ -90,22 +97,17 @@ export function ProductListView() {
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
-  const [activeBottomSheetProduct, setActiveBottomSheetProduct] =
-    useState<Product | null>(null);
+  const [activeProductId, setActiveProductId] = useState<string | null>(null);
 
-  const sharedProduct = useCatalogProduct(productId);
-  useEffect(() => {
-    if (productId && sharedProduct.data) {
-      setActiveBottomSheetProduct(sharedProduct.data);
-    }
-  }, [productId, sharedProduct.data]);
+  const sharedProduct = useCatalogProduct(activeProductId ?? productId);
+  const activeBottomSheetProduct = sharedProduct.data;
 
   const handleOpenBottomSheet = useCallback((product: Product) => {
-    setActiveBottomSheetProduct(product);
+    setActiveProductId(product.id);
   }, []);
 
   const handleCloseBottomSheet = useCallback(() => {
-    setActiveBottomSheetProduct(null);
+    setActiveProductId(null);
     if (productId)
       void navigate({
         to: "/product",
@@ -169,7 +171,10 @@ export function ProductListView() {
         }}
       />
       {productId && !sharedProduct.data && sharedProduct.error && (
-        <QueryLoadError message="دریافت محصول این لینک ممکن نشد." onRetry={() => void sharedProduct.refetch()} />
+        <QueryLoadError
+          message={sharedProduct.offlineMissing ? sharedProduct.error.message : "دریافت محصول این لینک ممکن نشد."}
+          onRetry={() => void sharedProduct.refetch()}
+        />
       )}
       {productId && sharedProduct.isPending && (
         <p role="status" className="text-sm text-muted">در حال دریافت محصول…</p>
@@ -188,7 +193,7 @@ export function ProductListView() {
       <DimensionFilter
         dimensions={dimensions}
         selectedDimension={filters.selectedDimension}
-        isLoading={dimensionsQuery.isPending}
+        isLoading={online && !isRestoring && !hasCatalog && dimensionsQuery.isPending}
         error={dimensionsQuery.isError && !dimensionsQuery.data}
         onRetry={() => void dimensionsQuery.refetch()}
         onSelect={(dimension) => dispatchFilter({ type: "selectedDimension", dimension })}
@@ -223,7 +228,15 @@ export function ProductListView() {
       </div>
 
       {/* Product Items Display */}
-      {isLoading ? (
+      {showingSavedCatalog && (
+        <p role="status" className="text-sm text-muted">نسخهٔ ذخیره‌شدهٔ کاتالوگ. قیمت و موجودی مربوط به آخرین دریافت است.</p>
+      )}
+      {showingPartialCatalog && (
+        <p role="status" className="text-sm text-muted">بخشی از کاتالوگ در دسترس است.</p>
+      )}
+      {isRestoring ? null : offlineWithoutCatalog ? (
+        <QueryLoadError message="برای دریافت فهرست محصولات به اینترنت وصل شوید." onRetry={() => void refetch()} />
+      ) : isLoading ? (
         <div className="flex flex-col gap-2">
           {Array.from({ length: 6 }).map((_, idx) => (
             <ProductCardSkeleton key={idx} viewMode="list" />
@@ -231,6 +244,8 @@ export function ProductListView() {
         </div>
       ) : loadError ? (
         <QueryLoadError message="دریافت فهرست محصولات ممکن نشد." onRetry={() => void refetch()} />
+      ) : products.length === 0 && showingPartialCatalog ? (
+        <p className="text-sm text-muted">در کالاهای دریافت‌شده موردی پیدا نشد.</p>
       ) : products.length === 0 && !isFetching ? (
         <EmptyProducts onReset={resetFilters} />
       ) : (
@@ -241,6 +256,7 @@ export function ProductListView() {
           listContainerRef={listContainerRef}
           observerTargetRef={observerTargetRef}
           hasMore={hasMore}
+          fetchingRemoteMore={productHook.fetchingRemoteMore}
           cartIdSet={cartIdSet}
           selectedIdSet={selectedIdSet}
           supplyId={supplyId}

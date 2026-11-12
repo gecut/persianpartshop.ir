@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { QueryClient } from '@tanstack/react-query'
-import { createCatalogCoordinator } from '../src/modules/products/catalog-coordinator'
+import { createCatalogCoordinator, emptyCatalog, type CatalogPersistence, type CatalogSnapshot } from '../src/modules/products/catalog-coordinator'
 import type { CatalogRecord } from '@persianpart/contract'
 
 const product = (id: number, price = 100): CatalogRecord => ({ id, sku: `P${id}`, name: `Product ${id}`, slug: `p${id}`, createdAt: new Date(2026, 0, id).toISOString(), inventorySqm: 100, stockCartons: 100, availability: 'available', finalCustomerPricePerSqm: price, hasScanCode: false })
@@ -9,7 +9,7 @@ function deferred<T>() {
   const promise = new Promise<T>(done => { resolve = done })
   return { promise, resolve }
 }
-function fixture() {
+function fixture(persistence?: CatalogPersistence) {
   const client = new QueryClient({ defaultOptions: { queries: { gcTime: Infinity, retry: false } } })
   let visible = true
   let pages = [[product(1)], [product(2)]]
@@ -25,7 +25,7 @@ function fixture() {
     async scan(_code: string, _signal: AbortSignal) { scans++; return product(3) },
     async browse() { return { items: [product(4)], scopeKey: 'scope', total: 1, hasMore: false } },
   }
-  const coordinator = createCatalogCoordinator(client, transport, () => visible, async () => { await Promise.resolve() })
+  const coordinator = createCatalogCoordinator(client, transport, () => visible, async () => { await Promise.resolve() }, persistence)
   coordinator.setOwner('one')
   return { coordinator, transport, calls, setVisible(value: boolean) { visible = value }, setPages(value: CatalogRecord[][]) { pages = value }, idsCalls: () => idsCalls, scans: () => scans }
 }
@@ -141,5 +141,58 @@ describe('shared progressive catalog', () => {
     expect(f.scans()).toBe(0)
     expect((await f.coordinator.scan('PP-NEW')).id).toBe(3)
     expect(f.coordinator.snapshot().byId['3']).toBeDefined()
+  })
+})
+
+describe('catalog checkpoints', () => {
+  test('saves the first page and completed sweeps, preserving the previous full version during refresh', async () => {
+    const saved: Array<[boolean, string[]]> = []
+    const f = fixture({
+      open: () => ({
+        restore: async () => undefined,
+        save: async () => {
+          const snapshot = f.coordinator.snapshot()
+          saved.push([snapshot.complete, Object.keys(snapshot.byId)])
+        },
+      }),
+      invalidate() {},
+    })
+    await f.coordinator.setOwner('one')
+    await f.coordinator.start()
+    expect(saved).toEqual([[false, ['1']], [true, ['1', '2']]])
+    f.setPages([[product(1)], [product(3)]])
+    await f.coordinator.refresh()
+    expect(saved).toEqual([[false, ['1']], [true, ['1', '2']], [true, ['1', '3']]])
+  })
+
+  test('defers network startup and ignores an old account restore after a switch', async () => {
+    const pending = deferred<CatalogSnapshot>(), invalidated: string[] = []
+    const f = fixture({
+      open: owner => ({ restore: async () => owner === 'one' ? pending.promise : undefined, save: async () => {} }),
+      invalidate: owner => { invalidated.push(owner) },
+    })
+    const started = f.coordinator.start()
+    expect(f.coordinator.snapshot().restoring).toBe(true)
+    expect(f.calls).toHaveLength(0)
+    await f.coordinator.setOwner('two')
+    pending.resolve({ ...emptyCatalog, byId: { '99': product(99) }, scopeKey: 'old' })
+    await started
+    expect(invalidated).toEqual(['one'])
+    expect(f.coordinator.snapshot().byId['99']).toBeUndefined()
+  })
+
+  test('invalidates disk data if a confirmed scope arrives before hydration', async () => {
+    const pending = deferred<CatalogSnapshot>(), invalidated: string[] = []
+    const f = fixture({
+      open: () => ({ restore: async () => pending.promise, save: async () => {} }),
+      invalidate: owner => { invalidated.push(owner) },
+    })
+    const restore = f.coordinator.setOwner('one')
+    f.coordinator.acceptScope('new')
+    pending.resolve({ ...emptyCatalog, byId: { '99': product(99) }, scopeKey: 'old' })
+    await restore
+    expect(invalidated).toEqual(['one'])
+    expect(f.coordinator.snapshot().scopeKey).toBe('new')
+    expect(f.coordinator.snapshot().byId['99']).toBeUndefined()
   })
 })

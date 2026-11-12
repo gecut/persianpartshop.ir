@@ -1,15 +1,17 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 import { skipToken, useQuery } from '@tanstack/react-query'
 import { CatalogRecordSchema } from '@persianpart/contract'
 import { api, hasForegroundRequests } from '@/lib/api-client'
 import { queryClient } from '@/lib/query-client'
 import { queryKeys } from '@/lib/query-keys'
 import { writeActivity } from '@/lib/write-activity'
-import { useAuth } from '@/modules/auth/auth-store'
+import { authStore, useAuth } from '@/modules/auth/auth-store'
 import { createCatalogCoordinator, emptyCatalog, type CatalogSnapshot } from './catalog-coordinator'
 import { mapCatalogProduct } from './catalog-mapper'
+import { createCatalogPersistence } from './_catalog-persistence'
 
 const yieldToUI = () => new Promise<void>(resolve => setTimeout(resolve, 0))
+const persistence = createCatalogPersistence(queryClient, owner => catalogCoordinator.discardStored(owner))
 export const catalogCoordinator = createCatalogCoordinator(queryClient, {
   syncPage: (input, signal) => api.catalog.syncPage(input, { signal }),
   getByIds: (ids, signal) => api.catalog.getByIds({ ids }, { signal }),
@@ -20,9 +22,11 @@ export const catalogCoordinator = createCatalogCoordinator(queryClient, {
     return CatalogRecordSchema.parse({ ...result, createdAt: 'createdAt' in result ? result.createdAt : new Date().toISOString(), scanHash })
   },
   browse: (input, signal) => api.catalog.browse(input, { signal }),
-}, initial => document.visibilityState === 'visible' && navigator.onLine && !writeActivity.count() && (initial || !hasForegroundRequests()), yieldToUI)
+}, initial => document.visibilityState === 'visible' && navigator.onLine && !writeActivity.count() && (initial || !hasForegroundRequests()), yieldToUI, persistence)
 
-window.addEventListener('persianpart:account-change', () => catalogCoordinator.reset())
+const syncOwner = () => catalogCoordinator.setOwner(authStore.getState().user?.id ?? '')
+syncOwner()
+window.addEventListener('persianpart:account-change', syncOwner)
 window.addEventListener('persianpart:read-finished', () => { if (!catalogCoordinator.snapshot().error) void catalogCoordinator.resume() })
 window.addEventListener('online', () => void catalogCoordinator.resume())
 window.addEventListener('focus', () => void catalogCoordinator.resume())
@@ -33,9 +37,19 @@ queryClient.getMutationCache().subscribe(event => {
 })
 window.addEventListener('persianpart:write-finished', () => { if (!catalogCoordinator.snapshot().error) void catalogCoordinator.resume() })
 
+function subscribeConnection(notify: () => void) {
+  window.addEventListener('online', notify)
+  window.addEventListener('offline', notify)
+  return () => {
+    window.removeEventListener('online', notify)
+    window.removeEventListener('offline', notify)
+  }
+}
+
 export function useCatalogData(start = false, mapAll = true) {
   const { user } = useAuth()
   const owner = user?.id ?? ''
+  const online = useSyncExternalStore(subscribeConnection, () => navigator.onLine)
   const result = useQuery<CatalogSnapshot>({
     queryKey: queryKeys.products.catalog(owner),
     queryFn: skipToken,
@@ -54,29 +68,34 @@ export function useCatalogData(start = false, mapAll = true) {
     const left = state.byId[a.id]!, right = state.byId[b.id]!
     return right.createdAt.localeCompare(left.createdAt) || Number(b.id) - Number(a.id)
   }), [state.byId, mapAll])
-  return { state, products, owner }
+  return { state, products, owner, online, isRestoring: !!owner && (!result.data || !!state.restoring) }
 }
 
 export function useCatalogIds(ids: string[]) {
-  const { state, owner } = useCatalogData(false, false)
+  const { state, owner, online, isRestoring } = useCatalogData(false, false)
   const signature = [...new Set(ids)].sort().join(',')
-  const [status, setStatus] = useState<{ signature: string; error: unknown; done: boolean }>({ signature: '', error: null, done: false })
+  const requestKey = JSON.stringify([owner, state.scopeKey, signature])
+  const [status, setStatus] = useState<{ key: string; error: unknown; done: boolean }>({ key: '', error: null, done: false })
   useEffect(() => {
-    if (!owner || !signature) return
+    if (!owner || !signature || !online || isRestoring) return
     let active = true
     catalogCoordinator.ensureIds(signature.split(',')).then(() => {
-      if (active) setStatus({ signature, error: null, done: true })
-    }, error => { if (active) setStatus({ signature, error, done: true }) })
+      if (active) setStatus({ key: requestKey, error: null, done: true })
+    }, error => { if (active) setStatus({ key: requestKey, error, done: true }) })
     return () => { active = false }
-  }, [owner, signature, state.scopeKey])
+  }, [owner, signature, requestKey, online, isRestoring])
   const selected = useMemo(() => ids.flatMap(id => state.byId[id] ? [mapCatalogProduct(state.byId[id]!)] : []), [state.byId, signature])
   const missing = ids.some(id => !state.byId[id])
-  const failure = status.signature === signature ? status.error : null
-  const error = failure ? failure instanceof Error ? failure : new Error('دریافت محصول ممکن نشد.') : missing && status.done && status.signature === signature ? new Error('یکی از محصولات در دسترس حساب شما نیست.') : null
-  return { data: selected, raw: state.byId, error, isPending: missing && (!status.done || status.signature !== signature), isFetching: missing && (!status.done || status.signature !== signature), refetch: async () => {
-    setStatus({ signature, error: null, done: false })
-    try { await catalogCoordinator.ensureIds(ids, true); setStatus({ signature, error: null, done: true }) }
-    catch (error) { setStatus({ signature, error, done: true }) }
+  const done = status.key === requestKey && status.done
+  const failure = done ? status.error : null
+  const offlineMissing = missing && !online && !isRestoring
+  const error = offlineMissing ? new Error('برای دیدن این کالا به اینترنت وصل شوید.') : failure ? failure instanceof Error ? failure : new Error('دریافت محصول ممکن نشد.') : missing && done ? new Error('یکی از محصولات در دسترس حساب شما نیست.') : null
+  const pending = missing && online && !isRestoring && !done
+  return { data: selected, raw: state.byId, error, offlineMissing, isPending: pending, isFetching: pending, refetch: async () => {
+    if (!navigator.onLine || isRestoring) return
+    setStatus({ key: requestKey, error: null, done: false })
+    try { await catalogCoordinator.ensureIds(ids, true); setStatus({ key: requestKey, error: null, done: true }) }
+    catch (error) { setStatus({ key: requestKey, error, done: true }) }
   } }
 }
 

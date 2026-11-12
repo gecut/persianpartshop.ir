@@ -1,5 +1,6 @@
 import React from "react"
 import { ZoomInIcon } from "@/components/ui/icons"
+import { productImageCors, retryWithoutImageCors } from "./_product-image-cors"
 
 interface ProductThumbnailProps {
   src: string;
@@ -32,13 +33,16 @@ export const ProductThumbnail = React.memo(function ProductThumbnail({
       aria-label={`مشاهده جزئیات ${alt}`}
     >
       <img
+        key={src}
         alt={alt}
+        crossOrigin={productImageCors(src)}
         src={src}
         loading="lazy"
         decoding="async"
         className="size-19 aspect-square object-cover rounded-2xl transition-transform duration-200 group-hover/img:scale-105"
         onError={(e) => {
           const target = e.currentTarget;
+          if (retryWithoutImageCors(target)) return;
           if (!target.src.endsWith("/assets/images/placeholder.svg")) {
             target.src = "/assets/images/placeholder.svg";
           }

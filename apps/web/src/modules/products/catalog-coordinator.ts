@@ -19,8 +19,18 @@ export interface CatalogSnapshot {
   completedAt: number
   fetching: boolean
   error: Error | null
+  restoring?: boolean
+  restoredAt?: number
 }
 export const emptyCatalog: CatalogSnapshot = { byId: {}, versions: {}, scanIndex: {}, scopeKey: null, complete: false, completedAt: 0, fetching: false, error: null }
+export const catalogMaxAge = 48 * 60 * 60 * 1000
+export interface CatalogPersistence {
+  open(owner: string): {
+    restore(): Promise<CatalogSnapshot | undefined>
+    save(): Promise<void>
+  }
+  invalidate(owner: string): void
+}
 const aborted = () => new DOMException('Catalog session changed', 'AbortError')
 const retryable = (error: unknown) => {
   if (error instanceof DOMException && error.name === 'AbortError') return false
@@ -29,11 +39,15 @@ const retryable = (error: unknown) => {
 }
 
 /** Owns network work, not a second product store. All records live in Query Cache. */
-export function createCatalogCoordinator(client: QueryClient, transport: Transport, available: (initial: boolean) => boolean, yieldToUI: () => Promise<void>) {
+export function createCatalogCoordinator(client: QueryClient, transport: Transport, available: (initial: boolean) => boolean, yieldToUI: () => Promise<void>, persistence?: CatalogPersistence) {
   let owner = '', epoch = 0, sequence = 0, foreground = 0, started = false
   let run: Promise<void> | null = null
   let cursor: string | undefined
   let seen = new Set<string>(), sweepStart = 0
+  let storage: ReturnType<CatalogPersistence['open']> | undefined
+  let restoring: Promise<void> | undefined
+  let checkpointed = false
+  let expiryTimer: ReturnType<typeof setTimeout> | undefined
   const controllers = new Set<AbortController>()
   const pendingIds = new Map<string, Promise<void>>()
   const pendingScans = new Map<string, Promise<CatalogRecord>>()
@@ -45,17 +59,62 @@ export function createCatalogCoordinator(client: QueryClient, transport: Transpo
     void client.invalidateQueries({ queryKey: queryKeys.products.facets(owner) })
   }
   function reset(nextOwner: string) {
+    clearTimeout(expiryTimer)
     epoch++; controllers.forEach(controller => controller.abort()); controllers.clear()
     if (owner !== nextOwner) client.removeQueries({ queryKey: key(), exact: true })
     owner = nextOwner; started = false; run = null; cursor = undefined; sweepStart = 0; seen = new Set(); targeted.clear(); pendingIds.clear(); pendingScans.clear()
+    storage = undefined; restoring = undefined; checkpointed = false
     publish(() => ({ ...emptyCatalog }))
+  }
+  function openStorage(restore: boolean) {
+    if (!persistence || !owner) return
+    storage = persistence.open(owner)
+    if (!restore) return
+    const expected = epoch
+    publish(state => ({ ...state, restoring: true }))
+    restoring = storage.restore().then(saved => {
+      if (!saved || expected !== epoch) return
+      const scopeKey = snapshot().scopeKey
+      if (scopeKey && scopeKey !== saved.scopeKey) {
+        const wasStarted = started
+        changeScope(scopeKey)
+        started = wasStarted
+        void pump()
+        return
+      }
+      checkpointed = true
+      publish(() => saved)
+      if (saved.restoredAt !== undefined) {
+        expiryTimer = setTimeout(() => {
+          if (epoch !== expected || !snapshot().restoredAt) return
+          const wasStarted = started
+          const scope = snapshot().scopeKey
+          reset(owner)
+          openStorage(false)
+          publish(state => ({ ...state, scopeKey: scope }))
+          resetDependentQueries()
+          started = wasStarted
+          void pump()
+        }, Math.max(0, saved.restoredAt + catalogMaxAge - Date.now()))
+      }
+    }).catch(() => {}).finally(() => {
+      if (expected !== epoch) return
+      restoring = undefined
+      if (snapshot().restoring) publish(state => ({ ...state, restoring: false }))
+      void pump()
+    })
+  }
+  function changeScope(scopeKey: string) {
+    persistence?.invalidate(owner)
+    reset(owner)
+    openStorage(false)
+    publish(state => ({ ...state, scopeKey }))
+    resetDependentQueries()
   }
   function merge(items: CatalogRecord[], scopeKey: string | null, read: number) {
     const previous = snapshot()
     if (scopeKey && previous.scopeKey && previous.scopeKey !== scopeKey) {
-      reset(owner)
-      publish(state => ({ ...state, scopeKey }))
-      resetDependentQueries()
+      changeScope(scopeKey)
       started = true
       queueMicrotask(() => void pump())
       throw aborted()
@@ -85,6 +144,7 @@ export function createCatalogCoordinator(client: QueryClient, transport: Transpo
   }
   function pump(force = false): Promise<void> {
     if (run) return run
+    if (restoring) return restoring
     if (!owner || !available(!snapshot().completedAt && !cursor) || foreground || !started) return Promise.resolve()
     if (snapshot().complete && !sweepStart) {
       if (!force && Date.now() - snapshot().completedAt < 120_000) return Promise.resolve()
@@ -111,9 +171,16 @@ export function createCatalogCoordinator(client: QueryClient, transport: Transpo
               const versions = { ...state.versions }
               for (const id of Object.keys(state.byId)) if (!byId[id]) versions[id] = Math.max(versions[id] ?? 0, sweepStart)
               for (const item of Object.values(byId)) if (item.scanHash) scanIndex[item.scanHash] = String(item.id)
-              return { ...state, byId, versions, scanIndex, complete: true, completedAt: Date.now() }
+              return { ...state, byId, versions, scanIndex, complete: true, completedAt: Date.now(), restoredAt: undefined }
             })
+            clearTimeout(expiryTimer)
+            checkpointed = true
+            void storage?.save().catch(() => {})
             sweepStart = 0; targeted.clear(); break
+          }
+          if (!checkpointed) {
+            checkpointed = true
+            void storage?.save().catch(() => {})
           }
           await yieldToUI()
         } while (expected === epoch && available(false) && !foreground)
@@ -157,16 +224,31 @@ export function createCatalogCoordinator(client: QueryClient, transport: Transpo
     await Promise.all(waiting)
   }
   return {
-    setOwner(nextOwner: string) { if (nextOwner !== owner) reset(nextOwner) },
-    reset() { reset('') },
+    setOwner(nextOwner: string) {
+      if (nextOwner === owner && (!owner || client.getQueryData(key()))) return restoring
+      if (owner) persistence?.invalidate(owner)
+      reset(nextOwner)
+      openStorage(true)
+      return restoring
+    },
+    reset() {
+      if (owner) persistence?.invalidate(owner)
+      reset('')
+    },
+    discardStored(ownerToDiscard: string) {
+      if (ownerToDiscard !== owner) return
+      const wasStarted = started
+      reset(owner)
+      openStorage(false)
+      resetDependentQueries()
+      if (wasStarted) { started = true; void pump() }
+    },
     snapshot,
     acceptScope(scopeKey: string) {
       if (!snapshot().scopeKey) { publish(state => ({ ...state, scopeKey })); return }
       if (snapshot().scopeKey === scopeKey) return
       const wasStarted = started
-      reset(owner)
-      publish(state => ({ ...state, scopeKey }))
-      resetDependentQueries()
+      changeScope(scopeKey)
       if (wasStarted) { started = true; void pump() }
     },
     start() { started = true; return pump() },

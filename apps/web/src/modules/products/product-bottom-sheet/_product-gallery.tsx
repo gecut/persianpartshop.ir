@@ -62,12 +62,14 @@ export function ProductGallery({ productName, items, isOpen, showProductImageWat
                 aria-label={`بزرگ‌نمایی ${item.label}`}
               >
                 <img
+                  crossOrigin={productImageCors(item.url)}
                   src={item.url}
                   alt={index === 0 ? productName : item.label}
                   draggable={false}
                   className="w-full h-full object-cover"
                   onLoad={(event) => { if (!event.currentTarget.dataset.failed) setLoadedUrls((urls) => urls.includes(item.url) ? urls : [...urls, item.url]); }}
                   onError={(event) => {
+                    if (retryWithoutImageCors(event.currentTarget)) return;
                     if (event.currentTarget.dataset.failed) return;
                     event.currentTarget.dataset.failed = "true";
                     event.currentTarget.src = "/assets/images/placeholder.svg";
@@ -94,7 +96,7 @@ export function ProductGallery({ productName, items, isOpen, showProductImageWat
               aria-pressed={index === selected}
               className={`group relative size-12 border border-transparent shrink-0 rounded-2xl p-0.5 transition-all cursor-pointer select-none ${index === selected ? "bg-transparent border! border-primary! p-0.5!" : "bg-muted/10 hover:bg-muted/20 opacity-70 hover:opacity-100"}`}
             >
-              <img src={item.url} alt="" draggable={false} className="w-full h-full object-cover rounded-2xl transition-transform group-hover:scale-105" onError={(event) => { if (!event.currentTarget.src.endsWith("/assets/images/placeholder.svg")) event.currentTarget.src = "/assets/images/placeholder.svg"; }} />
+              <img crossOrigin={productImageCors(item.url)} src={item.url} alt="" draggable={false} className="w-full h-full object-cover rounded-2xl transition-transform group-hover:scale-105" onError={(event) => { if (!retryWithoutImageCors(event.currentTarget) && !event.currentTarget.src.endsWith("/assets/images/placeholder.svg")) event.currentTarget.src = "/assets/images/placeholder.svg"; }} />
             </Button>
           ))}
         </div>
@@ -102,3 +104,4 @@ export function ProductGallery({ productName, items, isOpen, showProductImageWat
     </div>
   );
 }
+import { productImageCors, retryWithoutImageCors } from "../_product-image-cors"

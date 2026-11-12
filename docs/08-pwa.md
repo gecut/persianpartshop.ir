@@ -1,10 +1,10 @@
 # PWA behavior and verification
 
-Implemented scope: install/update UI, offline application shell, account isolation, explicit logout cleanup, text drafts, query error/retry/refetch states, virtual-list navigation restoration, and direct product links. No push, persistent API cache, automatic order replay, or offline order acceptance.
+Implemented scope: install/update UI, offline application shell and catalog, account isolation, explicit logout cleanup, text drafts, query error/retry/refetch states, virtual-list navigation restoration, and direct product links. No push, service-worker API cache, automatic order replay, or offline order acceptance.
 
 ## Ownership
 
-- TanStack Query owns server data in memory. Server responses are never put in the service-worker cache.
+- TanStack Query owns server data. Only the catalog query is persisted to IndexedDB for up to 48 hours from the last successful checkpoint. A first-page checkpoint can serve an incomplete catalog until the first full sweep succeeds. Logout, account changes, and confirmed catalog scope changes discard the old version. During offline use, server-side access changes become known on reconnect.
 - `persianpart_text_v1:<account>:<form>` stores account-scoped cart notes and profile text; the existing `persianpart_draft_v3:<account>` remains the cart owner.
 - Explicit logout deletes that account's cart and text drafts. Session expiry preserves drafts for the same account. Other accounts cannot restore them.
 - Text is written after 300 ms and flushed on blur, page hide and user-requested update. Failed storage shows an unsaved warning and blocks update when the flush fails. Browser storage is not a server backup.
@@ -17,7 +17,7 @@ The generated manifest uses `/product` and standalone Persian/RTL presentation. 
 
 Updates use the generated Workbox worker in prompt mode. A dismissed update banner returns on the next app load; Account always exposes the pending update. Update and explicit logout are blocked during active writes. Cross-tab write activity uses bounded storage heartbeats and BroadcastChannel notifications with storage-event fallback. Old heartbeat entries expire after 35 seconds, alongside the 30-second request timeout.
 
-The worker precaches the application shell, local font and install icons. Public catalog images use a separate cache capped at 100 entries and seven days. API, document uploads, QR binaries and unrecognized navigations are not offline fallbacks. An offline start shows connection guidance rather than claiming cached catalog availability.
+The worker precaches the application shell, local font, install icons and image placeholder. Public catalog images with a successful CORS response use a separate cache capped at 100 entries and seven days. API, document uploads, QR binaries and unrecognized navigations are not offline fallbacks. A warm start displays the saved catalog without a skeleton. An offline start without catalog data shows connection guidance. Saved prices and stock reflect the last download and require live validation for ordering.
 
 ## Direct links and navigation
 
