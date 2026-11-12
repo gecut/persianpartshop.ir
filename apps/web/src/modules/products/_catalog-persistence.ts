@@ -1,14 +1,16 @@
 import { QueryClient } from '@tanstack/react-query'
 import { persistQueryClientRestore, persistQueryClientSave, type PersistedClient, type Persister } from '@tanstack/query-persist-client-core'
 import { createStore, get, update } from 'idb-keyval'
-import { CatalogRecordSchema } from '@persianpart/contract'
+import { CatalogBrowseOutputSchema, CatalogRecordSchema } from '@persianpart/contract'
 import { queryKeys } from '@/lib/query-keys'
-import { catalogMaxAge, emptyCatalog, type CatalogPersistence, type CatalogSnapshot } from './catalog-coordinator'
+import { catalogMaxAge, emptyCatalog, type CatalogPersistence, type CatalogSnapshot, type SavedBrowsePage } from './catalog-coordinator'
 
 const buster = 'catalog-v1'
+const browseVersion = 1
 interface StoredCatalog {
   generation: number
   client?: PersistedClient
+  browse?: SavedBrowsePage & { version: number }
 }
 
 export function createCatalogPersistence(client: QueryClient, onDiscard: (owner: string) => void): CatalogPersistence {
@@ -35,7 +37,7 @@ export function createCatalogPersistence(client: QueryClient, onDiscard: (owner:
           const nextData = next?.clientState.queries[0]?.state.data as CatalogSnapshot | undefined
           if (previousData?.complete && nextData && !nextData.complete &&
             Date.now() - (current?.client?.timestamp ?? 0) < catalogMaxAge) return current
-          return { generation, client: next }
+          return { ...current, generation, client: next }
         }, db())
       }
       const persister: Persister = {
@@ -89,7 +91,7 @@ export function createCatalogPersistence(client: QueryClient, onDiscard: (owner:
           if (!entry?.client) return
           await update<StoredCatalog | undefined>(owner, current =>
             current?.generation === entry.generation && current?.client?.timestamp === entry.client?.timestamp
-              ? { generation: entry.generation } : current, db())
+              ? { ...current, client: undefined } : current, db())
         },
       }
       return {
@@ -103,6 +105,20 @@ export function createCatalogPersistence(client: QueryClient, onDiscard: (owner:
             staged.clear()
             initial = undefined
           }
+        },
+        async restoreBrowse() {
+          const saved = (await initial)?.browse
+          if (saved?.version !== browseVersion || !Number.isFinite(saved.savedAt) ||
+            saved.savedAt > Date.now() || Date.now() - saved.savedAt >= catalogMaxAge) return
+          const parsed = CatalogBrowseOutputSchema.safeParse(saved.response)
+          if (parsed.success && parsed.data.scopeKey) return { response: parsed.data, savedAt: saved.savedAt }
+        },
+        async saveBrowse(page) {
+          const generation = await generationAtOpen
+          await update<StoredCatalog | undefined>(owner, current => {
+            if ((current?.generation ?? 0) !== generation || (current?.browse?.savedAt ?? 0) > page.savedAt) return current
+            return { ...current, generation, browse: { ...page, version: browseVersion } }
+          }, db())
         },
         save: () => persistQueryClientSave({
           queryClient: client, persister, buster,

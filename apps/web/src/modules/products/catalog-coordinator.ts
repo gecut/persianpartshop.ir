@@ -1,6 +1,7 @@
-import type { QueryClient } from '@tanstack/react-query'
-import type { CatalogRecord, CatalogBrowseInput } from '@persianpart/contract'
+import type { InfiniteData, QueryClient } from '@tanstack/react-query'
+import type { CatalogRecord, CatalogBrowseInput, CatalogBrowseOutput } from '@persianpart/contract'
 import { queryKeys } from '@/lib/query-keys'
+import { defaultBrowseKey, firstBrowsePage, isDefaultBrowse } from './_catalog-browse'
 
 interface CatalogPage { items: CatalogRecord[]; scopeKey: string; nextCursor: string | null }
 interface CatalogResult { items: CatalogRecord[]; scopeKey: string }
@@ -8,7 +9,7 @@ interface Transport {
   syncPage(input: { cursor?: string; limit: number }, signal: AbortSignal): Promise<CatalogPage>
   getByIds(ids: number[], signal: AbortSignal): Promise<CatalogResult>
   scan(code: string, signal: AbortSignal): Promise<CatalogRecord>
-  browse(input: CatalogBrowseInput, signal: AbortSignal): Promise<CatalogResult & { total: number; hasMore: boolean }>
+  browse(input: CatalogBrowseInput, signal: AbortSignal): Promise<CatalogBrowseOutput>
 }
 export interface CatalogSnapshot {
   byId: Record<string, CatalogRecord>
@@ -24,10 +25,16 @@ export interface CatalogSnapshot {
 }
 export const emptyCatalog: CatalogSnapshot = { byId: {}, versions: {}, scanIndex: {}, scopeKey: null, complete: false, completedAt: 0, fetching: false, error: null }
 export const catalogMaxAge = 48 * 60 * 60 * 1000
+export interface SavedBrowsePage {
+  response: CatalogBrowseOutput
+  savedAt: number
+}
 export interface CatalogPersistence {
   open(owner: string): {
     restore(): Promise<CatalogSnapshot | undefined>
     save(): Promise<void>
+    restoreBrowse(): Promise<SavedBrowsePage | undefined>
+    saveBrowse(page: SavedBrowsePage): Promise<void>
   }
   invalidate(owner: string): void
 }
@@ -48,6 +55,7 @@ export function createCatalogCoordinator(client: QueryClient, transport: Transpo
   let restoring: Promise<void> | undefined
   let checkpointed = false
   let expiryTimer: ReturnType<typeof setTimeout> | undefined
+  let browseExpiryTimer: ReturnType<typeof setTimeout> | undefined
   const controllers = new Set<AbortController>()
   const pendingIds = new Map<string, Promise<void>>()
   const pendingScans = new Map<string, Promise<CatalogRecord>>()
@@ -58,10 +66,21 @@ export function createCatalogCoordinator(client: QueryClient, transport: Transpo
     void client.resetQueries({ queryKey: queryKeys.products.browses(owner) })
     void client.invalidateQueries({ queryKey: queryKeys.products.facets(owner) })
   }
-  function reset(nextOwner: string) {
+  function expireBrowseAt(savedAt: number) {
+    clearTimeout(browseExpiryTimer)
+    const queryKey = defaultBrowseKey(owner)
+    browseExpiryTimer = setTimeout(() => {
+      void client.resetQueries({ queryKey, exact: true })
+    }, Math.max(0, savedAt + catalogMaxAge - Date.now()))
+  }
+  function reset(nextOwner: string, catalogExpired = false) {
     clearTimeout(expiryTimer)
+    if (!catalogExpired) clearTimeout(browseExpiryTimer)
     epoch++; controllers.forEach(controller => controller.abort()); controllers.clear()
-    if (owner !== nextOwner) client.removeQueries({ queryKey: key(), exact: true })
+    if (owner !== nextOwner) {
+      client.removeQueries({ queryKey: key(), exact: true })
+      client.removeQueries({ queryKey: queryKeys.products.browses(owner) })
+    }
     owner = nextOwner; started = false; run = null; cursor = undefined; sweepStart = 0; seen = new Set(); targeted.clear(); pendingIds.clear(); pendingScans.clear()
     storage = undefined; restoring = undefined; checkpointed = false
     publish(() => ({ ...emptyCatalog }))
@@ -72,27 +91,42 @@ export function createCatalogCoordinator(client: QueryClient, transport: Transpo
     if (!restore) return
     const expected = epoch
     publish(state => ({ ...state, restoring: true }))
-    restoring = storage.restore().then(saved => {
-      if (!saved || expected !== epoch) return
+    restoring = Promise.all([
+      storage.restore().catch(() => undefined),
+      storage.restoreBrowse().catch(() => undefined),
+    ]).then(([saved, browse]) => {
+      if (expected !== epoch) return
       const scopeKey = snapshot().scopeKey
-      if (scopeKey && scopeKey !== saved.scopeKey) {
+      if (scopeKey && (saved && scopeKey !== saved.scopeKey || browse && scopeKey !== browse.response.scopeKey)) {
         const wasStarted = started
         changeScope(scopeKey)
         started = wasStarted
         void pump()
         return
       }
-      checkpointed = true
-      publish(() => saved)
-      if (saved.restoredAt !== undefined) {
+      if (saved) {
+        checkpointed = true
+        publish(() => saved)
+      }
+      if (browse && (!saved || saved.scopeKey === browse.response.scopeKey) && Date.now() - browse.savedAt < catalogMaxAge) {
+        const queryKey = defaultBrowseKey(owner)
+        if (!snapshot().scopeKey) publish(state => ({ ...state, scopeKey: browse.response.scopeKey }))
+        client.getQueryCache().build(client, { queryKey, gcTime: catalogMaxAge })
+        client.setQueryData<InfiniteData<CatalogBrowseOutput, number>>(queryKey, {
+          pages: [browse.response], pageParams: [firstBrowsePage],
+        }, { updatedAt: browse.savedAt })
+        void client.invalidateQueries({ queryKey, exact: true, refetchType: 'none' })
+        expireBrowseAt(browse.savedAt)
+      }
+      if (saved?.restoredAt !== undefined) {
         expiryTimer = setTimeout(() => {
           if (epoch !== expected || !snapshot().restoredAt) return
           const wasStarted = started
           const scope = snapshot().scopeKey
-          reset(owner)
+          reset(owner, true)
           openStorage(false)
           publish(state => ({ ...state, scopeKey: scope }))
-          resetDependentQueries()
+          void client.invalidateQueries({ queryKey: queryKeys.products.facets(owner) })
           started = wasStarted
           void pump()
         }, Math.max(0, saved.restoredAt + catalogMaxAge - Date.now()))
@@ -271,14 +305,21 @@ export function createCatalogCoordinator(client: QueryClient, transport: Transpo
       pendingScans.set(normalized, work)
       return work
     },
-    async browse(input: CatalogBrowseInput, signal: AbortSignal) {
+    async browse(requestOwner: string, input: CatalogBrowseInput, signal: AbortSignal) {
+      if (!requestOwner || requestOwner !== owner || signal.aborted) throw aborted()
       const expected = epoch, read = ++sequence; foreground++
       try {
         const result = await transport.browse(input, signal)
         if (expected !== epoch || signal.aborted) throw aborted()
         merge(result.items, result.scopeKey, read)
         result.items.forEach(item => targeted.add(String(item.id)))
-        return { ids: result.items.map(item => String(item.id)), total: result.total, hasMore: result.hasMore }
+        const { page, ...filters } = input
+        if (page === firstBrowsePage && isDefaultBrowse(filters)) {
+          const savedAt = Date.now()
+          expireBrowseAt(savedAt)
+          void storage?.saveBrowse({ response: result, savedAt }).catch(() => {})
+        }
+        return result
       } finally { foreground--; void pump() }
     },
   }

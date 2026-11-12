@@ -4,7 +4,7 @@ Implemented scope: install/update UI, offline application shell and catalog, acc
 
 ## Ownership
 
-- TanStack Query owns server data. Only the catalog query is persisted to IndexedDB for up to 48 hours from the last successful checkpoint. A first-page checkpoint can serve an incomplete catalog until the first full sweep succeeds. Logout, account changes, and confirmed catalog scope changes discard the old version. During offline use, server-side access changes become known on reconnect.
+- TanStack Query owns server data. IndexedDB retains the product lookup catalog and the latest successful response for the first 24 products in the unfiltered, default-sorted list. Each expires 48 hours after its own server checkpoint. The list restores the exact saved server page and revalidates it in the background when online. Logout, account changes, and confirmed catalog scope changes discard both records. During offline use, server-side access changes become known on reconnect.
 - `persianpart_text_v1:<account>:<form>` stores account-scoped cart notes and profile text; the existing `persianpart_draft_v3:<account>` remains the cart owner.
 - Explicit logout deletes that account's cart and text drafts. Session expiry preserves drafts for the same account. Other accounts cannot restore them.
 - Text is written after 300 ms and flushed on blur, page hide and user-requested update. Failed storage shows an unsaved warning and blocks update when the flush fails. Browser storage is not a server backup.
@@ -17,7 +17,7 @@ The generated manifest uses `/product` and standalone Persian/RTL presentation. 
 
 Updates use the generated Workbox worker in prompt mode. A dismissed update banner returns on the next app load; Account always exposes the pending update. Update and explicit logout are blocked during active writes. Cross-tab write activity uses bounded storage heartbeats and BroadcastChannel notifications with storage-event fallback. Old heartbeat entries expire after 35 seconds, alongside the 30-second request timeout.
 
-The worker precaches the application shell, local font, install icons and image placeholder. Public catalog images with a successful CORS response use a separate cache capped at 100 entries and seven days. API, document uploads, QR binaries and unrecognized navigations are not offline fallbacks. A warm start displays the saved catalog without a skeleton. An offline start without catalog data shows connection guidance. Saved prices and stock reflect the last download and require live validation for ordering.
+The worker precaches the application shell, local font, install icons and image placeholder. Public catalog images with a successful CORS response use a separate cache capped at 100 entries and seven days. API, document uploads, QR binaries and unrecognized navigations are not offline fallbacks. A warm start displays the saved first page without a skeleton. Filters and further pages need an internet connection. An offline start without a saved first page shows connection guidance. Saved prices and stock reflect the last download and require live validation for ordering.
 
 ## Direct links and navigation
 

@@ -443,6 +443,8 @@ export const CatalogBrowseInputSchema = z.object({
 })
 export type CatalogBrowseInput = z.infer<typeof CatalogBrowseInputSchema>
 export const CatalogScopeOutputSchema = z.object({ scopeKey: z.string(), items: z.array(CatalogRecordSchema) })
+export const CatalogBrowseOutputSchema = CatalogScopeOutputSchema.extend({ total: z.number(), hasMore: z.boolean() })
+export type CatalogBrowseOutput = z.infer<typeof CatalogBrowseOutputSchema>
 export const CatalogSyncCursorSchema = z.object({
   watermark: z.string().datetime(), createdAt: z.string().datetime(), id: z.number().int().positive(), scopeKey: z.string(),
 })
@@ -661,7 +663,7 @@ export const tagContract = {
 export const catalogContract = {
   syncPage: oc.input(z.object({ cursor: z.string().max(2048).optional(), limit: z.number().int().min(1).max(100).default(24) }))
     .output(CatalogScopeOutputSchema.extend({ nextCursor: z.string().nullable() })),
-  browse: oc.input(CatalogBrowseInputSchema).output(CatalogScopeOutputSchema.extend({ total: z.number(), hasMore: z.boolean() })),
+  browse: oc.input(CatalogBrowseInputSchema).output(CatalogBrowseOutputSchema),
   facets: oc.output(CatalogFacetOutputSchema),
   getByIds: oc.input(z.object({ ids: z.array(z.number().int().positive()).max(100) })).output(CatalogScopeOutputSchema),
   getByScanCode: oc

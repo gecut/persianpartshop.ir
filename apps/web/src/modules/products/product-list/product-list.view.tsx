@@ -36,7 +36,7 @@ export function ProductListView() {
   const productHook = useProducts();
   const {
     products,
-    allProducts,
+    catalogById,
     dimensions,
     dimensionsQuery,
     filters,
@@ -45,13 +45,11 @@ export function ProductListView() {
     activeFilterCount,
     isLoading,
     loadError,
-    isFetching,
     refetch,
     isRestoring,
-    offlineWithoutCatalog,
-    showingSavedCatalog,
-    showingPartialCatalog,
-    hasCatalog,
+    offlineWithoutPage,
+    showingSavedPage,
+    offlineHasMore,
     complete,
     online,
   } = productHook;
@@ -86,10 +84,11 @@ export function ProductListView() {
 
   // Reconcile selected IDs with live products to eliminate any phantom/ghost IDs
   useEffect(() => {
-    if (complete && !showingSavedCatalog && allProducts.length > 0) {
-      reconcileWithProducts(allProducts.map((p) => p.id));
+    if (complete) {
+      const ids = Object.keys(catalogById);
+      if (ids.length) reconcileWithProducts(ids);
     }
-  }, [complete, showingSavedCatalog, allProducts, reconcileWithProducts]);
+  }, [complete, catalogById, reconcileWithProducts]);
 
   // Count only valid selected products
   const selectedCount = selectedIds.length;
@@ -193,7 +192,7 @@ export function ProductListView() {
       <DimensionFilter
         dimensions={dimensions}
         selectedDimension={filters.selectedDimension}
-        isLoading={online && !isRestoring && !hasCatalog && dimensionsQuery.isPending}
+        isLoading={online && dimensionsQuery.isPending}
         error={dimensionsQuery.isError && !dimensionsQuery.data}
         onRetry={() => void dimensionsQuery.refetch()}
         onSelect={(dimension) => dispatchFilter({ type: "selectedDimension", dimension })}
@@ -228,14 +227,11 @@ export function ProductListView() {
       </div>
 
       {/* Product Items Display */}
-      {showingSavedCatalog && (
-        <p role="status" className="text-sm text-muted">نسخهٔ ذخیره‌شدهٔ کاتالوگ. قیمت و موجودی مربوط به آخرین دریافت است.</p>
+      {showingSavedPage && (
+        <p role="status" className="text-sm text-muted">نسخهٔ ذخیره‌شدهٔ صفحهٔ اول. قیمت و موجودی مربوط به آخرین دریافت است.</p>
       )}
-      {showingPartialCatalog && (
-        <p role="status" className="text-sm text-muted">بخشی از کاتالوگ در دسترس است.</p>
-      )}
-      {isRestoring ? null : offlineWithoutCatalog ? (
-        <QueryLoadError message="برای دریافت فهرست محصولات به اینترنت وصل شوید." onRetry={() => void refetch()} />
+      {isRestoring ? null : offlineWithoutPage ? (
+        <QueryLoadError message="برای دیدن این فهرست به اینترنت وصل شوید." onRetry={() => void refetch()} />
       ) : isLoading ? (
         <div className="flex flex-col gap-2">
           {Array.from({ length: 6 }).map((_, idx) => (
@@ -244,9 +240,7 @@ export function ProductListView() {
         </div>
       ) : loadError ? (
         <QueryLoadError message="دریافت فهرست محصولات ممکن نشد." onRetry={() => void refetch()} />
-      ) : products.length === 0 && showingPartialCatalog ? (
-        <p className="text-sm text-muted">در کالاهای دریافت‌شده موردی پیدا نشد.</p>
-      ) : products.length === 0 && !isFetching ? (
+      ) : products.length === 0 && !productHook.hasRemoteMore ? (
         <EmptyProducts onReset={resetFilters} />
       ) : (
         <ProductVirtualList
@@ -264,6 +258,12 @@ export function ProductListView() {
           onToggleSelect={handleToggleSelect}
           onOpenBottomSheet={handleOpenBottomSheet}
         />
+      )}
+      {productHook.nextPageError && (
+        <QueryLoadError message="دریافت ادامهٔ فهرست ممکن نشد." onRetry={productHook.retryNextPage} />
+      )}
+      {offlineHasMore && (
+        <p role="status" className="text-sm text-muted">برای دیدن ادامهٔ فهرست به اینترنت وصل شوید.</p>
       )}
 
       {selectionError && (

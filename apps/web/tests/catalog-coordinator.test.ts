@@ -1,7 +1,8 @@
 import { describe, expect, test } from 'bun:test'
-import { QueryClient } from '@tanstack/react-query'
-import { createCatalogCoordinator, emptyCatalog, type CatalogPersistence, type CatalogSnapshot } from '../src/modules/products/catalog-coordinator'
-import type { CatalogRecord } from '@persianpart/contract'
+import { InfiniteQueryObserver, QueryClient, type InfiniteData } from '@tanstack/react-query'
+import { catalogMaxAge, createCatalogCoordinator, emptyCatalog, type CatalogPersistence, type CatalogSnapshot, type SavedBrowsePage } from '../src/modules/products/catalog-coordinator'
+import { defaultBrowseFilters, defaultBrowseKey, firstBrowsePage } from '../src/modules/products/_catalog-browse'
+import type { CatalogBrowseOutput, CatalogRecord } from '@persianpart/contract'
 
 const product = (id: number, price = 100): CatalogRecord => ({ id, sku: `P${id}`, name: `Product ${id}`, slug: `p${id}`, createdAt: new Date(2026, 0, id).toISOString(), inventorySqm: 100, stockCartons: 100, availability: 'available', finalCustomerPricePerSqm: price, hasScanCode: false })
 function deferred<T>() {
@@ -27,8 +28,10 @@ function fixture(persistence?: CatalogPersistence) {
   }
   const coordinator = createCatalogCoordinator(client, transport, () => visible, async () => { await Promise.resolve() }, persistence)
   coordinator.setOwner('one')
-  return { coordinator, transport, calls, setVisible(value: boolean) { visible = value }, setPages(value: CatalogRecord[][]) { pages = value }, idsCalls: () => idsCalls, scans: () => scans }
+  return { client, coordinator, transport, calls, setVisible(value: boolean) { visible = value }, setPages(value: CatalogRecord[][]) { pages = value }, idsCalls: () => idsCalls, scans: () => scans }
 }
+
+const browseStorage = { restoreBrowse: async () => undefined, saveBrowse: async () => {} }
 
 describe('shared progressive catalog', () => {
   test('renders the first page before a delayed second page and shares a single sweep', async () => {
@@ -149,6 +152,7 @@ describe('catalog checkpoints', () => {
     const saved: Array<[boolean, string[]]> = []
     const f = fixture({
       open: () => ({
+        ...browseStorage,
         restore: async () => undefined,
         save: async () => {
           const snapshot = f.coordinator.snapshot()
@@ -168,7 +172,7 @@ describe('catalog checkpoints', () => {
   test('defers network startup and ignores an old account restore after a switch', async () => {
     const pending = deferred<CatalogSnapshot>(), invalidated: string[] = []
     const f = fixture({
-      open: owner => ({ restore: async () => owner === 'one' ? pending.promise : undefined, save: async () => {} }),
+      open: owner => ({ ...browseStorage, restore: async () => owner === 'one' ? pending.promise : undefined, save: async () => {} }),
       invalidate: owner => { invalidated.push(owner) },
     })
     const started = f.coordinator.start()
@@ -184,7 +188,7 @@ describe('catalog checkpoints', () => {
   test('invalidates disk data if a confirmed scope arrives before hydration', async () => {
     const pending = deferred<CatalogSnapshot>(), invalidated: string[] = []
     const f = fixture({
-      open: () => ({ restore: async () => pending.promise, save: async () => {} }),
+      open: () => ({ ...browseStorage, restore: async () => pending.promise, save: async () => {} }),
       invalidate: owner => { invalidated.push(owner) },
     })
     const restore = f.coordinator.setOwner('one')
@@ -194,5 +198,116 @@ describe('catalog checkpoints', () => {
     expect(invalidated).toEqual(['one'])
     expect(f.coordinator.snapshot().scopeKey).toBe('new')
     expect(f.coordinator.snapshot().byId['99']).toBeUndefined()
+  })
+})
+
+describe('saved default browse page', () => {
+  const queryKey = defaultBrowseKey('one')
+  const input = { ...defaultBrowseFilters, page: firstBrowsePage }
+  const response = { scopeKey: 'scope', items: [product(1), product(3), product(2)], total: 30, hasMore: true }
+
+  test('hydrates the exact page with its original timestamp and revalidates in place', async () => {
+    const savedAt = Date.now() - 1000
+    const saved: SavedBrowsePage[] = []
+    const f = fixture({
+      open: () => ({
+        restore: async () => undefined,
+        save: async () => {},
+        restoreBrowse: async () => ({ response, savedAt }),
+        saveBrowse: async (page) => { saved.push(page) },
+      }),
+      invalidate() {},
+    })
+    await f.coordinator.setOwner('one')
+    expect(f.client.getQueryState(queryKey)?.dataUpdatedAt).toBe(savedAt)
+
+    const pending = deferred<CatalogBrowseOutput>()
+    f.transport.browse = () => pending.promise
+    const observer = new InfiniteQueryObserver(f.client, {
+      queryKey,
+      queryFn: ({ signal }) => f.coordinator.browse('one', input, signal),
+      initialPageParam: firstBrowsePage,
+      getNextPageParam: () => undefined,
+      staleTime: 120_000,
+    })
+    const unsubscribe = observer.subscribe(() => {})
+    const fetch = observer.refetch({ cancelRefetch: false })
+    try {
+      const before = observer.getCurrentResult()
+      expect(before.isFetching).toBe(true)
+      expect(before.data?.pages).toEqual([response])
+      pending.resolve(response)
+      expect((await fetch).data?.pages).toEqual([response])
+      expect(saved.map(page => page.response)).toEqual([response])
+
+      const updated = { ...response, items: [product(1, 200), product(3), product(2)] }
+      f.transport.browse = async () => updated
+      expect((await observer.refetch()).data?.pages).toEqual([updated])
+      f.transport.browse = async () => { throw new Error('network') }
+      expect((await observer.refetch()).data?.pages).toEqual([updated])
+    } finally {
+      unsubscribe()
+      f.coordinator.reset()
+    }
+  })
+
+  test('persists an empty default first page and skips other pages and filters', async () => {
+    const saved: SavedBrowsePage[] = []
+    const f = fixture({
+      open: () => ({
+        ...browseStorage,
+        restore: async () => undefined,
+        save: async () => {},
+        saveBrowse: async page => { saved.push(page) },
+      }),
+      invalidate() {},
+    })
+    await f.coordinator.setOwner('one')
+    const empty = { ...response, items: [], total: 0, hasMore: false }
+    f.transport.browse = async () => empty
+    const signal = new AbortController().signal
+    try {
+      await f.coordinator.browse('one', { ...input, page: 2 }, signal)
+      await f.coordinator.browse('one', { ...input, sort: 'newest' }, signal)
+      await f.coordinator.browse('one', { ...input, search: 'tile' }, signal)
+      expect(saved).toHaveLength(0)
+      expect(await f.coordinator.browse('one', input, signal)).toEqual(empty)
+      expect(saved.map(page => page.response)).toEqual([empty])
+    } finally {
+      f.coordinator.reset()
+    }
+  })
+
+  test('ignores expired pages and rejects late responses after scope or account changes', async () => {
+    const saved: SavedBrowsePage[] = []
+    const f = fixture({
+      open: () => ({
+        restore: async () => undefined,
+        save: async () => {},
+        restoreBrowse: async () => ({ response, savedAt: Date.now() - catalogMaxAge }),
+        saveBrowse: async page => { saved.push(page) },
+      }),
+      invalidate() {},
+    })
+    await f.coordinator.setOwner('one')
+    expect(f.client.getQueryData<InfiniteData<CatalogBrowseOutput>>(queryKey)).toBeUndefined()
+
+    const signal = new AbortController().signal
+    const oldScope = deferred<CatalogBrowseOutput>()
+    f.coordinator.acceptScope('scope')
+    f.transport.browse = () => oldScope.promise
+    const scopedRequest = f.coordinator.browse('one', input, signal)
+    f.coordinator.acceptScope('new')
+    oldScope.resolve(response)
+    await expect(scopedRequest).rejects.toHaveProperty('name', 'AbortError')
+
+    const oldAccount = deferred<CatalogBrowseOutput>()
+    f.transport.browse = () => oldAccount.promise
+    const accountRequest = f.coordinator.browse('one', input, signal)
+    await f.coordinator.setOwner('two')
+    oldAccount.resolve({ ...response, scopeKey: 'new' })
+    await expect(accountRequest).rejects.toHaveProperty('name', 'AbortError')
+    expect(saved).toHaveLength(0)
+    f.coordinator.reset()
   })
 })

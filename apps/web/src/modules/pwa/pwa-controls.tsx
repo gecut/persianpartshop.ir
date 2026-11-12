@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 import { Button } from '@heroui/react'
 import { WiFiOffIcon } from '@solar-icons/react/linear'
 import { registerSW } from 'virtual:pwa-register'
@@ -6,45 +6,59 @@ import { Modal } from '@/components/ui/modal'
 import { flushDrafts } from '@/lib/drafts'
 import { useWriteActivity, writeActivity } from '@/lib/write-activity'
 import { PwaNotice } from './pwa-notice'
+import { getInstallPrompt, subscribeToInstallPrompt, takeInstallPrompt } from './_install-prompt'
 
-interface InstallPrompt extends Event { prompt: () => Promise<void>; userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }> }
 let waiting = false
+const serviceWorkers = navigator.serviceWorker
+let controller = serviceWorkers?.controller
+serviceWorkers?.addEventListener('controllerchange', () => {
+  const previous = controller
+  const next = serviceWorkers.controller
+  controller = next
+  if (!previous || !next || previous === next) return
+
+  // controllerchange can arrive before the worker finishes its activate event.
+  const reload = () => {
+    if (next.state === 'activating') return
+    next.removeEventListener('statechange', reload)
+    if (next.state === 'activated' && flushDrafts()) window.location.reload()
+  }
+  next.addEventListener('statechange', reload)
+  reload()
+})
+
 const update = registerSW({
   onNeedRefresh() { waiting = true; window.dispatchEvent(new Event('persianpart:update-ready')) },
+  onNeedReload() { /* The controller listener reloads once activation is complete. */ },
   onRegisteredSW(_url, registration) {
     window.addEventListener('online', () => void registration?.update().catch(() => {}))
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && navigator.onLine) void registration?.update().catch(() => {}) })
   },
 })
-const installed = () => window.matchMedia('(display-mode: standalone)').matches || ('standalone' in navigator && navigator.standalone === true)
-
-function manualInstallInstructions() {
-  const isAppleMobile = /iPhone|iPad|iPod/.test(navigator.userAgent) ||
-    (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1)
-
-  return isAppleMobile
-    ? 'در Safari، از منوی اشتراک‌گذاری گزینهٔ «افزودن به صفحهٔ اصلی» را انتخاب کنید.'
-    : 'از منوی مرورگر، «نصب برنامه» یا «افزودن به صفحهٔ اصلی» را انتخاب کنید.'
-}
+const installed = () => window.matchMedia('(display-mode: standalone), (display-mode: window-controls-overlay)').matches ||
+  ('standalone' in navigator && navigator.standalone === true)
+const isAppleMobile = /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+  (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1)
+const isMacSafari = !isAppleMobile && /Macintosh.+Version\/[^ ]+ Safari\//.test(navigator.userAgent)
 
 export function PwaControls({ allowInstallInvitation }: { allowInstallInvitation: boolean }) {
   const [online, setOnline] = useState(navigator.onLine)
   const [needUpdate, setNeedUpdate] = useState(waiting)
   const [dismissed, setDismissed] = useState(false)
   const [mode, setMode] = useState<'install' | 'update' | null>(null)
-  const [prompt, setPrompt] = useState<InstallPrompt | null>(null)
+  const prompt = useSyncExternalStore(subscribeToInstallPrompt, getInstallPrompt)
   const [isInstalled, setInstalled] = useState(installed)
   const [busy, setBusy] = useState(false)
   const [updateError, setUpdateError] = useState<string | null>(null)
   const [invitation, setInvitation] = useState(false)
   const writes = useWriteActivity()
   const showUpdate = needUpdate && !dismissed
-  const showInvitation = allowInstallInvitation && !needUpdate && invitation && !isInstalled
+  const showInvitation = allowInstallInvitation && !needUpdate && invitation && !isInstalled &&
+    (prompt !== null || isAppleMobile || isMacSafari)
   useEffect(() => {
     const connection = () => setOnline(navigator.onLine)
     const ready = () => setNeedUpdate(true)
-    const offer = (event: Event) => { event.preventDefault(); setPrompt(event as InstallPrompt) }
-    const completed = () => { setInstalled(true); setPrompt(null); setMode(null) }
+    const completed = () => { setInstalled(true); setMode(null) }
     const open = () => {
       setUpdateError(null)
       setMode(waiting ? 'update' : 'install')
@@ -52,36 +66,42 @@ export function PwaControls({ allowInstallInvitation }: { allowInstallInvitation
     const login = () => {
       try {
         if (!installed() && !localStorage.getItem('persianpart_install_offered')) {
-          localStorage.setItem('persianpart_install_offered', '1')
-          window.dispatchEvent(new Event('persianpart:install-invitation'))
           setInvitation(true)
         }
       } catch { /* Optional invitation must not interfere with login. */ }
     }
     window.addEventListener('online', connection); window.addEventListener('offline', connection)
-    window.addEventListener('persianpart:update-ready', ready); window.addEventListener('beforeinstallprompt', offer)
+    window.addEventListener('persianpart:update-ready', ready)
     window.addEventListener('appinstalled', completed); window.addEventListener('persianpart:pwa-open', open)
     window.addEventListener('persianpart:login-success', login)
     return () => {
       window.removeEventListener('online', connection); window.removeEventListener('offline', connection)
-      window.removeEventListener('persianpart:update-ready', ready); window.removeEventListener('beforeinstallprompt', offer)
+      window.removeEventListener('persianpart:update-ready', ready)
       window.removeEventListener('appinstalled', completed); window.removeEventListener('persianpart:pwa-open', open)
       window.removeEventListener('persianpart:login-success', login)
     }
   }, [])
 
+  useEffect(() => {
+    if (!showInvitation) return
+    try {
+      if (localStorage.getItem('persianpart_install_offered')) return
+      localStorage.setItem('persianpart_install_offered', '1')
+      window.dispatchEvent(new Event('persianpart:install-invitation'))
+    } catch { /* The invitation still works when storage is unavailable. */ }
+  }, [showInvitation])
+
   const requestInstall = async () => {
     setInvitation(false)
-    if (!prompt) {
+    const nativePrompt = takeInstallPrompt()
+    if (!nativePrompt) {
       setMode('install')
       return
     }
 
-    setPrompt(null)
     setMode(null)
     try {
-      await prompt.prompt()
-      await prompt.userChoice
+      await nativePrompt.prompt()
     } catch {
       setMode('install')
     }
@@ -139,11 +159,21 @@ export function PwaControls({ allowInstallInvitation }: { allowInstallInvitation
             به‌روزرسانی و باز کردن دوبارهٔ برنامه
           </Button>
         </> : isInstalled ? (
-          <p>پرشین‌پارت روی این دستگاه در حالت نصب‌شده اجرا می‌شود.</p>
+          <p>پرشین‌پارت روی این دستگاه نصب شده است.</p>
         ) : prompt ? (
-          <Button fullWidth className="min-h-11" onPress={() => void requestInstall()}>افزودن به صفحهٔ اصلی</Button>
+          <Button fullWidth className="min-h-11" onPress={() => void requestInstall()}>نصب پرشین‌پارت</Button>
+        ) : isAppleMobile ? (
+          <p className="text-muted">
+            در <bdi>Safari</bdi>، از منوی اشتراک‌گذاری «افزودن به صفحهٔ اصلی» را انتخاب کنید.
+            اگر گزینهٔ <bdi>Open as Web App</bdi> را می‌بینید، آن را روشن کنید و «افزودن» را بزنید.
+          </p>
+        ) : isMacSafari ? (
+          <p className="text-muted">در منوی <bdi>File</bdi> مرورگر، گزینهٔ <bdi>Add to Dock</bdi> را انتخاب کنید.</p>
         ) : (
-          <p className="text-muted">{manualInstallInstructions()}</p>
+          <p className="text-muted">
+            در <bdi>Chrome</bdi> یا <bdi>Edge</bdi>، از منوی مرورگر گزینهٔ «نصب برنامه» را انتخاب کنید.
+            در <bdi>Chrome</bdi> اندروید، این گزینه ممکن است در منوی «افزودن به صفحهٔ اصلی» باشد.
+          </p>
         )}
       </div>
     </Modal>

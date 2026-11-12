@@ -3,9 +3,10 @@ import { useSessionValue } from "@/modules/products/use-session-value"
 import { useMemo, useEffect, useRef } from "react"
 import { useProducts } from "@/modules/products/product-store"
 import type { Product } from "@/modules/products/product-types"
+import { defaultBrowseFilters } from "../_catalog-browse"
 type ProductsHook = ReturnType<typeof useProducts>;
 
-export const PRODUCT_PAGE_SIZE = 24;
+export const PRODUCT_PAGE_SIZE = defaultBrowseFilters.limit;
 
 interface UseProductPaginationArgs {
   filters: ProductsHook["filters"];
@@ -35,6 +36,7 @@ export function useProductPagination({ filters, products, productHook }: UseProd
   }, [products, displayCount]);
 
   const hasMore = displayCount < products.length || productHook.hasRemoteMore;
+  const { loadMore } = productHook;
 
   useEffect(() => {
     if (!hasMore) return;
@@ -47,7 +49,7 @@ export function useProductPagination({ filters, products, productHook }: UseProd
           setDisplayCount((prev) =>
             Math.min(prev + PRODUCT_PAGE_SIZE, products.length)
           );
-          productHook.loadMore();
+          loadMore();
         }
       },
       { threshold: 0.1, rootMargin: "300px" }
@@ -55,7 +57,7 @@ export function useProductPagination({ filters, products, productHook }: UseProd
 
     observer.observe(target);
     return () => observer.disconnect();
-  }, [hasMore, products.length]);
+  }, [hasMore, products.length, loadMore, setDisplayCount]);
 
   return { observerTargetRef, setDisplayCount, visibleProducts, hasMore };
 }

@@ -52,6 +52,7 @@ export function useProductVirtualizer({ filters, products, visibleProducts, hasM
   });
 
   const virtualItems = virtualizer.getVirtualItems();
+  const { loadMore } = productHook;
 
   useEffect(() => {
     const lastItem = virtualItems[virtualItems.length - 1];
@@ -61,9 +62,9 @@ export function useProductVirtualizer({ filters, products, visibleProducts, hasM
       setDisplayCount((prev) =>
         Math.min(prev + PRODUCT_PAGE_SIZE, products.length)
       );
-      productHook.loadMore();
+      loadMore();
     }
-  }, [virtualItems, visibleProducts.length, hasMore, products.length]);
+  }, [virtualItems, visibleProducts.length, hasMore, products.length, loadMore, setDisplayCount]);
 
   return { listContainerRef, virtualizer, virtualItems };
 }

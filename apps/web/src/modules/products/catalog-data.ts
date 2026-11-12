@@ -46,7 +46,7 @@ function subscribeConnection(notify: () => void) {
   }
 }
 
-export function useCatalogData(start = false, mapAll = true) {
+export function useCatalogData(start = false) {
   const { user } = useAuth()
   const owner = user?.id ?? ''
   const online = useSyncExternalStore(subscribeConnection, () => navigator.onLine)
@@ -64,15 +64,11 @@ export function useCatalogData(start = false, mapAll = true) {
     }
   }, [owner, start])
   const state = result.data ?? emptyCatalog
-  const products = useMemo(() => !mapAll ? [] : Object.values(state.byId).map(mapCatalogProduct).sort((a,b) => {
-    const left = state.byId[a.id]!, right = state.byId[b.id]!
-    return right.createdAt.localeCompare(left.createdAt) || Number(b.id) - Number(a.id)
-  }), [state.byId, mapAll])
-  return { state, products, owner, online, isRestoring: !!owner && (!result.data || !!state.restoring) }
+  return { state, owner, online, isRestoring: !!owner && (!result.data || !!state.restoring) }
 }
 
 export function useCatalogIds(ids: string[]) {
-  const { state, owner, online, isRestoring } = useCatalogData(false, false)
+  const { state, owner, online, isRestoring } = useCatalogData()
   const signature = [...new Set(ids)].sort().join(',')
   const requestKey = JSON.stringify([owner, state.scopeKey, signature])
   const [status, setStatus] = useState<{ key: string; error: unknown; done: boolean }>({ key: '', error: null, done: false })

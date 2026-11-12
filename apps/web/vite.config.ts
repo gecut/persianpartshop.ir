@@ -1,5 +1,5 @@
 import { defineConfig, loadEnv } from "vite";
-import type { RuntimeCaching } from "workbox-build";
+import { randomUUID } from "node:crypto";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 import tailwindcss from "@tailwindcss/vite";
@@ -70,18 +70,6 @@ function devMediaPlugin() {
   };
 }
 
-function catalogImageMatcher(mode: string): RuntimeCaching["urlPattern"] {
-  const env = loadEnv(mode, process.cwd(), "VITE_");
-  const cdnOrigin = new URL(env.VITE_CDN_URL || "https://cdn.persianpart.shop").origin;
-  // Workbox serializes this callback into sw.js without its build-time closure.
-  return new Function(
-    "{ url, request, sameOrigin }",
-    `return request.destination === "image" &&
-      ((sameOrigin && url.pathname.startsWith("/assets/images/")) ||
-       url.origin === ${JSON.stringify(cdnOrigin)})`,
-  ) as RuntimeCaching["urlPattern"];
-}
-
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => ({
   cacheDir: process.env.VITE_CACHE_DIR || 'node_modules/.vite',
@@ -94,7 +82,8 @@ export default defineConfig(({ mode }) => ({
     tailwindcss(),
     devMediaPlugin(),
     VitePWA({
-      strategies: 'generateSW', registerType: 'prompt', injectRegister: false,
+      strategies: 'injectManifest', srcDir: 'src', filename: 'sw.ts',
+      registerType: 'prompt', injectRegister: false,
       includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
       manifest: {
         name: 'پرشین‌پارت', short_name: 'پرشین‌پارت', lang: 'fa', dir: 'rtl',
@@ -102,24 +91,35 @@ export default defineConfig(({ mode }) => ({
         theme_color: '#ffffff', background_color: '#ffffff',
         icons: [
           { src: '/favicon.ico', sizes: '16x16 32x32', type: 'image/x-icon' },
-          { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
-          { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+          { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
           { src: '/icon-192-maskable.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
           { src: '/icon-512-maskable.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
-      workbox: {
-        globPatterns: ['index.html', 'assets/**/*.{js,css,woff2}', 'assets/images/zamanian-logo-mask.png', 'assets/images/placeholder.svg'],
+      injectManifest: {
+        globPatterns: [
+          'index.html', 'assets/**/*.{js,css,woff2}', 'assets/images/persian-part-logo.png',
+          'assets/images/zamanian-logo-mask.png', 'assets/images/placeholder.svg',
+        ],
         globIgnores: ['**/*wasm*', '**/*qr-*'],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
-        navigateFallback: '/index.html',
-        navigateFallbackAllowlist: [/^\/(?=\?|$)|^\/(?:product|cart|orders|plans|account|login)(?=[/?]|$)/],
-        navigateFallbackDenylist: [/^[^?]*\.[a-z0-9]+(?=\?|$)/i, /^\/api(?=[/?]|$)/],
-        cleanupOutdatedCaches: true,
-        runtimeCaching: [{
-          urlPattern: catalogImageMatcher(mode),
-          handler: 'StaleWhileRevalidate', options: { cacheName: 'catalog-images-v1', expiration: { maxEntries: 100, maxAgeSeconds: 7 * 24 * 60 * 60 }, cacheableResponse: { statuses: [200] } },
-        }],
+        // A revision makes Workbox fetch with cache: 'reload', including hashed assets.
+        dontCacheBustURLsMatching: undefined,
+        buildPlugins: {
+          vite: [{
+            name: 'persianpart-worker-config',
+            config() {
+              const env = loadEnv(mode, process.cwd(), 'VITE_')
+              return {
+                define: {
+                  __PWA_RELEASE__: JSON.stringify(randomUUID()),
+                  __PWA_CDN_ORIGIN__: JSON.stringify(new URL(env.VITE_CDN_URL || 'https://cdn.persianpart.shop').origin),
+                },
+              }
+            },
+          }],
+        },
       },
     }),
   ],

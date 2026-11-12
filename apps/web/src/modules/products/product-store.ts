@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { match } from "ts-pattern";
 
@@ -11,7 +11,9 @@ import { queryKeys } from "@/lib/query-keys";
 export type { SortOption };
 
 export { mapCatalogProduct, resolveMediaUrl, formatGrade, formatUnit } from "./catalog-mapper";
-import { formatGrade } from "./catalog-mapper";
+import { mapCatalogProduct } from "./catalog-mapper";
+import { defaultBrowseFilters, firstBrowsePage, isDefaultBrowse } from "./_catalog-browse";
+import { catalogMaxAge } from "./catalog-coordinator";
 import { catalogCoordinator, useCatalogData } from "./catalog-data";
 export type ViewMode = "list" | "grid-2" | "grid-3" | "compact";
 
@@ -46,7 +48,7 @@ export function useProducts(supplyMode = false) {
   });
   const [viewMode, setViewMode] = useState<ViewMode>("list");
 
-  const { state: catalog, products: productsList, owner, online, isRestoring } = useCatalogData(true);
+  const { state: catalog, owner, online, isRestoring } = useCatalogData(true);
   const dimensionsQuery = useQuery({
     queryKey: queryKeys.products.facets(owner),
     queryFn: ({ signal }) => api.catalog.facets(undefined, { signal }),
@@ -54,29 +56,62 @@ export function useProducts(supplyMode = false) {
     staleTime: 15 * 60_000,
     select: result => result.dimensions,
   });
-  const [search, setSearch] = useState(queryFilters.q);
-  useEffect(() => { const timer = setTimeout(() => setSearch(queryFilters.q), 300); return () => clearTimeout(timer) }, [queryFilters.q]);
-  const browseInput = useMemo(() => ({ search, dimension: queryFilters.dimension, brands: queryFilters.brands, colors: queryFilters.colors, grades: queryFilters.grades, tags: queryFilters.tags, category: queryFilters.category, inStock: queryFilters.inStock, supplyMode, sort: queryFilters.sort, limit: 24 }), [search, queryFilters, supplyMode]);
-  const needsBrowse = !!(search.trim() || queryFilters.dimension || queryFilters.brands.length || queryFilters.colors.length || queryFilters.grades.length || queryFilters.tags.length || queryFilters.category || queryFilters.inStock || supplyMode || queryFilters.sort !== 'default');
-  const useRemoteBrowse = queryFilters.sort === 'default' || (!catalog.complete && needsBrowse);
+  const requestedSearch = queryFilters.q.trim();
+  const [search, setSearch] = useState(requestedSearch);
+  useEffect(() => {
+    const timer = setTimeout(() => setSearch(requestedSearch), 300);
+    return () => clearTimeout(timer);
+  }, [requestedSearch]);
+
+  const browseInput = {
+    ...defaultBrowseFilters,
+    search,
+    dimension: queryFilters.dimension,
+    brands: queryFilters.brands,
+    colors: queryFilters.colors,
+    grades: queryFilters.grades,
+    tags: queryFilters.tags,
+    category: queryFilters.category,
+    inStock: queryFilters.inStock,
+    supplyMode,
+    sort: queryFilters.sort,
+  };
+  const searchReady = search === requestedSearch;
+  const defaultBrowse = isDefaultBrowse(browseInput);
   const browse = useInfiniteQuery({
     queryKey: queryKeys.products.browse(owner, browseInput),
-    queryFn: ({ pageParam, signal }) => catalogCoordinator.browse({ ...browseInput, page: pageParam }, signal),
-    initialPageParam: 1,
-    getNextPageParam: (last, pages) => last.hasMore ? pages.length + 1 : undefined,
-    enabled: !!owner && online && !isRestoring && useRemoteBrowse && search === queryFilters.q,
+    queryFn: ({ pageParam, signal }) => catalogCoordinator.browse(owner, { ...browseInput, page: pageParam }, signal),
+    initialPageParam: firstBrowsePage,
+    getNextPageParam: (last, _pages, lastPage) => last.hasMore ? lastPage + 1 : undefined,
+    enabled: !!owner && online && !isRestoring && searchReady,
     staleTime: 120_000,
+    ...(defaultBrowse && { gcTime: catalogMaxAge }),
     refetchOnReconnect: 'always',
   });
-  const hasCatalog = catalog.complete || productsList.length > 0;
-  const showingRemote = online && useRemoteBrowse && !!browse.data;
-  const hasContent = hasCatalog || showingRemote;
-  const error = browse.error ?? catalog.error;
-  const loadError = !hasContent && online && !isRestoring && error;
-  const isFetching = catalog.fetching || (online && useRemoteBrowse && browse.isFetching);
+
+  const matchingPages = !isRestoring && searchReady && browse.data?.pages[0]?.scopeKey === catalog.scopeKey
+    ? browse.data.pages
+    : undefined;
+  const offlinePage = !online && defaultBrowse ? matchingPages?.[0] : undefined;
+  const products = useMemo(() => {
+    const pages = online ? matchingPages : offlinePage ? [offlinePage] : [];
+    return pages?.flatMap(page => page.items.map(mapCatalogProduct)) ?? [];
+  }, [online, matchingPages, offlinePage]);
+  const hasContent = online ? !!matchingPages : !!offlinePage;
+  const hasRemoteMore = online && !!matchingPages && browse.hasNextPage;
+  const { fetchNextPage } = browse;
+  const nextPageError = hasRemoteMore && browse.isFetchNextPageError;
+  const canLoadMore = hasRemoteMore && !browse.isFetching && !nextPageError;
+  const loadMore = useCallback(() => {
+    if (canLoadMore) void fetchNextPage({ cancelRefetch: false });
+  }, [canLoadMore, fetchNextPage]);
+  const loadError = online && searchReady && !isRestoring && !hasContent ? browse.error : null;
   const isLoading = online && !isRestoring && !hasContent && !loadError;
-  const isLiveConnected = online && !error;
-  const refetch = () => { if (navigator.onLine && useRemoteBrowse && !isRestoring) void browse.refetch(); return catalogCoordinator.refresh(); };
+  const refetch = () => {
+    if (!navigator.onLine || isRestoring || !searchReady) return;
+    void browse.refetch();
+    return catalogCoordinator.refresh();
+  };
 
   const filters: FilterState = useMemo(
     () => ({
@@ -107,104 +142,6 @@ export function useProducts(supplyMode = false) {
     if (filters.sortBy !== "default") count++;
     return count;
   }, [filters, supplyMode]);
-
-  const filteredProducts = useMemo(() => {
-    const list = productsList.filter((product) => {
-      // Search query (matches name, SKU, brand, color, dimensions, tags)
-      if (filters.searchQuery) {
-        const query = filters.searchQuery.toLowerCase().trim();
-        const matchesName = product.name.toLowerCase().includes(query);
-        const matchesSku = product.sku.toLowerCase().includes(query);
-        const matchesBrand = product.brand.toLowerCase().includes(query);
-        const matchesColor = product.color.toLowerCase().includes(query);
-        const matchesDim = product.dimension.includes(query);
-        const matchesTag = product.tags.some((t) =>
-          t.toLowerCase().includes(query)
-        );
-        if (
-          !matchesName &&
-          !matchesSku &&
-          !matchesBrand &&
-          !matchesColor &&
-          !matchesDim &&
-          !matchesTag
-        ) {
-          return false;
-        }
-      }
-
-      // Dimensions (Strict single dimension match with normalization)
-      if (filters.selectedDimension) {
-        const normSelectedDim = filters.selectedDimension
-          .replace(/x/gi, "×")
-          .trim();
-        const normProdDim = product.dimension.replace(/x/gi, "×").trim();
-        if (normProdDim !== normSelectedDim) {
-          return false;
-        }
-      }
-
-      // Brands
-      if (
-        filters.selectedBrands.length > 0 &&
-        !filters.selectedBrands.includes(product.brand)
-      ) {
-        return false;
-      }
-
-      // Colors
-      if (
-        filters.selectedColors.length > 0 &&
-        !filters.selectedColors.includes(product.color)
-      ) {
-        return false;
-      }
-
-      // Grades (Normalized OR match across selected grades)
-      if (filters.selectedGrades.length > 0) {
-        const normSelectedGrades = filters.selectedGrades.map((g) =>
-          formatGrade(g)
-        );
-        const prodGrade = formatGrade(product.grade);
-        if (!normSelectedGrades.includes(prodGrade)) {
-          return false;
-        }
-      }
-
-      // Tags
-      if (
-        filters.selectedTags.length > 0 &&
-        !filters.selectedTags.some((tag) => product.tags.includes(tag))
-      ) {
-        return false;
-      }
-
-      // Category
-      if (
-        filters.selectedCategory &&
-        product.category !== filters.selectedCategory
-      ) {
-        return false;
-      }
-
-      // Only in stock
-      if (supplyMode && !product.hasSupplySource) return false;
-      if (!supplyMode && filters.onlyInStock && !product.inStock) {
-        return false;
-      }
-
-      return true;
-    });
-
-    // Sorting
-    return match(filters.sortBy)
-      .with("cheapest", () => [...list].sort((a, b) => a.finalCustomerPricePerSqm - b.finalCustomerPricePerSqm))
-      .with("expensive", () => [...list].sort((a, b) => b.finalCustomerPricePerSqm - a.finalCustomerPricePerSqm))
-      .with("oldest", () => [...list].reverse())
-      .with("newest", () => list)
-      .with("default", () => list)
-      .exhaustive();
-  }, [filters, productsList, supplyMode]);
 
   const resetFilters = () => {
     if (supplyMode)
@@ -262,29 +199,25 @@ export function useProducts(supplyMode = false) {
   };
 
   return {
-    products: showingRemote
-      ? (browse.data?.pages.flatMap(page => page.ids).flatMap(id => productsList.find(product => product.id === id) ?? []) ?? [])
-      : filteredProducts,
-    hasRemoteMore: showingRemote && !!browse.hasNextPage,
-    fetchingRemoteMore: showingRemote && browse.isFetchingNextPage,
-    loadMore: () => { if (showingRemote && browse.hasNextPage && !browse.isFetching) void browse.fetchNextPage() },
-    complete: catalog.complete,
+    products,
+    hasRemoteMore,
+    fetchingRemoteMore: online && browse.isFetchingNextPage,
+    nextPageError,
+    loadMore,
+    retryNextPage: () => void fetchNextPage({ cancelRefetch: false }),
+    complete: catalog.complete && !catalog.restoredAt,
+    catalogById: catalog.byId,
     isRestoring,
-    offlineWithoutCatalog: !online && !hasCatalog && !isRestoring,
-    showingSavedCatalog: !!catalog.restoredAt,
-    showingPartialCatalog: hasCatalog && !catalog.complete && !showingRemote,
-    hasCatalog,
+    offlineWithoutPage: !online && !offlinePage && !isRestoring,
+    showingSavedPage: !!offlinePage,
+    offlineHasMore: !!offlinePage?.hasMore,
     online,
-    allProducts: productsList,
     dimensions: dimensionsQuery.data ?? [],
     dimensionsQuery,
     filters,
     isLoading,
     loadError,
     activeFilterCount,
-    isLiveConnected,
-    error,
-    isFetching,
     refetch,
     dispatchFilter,
     toggleArrayFilter,
