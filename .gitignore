@@ -47,3 +47,7 @@ Thumbs.db
 *.tsbuildinfo
 test-results/
 playwright-report/
+
+# Local slab catalog source files
+/catalog/
+/SPINA SLAB CATALOG.pdf
