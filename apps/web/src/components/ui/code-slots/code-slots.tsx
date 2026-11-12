@@ -77,8 +77,9 @@ export function CodeSlots({
   const reduce = useReducedMotion();
   const inputRef = useRef<HTMLInputElement>(null);
   const rowRef = useRef<HTMLDivElement>(null);
+  // Apply controlled values through the effect so a complete code at mount also fires onComplete.
   const [slots, setSlots] = useState(() =>
-    toSlots(value ?? defaultValue, length),
+    toSlots(value === undefined ? defaultValue : "", length),
   );
   const [active, setActive] = useState(() => firstEmptyOf(slots));
   const [focused, setFocused] = useState(false);
@@ -93,7 +94,7 @@ export function CodeSlots({
     undefined,
   );
   const statusRef = useRef(status);
-  const emitted = useRef(digitsOf(value ?? defaultValue).slice(0, length));
+  const emitted = useRef(slots.join(""));
   const slotsRef = useRef(slots);
   slotsRef.current = slots;
   const live = useRef<Live>({} as Live);

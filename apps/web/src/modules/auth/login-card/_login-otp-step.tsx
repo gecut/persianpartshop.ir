@@ -6,6 +6,7 @@ import { toPersianDigits } from "@/lib/utils/currency"
 
 interface LoginOtpStepProps {
   phone: string;
+  otpAttempt: number;
   otpCode: string;
   otpStatus: CodeSlotsStatus;
   isLoading: boolean;
@@ -18,6 +19,7 @@ interface LoginOtpStepProps {
 
 export function LoginOtpStep({
   phone,
+  otpAttempt,
   otpCode,
   otpStatus,
   isLoading,
@@ -81,6 +83,7 @@ export function LoginOtpStep({
             dir="ltr"
           >
             <CodeSlots
+              key={otpAttempt}
               length={4}
               radius={20}
               rise={9}
@@ -102,6 +105,7 @@ export function LoginOtpStep({
         <Button
           type="button"
           onPress={() => onVerify()}
+          isDisabled={isLoading}
           className="flex control-height-12 w-full cursor-pointer items-center justify-center gap-2 bg-primary text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90 active:scale-95"
         >
           {isLoading ? (
