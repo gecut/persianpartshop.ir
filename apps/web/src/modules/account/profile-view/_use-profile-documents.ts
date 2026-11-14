@@ -1,3 +1,5 @@
+import { updateSavedOfflineRecord } from '@/modules/pwa/offline-package'
+import { offlineRecoveryEnabled } from '@/modules/pwa/read-source'
 import { writeActivity } from '@/lib/write-activity'
 import { useState, useRef } from "react"
 import { useQueryClient } from "@tanstack/react-query"
@@ -139,6 +141,7 @@ export function useProfileDocuments({ documents, userId }: UseProfileDocumentsOp
 
       const profile = await api.user.update({ documents: updatedDocs });
       queryClient.setQueryData(queryKeys.auth.profile(userId), profile);
+      if (offlineRecoveryEnabled) void updateSavedOfflineRecord({ kind: 'profile' }).catch(() => {})
 
       toast.success(
         "مدرک با موفقیت بارگذاری شد",
@@ -181,6 +184,7 @@ export function useProfileDocuments({ documents, userId }: UseProfileDocumentsOp
 
       const profile = await api.user.update({ documents: remaining });
       queryClient.setQueryData(queryKeys.auth.profile(userId), profile);
+      if (offlineRecoveryEnabled) void updateSavedOfflineRecord({ kind: 'profile' }).catch(() => {})
 
       toast.success("مدرک حذف شد", "فایل مورد نظر از لیست مدارک حذف گردید.");
     } catch (err) {

@@ -4,8 +4,8 @@ import { api } from '@/lib/api-client'
 import type { Plan } from './plan-types'
 import { formatPersianDate } from '@/lib/utils/date'
 import { authStore, isProductAllowedForUser, useAuth } from '@/modules/auth/auth-store'
-import { useOfflinePackage } from '@/modules/pwa/offline-package'
-import { useOnline } from '@/lib/use-online'
+import { useSavedOfflinePackage } from '@/modules/pwa/offline-package'
+import { useNetworkReadSource } from '@/modules/pwa/read-source'
 import { useNow } from '@/lib/use-now'
 
 function mapApiPlanToPlan(p: any, now: number): Plan {
@@ -71,8 +71,8 @@ function mapApiPlanToPlan(p: any, now: number): Plan {
 import { queryKeys } from '@/lib/query-keys'
 export function usePlans() {
   const { user } = useAuth()
-  const online = useOnline()
-  const { active, restoring } = useOfflinePackage()
+  const online = useNetworkReadSource()
+  const { active, restoring } = useSavedOfflinePackage()
   const now = useNow()
   const query = useInfiniteQuery({
     queryKey: queryKeys.plans.list({ owner: user?.id ?? '', paginated: true }),

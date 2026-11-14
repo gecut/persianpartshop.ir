@@ -1,3 +1,5 @@
+import { updateSavedOfflineRecord } from '@/modules/pwa/offline-package'
+import { offlineRecoveryEnabled } from '@/modules/pwa/read-source'
 import { PwaAccountButton } from '@/modules/pwa/pwa-account-button'
 import { QueryLoadError } from '@/components/feedback/query-load-error'
 import { useTextDraft } from '@/lib/drafts'
@@ -19,8 +21,10 @@ import { ImagePreviewModal } from "./_image-preview-modal"
 import { LogoutConfirmModal } from "./_logout-confirm-modal"
 import { useProfileDocuments } from "./_use-profile-documents"
 import type { CustomerDocument } from "./_document-types"
+import { useNetworkReadSource } from '@/modules/pwa/read-source'
+import { OfflineAccountCard } from '@/modules/pwa/offline-account-card'
 import { useOnline } from '@/lib/use-online'
-import { useOfflinePackage } from '@/modules/pwa/offline-package'
+import { useSavedOfflinePackage } from '@/modules/pwa/offline-package'
 
 export function ProfileView() {
   const pendingWrites = useWriteActivity();
@@ -28,7 +32,8 @@ export function ProfileView() {
 
   const { user, logout, updateProfile } = useAuth();
   const online = useOnline();
-  const { active, restoring } = useOfflinePackage();
+  const networkRead = useNetworkReadSource();
+  const { active, restoring } = useSavedOfflinePackage();
   const savedProfile = active?.data.profile;
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -44,11 +49,11 @@ export function ProfileView() {
     queryFn: ({ signal }) => api.user.profile(undefined, { signal }),
     staleTime: 120_000,
     refetchOnReconnect: 'always',
-    enabled: !!user && online,
+    enabled: !!user && networkRead,
   });
 
   const documents =
-    (online ? profileDoc?.documents as CustomerDocument[] | undefined : savedProfile?.documents) ?? [];
+    (networkRead ? profileDoc?.documents as CustomerDocument[] | undefined : savedProfile?.documents) ?? [];
 
   const docs = useProfileDocuments({ documents, userId: user?.id });
 
@@ -95,6 +100,7 @@ export function ProfileView() {
         storeName: formData.storeName.trim(),
         address: formData.address.trim(),
       });
+      if (offlineRecoveryEnabled) void updateSavedOfflineRecord({ kind: 'profile' }).catch(() => {})
       toast.success('تغییرات ذخیره شد', 'اطلاعات حساب کاربری با موفقیت به‌روزرسانی گردید.');
       discardProfileDraft();
       setIsEditing(false);
@@ -113,27 +119,28 @@ export function ProfileView() {
   return (
     <div className="space-y-3.5 w-full">
       <PwaAccountButton />
+      <OfflineAccountCard />
       <ProfileHeaderCard
-        name={(!online && savedProfile?.name) || user.name}
-        storeName={(!online && savedProfile?.storeName) || user.storeName}
+        name={(!networkRead && savedProfile?.name) || user.name}
+        storeName={(!networkRead && savedProfile?.storeName) || user.storeName}
         onLogout={() => setShowLogoutConfirm(true)}
       />
 
       <ProfileDetailsCard
-        name={(!online && savedProfile?.name) || user.name}
-        storeName={(!online && savedProfile?.storeName) || user.storeName}
-        phone={(!online && savedProfile?.phone) || user.phone}
+        name={(!networkRead && savedProfile?.name) || user.name}
+        storeName={(!networkRead && savedProfile?.storeName) || user.storeName}
+        phone={(!networkRead && savedProfile?.phone) || user.phone}
         onEdit={() => setIsEditing(true)}
       />
 
-      {!online && !restoring && !savedProfile ? (
+      {!networkRead && !restoring && !savedProfile ? (
         <p role="status">برای دریافت اطلاعات مدارک به اینترنت وصل شوید.</p>
-      ) : online && profileError && !profileDoc ? (
+      ) : networkRead && profileError && !profileDoc ? (
         <QueryLoadError message="دریافت مدارک حساب ممکن نشد." onRetry={() => void refetchProfile()} />
       ) : (
         <DocumentsSection
           documents={documents}
-          isLoading={online ? isProfilePending : !!restoring}
+          isLoading={networkRead ? isProfilePending : !!restoring}
           online={online}
           deletingId={docs.isDeletingDocId}
           onUpload={docs.openUploadModal}

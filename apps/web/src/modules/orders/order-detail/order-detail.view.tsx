@@ -205,6 +205,7 @@ export function OrderDetailView() {
           {/* Official Printable Pre-Invoice Modal (Not available for cancelled orders) */}
           {!isCancelled && (
             <OrderInvoiceModal
+              savedAt={detailQuery.savedAt}
               order={loadedOrder}
               isOpen={showInvoiceModal}
               onClose={() => setShowInvoiceModal(false)}

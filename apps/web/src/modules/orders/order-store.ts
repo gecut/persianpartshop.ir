@@ -1,9 +1,11 @@
+import { updateSavedOfflineRecord } from '@/modules/pwa/offline-package'
+import { offlineRecoveryEnabled } from '@/modules/pwa/read-source'
 import { authStore } from '@/modules/auth/auth-store'
 import { queryClient } from '@/lib/query-client'
 import { queryKeys, mutationKeys } from '@/lib/query-keys'
 import { catalogCoordinator } from '@/modules/products/catalog-data'
-import { useOfflinePackage } from '@/modules/pwa/offline-package'
-import { useOnline } from '@/lib/use-online'
+import { useSavedOfflinePackage } from '@/modules/pwa/offline-package'
+import { useNetworkReadSource } from '@/modules/pwa/read-source'
 import { useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { type Order, type OrderItem, type TimelineStep } from './order-types'
@@ -248,13 +250,13 @@ export const orderStore = {
   },
 }
 export function useOrderDetail(id: string) {
-  const online = useOnline()
-  const { active, restoring } = useOfflinePackage()
+  const online = useNetworkReadSource()
+  const { active, restoring } = useSavedOfflinePackage()
   const query = useQuery({ ...orderDetailOptions(id), enabled: online })
   const saved = active?.data.orders[id]
   const data = useMemo(() => saved ? mapDocToOrder(saved) : undefined, [saved])
-  return online ? query : {
-    ...query, data, isPending: !!restoring,
+  return online ? { ...query, savedAt: undefined } : {
+    ...query, data, savedAt: active?.manifest?.capturedAt ?? active?.completedAt, isPending: !!restoring,
     error: !restoring && !data ? new Error('برای دریافت این سفارش به اینترنت وصل شوید.') : null,
   }
 }
@@ -267,6 +269,7 @@ export function useCancelOrder() {
       const detailKey = queryKeys.orders.detail(orderId, authStore.getState().user?.id)
       await client.cancelQueries({ queryKey: detailKey, exact: true })
       orderStore.acceptOrder(doc)
+      if (offlineRecoveryEnabled) void updateSavedOfflineRecord({ kind: 'order', id: orderId }).catch(() => {})
       void client.invalidateQueries({ queryKey: queryKeys.activityFeed.all })
       void client.invalidateQueries({ queryKey: queryKeys.orders.lists() })
       const order = mapDocToOrder(doc)

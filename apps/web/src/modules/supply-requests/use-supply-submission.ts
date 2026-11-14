@@ -1,3 +1,5 @@
+import { updateSavedOfflineRecord } from '@/modules/pwa/offline-package'
+import { offlineRecoveryEnabled } from '@/modules/pwa/read-source'
 import { formatTrackingNumber } from '@/lib/utils/tracking-number'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api-client'
@@ -33,6 +35,7 @@ export function useSupplySubmission(onSuccess: (id: number) => void, onRejected?
       void client.invalidateQueries({ queryKey: queryKeys.supplyRequests.lists(submitted.owner) })
       void client.invalidateQueries({ queryKey: queryKeys.activityFeed.all })
       toast.success('درخواست تأمین ثبت شد', `شماره پیگیری: ${formatTrackingNumber(result.requestNumber)}`)
+      if (offlineRecoveryEnabled) void updateSavedOfflineRecord({ kind: 'supply', id: String(result.id) }).catch(() => {})
       onSuccess(result.id)
     },
     onError: (error, submitted) => {

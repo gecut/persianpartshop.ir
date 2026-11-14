@@ -5,7 +5,7 @@ import { CacheExpiration, ExpirationPlugin } from 'workbox-expiration'
 import { createHandlerBoundToURL, matchPrecache, precacheAndRoute } from 'workbox-precaching'
 import { NavigationRoute, registerRoute } from 'workbox-routing'
 import { StaleWhileRevalidate } from 'workbox-strategies'
-import { offlineImageCache, offlineMaxAge, publicImageUrl, readOfflineMedia } from './modules/pwa/offline-storage'
+import { offlineImageCache, offlineMaxAge, offlineMediaKey, publicImageUrl, readOfflineMedia, sharedOfflineImageCache } from './modules/pwa/offline-storage'
 
 declare const self: ServiceWorkerGlobalScope & { __WB_MANIFEST: Parameters<typeof precacheAndRoute>[0] }
 declare const __PWA_RELEASE__: string
@@ -19,6 +19,7 @@ const imageExpiration = { maxEntries: 100, maxAgeSeconds: 7 * 24 * 60 * 60 }
 // Installation fills a fresh precache while the old worker still serves its own.
 setCacheNameDetails({ prefix: cachePrefix, suffix: __PWA_RELEASE__ })
 const manifest = self.__WB_MANIFEST
+const savedClients = new Set<string>()
 precacheAndRoute(manifest)
 registerRoute(new NavigationRoute(createHandlerBoundToURL('/index.html'), {
   allowlist: [/^\/(?=\?|$)|^\/(?:product|cart|orders|plans|account|login)(?=[/?]|$)/],
@@ -38,12 +39,24 @@ registerRoute(
     ((sameOrigin && url.pathname.startsWith('/assets/images/')) || !!publicImageUrl(url.href, self.location.origin, __PWA_CDN_ORIGIN__)),
   async ({ event, request, url }) => {
     try {
+      const clientId = 'clientId' in event ? event.clientId : ''
+      const saved = typeof clientId === 'string' && savedClients.has(clientId)
       const pack = await readOfflineMedia()
+      const hash = pack?.imageKeys?.[url.href] ?? pack?.imageKeys?.[url.pathname]
       if (pack?.completedAt && Date.now() < Math.min(pack.accessUntil, pack.completedAt + offlineMaxAge) &&
           Object.hasOwn(pack.imageSizes, url.href)) {
+        if (hash && saved) {
+          const cached = await caches.match(offlineMediaKey(self.location.origin, hash), { cacheName: sharedOfflineImageCache })
+          if (cached) return cached
+          if (typeof clientId === 'string' && clientId) {
+            const client = await self.clients.get(clientId)
+            client?.postMessage({ type: 'OFFLINE_MEDIA_MISSING' })
+          }
+          return await matchPrecache('/assets/images/placeholder.svg') ?? Response.error()
+        }
         const cached = await caches.match(url.href, { cacheName: offlineImageCache(pack.id) })
         if (cached) {
-          if (!self.navigator.onLine) return cached
+          if (saved || !self.navigator.onLine) return cached
           const fresh = await fetch(request).catch(() => undefined)
           return fresh?.ok || fresh?.type === 'opaque' ? fresh : cached
         }
@@ -57,6 +70,12 @@ registerRoute(
 )
 
 self.addEventListener('message', (event) => {
+  if (event.data?.type === 'OFFLINE_READ_SOURCE' && event.source && 'id' in event.source) {
+    const id = event.source.id
+    if (event.data.saved === true) savedClients.add(id)
+    else savedClients.delete(id)
+    event.ports[0]?.postMessage(true)
+  }
   if (event.data?.type === 'SKIP_WAITING') event.waitUntil(self.skipWaiting())
   if (event.data?.type === 'VERIFY_OFFLINE_SHELL' && event.ports[0]) {
     event.waitUntil((async () => {

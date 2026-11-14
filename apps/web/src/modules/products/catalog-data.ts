@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo } from 'react'
 import { skipToken, useQuery } from '@tanstack/react-query'
 import { CatalogRecordSchema } from '@persianpart/contract'
 import { api, hasForegroundRequests } from '@/lib/api-client'
@@ -9,11 +9,11 @@ import { authStore, useAuth } from '@/modules/auth/auth-store'
 import { createCatalogCoordinator, emptyCatalog, type CatalogSnapshot } from './catalog-coordinator'
 import { mapCatalogProduct } from './catalog-mapper'
 import { createCatalogPersistence } from './_catalog-persistence'
-import { offlinePackageSnapshot, useOfflinePackage } from '@/modules/pwa/offline-package'
-import { useOnline } from '@/lib/use-online'
+import { offlinePackageSnapshot, readSavedOfflinePackage, useSavedOfflinePackage } from '@/modules/pwa/offline-package'
+import { offlineRecoveryEnabled, readsFromNetwork, useNetworkReadSource } from '@/modules/pwa/read-source'
 
 const yieldToUI = () => new Promise<void>(resolve => setTimeout(resolve, 0))
-const persistence = createCatalogPersistence(queryClient, owner => catalogCoordinator.discardStored(owner))
+const persistence = offlineRecoveryEnabled ? undefined : createCatalogPersistence(queryClient, owner => catalogCoordinator.discardStored(owner))
 const offlineScanIndexes = new WeakMap<object, Record<string, string>>()
 
 function offlineScanIndex(products: CatalogSnapshot['byId']) {
@@ -52,7 +52,7 @@ window.addEventListener('persianpart:write-finished', () => { if (!catalogCoordi
 export function useCatalogData(start = false) {
   const { user } = useAuth()
   const owner = user?.id ?? ''
-  const online = useOnline()
+  const online = useNetworkReadSource()
   const result = useQuery<CatalogSnapshot>({
     queryKey: queryKeys.products.catalog(owner),
     queryFn: skipToken,
@@ -62,23 +62,23 @@ export function useCatalogData(start = false) {
   useEffect(() => {
     catalogCoordinator.setOwner(owner)
     if (owner) {
-      if (start) void catalogCoordinator.start()
+      if (start && !offlineRecoveryEnabled) void catalogCoordinator.start()
       else void catalogCoordinator.resume()
     }
   }, [owner, start])
-  const offline = useOfflinePackage()
+  const offline = useSavedOfflinePackage()
   const pack = !online && offline.active?.owner === owner ? offline.active : undefined
   const state = useMemo(() => {
-    if (!pack) return result.data ?? emptyCatalog
+    if (!pack) return online || !offlineRecoveryEnabled ? result.data ?? emptyCatalog : emptyCatalog
     const scanIndex = offlineScanIndex(pack.data.products)
     return { ...emptyCatalog, byId: pack.data.products, scanIndex, scopeKey: pack.scopeKey, complete: true, completedAt: pack.completedAt ?? 0 }
-  }, [pack, result.data])
-  return { state, pack, owner, online, isRestoring: !!owner && (pack ? false : (!online && offline.restoring) || !result.data || !!state.restoring) }
+  }, [pack, result.data, online])
+  return { state, pack, owner, online, isRestoring: !!owner && (online ? !result.data || !!state.restoring : !!offline.restoring) }
 }
 
 export async function scanOfflineProduct(code: string) {
-  if (navigator.onLine) return catalogCoordinator.scan(code)
-  const pack = offlinePackageSnapshot()
+  if (readsFromNetwork()) return catalogCoordinator.scan(code)
+  const pack = await readSavedOfflinePackage()
   const normalized = code.trim().toUpperCase()
   if (!/^[A-Z0-9-]{1,128}$/.test(normalized)) throw Object.assign(new Error('Invalid QR'), { code: 'BAD_REQUEST' })
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(normalized))
@@ -93,29 +93,33 @@ export async function scanOfflineProduct(code: string) {
 export function useCatalogIds(ids: string[]) {
   const { state, owner, online, isRestoring } = useCatalogData()
   const signature = [...new Set(ids)].sort().join(',')
-  const requestKey = JSON.stringify([owner, state.scopeKey, signature])
-  const [status, setStatus] = useState<{ key: string; error: unknown; done: boolean }>({ key: '', error: null, done: false })
-  useEffect(() => {
-    if (!owner || !signature || !online || isRestoring) return
-    let active = true
-    catalogCoordinator.ensureIds(signature.split(',')).then(() => {
-      if (active) setStatus({ key: requestKey, error: null, done: true })
-    }, error => { if (active) setStatus({ key: requestKey, error, done: true }) })
-    return () => { active = false }
-  }, [owner, signature, requestKey, online, isRestoring])
-  const selected = useMemo(() => ids.flatMap(id => state.byId[id] ? [mapCatalogProduct(state.byId[id]!)] : []), [state.byId, signature])
-  const missing = ids.some(id => !state.byId[id])
-  const done = status.key === requestKey && status.done
-  const failure = done ? status.error : null
+  const query = useQuery({
+    queryKey: queryKeys.products.byIds(owner, state.scopeKey, signature),
+    queryFn: async () => {
+      await catalogCoordinator.ensureIds(signature.split(','))
+      return signature
+    },
+    enabled: !!owner && !!signature && online && !isRestoring,
+    retry: false,
+  })
+  const data = useMemo(() => signature
+    ? ids.flatMap(id => state.byId[id] ? [mapCatalogProduct(state.byId[id]!)] : [])
+    : [], [state.byId, ids, signature])
+  const missing = data.length < ids.length
   const offlineMissing = missing && !online && !isRestoring
-  const error = offlineMissing ? new Error('برای دیدن این کالا به اینترنت وصل شوید.') : failure ? failure instanceof Error ? failure : new Error('دریافت محصول ممکن نشد.') : missing && done ? new Error('یکی از محصولات در دسترس حساب شما نیست.') : null
-  const pending = missing && online && !isRestoring && !done
-  return { data: selected, raw: state.byId, error, offlineMissing, isPending: pending, isFetching: pending, refetch: async () => {
-    if (!navigator.onLine || isRestoring) return
-    setStatus({ key: requestKey, error: null, done: false })
-    try { await catalogCoordinator.ensureIds(ids, true); setStatus({ key: requestKey, error: null, done: true }) }
-    catch (error) { setStatus({ key: requestKey, error, done: true }) }
-  } }
+  const failure = online ? query.error : null
+  const error = failure ?? (offlineMissing ? new Error('برای دیدن این کالا به اینترنت وصل شوید.') :
+    missing && online && query.isSuccess ? new Error('یکی از محصولات در دسترس حساب شما نیست.') : null)
+  return { data, raw: state.byId, error, offlineMissing,
+    isPending: missing && online && !isRestoring && query.isPending,
+    isFetching: missing && online && query.isFetching,
+    refetch: async () => {
+      if (online && navigator.onLine && !isRestoring && signature) {
+        try { await catalogCoordinator.ensureIds(signature.split(','), true); await query.refetch() }
+        catch { await query.refetch() }
+      }
+    },
+  }
 }
 
 export function useCatalogProduct(id: string | number | null | undefined) {

@@ -15,6 +15,7 @@ import { mapCatalogProduct } from "./catalog-mapper";
 import { defaultBrowseFilters, firstBrowsePage, isDefaultBrowse } from "./_catalog-browse";
 import { catalogMaxAge } from "./catalog-coordinator";
 import { catalogCoordinator, useCatalogData } from "./catalog-data";
+import { offlineRecoveryEnabled } from '@/modules/pwa/read-source';
 import { browseOffline } from "./_browse-offline";
 export type ViewMode = "list" | "grid-2" | "grid-3" | "compact";
 
@@ -93,7 +94,7 @@ export function useProducts(supplyMode = false) {
   const matchingPages = !isRestoring && searchReady && browse.data?.pages[0]?.scopeKey === catalog.scopeKey
     ? browse.data.pages
     : undefined;
-  const offlinePage = !online && defaultBrowse ? matchingPages?.[0] : undefined;
+  const offlinePage = !offlineRecoveryEnabled && !online && defaultBrowse ? matchingPages?.[0] : undefined;
   const offlineProducts = useMemo(() => pack && searchReady
     ? browseOffline(Object.values(pack.data.products), browseInput).map(mapCatalogProduct)
     : undefined, [pack, searchReady, search, queryFilters, supplyMode]);
@@ -113,9 +114,9 @@ export function useProducts(supplyMode = false) {
   const loadError = online && searchReady && !isRestoring && !hasContent ? browse.error : null;
   const isLoading = online && !isRestoring && !hasContent && !loadError;
   const refetch = () => {
-    if (!navigator.onLine || isRestoring || !searchReady) return;
+    if (!online || !navigator.onLine || isRestoring || !searchReady) return;
     void browse.refetch();
-    return catalogCoordinator.refresh();
+    if (!offlineRecoveryEnabled) return catalogCoordinator.refresh();
   };
 
   const filters: FilterState = useMemo(
@@ -216,9 +217,9 @@ export function useProducts(supplyMode = false) {
     offlineWithoutPage: !online && !pack && !offlinePage && !isRestoring,
     showingSavedPage: !pack && !!offlinePage,
     offlineHasMore: !pack && !!offlinePage?.hasMore,
-    offlineSavedAt: pack?.completedAt,
+    offlineSavedAt: pack?.manifest?.capturedAt ?? pack?.completedAt,
     online,
-    dimensions: pack?.data.dimensions ?? dimensionsQuery.data ?? [],
+    dimensions: pack?.data.dimensions ?? (online || !offlineRecoveryEnabled ? dimensionsQuery.data : undefined) ?? [],
     dimensionsQuery,
     filters,
     isLoading,

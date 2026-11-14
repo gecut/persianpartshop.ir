@@ -1,15 +1,15 @@
 import { useEffect, useState } from 'react'
 import { Button, Skeleton } from '@heroui/react'
 import { api } from '@/lib/api-client'
-import { useOnline } from '@/lib/use-online'
-import { useOfflinePackage } from '@/modules/pwa/offline-package'
+import { useNetworkReadSource } from '@/modules/pwa/read-source'
+import { useSavedOfflinePackage } from '@/modules/pwa/offline-package'
 
 interface ProductQrDownloadProps { productId: string }
 interface QrData { scanCode: string; png: string; svg: string }
 
 export function ProductQrDownload({ productId }: ProductQrDownloadProps) {
-  const online = useOnline()
-  const { active, restoring } = useOfflinePackage()
+  const online = useNetworkReadSource()
+  const { active, restoring } = useSavedOfflinePackage()
   const storedCode = active?.data.qr[productId]
   const [data, setData] = useState<QrData | null>(null)
   const [error, setError] = useState(false)

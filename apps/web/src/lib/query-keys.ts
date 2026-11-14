@@ -4,10 +4,15 @@
  */
 
 export const queryKeys = {
+  offline: {
+    freshness: (owner: string, scope: string, version: string) => ['offline', 'freshness', owner, scope, version] as const,
+    package: (owner: string, scope: string, generation: string) => ['offline', 'package', owner, scope, generation] as const,
+  },
   products: {
     all: ['products'] as const,
     catalog: (owner: string) => ['products', 'catalog', owner] as const,
     browse: (owner: string, filters: unknown) => ['products', 'browse', owner, filters] as const,
+    byIds: (owner: string, scope: string | null, ids: string) => ['products', 'by-ids', owner, scope, ids] as const,
     browses: (owner: string) => ['products', 'browse', owner] as const,
     facets: (owner: string) => ['products', 'facets', owner] as const,
     lists: () => [...queryKeys.products.all, 'list'] as const,

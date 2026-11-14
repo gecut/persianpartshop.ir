@@ -1,3 +1,4 @@
+import { formatPersianDateTime } from '@/lib/utils/date'
 import { formatTrackingNumber } from '@/lib/utils/tracking-number'
 import { createPortal } from "react-dom"
 import { AnimatePresence, motion } from "framer-motion"
@@ -12,12 +13,14 @@ import { InvoiceSignatures } from "./_invoice-signatures"
 
 export interface OrderInvoiceModalProps {
   order: Order | null;
+  savedAt?: number;
   isOpen: boolean;
   onClose: () => void;
 }
 
 export function OrderInvoiceModal({
   order,
+  savedAt,
   isOpen,
   onClose,
 }: OrderInvoiceModalProps) {
@@ -69,6 +72,10 @@ export function OrderInvoiceModal({
               dir="rtl"
             >
               <InvoiceHeader order={order} formattedInvoiceNumber={formattedInvoiceNumber} />
+
+              {savedAt && <p className="mb-3 text-xs text-muted print:text-black">
+                نسخهٔ ذخیره‌شدهٔ سند · آخرین دریافت {formatPersianDateTime(savedAt)}
+              </p>}
 
               <InvoiceBuyerCard order={order} />
 

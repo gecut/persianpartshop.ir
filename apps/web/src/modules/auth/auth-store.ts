@@ -227,7 +227,7 @@ export const authStore = {
     }
     selectionStore.setOwner('')
     try {
-      void api.auth.logout().catch(() => {})
+      if (navigator.onLine) void api.auth.logout().catch(() => {})
     } catch {
       // Best effort
     }

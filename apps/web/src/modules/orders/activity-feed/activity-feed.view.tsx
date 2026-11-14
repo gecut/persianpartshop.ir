@@ -1,3 +1,5 @@
+import { updateSavedOfflineRecord } from '@/modules/pwa/offline-package'
+import { offlineRecoveryEnabled } from '@/modules/pwa/read-source'
 import { QueryLoadError } from '@/components/feedback/query-load-error'
 import { prepareReorderDraft } from '@/modules/products/selection-store'
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react'
@@ -14,8 +16,9 @@ import { PreInvoiceModal } from '@/modules/checkout/pre-invoice-modal'
 import { useCatalogIds } from '@/modules/products/catalog-data'
 import { orderDetailOptions } from '@/modules/orders/order-store'
 import { useAuth } from '@/modules/auth/auth-store'
+import { useNetworkReadSource } from '@/modules/pwa/read-source'
 import { useOnline } from '@/lib/use-online'
-import { useOfflinePackage } from '@/modules/pwa/offline-package'
+import { useSavedOfflinePackage } from '@/modules/pwa/offline-package'
 import { ActivityOrderCard } from './_activity-order-card'
 import { ActivitySupplyCard } from './_activity-supply-card'
 import { ActivityTypeTabs } from './_activity-type-tabs'
@@ -32,7 +35,8 @@ export function ActivityFeedView() {
   const queryClient = useQueryClient()
   const { user } = useAuth()
   const online = useOnline()
-  const { active, restoring } = useOfflinePackage()
+  const networkRead = useNetworkReadSource()
+  const { active, restoring } = useSavedOfflinePackage()
   const [reorderOrder, setReorderOrder] = useState<Order | null>(null)
   const { data: allProducts } = useCatalogIds(reorderOrder?.items.map(item => item.productId) ?? [])
   const [activeSupplyId, setActiveSupplyId] = useState<number | null>(requestId ?? null)
@@ -63,24 +67,24 @@ export function ActivityFeedView() {
     staleTime: 30_000,
     refetchInterval: 30_000,
     refetchOnReconnect: 'always',
-    enabled: Boolean(user) && online,
+    enabled: Boolean(user) && networkRead,
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.nextCursor : null),
   })
 
   // Flatten items
   const items = useMemo(() => {
-    if (online) return data?.pages.flatMap(page => page.items) ?? []
+    if (networkRead) return data?.pages.flatMap(page => page.items) ?? []
     return active?.data.activity.filter(item =>
       (filter === 'all' || item.kind === filter) && (!orderStatus || (item.kind === 'order' && item.status === orderStatus))
     ).sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt) || Number(b.id) - Number(a.id) || a.kind.localeCompare(b.kind)) ?? []
-  }, [data, online, active, filter, orderStatus])
+  }, [data, networkRead, active, filter, orderStatus])
 
   // Infinite scroll observer
   const observerTargetRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
-    if (!online || !hasNextPage || isFetching || isFetchNextPageError) return
+    if (!networkRead || !hasNextPage || isFetching || isFetchNextPageError) return
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -96,19 +100,20 @@ export function ActivityFeedView() {
     return () => {
       if (el) observer.unobserve(el)
     }
-  }, [online, hasNextPage, isFetching, isFetchNextPageError, fetchNextPage])
+  }, [networkRead, hasNextPage, isFetching, isFetchNextPageError, fetchNextPage])
 
   // Supply detail query & cancel mutation
   const supplyDetail = useQuery({
     queryKey: queryKeys.supplyRequests.detail(user ? String(user.id) : '', activeSupplyId ?? 0),
     queryFn: () => api.supplyRequest.detail({ id: activeSupplyId! }),
-    enabled: Boolean(user && activeSupplyId) && online,
+    enabled: Boolean(user && activeSupplyId) && networkRead,
   })
   const savedSupply = activeSupplyId ? active?.data.supplies[activeSupplyId] : undefined
 
   const cancelMutation = useMutation({
     mutationFn: (id: number) => api.supplyRequest.cancel({ id }),
     onSuccess: result => {
+      if (offlineRecoveryEnabled) void updateSavedOfflineRecord({ kind: 'supply', id: String(result.id) }).catch(() => {})
       queryClient.setQueryData(queryKeys.supplyRequests.detail(user?.id ?? '', result.id), result)
       void queryClient.invalidateQueries({ queryKey: queryKeys.activityFeed.all })
       void queryClient.invalidateQueries({ queryKey: queryKeys.supplyRequests.lists(user?.id ?? '') })
@@ -194,15 +199,15 @@ export function ActivityFeedView() {
       {filter === 'order' && (
         <ActivityStatusTabs orderStatus={orderStatus} onSelect={setOrderStatusFilter} />
       )}
-      {(online ? isPending : restoring) ? (
+      {(networkRead ? isPending : restoring) ? (
         <div className="space-y-2.5">
           <OrderCardSkeleton />
           <OrderCardSkeleton />
           <OrderCardSkeleton />
         </div>
-      ) : !online && !active ? (
+      ) : !networkRead && !active ? (
         <p role="status">برای دریافت سوابق به اینترنت وصل شوید.</p>
-      ) : online && error && !data ? (
+      ) : networkRead && error && !data ? (
         <QueryLoadError message="دریافت فهرست سفارش‌ها ممکن نشد." onRetry={() => void refetch()} />
       ) : items.length === 0 ? (
         <ActivityEmptyState filter={filter} />
@@ -221,7 +226,7 @@ export function ActivityFeedView() {
           )}
 
           {/* Infinite Scroll Sentinel */}
-          {online && hasNextPage && (
+          {networkRead && hasNextPage && (
             <div
               ref={observerTargetRef}
               className="py-6 flex flex-col items-center justify-center gap-2 text-muted"
@@ -234,9 +239,9 @@ export function ActivityFeedView() {
       )}
 
       <SupplyDetailModal
-        isOpen={Boolean(activeSupplyId)}
+        isOpen={Boolean(activeSupplyId) && (!offlineRecoveryEnabled || online || !networkRead)}
         onClose={handleCloseSupplyModal}
-        supplyDetail={online ? supplyDetail : { data: savedSupply, isPending: !!restoring, error: !restoring && !savedSupply ? new Error('Offline request unavailable') : null }}
+        supplyDetail={networkRead ? supplyDetail : { data: savedSupply, isPending: !!restoring, error: !restoring && !savedSupply ? new Error('Offline request unavailable') : null }}
         online={online}
         isCancelling={cancelMutation.isPending}
         onCancel={(id) => cancelMutation.mutate(id)}

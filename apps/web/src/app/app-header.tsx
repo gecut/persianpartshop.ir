@@ -1,10 +1,14 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useAuth } from "@/modules/auth/auth-store";
 import { UserIcon } from "@/components/ui/icons";
+import { useOfflineAccountStatus } from "@/modules/pwa/offline-account-card";
+import { offlineRecoveryEnabled } from "@/modules/pwa/read-source";
 import { match, P } from "ts-pattern";
 
 export function AppHeader() {
   const { user, isAuthenticated } = useAuth();
+  const { expiresSoon, updateAvailable } = useOfflineAccountStatus();
+  const offlineAttention = offlineRecoveryEnabled && (expiresSoon || updateAvailable);
   const routerState = useRouterState();
   const pathname = routerState.location.pathname;
 
@@ -37,10 +41,12 @@ export function AppHeader() {
         {isAuthenticated && user ? (
           <Link
             to="/account"
-            className="size-10 rounded-2xl px-2 ml-1 bg-muted/5 hover:bg-muted/15 text-foreground transition-all flex items-center justify-center active:scale-95"
+            className="relative size-10 rounded-2xl px-2 ms-1 bg-muted/5 hover:bg-muted/15 text-foreground transition-all flex items-center justify-center active:scale-95"
             aria-label="حساب کاربری"
           >
             <UserIcon size={20} className="text-primary" />
+            {offlineAttention && <span className="absolute end-1 top-1 size-2 rounded-full bg-warning"
+              aria-label={updateAvailable ? "نسخهٔ جدید داده‌های آفلاین" : "مهلت بستهٔ آفلاین رو به پایان است"} />}
           </Link>
         ) : (
           <Link

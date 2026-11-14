@@ -6,7 +6,9 @@ import { Modal } from '@/components/ui/modal'
 import { flushDrafts } from '@/lib/drafts'
 import { useWriteActivity, writeActivity } from '@/lib/write-activity'
 import { PwaNotice } from './pwa-notice'
-import { OfflineProgress } from './_offline-progress'
+import { offlineRecoveryEnabled } from './read-source'
+import { pauseOfflinePackage, useOfflinePackage } from './offline-package'
+import { OfflineDownloadProgress, OfflineProgress } from './_offline-progress'
 import { useAuth } from '@/modules/auth/auth-store'
 import { getInstallPrompt, subscribeToInstallPrompt, takeInstallPrompt } from './_install-prompt'
 
@@ -45,6 +47,9 @@ const isMacSafari = !isAppleMobile && /Macintosh.+Version\/[^ ]+ Safari\//.test(
 
 export function PwaControls({ allowInstallInvitation }: { allowInstallInvitation: boolean }) {
   const { user } = useAuth()
+  const { progress, active, restoring } = useOfflinePackage()
+  const [offerOffline, setOfferOffline] = useState(false)
+  const [showDownload, setShowDownload] = useState(false)
   const [online, setOnline] = useState(navigator.onLine)
   const [needUpdate, setNeedUpdate] = useState(waiting)
   const [dismissed, setDismissed] = useState(false)
@@ -67,8 +72,11 @@ export function PwaControls({ allowInstallInvitation }: { allowInstallInvitation
       setUpdateError(null)
       setMode(waiting ? 'update' : 'install')
     }
+    const showProgress = () => { setMode(null); setShowDownload(true) }
+    window.addEventListener('persianpart:offline-download-started', showProgress)
     const login = () => {
       try {
+        if (offlineRecoveryEnabled && !localStorage.getItem('persianpart_offline_offered')) setOfferOffline(true)
         if (!installed() && !localStorage.getItem('persianpart_install_offered')) {
           setInvitation(true)
         }
@@ -79,6 +87,7 @@ export function PwaControls({ allowInstallInvitation }: { allowInstallInvitation
     window.addEventListener('appinstalled', completed); window.addEventListener('persianpart:pwa-open', open)
     window.addEventListener('persianpart:login-success', login)
     return () => {
+      window.removeEventListener('persianpart:offline-download-started', showProgress)
       window.removeEventListener('online', connection); window.removeEventListener('offline', connection)
       window.removeEventListener('persianpart:update-ready', ready)
       window.removeEventListener('appinstalled', completed); window.removeEventListener('persianpart:pwa-open', open)
@@ -156,6 +165,37 @@ export function PwaControls({ allowInstallInvitation }: { allowInstallInvitation
           <PwaNotice kind="install" onOpen={() => { setInvitation(false); setMode('install') }} onDismiss={() => setInvitation(false)} />
       )}
     </div>}
+    {offlineRecoveryEnabled && offerOffline && user && !restoring && !active && <aside
+      className="mx-auto flex w-full max-w-xl flex-wrap items-center gap-2 px-4 py-2"
+      aria-label="پیشنهاد آماده‌سازی آفلاین"
+    >
+      <p className="text-sm">برای استفاده بدون اینترنت، داده‌ها را روی دستگاه ذخیره کنید.</p>
+      <Button size="sm" variant="secondary" onPress={() => {
+        localStorage.setItem('persianpart_offline_offered', 'true')
+        setOfferOffline(false)
+        setMode(waiting ? 'update' : 'install')
+      }}>بررسی بستهٔ آفلاین</Button>
+      <Button size="sm" variant="ghost" onPress={() => {
+        localStorage.setItem('persianpart_offline_offered', 'true')
+        setOfferOffline(false)
+      }}>بعداً</Button>
+    </aside>}
+    {offlineRecoveryEnabled && showDownload && progress && <section
+      className="fixed inset-0 z-[70] grid place-items-center bg-background p-6"
+      aria-label="دریافت بستهٔ آفلاین"
+    >
+      <div className="w-full max-w-sm space-y-4">
+        <h2 className="text-lg font-semibold">دریافت بستهٔ آفلاین</h2>
+        <OfflineDownloadProgress progress={progress} />
+        <div className="flex flex-wrap gap-2">
+          <Button variant="secondary" onPress={() => {
+            pauseOfflinePackage()
+            setShowDownload(false)
+          }}>توقف</Button>
+          <Button variant="ghost" onPress={() => setShowDownload(false)}>بازگشت به برنامه</Button>
+        </div>
+      </div>
+    </section>}
     <Modal isOpen={mode !== null} onClose={() => setMode(null)} title={mode === 'update' ? 'به‌روزرسانی پرشین‌پارت' : 'نصب پرشین‌پارت'}>
       <div className="space-y-4 text-sm leading-7">
         {mode === 'update' ? <>

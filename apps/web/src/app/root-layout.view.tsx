@@ -7,6 +7,8 @@ import { useSessionSync } from '@/app/use-session-sync'
 import { useAuth } from '@/modules/auth/auth-store'
 import { WarehouseSelection } from '@/modules/cart/warehouse-selection'
 import { PwaControls } from '@/modules/pwa/pwa-controls'
+import { OfflineReadSuggestion } from './offline-read-suggestion'
+import { offlineRecoveryEnabled } from '@/modules/pwa/read-source'
 import { cn } from '@/lib/utils'
 
 export function RootLayoutView() {
@@ -36,6 +38,7 @@ export function RootLayoutView() {
           <ToastContainer />
           <PwaControls allowInstallInvitation={!isLoginPage} />
           <WarehouseSelection />
+          {!isLoginPage && user && offlineRecoveryEnabled && <OfflineReadSuggestion key={user.id} owner={user.id} pathname={pathname} />}
           {/* Main App Content Area */}
           <main
             className={cn(

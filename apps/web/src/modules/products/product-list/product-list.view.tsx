@@ -7,6 +7,8 @@ import { useState, useMemo, useEffect, useCallback } from "react"
 import { useNavigate, getRouteApi } from "@tanstack/react-router"
 import { Button } from "@heroui/react"
 import { useProducts } from "@/modules/products/product-store"
+import { offlineRecoveryEnabled } from '@/modules/pwa/read-source'
+import { useOnline } from '@/lib/use-online'
 import { ProductBottomSheet } from "@/modules/products/product-bottom-sheet/product-bottom-sheet"
 import { ProductQrScanner } from "@/modules/products/product-qr-scanner"
 import { FilterDrawer } from "@/modules/products/filter-drawer/filter-drawer"
@@ -34,6 +36,7 @@ export function ProductListView() {
   const supplyId =
     supplyDraft?.selected !== false ? supplyDraft?.productId : undefined;
   const { productId } = routeApi.useSearch();
+  const connected = useOnline();
   const productHook = useProducts();
   const {
     products,
@@ -300,7 +303,7 @@ export function ProductListView() {
       )}
       <ProductBottomSheet
         product={activeBottomSheetProduct}
-        isOpen={Boolean(activeBottomSheetProduct)}
+        isOpen={Boolean(activeBottomSheetProduct) && (!offlineRecoveryEnabled || connected || !online)}
         isSelected={
           activeBottomSheetProduct
             ? selectedIdSet.has(String(activeBottomSheetProduct.id)) ||

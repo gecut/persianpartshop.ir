@@ -1,8 +1,9 @@
 import { createStore, get } from 'idb-keyval'
-import type { ActivityFeedItem, CatalogRecord, CustomerOrderDocumentSchema, Dimension, PlanDto, SupplyRequest } from '@persianpart/contract'
+import type { OfflineManifest, ActivityFeedItem, CatalogRecord, CustomerOrderDocumentSchema, Dimension, PlanDto, SupplyRequest } from '@persianpart/contract'
 import type { CustomerDocument } from '@/modules/account/profile-view/_document-types'
 
 export const offlineMaxAge = 7 * 24 * 60 * 60 * 1000
+export const sharedOfflineImageCache = 'persianpart-offline-media-content-v1'
 export const offlineImagePrefix = 'persianpart-offline-media-v1-'
 const offlineStore = createStore('persianpart-offline-package-v1', 'packages')
 const offlineKey = 'current'
@@ -32,6 +33,7 @@ export interface OfflinePackage {
   scopeKey: string
   accessUntil: number
   startedAt: number
+  manifest?: OfflineManifest
   completedAt?: number
   data: OfflineData
   images: string[]
@@ -60,7 +62,7 @@ export function readOfflineEntry() {
 }
 
 export function readOfflineMedia() {
-  return get<Pick<OfflinePackage, 'id' | 'accessUntil' | 'completedAt' | 'imageSizes'>>(mediaKey, offlineStore)
+  return get<Pick<OfflinePackage, 'id' | 'accessUntil' | 'completedAt' | 'imageSizes'> & { imageKeys?: Record<string, string> }>(mediaKey, offlineStore)
 }
 
 export function updateOfflineEntry(updater: (current: OfflineEntry | undefined) => OfflineEntry | undefined) {
@@ -80,6 +82,7 @@ export function updateOfflineEntry(updater: (current: OfflineEntry | undefined) 
         if (!active) store.delete(mediaKey)
         else store.put({
           id: active.id, accessUntil: active.accessUntil, completedAt: active.completedAt, imageSizes: active.imageSizes,
+          imageKeys: active.manifest && Object.fromEntries(active.manifest.media.map(item => [item.path, item.hash])),
         }, mediaKey)
       } catch (error) {
         reject(error)
@@ -104,4 +107,8 @@ export function publicImageUrl(raw: string, origin: string, cdn: string) {
   } catch {
     return
   }
+}
+
+export function offlineMediaKey(origin: string, hash: string) {
+  return new URL('/offline-media/' + hash, origin).href
 }
