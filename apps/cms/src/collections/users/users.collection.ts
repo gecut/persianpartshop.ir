@@ -135,7 +135,17 @@ export const Users: CollectionConfig = {
         { label: "مسدود", value: "suspended" },
       ],
     },
-    // --- فیلدهای سایدبار (وضعیت، رده و دسترسی) ---
+    {
+      name: "banReason",
+      type: "textarea",
+      label: "علت مسدودی",
+      access: { update: canManageUsersField },
+      admin: {
+        position: "sidebar",
+        condition: (data) => data?.status === "suspended",
+        description: "پیام خطا هنگام ورود",
+      },
+    },
     {
       name: "customerType",
       type: "relationship",
@@ -304,10 +314,21 @@ export const Users: CollectionConfig = {
                 },
               ],
             },
+            {
+              type: "collapsible",
+              label: "یادداشت داخلی",
+              admin: { initCollapsed: true },
+              fields: [{
+                name: "notes",
+                type: "textarea",
+                label: "یادداشت داخلی",
+                admin: { description: "یادداشت‌های اختصاصی مدیران فروش درباره سابقه مشتری." },
+              }],
+            },
           ],
         },
         {
-          label: "آپلود مدارک",
+          label: "مدارک",
           fields: [
             {
               name: "documents",
@@ -475,31 +496,6 @@ export const Users: CollectionConfig = {
         update: canManageUsersField,
       },
       admin: {
-      },
-    },
-        ] },
-        { label: 'یادداشت داخلی', fields: [
-          {
-      name: "notes",
-      type: "textarea",
-      label: "یادداشت داخلی",
-      admin: {
-        description: "یادداشت‌های اختصاصی مدیران فروش درباره سابقه مشتری.",
-      },
-    },
-        ] },
-        { label: 'وضعیت حساب', fields: [
-          {
-      name: "banReason",
-      type: "textarea",
-      label: "علت مسدودی",
-      access: {
-        update: canManageUsersField,
-      },
-      admin: {
-        condition: (data) =>
-          data?.status === "suspended" || Boolean(data?.isBanned),
-        description: "پیام خطا هنگام ورود",
       },
     },
         ] },

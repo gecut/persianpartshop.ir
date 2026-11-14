@@ -504,6 +504,10 @@ export interface User {
   id: number;
   status: 'active' | 'pending' | 'suspended';
   /**
+   * پیام خطا هنگام ورود
+   */
+  banReason?: string | null;
+  /**
    * تعیین‌کننده درصد تخفیف و رده قیمت کاتالوگ.
    */
   customerType: number | CustomerType;
@@ -553,6 +557,10 @@ export interface User {
         id?: string | null;
       }[]
     | null;
+  /**
+   * یادداشت‌های اختصاصی مدیران فروش درباره سابقه مشتری.
+   */
+  notes?: string | null;
   /**
    * مدارک هویتی و صنفی بارگذاری‌شده توسط مشتری (مشاهده و بررسی مدیر).
    */
@@ -607,14 +615,6 @@ export interface User {
    */
   showProductImageWatermark: boolean;
   disableOrdering?: boolean | null;
-  /**
-   * یادداشت‌های اختصاصی مدیران فروش درباره سابقه مشتری.
-   */
-  notes?: string | null;
-  /**
-   * پیام خطا هنگام ورود
-   */
-  banReason?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -703,7 +703,13 @@ export interface WarehouseStock {
    * این مقدار از موجودی و بسته‌بندی محصول محاسبه می‌شود.
    */
   stockCartons?: number | null;
+  /**
+   * پس از ایجاد رکورد قابل تغییر نیست.
+   */
   warehouse: number | Warehouse;
+  /**
+   * پس از ایجاد رکورد قابل تغییر نیست.
+   */
   product: number | Product;
   /**
    * برای کاشی مترمربع و برای سایر کالاها تعداد واحد فروش است. در انبار استعلامی خالی (null) است. اصلاح موجودی از مسیر کنترل‌شده انبار انجام می‌شود.
@@ -1171,6 +1177,7 @@ export interface PlansSelect<T extends boolean = true> {
  */
 export interface UsersSelect<T extends boolean = true> {
   status?: T;
+  banReason?: T;
   customerType?: T;
   isBanned?: T;
   fullName?: T;
@@ -1191,6 +1198,7 @@ export interface UsersSelect<T extends boolean = true> {
         addressDetail?: T;
         id?: T;
       };
+  notes?: T;
   documents?:
     | T
     | {
@@ -1207,8 +1215,6 @@ export interface UsersSelect<T extends boolean = true> {
   canUseProductQr?: T;
   showProductImageWatermark?: T;
   disableOrdering?: T;
-  notes?: T;
-  banReason?: T;
   updatedAt?: T;
   createdAt?: T;
 }
