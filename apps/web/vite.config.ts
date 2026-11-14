@@ -99,10 +99,9 @@ export default defineConfig(({ mode }) => ({
       },
       injectManifest: {
         globPatterns: [
-          'index.html', 'assets/**/*.{js,css,woff2}', 'assets/images/persian-part-logo.png',
+          'index.html', 'assets/**/*.{js,css,woff2,wasm}', 'assets/images/persian-part-logo.png',
           'assets/images/persepolis-watermark.webp', 'assets/images/placeholder.svg',
         ],
-        globIgnores: ['**/*wasm*', '**/*qr-*'],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         // A revision makes Workbox fetch with cache: 'reload', including hashed assets.
         dontCacheBustURLsMatching: undefined,

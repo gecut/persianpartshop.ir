@@ -24,6 +24,10 @@ export const api = createApiClient({
     const token = localStorage.getItem('persianpart_token')
     const path = segments.join('/')
     const isWrite = /^(?:order\/(?:submit|cancel)|supplyRequest\/(?:submit|cancel)|shopping\/createOrder|user\/update|auth\/(?:verifyOtp|requestOtp))$/.test(path)
+    const requiresConnection = isWrite || /^(?:warehouse\/availability|supplyRequest\/preview|pricing\/validateCart)$/.test(path)
+    if (requiresConnection && !navigator.onLine) {
+      throw new Error('برای انجام این کار به اینترنت وصل شوید.')
+    }
     const foreground = path !== 'catalog/syncPage' && path !== 'catalog/facets'
     if (foreground) foregroundRequests++
     const finishWrite = isWrite ? writeActivity.begin() : () => {}

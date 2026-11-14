@@ -7,6 +7,7 @@ import { selectionStore } from '@/modules/products/selection-store'
 import { supplyDraftStore } from '@/modules/supply-requests/supply-request-draft'
 import { api } from '@/lib/api-client'
 import { queryKeys } from '@/lib/query-keys'
+import { acceptOfflineScope } from '@/modules/pwa/offline-package'
 
 export function useSessionSync(isLoginPage: boolean) {
   const { isAuthenticated, user } = useAuth()
@@ -41,7 +42,10 @@ export function useSessionSync(isLoginPage: boolean) {
         ...sessionData.user,
         showProductImageWatermark: sessionData.user.showProductImageWatermark === true,
       })
-      if (sessionData.catalogScopeKey) catalogCoordinator.acceptScope(sessionData.catalogScopeKey)
+      if (sessionData.catalogScopeKey) {
+        catalogCoordinator.acceptScope(sessionData.catalogScopeKey)
+        acceptOfflineScope(sessionData.catalogScopeKey)
+      }
     }
   }, [sessionData, sessionError, isAuthenticated, isLoginPage])
 

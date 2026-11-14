@@ -1,11 +1,16 @@
 import { useEffect, useState } from 'react'
 import { Button, Skeleton } from '@heroui/react'
 import { api } from '@/lib/api-client'
+import { useOnline } from '@/lib/use-online'
+import { useOfflinePackage } from '@/modules/pwa/offline-package'
 
 interface ProductQrDownloadProps { productId: string }
 interface QrData { scanCode: string; png: string; svg: string }
 
 export function ProductQrDownload({ productId }: ProductQrDownloadProps) {
+  const online = useOnline()
+  const { active, restoring } = useOfflinePackage()
+  const storedCode = active?.data.qr[productId]
   const [data, setData] = useState<QrData | null>(null)
   const [error, setError] = useState(false)
   const [attempt, setAttempt] = useState(0)
@@ -16,16 +21,17 @@ export function ProductQrDownload({ productId }: ProductQrDownloadProps) {
     setError(false)
     async function load() {
       try {
-        const { scanCode } = await api.catalog.getProductQr({ id: Number(productId) })
+        const scanCode = online ? (await api.catalog.getProductQr({ id: Number(productId) })).scanCode : storedCode
+        if (!scanCode) throw new Error('QR unavailable')
         const qr = await import('qrcode')
         const options = { errorCorrectionLevel: 'M' as const, margin: 4, width: 1024 }
         const [png, svg] = await Promise.all([qr.toDataURL(scanCode, options), qr.toString(scanCode, { ...options, type: 'svg' })])
         if (active) setData({ scanCode, png, svg })
       } catch { if (active) setError(true) }
     }
-    void load()
+    if (!restoring || online) void load()
     return () => { active = false }
-  }, [productId, attempt])
+  }, [productId, attempt, online, restoring, storedCode])
 
   function download(format: 'png' | 'svg') {
     if (!data) return
@@ -37,6 +43,7 @@ export function ProductQrDownload({ productId }: ProductQrDownloadProps) {
     if (objectUrl) setTimeout(() => URL.revokeObjectURL(objectUrl), 1000)
   }
 
+  if (!online && !restoring && !storedCode) return <p role="status">برای دریافت این کد به اینترنت وصل شوید.</p>
   return <section className="flex w-full items-center gap-3 rounded-2xl bg-muted/5 p-3 text-start" aria-label="کد QR محصول">
     {error ? <>
       <p role="alert" className="text-xs text-muted">دریافت کد محصول ممکن نشد.</p>

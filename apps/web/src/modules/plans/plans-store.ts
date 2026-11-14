@@ -4,17 +4,19 @@ import { api } from '@/lib/api-client'
 import type { Plan } from './plan-types'
 import { formatPersianDate } from '@/lib/utils/date'
 import { authStore, isProductAllowedForUser, useAuth } from '@/modules/auth/auth-store'
+import { useOfflinePackage } from '@/modules/pwa/offline-package'
+import { useOnline } from '@/lib/use-online'
+import { useNow } from '@/lib/use-now'
 
-function mapApiPlanToPlan(p: any): Plan {
+function mapApiPlanToPlan(p: any, now: number): Plan {
   const firstUser = Array.isArray(p.users) && p.users.length > 0 ? p.users[0] : null
   const customerName = firstUser
     ? (firstUser.fullName || firstUser.companyName || firstUser.phone || 'کاربر')
     : 'عمومی'
   const customerId = firstUser ? String(firstUser.id) : ''
-  const now = Date.now()
   const isExpired = Boolean(p.isExpired || p.status === 'expired' || (p.expiresAt && new Date(p.expiresAt).getTime() <= now))
   const isActive = p.isActive !== false
-  const status = isExpired ? 'expired' : (p.status || (isActive ? 'active' : 'expired'))
+  const status = isExpired || !isActive ? 'expired' : p.startsAt && Date.parse(p.startsAt) > now ? 'upcoming' : 'active'
 
   const currentUser = authStore.getState().user
   let productsList = Array.isArray(p.products) ? p.products : []
@@ -69,25 +71,31 @@ function mapApiPlanToPlan(p: any): Plan {
 import { queryKeys } from '@/lib/query-keys'
 export function usePlans() {
   const { user } = useAuth()
+  const online = useOnline()
+  const { active, restoring } = useOfflinePackage()
+  const now = useNow()
   const query = useInfiniteQuery({
     queryKey: queryKeys.plans.list({ owner: user?.id ?? '', paginated: true }),
     queryFn: ({ pageParam, signal }) => api.plan.list({ page: pageParam, limit: 12 }, { signal }),
     initialPageParam: 1,
     getNextPageParam: (last, pages) => last.hasMore ? pages.length + 1 : undefined,
-    enabled: !!user,
+    enabled: !!user && online,
     staleTime: 60_000,
     refetchInterval: 60_000,
     refetchOnReconnect: 'always',
   })
-  const plans = useMemo(() => query.data?.pages.flatMap(page => page.items.map(mapApiPlanToPlan)) ?? [], [query.data, user])
+  const plans = useMemo(() => {
+    const records = online ? query.data?.pages.flatMap(page => page.items) : active?.data.plans
+    return records?.map(plan => mapApiPlanToPlan(plan, now)) ?? []
+  }, [query.data, user, online, active, now])
   return {
     plans,
-    isLoading: query.isPending,
-    loadError: query.data ? null : query.error,
+    isLoading: online ? query.isPending : !!restoring,
+    loadError: online ? query.data ? null : query.error : !restoring && !active ? new Error('برای دریافت طرح‌ها به اینترنت وصل شوید.') : null,
     isFetching: query.isFetching,
     isFetchNextPageError: query.isFetchNextPageError,
     refresh: query.refetch,
-    hasMore: query.hasNextPage,
+    hasMore: online && query.hasNextPage,
     loadMore: query.fetchNextPage,
   }
 }

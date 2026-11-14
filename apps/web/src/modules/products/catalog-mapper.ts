@@ -75,6 +75,12 @@ type CatalogProductInput = Omit<CatalogRecord, "createdAt" | "hasScanCode"> & { 
   inStock?: boolean;
 };
 
+export function catalogProductImages(item: Pick<CatalogRecord, 'cover' | 'gallery'>) {
+  const gallery = Array.isArray(item.gallery) ? item.gallery.map(entry => resolveMediaUrl(entry.image)).filter(Boolean) : []
+  const primary = resolveMediaUrl(item.cover) || gallery[0] || '/assets/images/placeholder.svg'
+  return { primary, gallery, images: [primary, ...gallery.filter(url => url !== primary)] }
+}
+
 export function mapCatalogProduct(item: CatalogProductInput): Product {
   const isOther = item.productType === "other";
   const dimObj = typeof item.dimension === "object" ? item.dimension : null;
@@ -95,18 +101,7 @@ export function mapCatalogProduct(item: CatalogProductInput): Product {
       ? item.category.name
       : item.categoryName || "عمومی";
   const basePrice = Number(item.finalCustomerPricePerSqm ?? 0);
-  const rawGallery = Array.isArray(item.gallery) ? item.gallery : [];
-  const galleryUrls = rawGallery
-    .map((g) => resolveMediaUrl(g.image))
-    .filter(Boolean);
-
-  const rawCoverUrl = resolveMediaUrl(item.cover);
-  const primaryImage =
-    rawCoverUrl || galleryUrls[0] || "/assets/images/placeholder.svg";
-  const imagesList = [
-    primaryImage,
-    ...galleryUrls.filter((u: string) => u !== primaryImage),
-  ];
+  const { primary: primaryImage, gallery: galleryUrls, images: imagesList } = catalogProductImages(item);
 
   const finalPrice = basePrice;
   const discountPercent: number | undefined = undefined;

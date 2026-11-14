@@ -14,6 +14,8 @@ import { PreInvoiceModal } from '@/modules/checkout/pre-invoice-modal'
 import { useCatalogIds } from '@/modules/products/catalog-data'
 import { orderDetailOptions } from '@/modules/orders/order-store'
 import { useAuth } from '@/modules/auth/auth-store'
+import { useOnline } from '@/lib/use-online'
+import { useOfflinePackage } from '@/modules/pwa/offline-package'
 import { ActivityOrderCard } from './_activity-order-card'
 import { ActivitySupplyCard } from './_activity-supply-card'
 import { ActivityTypeTabs } from './_activity-type-tabs'
@@ -29,6 +31,8 @@ export function ActivityFeedView() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { user } = useAuth()
+  const online = useOnline()
+  const { active, restoring } = useOfflinePackage()
   const [reorderOrder, setReorderOrder] = useState<Order | null>(null)
   const { data: allProducts } = useCatalogIds(reorderOrder?.items.map(item => item.productId) ?? [])
   const [activeSupplyId, setActiveSupplyId] = useState<number | null>(requestId ?? null)
@@ -59,21 +63,24 @@ export function ActivityFeedView() {
     staleTime: 30_000,
     refetchInterval: 30_000,
     refetchOnReconnect: 'always',
-    enabled: Boolean(user),
+    enabled: Boolean(user) && online,
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.nextCursor : null),
   })
 
   // Flatten items
   const items = useMemo(() => {
-    return data?.pages.flatMap((page) => page.items) ?? []
-  }, [data])
+    if (online) return data?.pages.flatMap(page => page.items) ?? []
+    return active?.data.activity.filter(item =>
+      (filter === 'all' || item.kind === filter) && (!orderStatus || (item.kind === 'order' && item.status === orderStatus))
+    ).sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt) || Number(b.id) - Number(a.id) || a.kind.localeCompare(b.kind)) ?? []
+  }, [data, online, active, filter, orderStatus])
 
   // Infinite scroll observer
   const observerTargetRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
-    if (!hasNextPage || isFetching || isFetchNextPageError) return
+    if (!online || !hasNextPage || isFetching || isFetchNextPageError) return
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -89,14 +96,15 @@ export function ActivityFeedView() {
     return () => {
       if (el) observer.unobserve(el)
     }
-  }, [hasNextPage, isFetching, isFetchNextPageError, fetchNextPage])
+  }, [online, hasNextPage, isFetching, isFetchNextPageError, fetchNextPage])
 
   // Supply detail query & cancel mutation
   const supplyDetail = useQuery({
     queryKey: queryKeys.supplyRequests.detail(user ? String(user.id) : '', activeSupplyId ?? 0),
     queryFn: () => api.supplyRequest.detail({ id: activeSupplyId! }),
-    enabled: Boolean(user && activeSupplyId),
+    enabled: Boolean(user && activeSupplyId) && online,
   })
+  const savedSupply = activeSupplyId ? active?.data.supplies[activeSupplyId] : undefined
 
   const cancelMutation = useMutation({
     mutationFn: (id: number) => api.supplyRequest.cancel({ id }),
@@ -186,13 +194,15 @@ export function ActivityFeedView() {
       {filter === 'order' && (
         <ActivityStatusTabs orderStatus={orderStatus} onSelect={setOrderStatusFilter} />
       )}
-      {isPending ? (
+      {(online ? isPending : restoring) ? (
         <div className="space-y-2.5">
           <OrderCardSkeleton />
           <OrderCardSkeleton />
           <OrderCardSkeleton />
         </div>
-      ) : error && !data ? (
+      ) : !online && !active ? (
+        <p role="status">برای دریافت سوابق به اینترنت وصل شوید.</p>
+      ) : online && error && !data ? (
         <QueryLoadError message="دریافت فهرست سفارش‌ها ممکن نشد." onRetry={() => void refetch()} />
       ) : items.length === 0 ? (
         <ActivityEmptyState filter={filter} />
@@ -200,7 +210,7 @@ export function ActivityFeedView() {
         <div className="space-y-3">
           {items.map((item) =>
             item.kind === 'order' ? (
-              <ActivityOrderCard key={`order-${item.id}`} item={item} onReorder={handleReorder} />
+              <ActivityOrderCard key={`order-${item.id}`} item={online ? item : { ...item, canReorder: false }} onReorder={handleReorder} />
             ) : (
               <ActivitySupplyCard
                 key={`supply-${item.id}`}
@@ -211,7 +221,7 @@ export function ActivityFeedView() {
           )}
 
           {/* Infinite Scroll Sentinel */}
-          {hasNextPage && (
+          {online && hasNextPage && (
             <div
               ref={observerTargetRef}
               className="py-6 flex flex-col items-center justify-center gap-2 text-muted"
@@ -226,7 +236,8 @@ export function ActivityFeedView() {
       <SupplyDetailModal
         isOpen={Boolean(activeSupplyId)}
         onClose={handleCloseSupplyModal}
-        supplyDetail={supplyDetail}
+        supplyDetail={online ? supplyDetail : { data: savedSupply, isPending: !!restoring, error: !restoring && !savedSupply ? new Error('Offline request unavailable') : null }}
+        online={online}
         isCancelling={cancelMutation.isPending}
         onCancel={(id) => cancelMutation.mutate(id)}
       />

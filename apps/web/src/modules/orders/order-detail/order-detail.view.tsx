@@ -23,12 +23,14 @@ import { OrderHeaderCard } from "./_order-header-card"
 import { OrderItemsCard } from "./_order-items-card"
 import { OrderDeliveryCard } from "./_order-delivery-card"
 import { CancelOrderModal } from "./_cancel-order-modal"
+import { useOnline } from '@/lib/use-online'
 
 const routeApi = getRouteApi('/orders/$id')
 
 export function OrderDetailView() {
   const { orderId } = routeApi.useLoaderData();
   const navigate = useNavigate();
+  const online = useOnline();
 
   const detailQuery = useOrderDetail(orderId);
   const order = detailQuery.data ?? null;
@@ -57,7 +59,7 @@ export function OrderDetailView() {
 
   const isWithin60Minutes = timeLeftSeconds > 0;
   const isCancellableByCustomer =
-    !isCancelled && !isCompleted && isWithin60Minutes;
+    online && !isCancelled && !isCompleted && isWithin60Minutes;
 
   const createdAtMs = order?.createdAt
     ? new Date(order.createdAt).getTime()
@@ -127,7 +129,7 @@ export function OrderDetailView() {
     {
       pending: () => <OrderDetailSkeleton />,
       error: () => (
-        <QueryLoadError message="دریافت جزئیات سفارش ممکن نشد." onRetry={() => void detailQuery.refetch()} />
+        <QueryLoadError message={online ? "دریافت جزئیات سفارش ممکن نشد." : "برای دریافت این سفارش به اینترنت وصل شوید."} onRetry={() => { if (online) void detailQuery.refetch() }} />
       ),
       empty: () => (
         <div className="w-full max-w-xl mx-auto px-4 py-16 text-center space-y-3">

@@ -17,6 +17,7 @@ import { selectionStore, useProductSelection } from "@/modules/products/selectio
 import { toPersianDigits } from "@/lib/utils/currency"
 import { ProductCardSkeleton } from "@/modules/products/product-card-skeleton"
 import { DimensionFilter } from "@/modules/products/dimension-filter"
+import { formatPersianDateTime } from '@/lib/utils/date'
 
 import { useProductPagination } from "./_use-product-pagination"
 import { useProductVirtualizer } from "./_use-product-virtualizer"
@@ -50,6 +51,7 @@ export function ProductListView() {
     offlineWithoutPage,
     showingSavedPage,
     offlineHasMore,
+    offlineSavedAt,
     complete,
     online,
   } = productHook;
@@ -193,7 +195,7 @@ export function ProductListView() {
         dimensions={dimensions}
         selectedDimension={filters.selectedDimension}
         isLoading={online && dimensionsQuery.isPending}
-        error={dimensionsQuery.isError && !dimensionsQuery.data}
+        error={online && dimensionsQuery.isError && !dimensionsQuery.data}
         onRetry={() => void dimensionsQuery.refetch()}
         onSelect={(dimension) => dispatchFilter({ type: "selectedDimension", dimension })}
       />
@@ -229,6 +231,9 @@ export function ProductListView() {
       {/* Product Items Display */}
       {showingSavedPage && (
         <p role="status" className="text-sm text-muted">نسخهٔ ذخیره‌شدهٔ صفحهٔ اول. قیمت و موجودی مربوط به آخرین دریافت است.</p>
+      )}
+      {offlineSavedAt && (
+        <p role="status" className="text-sm text-muted">قیمت و موجودی ذخیره‌شده · {formatPersianDateTime(offlineSavedAt)}</p>
       )}
       {isRestoring ? null : offlineWithoutPage ? (
         <QueryLoadError message="برای دیدن این فهرست به اینترنت وصل شوید." onRetry={() => void refetch()} />

@@ -15,6 +15,7 @@ import { mapCatalogProduct } from "./catalog-mapper";
 import { defaultBrowseFilters, firstBrowsePage, isDefaultBrowse } from "./_catalog-browse";
 import { catalogMaxAge } from "./catalog-coordinator";
 import { catalogCoordinator, useCatalogData } from "./catalog-data";
+import { browseOffline } from "./_browse-offline";
 export type ViewMode = "list" | "grid-2" | "grid-3" | "compact";
 
 export interface FilterState {
@@ -48,11 +49,11 @@ export function useProducts(supplyMode = false) {
   });
   const [viewMode, setViewMode] = useState<ViewMode>("list");
 
-  const { state: catalog, owner, online, isRestoring } = useCatalogData(true);
+  const { state: catalog, pack, owner, online, isRestoring } = useCatalogData(true);
   const dimensionsQuery = useQuery({
     queryKey: queryKeys.products.facets(owner),
     queryFn: ({ signal }) => api.catalog.facets(undefined, { signal }),
-    enabled: !!owner,
+    enabled: !!owner && online,
     staleTime: 15 * 60_000,
     select: result => result.dimensions,
   });
@@ -93,10 +94,14 @@ export function useProducts(supplyMode = false) {
     ? browse.data.pages
     : undefined;
   const offlinePage = !online && defaultBrowse ? matchingPages?.[0] : undefined;
+  const offlineProducts = useMemo(() => pack && searchReady
+    ? browseOffline(Object.values(pack.data.products), browseInput).map(mapCatalogProduct)
+    : undefined, [pack, searchReady, search, queryFilters, supplyMode]);
   const products = useMemo(() => {
+    if (offlineProducts) return offlineProducts;
     const pages = online ? matchingPages : offlinePage ? [offlinePage] : [];
     return pages?.flatMap(page => page.items.map(mapCatalogProduct)) ?? [];
-  }, [online, matchingPages, offlinePage]);
+  }, [online, matchingPages, offlinePage, offlineProducts]);
   const hasContent = online ? !!matchingPages : !!offlinePage;
   const hasRemoteMore = online && !!matchingPages && browse.hasNextPage;
   const { fetchNextPage } = browse;
@@ -208,11 +213,12 @@ export function useProducts(supplyMode = false) {
     complete: catalog.complete && !catalog.restoredAt,
     catalogById: catalog.byId,
     isRestoring,
-    offlineWithoutPage: !online && !offlinePage && !isRestoring,
-    showingSavedPage: !!offlinePage,
-    offlineHasMore: !!offlinePage?.hasMore,
+    offlineWithoutPage: !online && !pack && !offlinePage && !isRestoring,
+    showingSavedPage: !pack && !!offlinePage,
+    offlineHasMore: !pack && !!offlinePage?.hasMore,
+    offlineSavedAt: pack?.completedAt,
     online,
-    dimensions: dimensionsQuery.data ?? [],
+    dimensions: pack?.data.dimensions ?? dimensionsQuery.data ?? [],
     dimensionsQuery,
     filters,
     isLoading,

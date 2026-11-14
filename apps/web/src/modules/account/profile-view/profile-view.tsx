@@ -19,12 +19,17 @@ import { ImagePreviewModal } from "./_image-preview-modal"
 import { LogoutConfirmModal } from "./_logout-confirm-modal"
 import { useProfileDocuments } from "./_use-profile-documents"
 import type { CustomerDocument } from "./_document-types"
+import { useOnline } from '@/lib/use-online'
+import { useOfflinePackage } from '@/modules/pwa/offline-package'
 
 export function ProfileView() {
   const pendingWrites = useWriteActivity();
   const navigate = useNavigate();
 
   const { user, logout, updateProfile } = useAuth();
+  const online = useOnline();
+  const { active, restoring } = useOfflinePackage();
+  const savedProfile = active?.data.profile;
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
@@ -39,11 +44,11 @@ export function ProfileView() {
     queryFn: ({ signal }) => api.user.profile(undefined, { signal }),
     staleTime: 120_000,
     refetchOnReconnect: 'always',
-    enabled: !!user,
+    enabled: !!user && online,
   });
 
   const documents =
-    (profileDoc?.documents as CustomerDocument[] | undefined) || [];
+    (online ? profileDoc?.documents as CustomerDocument[] | undefined : savedProfile?.documents) ?? [];
 
   const docs = useProfileDocuments({ documents, userId: user?.id });
 
@@ -72,7 +77,7 @@ export function ProfileView() {
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (pendingWrites > 0) return;
+    if (!online || pendingWrites > 0) return;
 
     if (!formData.name.trim()) {
       toast.warning("نام و نام خانوادگی الزامی است.");
@@ -109,24 +114,27 @@ export function ProfileView() {
     <div className="space-y-3.5 w-full">
       <PwaAccountButton />
       <ProfileHeaderCard
-        name={user.name}
-        storeName={user.storeName}
+        name={(!online && savedProfile?.name) || user.name}
+        storeName={(!online && savedProfile?.storeName) || user.storeName}
         onLogout={() => setShowLogoutConfirm(true)}
       />
 
       <ProfileDetailsCard
-        name={user.name}
-        storeName={user.storeName}
-        phone={user.phone}
+        name={(!online && savedProfile?.name) || user.name}
+        storeName={(!online && savedProfile?.storeName) || user.storeName}
+        phone={(!online && savedProfile?.phone) || user.phone}
         onEdit={() => setIsEditing(true)}
       />
 
-      {profileError && !profileDoc ? (
+      {!online && !restoring && !savedProfile ? (
+        <p role="status">برای دریافت اطلاعات مدارک به اینترنت وصل شوید.</p>
+      ) : online && profileError && !profileDoc ? (
         <QueryLoadError message="دریافت مدارک حساب ممکن نشد." onRetry={() => void refetchProfile()} />
       ) : (
         <DocumentsSection
           documents={documents}
-          isLoading={isProfilePending}
+          isLoading={online ? isProfilePending : !!restoring}
+          online={online}
           deletingId={docs.isDeletingDocId}
           onUpload={docs.openUploadModal}
           onPreview={setPreviewDoc}
@@ -139,14 +147,14 @@ export function ProfileView() {
         formData={formData}
         setFormData={setFormData}
         phone={user.phone}
-        isSaveDisabled={pendingWrites > 0}
+        isSaveDisabled={!online || pendingWrites > 0}
         onCancel={handleCancelEdit}
         onSubmit={handleSaveProfile}
       />
 
-      <UploadDocumentModal upload={docs} isSubmitDisabled={pendingWrites > 0} />
+      {online && <UploadDocumentModal upload={docs} isSubmitDisabled={pendingWrites > 0} />}
 
-      <ImagePreviewModal doc={previewDoc} onClose={() => setPreviewDoc(null)} />
+      {online && <ImagePreviewModal doc={previewDoc} onClose={() => setPreviewDoc(null)} />}
 
       <LogoutConfirmModal
         isOpen={showLogoutConfirm}

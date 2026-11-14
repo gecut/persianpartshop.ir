@@ -7,12 +7,13 @@ import { match, P } from "ts-pattern"
 interface DocumentCardProps {
   doc: CustomerDocument;
   isDeleting: boolean;
+  online: boolean;
   onPreview: (doc: CustomerDocument) => void;
   onDelete: (docId?: string) => void;
 }
 
-export function DocumentCard({ doc, isDeleting, onPreview, onDelete }: DocumentCardProps) {
-  const fileUrl = getDocFileUrl(doc.file);
+export function DocumentCard({ doc, isDeleting, online, onPreview, onDelete }: DocumentCardProps) {
+  const fileUrl = online ? getDocFileUrl(doc.file) : null;
   const isRejected = doc.status === "rejected";
 
   const statusBadge = match(doc.status)
@@ -49,7 +50,7 @@ export function DocumentCard({ doc, isDeleting, onPreview, onDelete }: DocumentC
       <Button
         type="button"
         onPress={() => onDelete(doc.id)}
-        isDisabled={isDeleting}
+        isDisabled={!online || isDeleting}
         className="size-8 rounded-xl bg-danger/10 text-danger hover:bg-danger/20 flex items-center justify-center cursor-pointer transition-all active:scale-95"
         aria-label="حذف مدرک"
       >

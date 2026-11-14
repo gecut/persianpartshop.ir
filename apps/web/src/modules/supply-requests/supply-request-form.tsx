@@ -7,6 +7,7 @@ import { Button } from '@heroui/react'
 import { SupplyPreviewInputSchema } from '@persianpart/contract'
 import { api } from '@/lib/api-client'
 import { queryKeys } from '@/lib/query-keys'
+import { useOnline } from '@/lib/use-online'
 import { formatToman, toPersianDigits } from '@/lib/utils/currency'
 import { formatCartons, formatUnit } from '@/lib/utils/unit'
 import { useCatalogProduct } from '@/modules/products/catalog-data'
@@ -24,6 +25,7 @@ interface SupplyRequestFormProps {
 }
 
 export function SupplyRequestForm({ productId, presentation, onSuccess, onPurchase }: SupplyRequestFormProps) {
+  const online = useOnline()
   const { user } = useAuth()
   const { owner, draft, persisted } = useSupplyDraft()
   const client = useQueryClient()
@@ -42,7 +44,7 @@ export function SupplyRequestForm({ productId, presentation, onSuccess, onPurcha
   const [debounced, setDebounced] = useState(0)
   useEffect(() => { const timer = window.setTimeout(() => setDebounced(draft?.requestedQuantity ?? 0), 300); return () => window.clearTimeout(timer) }, [draft?.requestedQuantity, draft?.productId])
   const input = { productId, requestedQuantity: debounced }
-  const preview = useQuery({ queryKey: queryKeys.supplyRequests.preview(owner, productId, debounced), queryFn: ({ signal }) => api.supplyRequest.preview(input, { signal }), enabled: active && SupplyPreviewInputSchema.safeParse(input).success, retry: false, staleTime: 0 })
+  const preview = useQuery({ queryKey: queryKeys.supplyRequests.preview(owner, productId, debounced), queryFn: ({ signal }) => api.supplyRequest.preview(input, { signal }), enabled: online && active && SupplyPreviewInputSchema.safeParse(input).success, retry: false, staleTime: 0 })
   const [review, setReview] = useState<{ owner: string; key: string; data: Preview } | null>(null)
   const [checking, setChecking] = useState(false)
   const [checkError, setCheckError] = useState(false)
@@ -59,10 +61,10 @@ export function SupplyRequestForm({ productId, presentation, onSuccess, onPurcha
 
   const current = debounced === draft?.requestedQuantity && !preview.isFetching && !preview.error ? preview.data : undefined
   const reviewing = !!review && review.owner === owner && review.key === draft?.submissionKey
-  const quote = reviewing ? review.data.quote : current?.quote
+  const quote = online ? reviewing ? review.data.quote : current?.quote : undefined
   const valid = SupplyPreviewInputSchema.safeParse({ productId, requestedQuantity: draft?.requestedQuantity }).success
   const confirm = async () => {
-    if (!active || !draft || !valid || !persisted || checking) return
+    if (!online || !active || !draft || !valid || !persisted || checking) return
     const key = draft.submissionKey
     setChecking(true); setCheckError(false)
     try {
@@ -89,7 +91,7 @@ export function SupplyRequestForm({ productId, presentation, onSuccess, onPurcha
       onPurchase()
     }
   }
-  const submissionDisabled = !persisted || checking || mutation.isPending
+  const submissionDisabled = !online || !persisted || checking || mutation.isPending
   const canContinue = valid && !!current?.eligible && !exactAvailable && !checkError
   const submit = async () => {
     const latest = supplyDraftStore.getSnapshot()
@@ -129,7 +131,7 @@ export function SupplyRequestForm({ productId, presentation, onSuccess, onPurcha
           <dd className="inline-flex min-w-0 items-center gap-1 text-base font-extrabold text-foreground"><bdi>{formatToman(quote.estimatedTotal)}</bdi><TomanIcon className="size-4 shrink-0" /></dd>
         </div>
       </dl>}
-      {!quote && <p role="status" className="mx-auto w-full max-w-xl px-4 py-2.5 text-xs text-muted">{!valid ? 'مقدار معتبر وارد کنید.' : preview.error || checkError ? 'برآورد در دسترس نیست.' : 'در حال محاسبهٔ برآورد…'}</p>}
+      {!quote && <p role="status" className="mx-auto w-full max-w-xl px-4 py-2.5 text-xs text-muted">{!online ? 'برای دریافت برآورد و ارسال درخواست به اینترنت وصل شوید.' : !valid ? 'مقدار معتبر وارد کنید.' : preview.error || checkError ? 'برآورد در دسترس نیست.' : 'در حال محاسبهٔ برآورد…'}</p>}
       <div className="mx-auto flex w-full max-w-xl items-center gap-2.5 px-4 pt-1">
         {reviewing && <Button type="button" variant="secondary" isDisabled={submissionDisabled || draft.pending} onPress={() => setReview(null)} className="control-height-12 shrink-0 gap-1.5 px-4 text-xs font-bold sm:text-sm"><PencilIcon size={16} /><span>ویرایش</span></Button>}
         <div className="min-w-0 flex-1">

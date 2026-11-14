@@ -6,13 +6,14 @@ import type { CustomerDocument } from "./_document-types"
 interface DocumentsSectionProps {
   documents: CustomerDocument[];
   isLoading: boolean;
+  online: boolean;
   deletingId: string | null;
   onUpload: () => void;
   onPreview: (doc: CustomerDocument) => void;
   onDelete: (docId?: string) => void;
 }
 
-export function DocumentsSection({ documents, isLoading, deletingId, onUpload, onPreview, onDelete }: DocumentsSectionProps) {
+export function DocumentsSection({ documents, isLoading, online, deletingId, onUpload, onPreview, onDelete }: DocumentsSectionProps) {
   return (
     <div className="bg-muted/5 rounded-2xl p-3.5 sm:p-4 space-y-3">
       <div className="flex items-center justify-between gap-2 border-b border-border/10 pb-3">
@@ -30,15 +31,16 @@ export function DocumentsSection({ documents, isLoading, deletingId, onUpload, o
           </div>
         </div>
 
-        <Button
+        {online && <Button
           type="button"
           onPress={onUpload}
           className="h-8 px-3 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer active:scale-95"
         >
           <PlusIcon size={14} />
           <span>بارگذاری مدرک</span>
-        </Button>
+        </Button>}
       </div>
+      {!online && <p className="text-xs text-muted">برای باز کردن فایل مدارک به اینترنت وصل شوید.</p>}
 
       {/* Loading state */}
       {isLoading ? (
@@ -57,14 +59,14 @@ export function DocumentsSection({ documents, isLoading, deletingId, onUpload, o
             جهت فعال‌سازی اعتبارسنجی و پیش‌فاکتور رسمی، مدارک شناسایی یا
             پروانه کسب خود را ارسال نمایید.
           </p>
-          <Button
+          {online && <Button
             type="button"
             onPress={onUpload}
             className="mt-3 h-8 px-3.5 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 font-bold text-xs cursor-pointer inline-flex items-center gap-1"
           >
             <PlusIcon size={14} />
             <span>بارگذاری اولین مدرک</span>
-          </Button>
+          </Button>}
         </div>
       ) : (
         <div className="space-y-2">
@@ -72,6 +74,7 @@ export function DocumentsSection({ documents, isLoading, deletingId, onUpload, o
               <DocumentCard
                 key={doc.id || idx}
                 doc={doc}
+                online={online}
                 isDeleting={deletingId === doc.id}
                 onPreview={onPreview}
                 onDelete={onDelete}

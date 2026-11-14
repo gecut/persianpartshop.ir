@@ -1,11 +1,13 @@
 import { useEffect, useState, useSyncExternalStore } from 'react'
-import { Button } from '@heroui/react'
+import { Button, ProgressBar } from '@heroui/react'
 import { WiFiOffIcon } from '@solar-icons/react/linear'
 import { registerSW } from 'virtual:pwa-register'
 import { Modal } from '@/components/ui/modal'
 import { flushDrafts } from '@/lib/drafts'
 import { useWriteActivity, writeActivity } from '@/lib/write-activity'
 import { PwaNotice } from './pwa-notice'
+import { OfflineProgress } from './_offline-progress'
+import { useAuth } from '@/modules/auth/auth-store'
 import { getInstallPrompt, subscribeToInstallPrompt, takeInstallPrompt } from './_install-prompt'
 
 let waiting = false
@@ -42,6 +44,7 @@ const isAppleMobile = /iPhone|iPad|iPod/.test(navigator.userAgent) ||
 const isMacSafari = !isAppleMobile && /Macintosh.+Version\/[^ ]+ Safari\//.test(navigator.userAgent)
 
 export function PwaControls({ allowInstallInvitation }: { allowInstallInvitation: boolean }) {
+  const { user } = useAuth()
   const [online, setOnline] = useState(navigator.onLine)
   const [needUpdate, setNeedUpdate] = useState(waiting)
   const [dismissed, setDismissed] = useState(false)
@@ -49,6 +52,7 @@ export function PwaControls({ allowInstallInvitation }: { allowInstallInvitation
   const prompt = useSyncExternalStore(subscribeToInstallPrompt, getInstallPrompt)
   const [isInstalled, setInstalled] = useState(installed)
   const [busy, setBusy] = useState(false)
+  const [installing, setInstalling] = useState(false)
   const [updateError, setUpdateError] = useState<string | null>(null)
   const [invitation, setInvitation] = useState(false)
   const writes = useWriteActivity()
@@ -58,7 +62,7 @@ export function PwaControls({ allowInstallInvitation }: { allowInstallInvitation
   useEffect(() => {
     const connection = () => setOnline(navigator.onLine)
     const ready = () => setNeedUpdate(true)
-    const completed = () => { setInstalled(true); setMode(null) }
+    const completed = () => { setInstalled(true); setInstalling(false) }
     const open = () => {
       setUpdateError(null)
       setMode(waiting ? 'update' : 'install')
@@ -99,11 +103,13 @@ export function PwaControls({ allowInstallInvitation }: { allowInstallInvitation
       return
     }
 
-    setMode(null)
+    setInstalling(true)
     try {
       await nativePrompt.prompt()
     } catch {
       setMode('install')
+    } finally {
+      setInstalling(false)
     }
   }
 
@@ -147,7 +153,7 @@ export function PwaControls({ allowInstallInvitation }: { allowInstallInvitation
           setMode('update')
         }} onDismiss={() => setDismissed(true)} />
       ) : (
-        <PwaNotice kind="install" onOpen={() => void requestInstall()} onDismiss={() => setInvitation(false)} />
+          <PwaNotice kind="install" onOpen={() => { setInvitation(false); setMode('install') }} onDismiss={() => setInvitation(false)} />
       )}
     </div>}
     <Modal isOpen={mode !== null} onClose={() => setMode(null)} title={mode === 'update' ? 'به‌روزرسانی پرشین‌پارت' : 'نصب پرشین‌پارت'}>
@@ -161,7 +167,7 @@ export function PwaControls({ allowInstallInvitation }: { allowInstallInvitation
         </> : isInstalled ? (
           <p>پرشین‌پارت روی این دستگاه نصب شده است.</p>
         ) : prompt ? (
-          <Button fullWidth className="min-h-11" onPress={() => void requestInstall()}>نصب پرشین‌پارت</Button>
+          <Button fullWidth className="min-h-11" isDisabled={installing} onPress={() => void requestInstall()}>نصب پرشین‌پارت</Button>
         ) : isAppleMobile ? (
           <p className="text-muted">
             در <bdi>Safari</bdi>، از منوی اشتراک‌گذاری «افزودن به صفحهٔ اصلی» را انتخاب کنید.
@@ -175,6 +181,10 @@ export function PwaControls({ allowInstallInvitation }: { allowInstallInvitation
             در <bdi>Chrome</bdi> اندروید، این گزینه ممکن است در منوی «افزودن به صفحهٔ اصلی» باشد.
           </p>
         )}
+        {(busy || installing) && <ProgressBar isIndeterminate aria-label={busy ? 'فعال‌سازی نسخهٔ جدید' : 'در انتظار نصب برنامه'}>
+          <ProgressBar.Track><ProgressBar.Fill /></ProgressBar.Track>
+        </ProgressBar>}
+        {user && <OfflineProgress online={online} />}
       </div>
     </Modal>
   </>

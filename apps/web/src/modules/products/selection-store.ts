@@ -94,6 +94,12 @@ function update(change: (previous: SelectionState) => { selectedIds: string[]; q
     const initialGeneration = generation
     const next = change(state)
     if (!next.selectedIds.length) { clear(); return }
+    if (!navigator.onLine) {
+      state = { ...state, ...next, quotes: [], busy: false, candidates: [], error: 'برای بررسی قیمت و موجودی به اینترنت وصل شوید.' }
+      persist()
+      emit()
+      return
+    }
     state = { ...state, busy: true, error: null }; emit()
     try {
       stockController = new AbortController()

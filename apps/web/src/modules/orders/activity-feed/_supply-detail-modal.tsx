@@ -15,10 +15,11 @@ interface SupplyDetailModalProps {
   onClose: () => void
   supplyDetail: Pick<UseQueryResult<SupplyRequestDetail>, 'isPending' | 'error' | 'data'>
   isCancelling: boolean
+  online: boolean
   onCancel: (id: number) => void
 }
 
-export function SupplyDetailModal({ isOpen, onClose, supplyDetail, isCancelling, onCancel }: SupplyDetailModalProps) {
+export function SupplyDetailModal({ isOpen, onClose, supplyDetail, isCancelling, online, onCancel }: SupplyDetailModalProps) {
   return (
   <Modal.Root isOpen={isOpen} onOpenChange={(open) => { if (!open) onClose() }}>
     <Modal.Backdrop
@@ -38,7 +39,7 @@ export function SupplyDetailModal({ isOpen, onClose, supplyDetail, isCancelling,
             {supplyDetail.isPending && <p>در حال دریافت اطلاعات درخواست…</p>}
             {supplyDetail.error && (
               <p role="alert" className="text-danger">
-                دریافت اطلاعات درخواست با خطا مواجه شد.
+                {online ? 'دریافت اطلاعات درخواست با خطا مواجه شد.' : 'برای دریافت این درخواست به اینترنت وصل شوید.'}
               </p>
             )}
 
@@ -119,7 +120,7 @@ export function SupplyDetailModal({ isOpen, onClose, supplyDetail, isCancelling,
                   </div>
                 )}
 
-                {supplyDetail.data.canCancel && (
+                {online && supplyDetail.data.canCancel && (
                   <div className="pt-2">
                     <Button
                       fullWidth

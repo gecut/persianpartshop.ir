@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Button, Modal } from '@heroui/react'
 import { XIcon } from '@/components/ui/icons'
-import { catalogCoordinator } from './catalog-data'
+import { scanOfflineProduct } from './catalog-data'
 import { authStore } from '@/modules/auth/auth-store'
 import { mapCatalogProduct } from './product-store'
 import type { Product } from './product-types'
@@ -33,7 +33,7 @@ export function ProductQrScanner({ onClose, onProduct }: ProductQrScannerProps) 
     setState('loading')
     try {
       if (!authStore.getState().user?.canUseProductQr) throw new Error('دسترسی اسکن فعال نیست.')
-      const product = await catalogCoordinator.scan(code)
+      const product = await scanOfflineProduct(code)
       if (generation.current === request) onProduct(mapCatalogProduct(product))
     } catch (error) {
       if (generation.current !== request) return

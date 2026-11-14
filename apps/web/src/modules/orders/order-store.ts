@@ -2,6 +2,9 @@ import { authStore } from '@/modules/auth/auth-store'
 import { queryClient } from '@/lib/query-client'
 import { queryKeys, mutationKeys } from '@/lib/query-keys'
 import { catalogCoordinator } from '@/modules/products/catalog-data'
+import { useOfflinePackage } from '@/modules/pwa/offline-package'
+import { useOnline } from '@/lib/use-online'
+import { useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { type Order, type OrderItem, type TimelineStep } from './order-types'
 import { api } from '@/lib/api-client'
@@ -245,7 +248,15 @@ export const orderStore = {
   },
 }
 export function useOrderDetail(id: string) {
-  return useQuery(orderDetailOptions(id))
+  const online = useOnline()
+  const { active, restoring } = useOfflinePackage()
+  const query = useQuery({ ...orderDetailOptions(id), enabled: online })
+  const saved = active?.data.orders[id]
+  const data = useMemo(() => saved ? mapDocToOrder(saved) : undefined, [saved])
+  return online ? query : {
+    ...query, data, isPending: !!restoring,
+    error: !restoring && !data ? new Error('برای دریافت این سفارش به اینترنت وصل شوید.') : null,
+  }
 }
 export function useCancelOrder() {
   const client = useQueryClient()

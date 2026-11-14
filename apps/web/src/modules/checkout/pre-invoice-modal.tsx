@@ -1,5 +1,6 @@
 import { useSubmitOrder } from "@/modules/orders/use-submit-order"
 import { customerErrorMessage } from '@/lib/utils/error'
+import { useOnline } from '@/lib/use-online'
 import { summarizeQuantities } from '@/lib/utils/unit'
 import { useProductSelection } from '@/modules/products/selection-store'
 import { WarehouseSummary } from '@/modules/cart/warehouse-summary'
@@ -37,6 +38,7 @@ export function PreInvoiceModal({
   onSuccess,
 }: PreInvoiceModalProps) {
   const draft = useProductSelection();
+  const online = useOnline();
 
   const navigate = useNavigate();
   const idempotencyKeyRef = useRef<string | null>(null);
@@ -265,11 +267,11 @@ export function PreInvoiceModal({
 
               <div className="flex-1">
                 <CheckoutCommit
-                  label="برای ثبت سفارش بکشید"
+                  label={online ? "برای ثبت سفارش بکشید" : "برای ثبت سفارش به اینترنت وصل شوید"}
                   doneLabel="سفارش تایید شد"
                   errorLabel="خطا در ثبت سفارش"
                   disabled={
-                    invoiceItems.length === 0 || submitOrderMutation.isPending || draft.busy || !draft.warehouse || draft.quotes.length !== draft.selectedIds.length
+                    !online || invoiceItems.length === 0 || submitOrderMutation.isPending || draft.busy || !draft.warehouse || draft.quotes.length !== draft.selectedIds.length
                   }
                   onConfirm={handleFinalConfirm}
                 />

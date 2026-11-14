@@ -17,7 +17,9 @@ The generated manifest uses `/product` and standalone Persian/RTL presentation. 
 
 Updates use the generated Workbox worker in prompt mode. A dismissed update banner returns on the next app load; Account always exposes the pending update. Update and explicit logout are blocked during active writes. Cross-tab write activity uses bounded storage heartbeats and BroadcastChannel notifications with storage-event fallback. Old heartbeat entries expire after 35 seconds, alongside the 30-second request timeout.
 
-The worker precaches the application shell, local font, install icons and image placeholder. Public catalog images with a successful CORS response use a separate cache capped at 100 entries and seven days. API, document uploads, QR binaries and unrecognized navigations are not offline fallbacks. A warm start displays the saved first page without a skeleton. Filters and further pages need an internet connection. An offline start without a saved first page shows connection guidance. Saved prices and stock reflect the last download and require live validation for ordering.
+The worker precaches the application shell, local font, install icons, image placeholder and QR assets. From the install or update dialog, a signed-in customer can prepare an offline package containing the full permitted catalog, dimensions, plans, order and supply history with details, profile and document status, and authorized QR codes. The dialog reports work completed, and an interrupted download can be resumed after reload. IndexedDB publishes one completed package at a time. Its public product images use a separate Cache Storage namespace that survives worker updates.
+
+The package expires seven days after completion or when the server-issued offline access window ends, whichever comes first. Account changes, logout and confirmed catalog scope changes invalidate it. The first-page cache remains a fallback for existing installations. API responses are not cached by the worker. Opening private documents, live quotes and server writes requires connectivity. Saved prices and stock reflect the last download.
 
 ## Direct links and navigation
 
@@ -33,6 +35,10 @@ From repository root:
 - `pnpm --filter @persianpart/api exec tsc --noEmit`
 - `pnpm --filter @persianpart/web test:catalog:unit`
 
+For a local browser smoke test, start the production preview on port 55177, open `http://localhost:55177/login` in a fresh Playwright CLI session, then run `pnpm exec playwright-cli run-code --filename=apps/web/tests/offline-browser.smoke.js` from the repository root. The script supplies fixture API and image responses and switches the browser offline after preparing the package.
+
 The web container now owns its nginx configuration: HTML, manifest and worker require revalidation, hashed assets are immutable, missing assets/API paths return 404 rather than HTML. Production must provide HTTPS and route the configured API/CDN origins correctly. Reverse proxies must preserve these policies. The build does not establish real-device installation or the live proxy configuration.
 
 Rollback must continue serving a valid worker at `/sw.js`; removing the file alone does not uninstall existing workers. If PWA support is deliberately withdrawn, use a cleanup worker at that URL before removing it.
+
+Deploy the additive session and catalog contracts before the web build. On staging, measure image count, bytes, CORS behavior, elapsed time and storage on the real CDN. In installed Chrome Android and iOS Safari, prepare the package, disconnect, close and reopen, and exercise catalog filters, the full gallery, QR scanning and exports, history, plans and document status. Repeat with a failed image, a refresh with an existing package, two tabs and a changed account. Report phase, counts, duration and error category without recording account data, QR payloads or private URLs.

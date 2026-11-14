@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { skipToken, useQuery } from '@tanstack/react-query'
 import { CatalogRecordSchema } from '@persianpart/contract'
 import { api, hasForegroundRequests } from '@/lib/api-client'
@@ -9,9 +9,21 @@ import { authStore, useAuth } from '@/modules/auth/auth-store'
 import { createCatalogCoordinator, emptyCatalog, type CatalogSnapshot } from './catalog-coordinator'
 import { mapCatalogProduct } from './catalog-mapper'
 import { createCatalogPersistence } from './_catalog-persistence'
+import { offlinePackageSnapshot, useOfflinePackage } from '@/modules/pwa/offline-package'
+import { useOnline } from '@/lib/use-online'
 
 const yieldToUI = () => new Promise<void>(resolve => setTimeout(resolve, 0))
 const persistence = createCatalogPersistence(queryClient, owner => catalogCoordinator.discardStored(owner))
+const offlineScanIndexes = new WeakMap<object, Record<string, string>>()
+
+function offlineScanIndex(products: CatalogSnapshot['byId']) {
+  let index = offlineScanIndexes.get(products)
+  if (!index) {
+    index = Object.fromEntries(Object.values(products).flatMap(record => record.scanHash ? [[record.scanHash, String(record.id)]] : []))
+    offlineScanIndexes.set(products, index)
+  }
+  return index
+}
 export const catalogCoordinator = createCatalogCoordinator(queryClient, {
   syncPage: (input, signal) => api.catalog.syncPage(input, { signal }),
   getByIds: (ids, signal) => api.catalog.getByIds({ ids }, { signal }),
@@ -37,19 +49,10 @@ queryClient.getMutationCache().subscribe(event => {
 })
 window.addEventListener('persianpart:write-finished', () => { if (!catalogCoordinator.snapshot().error) void catalogCoordinator.resume() })
 
-function subscribeConnection(notify: () => void) {
-  window.addEventListener('online', notify)
-  window.addEventListener('offline', notify)
-  return () => {
-    window.removeEventListener('online', notify)
-    window.removeEventListener('offline', notify)
-  }
-}
-
 export function useCatalogData(start = false) {
   const { user } = useAuth()
   const owner = user?.id ?? ''
-  const online = useSyncExternalStore(subscribeConnection, () => navigator.onLine)
+  const online = useOnline()
   const result = useQuery<CatalogSnapshot>({
     queryKey: queryKeys.products.catalog(owner),
     queryFn: skipToken,
@@ -63,8 +66,28 @@ export function useCatalogData(start = false) {
       else void catalogCoordinator.resume()
     }
   }, [owner, start])
-  const state = result.data ?? emptyCatalog
-  return { state, owner, online, isRestoring: !!owner && (!result.data || !!state.restoring) }
+  const offline = useOfflinePackage()
+  const pack = !online && offline.active?.owner === owner ? offline.active : undefined
+  const state = useMemo(() => {
+    if (!pack) return result.data ?? emptyCatalog
+    const scanIndex = offlineScanIndex(pack.data.products)
+    return { ...emptyCatalog, byId: pack.data.products, scanIndex, scopeKey: pack.scopeKey, complete: true, completedAt: pack.completedAt ?? 0 }
+  }, [pack, result.data])
+  return { state, pack, owner, online, isRestoring: !!owner && (pack ? false : (!online && offline.restoring) || !result.data || !!state.restoring) }
+}
+
+export async function scanOfflineProduct(code: string) {
+  if (navigator.onLine) return catalogCoordinator.scan(code)
+  const pack = offlinePackageSnapshot()
+  const normalized = code.trim().toUpperCase()
+  if (!/^[A-Z0-9-]{1,128}$/.test(normalized)) throw Object.assign(new Error('Invalid QR'), { code: 'BAD_REQUEST' })
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(normalized))
+  const hash = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('')
+  if (!pack || pack.id !== offlinePackageSnapshot()?.id) throw new Error('Offline catalog unavailable')
+  const id = offlineScanIndex(pack.data.products)[hash]
+  const product = id ? pack.data.products[id] : undefined
+  if (!product) throw Object.assign(new Error('Product unavailable'), { code: 'NOT_FOUND' })
+  return product
 }
 
 export function useCatalogIds(ids: string[]) {
