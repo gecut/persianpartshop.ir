@@ -1,0 +1,58 @@
+.inventory {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.warehouse {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  align-items: start;
+  gap: 0.75rem 1rem;
+  border: 1px solid var(--theme-elevation-200);
+  border-radius: var(--style-radius-m, 6px);
+  padding: 1rem;
+}
+
+.warehouse h3,
+.warehouse p {
+  margin: 0;
+}
+
+.controls,
+.controls label {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.controls input,
+.warehouse button,
+.inventory > button {
+  border: 1px solid var(--theme-elevation-300);
+  border-radius: var(--style-radius-s, 4px);
+  background: var(--theme-input-bg, var(--theme-elevation-50));
+  color: var(--theme-text);
+  padding: 0.4rem 0.65rem;
+  font: inherit;
+}
+
+.controls input {
+  min-inline-size: 0;
+  inline-size: 100%;
+}
+
+.warehouse button,
+.inventory > button {
+  justify-self: start;
+  cursor: pointer;
+}
+
+.warehouse button:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}

@@ -226,6 +226,14 @@ export const Products: CollectionConfig = {
           ],
         },
         {
+          label: "موجودی انبارها",
+          fields: [{
+            name: "warehouseInventoryUi",
+            type: "ui",
+            admin: { components: { Field: "/collections/products/components/product-warehouse-stock#ProductWarehouseStock" } },
+          }],
+        },
+        {
           label: "محتوای فروشگاه",
           fields: [
             { name: "cover", type: "upload", relationTo: "media", label: "تصویر شاخص", admin: { description: "تصویر اصلی محصول در فروشگاه." } },

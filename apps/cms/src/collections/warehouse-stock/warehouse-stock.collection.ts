@@ -2,6 +2,7 @@ import { businessError, fieldError, sameRelation } from '../../lib/validation'
 import { getSalesFactor } from '../products/_inventory-math'
 import type { CollectionConfig } from 'payload'
 import { stockImportEndpoints } from './_import.endpoints'
+import { productStockEndpoints } from './_product-stock.endpoints'
 import { manageWarehouses, readWarehouseStock } from '../warehouses/warehouses.collection'
 import { sql } from '@payloadcms/db-postgres'
 import { getOrderTransaction } from '../orders/_transaction'
@@ -14,7 +15,7 @@ export const WarehouseStock: CollectionConfig = {
     group: 'انبار و موجودی',
     components: { beforeListTable: ['/collections/warehouse-stock/components/stock-import#StockImport'] },
   },
-  endpoints: stockImportEndpoints,
+  endpoints: [...stockImportEndpoints, ...productStockEndpoints],
   access: { read: readWarehouseStock, create: manageWarehouses, update: manageWarehouses, delete: () => false },
   indexes: [{ fields: ['warehouse', 'product'], unique: true }],
   fields: [

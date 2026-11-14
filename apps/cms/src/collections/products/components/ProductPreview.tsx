@@ -48,7 +48,6 @@ export const ProductPreview: React.FC = () => {
             <span style={{ color: 'var(--theme-elevation-600)' }}>قیمت هر {unitName}: </span>
             <strong style={{ color: 'var(--theme-elevation-900)' }}>{price.toLocaleString('fa-IR')} تومان</strong>
           </div>
-<div><a href="/admin/collections/warehouse-stock">مدیریت موجودی به تفکیک انبار</a></div>
           {Number.isFinite(weight) && weight > 0 && (
             <div>
               <span style={{ color: 'var(--theme-elevation-600)' }}>وزن / مقدار هر واحد: </span>
@@ -103,7 +102,6 @@ export const ProductPreview: React.FC = () => {
         </div>
 
       </div>
-      <a href="/admin/collections/warehouse-stock">مدیریت موجودی به تفکیک انبار</a>
       <div style={{ marginTop: '6px', fontSize: '11px', color: 'var(--theme-elevation-500)' }}>
         * این پیش‌نمایش فقط در پنل مدیریت است و قیمت نهایی مشتری بر اساس ضریب رده مشتری محاسبه می‌شود.
       </div>
