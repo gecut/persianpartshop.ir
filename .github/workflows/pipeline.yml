@@ -108,6 +108,7 @@ jobs:
           build-args: |
             VITE_API_URL=${{ vars.VITE_API_URL || 'https://api.persianpart.shop' }}
             VITE_CDN_URL=${{ vars.VITE_CDN_URL || 'https://cdn.persianpart.shop' }}
+            VITE_OFFLINE_RECOVERY=${{ vars.VITE_OFFLINE_RECOVERY || 'false' }}
           cache-from: type=gha,scope=${{ matrix.name }}
           cache-to: ${{ github.event_name != 'pull_request' && format('type=gha,mode=max,scope={0}', matrix.name) || '' }}
           provenance: ${{ github.event_name != 'pull_request' && 'mode=max' || 'false' }}

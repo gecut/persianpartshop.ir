@@ -39,6 +39,7 @@ services:
       CDN_URL: ${CDN_URL:-https://${CDN_DOMAIN:-cdn.persianpart.shop}}
       CORS_ORIGINS: ${CORS_ORIGINS:-https://${CMS_DOMAIN:-admin.persianpart.shop},https://${WEB_DOMAIN:-persianpart.shop},https://${API_DOMAIN:-api.persianpart.shop},https://${CDN_DOMAIN:-cdn.persianpart.shop},http://localhost:3000,http://localhost:5173,http://localhost:5174,http://localhost:5175}
       MEDIA_DIR: /app/media
+      OFFLINE_SNAPSHOTS_ENABLED: ${OFFLINE_SNAPSHOTS_ENABLED:-false}
     volumes:
       - persianpart_media_data:/app/media
     healthcheck:

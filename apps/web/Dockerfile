@@ -34,6 +34,8 @@ ENV VITE_API_URL=$VITE_API_URL
 # Public CDN origin used to build media image URLs at build time
 ARG VITE_CDN_URL=https://cdn.persianpart.shop
 ENV VITE_CDN_URL=$VITE_CDN_URL
+ARG VITE_OFFLINE_RECOVERY=false
+ENV VITE_OFFLINE_RECOVERY=$VITE_OFFLINE_RECOVERY
 
 # Build web application
 RUN pnpm --filter @persianpart/web build
