@@ -38,6 +38,18 @@ describe('typed shared catalog boundary', () => {
     categories = []; permission = false
     expect((await catalogScope(ctx)).scopeKey).not.toBe(original.scopeKey)
   })
+  test('offline QR codes require explicit opt-in and current customer permission', async () => {
+    const ctx = context()
+    const ordinary = await call(catalogSync.syncPage, { limit: 1 }, { context: ctx })
+    expect(ordinary.offlineQr).toBeUndefined()
+    const downloaded = await call(catalogSync.syncPage, { limit: 1, includeOfflineQr: true }, { context: ctx })
+    expect(downloaded.offlineQr).toEqual([{ id: 1, scanCode: 'PP-001' }])
+    expect(downloaded.items[0]).not.toHaveProperty('scanCode')
+    permission = false
+    const denied = await call(catalogSync.syncPage, { limit: 1, includeOfflineQr: true }, { context: ctx })
+    expect(denied.offlineQr).toBeUndefined()
+    expect(denied.items[0]?.scanHash).toBeUndefined()
+  })
   test('stable cursors carry the watermark and reject a changed scope without data', async () => {
     const ctx = context()
     pageDocs = [product, { ...product, id: 2 }]

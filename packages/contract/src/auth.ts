@@ -73,6 +73,7 @@ export const authContract = {
       z.object({
         user: SessionUserSchema.nullable(),
         catalogScopeKey: z.string().optional(),
+        offlineAccessUntil: z.number().int().positive().optional(),
       })
     ),
 

@@ -57,7 +57,10 @@ const syncPage = authed.catalog.syncPage.handler(async ({ input, context }) => {
   const products = await attachWarehouseStock(page)
   const last = page.at(-1)
   const nextCursor = result.docs.length > input.limit && last ? Buffer.from(JSON.stringify({ watermark, createdAt: last.createdAt, id: last.id, scopeKey: scope.scopeKey })).toString('base64url') : null
-  return { scopeKey: scope.scopeKey, items: products.map(product => catalogRecord(product, context, scope)), nextCursor }
+  const offlineQr = input.includeOfflineQr && context.user?.role === 'customer' && scope.permissions.canUseProductQr
+    ? products.flatMap(product => product.scanCode ? [{ id: product.id, scanCode: product.scanCode }] : [])
+    : undefined
+  return { scopeKey: scope.scopeKey, items: products.map(product => catalogRecord(product, context, scope)), nextCursor, offlineQr }
 })
 const getByIds = authed.catalog.getByIds.handler(async ({ input, context }) => {
   const scope = await catalogScope(context)

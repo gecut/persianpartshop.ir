@@ -1,4 +1,5 @@
 import { catalogScope } from './catalog-sync'
+import { offlineAccessUntil } from '../lib/offline-access'
 import { base } from '../rpc/base'
 import { ORPCError } from '@orpc/server'
 import { generateToken } from '../lib/jwt'
@@ -175,6 +176,7 @@ export const auth = base.auth.router({
       return {
         user: { ...safeUser, customerType: safeTier, showProductImageWatermark: userDoc.showProductImageWatermark === true },
         catalogScopeKey: scope.scopeKey,
+        offlineAccessUntil: offlineAccessUntil(context.jwtPayload?.exp),
       }
     } catch (err) {
       if (err instanceof ORPCError) throw err

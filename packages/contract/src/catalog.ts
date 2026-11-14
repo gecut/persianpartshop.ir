@@ -412,6 +412,7 @@ export const ScannedCatalogProductSchema = z.object({
   sqmPerCarton: z.number().nullish(),
   cartonsPerPallet: z.number().int().positive().nullable().optional(),
   hasSupplySource: z.boolean().optional(),
+  matchesInStockFilter: z.boolean().optional(),
   piecesPerCarton: z.number().nullish(),
   unit: z.string().nullish(),
   secondary_unit: z.string().nullish(),
@@ -671,8 +672,11 @@ export const tagContract = {
 }
 
 export const catalogContract = {
-  syncPage: oc.input(z.object({ cursor: z.string().max(2048).optional(), limit: z.number().int().min(1).max(100).default(24) }))
-    .output(CatalogScopeOutputSchema.extend({ nextCursor: z.string().nullable() })),
+  syncPage: oc.input(z.object({ cursor: z.string().max(2048).optional(), limit: z.number().int().min(1).max(100).default(24), includeOfflineQr: z.boolean().optional() }))
+    .output(CatalogScopeOutputSchema.extend({
+      nextCursor: z.string().nullable(),
+      offlineQr: z.array(z.object({ id: z.number().int().positive(), scanCode: z.string().min(1).max(128) })).optional(),
+    })),
   browse: oc.input(CatalogBrowseInputSchema).output(CatalogBrowseOutputSchema),
   facets: oc.output(CatalogFacetOutputSchema),
   getByIds: oc.input(z.object({ ids: z.array(z.number().int().positive()).max(100) })).output(CatalogScopeOutputSchema),

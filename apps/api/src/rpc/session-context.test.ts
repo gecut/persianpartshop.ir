@@ -27,10 +27,17 @@ mock.module('../payload', () => ({ sdk: {
 const { createContext } = await import('./context')
 const { base } = await import('./base')
 const { generateToken } = await import('../lib/jwt')
+const { offlineAccessUntil } = await import('../lib/offline-access')
 const { auth } = await import('../routers/auth')
 const { user } = await import('../routers/user')
 const request = async () => new Request('http://fixture.test/api/rpc/auth/session', { headers: { Authorization: `Bearer ${await generateToken({ id: 1 })}` } })
 describe('session lookup failure semantics', () => {
+  test('offline access stops at the earlier of token expiration or seven days', () => {
+    const now = 1_800_000_000_000
+    expect(offlineAccessUntil(now / 1000 + 60, now)).toBe(now + 60_000)
+    expect(offlineAccessUntil(now / 1000 + 30 * 86400, now)).toBe(now + 7 * 86400_000)
+    expect(offlineAccessUntil(undefined, now)).toBeUndefined()
+  })
   test('valid session is authenticated', async () => { lookup = 'ok'; expect((await createContext(await request())).user?.id).toBe(1) })
   test('service failure is not converted to an anonymous session', async () => {
     lookup = 'offline'

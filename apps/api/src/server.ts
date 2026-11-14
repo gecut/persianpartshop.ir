@@ -204,6 +204,9 @@ const rpcHandler = async (c: Context) => {
   })
 
   if (matched && response) {
+    if (c.req.path === '/api/rpc/catalog/syncPage' || c.req.path === '/api/rpc/auth/session') {
+      response.headers.set('Cache-Control', 'private, no-store')
+    }
     return response
   }
 

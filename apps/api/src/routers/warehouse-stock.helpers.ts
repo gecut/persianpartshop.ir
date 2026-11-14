@@ -33,6 +33,8 @@ export async function attachWarehouseStock(products: Product[]) {
   return products.map(product => {
     const inventorySqm = maximum.get(product.id) ?? 0
     const stockCartons = product.productType === 'other' ? inventorySqm : Math.floor(Math.round(inventorySqm * 100) / Math.round(getSalesFactor(product) * 100))
-    return { ...product, hasSupplySource: supplied.has(product.id), cartonsPerPallet: product.productType === 'other' ? null : product.cartonsPerPallet ?? null, inventorySqm, stockCartons, availability: stockCartons > 0 ? 'available' : 'out_of_stock' }
+    const matchesInStockFilter = inventorySqm > 0 && (product.productType === 'other' ||
+      (product.sqmPerCarton != null && inventorySqm >= Math.round(product.sqmPerCarton * 100) / 100))
+    return { ...product, matchesInStockFilter, hasSupplySource: supplied.has(product.id), cartonsPerPallet: product.productType === 'other' ? null : product.cartonsPerPallet ?? null, inventorySqm, stockCartons, availability: stockCartons > 0 ? 'available' : 'out_of_stock' }
   })
 }
