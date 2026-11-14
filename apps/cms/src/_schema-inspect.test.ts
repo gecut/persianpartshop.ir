@@ -79,13 +79,29 @@ test('full migrations: schema coverage, CRUD, and warehouse rollback', { skip: !
     for (const migration of migrations.slice(7)) {
       await db.transaction(transaction => migration.up({ db: transaction, payload } as unknown as MigrateUpArgs))
     }
-    const [stockOwnershipMigration, otpOwnershipMigration] = migrations.slice(-2)
+    const stockOwnershipMigration = migrations.find(migration => migration.name === '20261114_120000_product_stock_ownership')
+    const otpOwnershipMigration = migrations.find(migration => migration.name === '20261114_130000_customer_otp_ownership')
     await db.transaction(transaction => otpOwnershipMigration!.down({ db: transaction, payload } as unknown as MigrateDownArgs))
     await db.transaction(transaction => stockOwnershipMigration!.down({ db: transaction, payload } as unknown as MigrateDownArgs))
     assert.equal((await pool.query("SELECT confdeltype FROM pg_constraint WHERE conname = 'otps_user_id_users_id_fk'")).rows[0]?.confdeltype, 'r')
     await assert.rejects(pool.query('DELETE FROM products WHERE id = $1', [productId]), { code: '23503' })
     await db.transaction(transaction => stockOwnershipMigration!.up({ db: transaction, payload } as unknown as MigrateUpArgs))
     await db.transaction(transaction => otpOwnershipMigration!.up({ db: transaction, payload } as unknown as MigrateUpArgs))
+    const revisions = async () => Object.fromEntries((await pool.query('SELECT source, revision FROM offline_source_revision')).rows
+      .map(row => [row.source, Number(row.revision)]))
+    const beforeStock = await revisions()
+    await pool.query('UPDATE warehouse_stock SET inventory_sqm = inventory_sqm + 1, revision = revision + 1 WHERE product_id = $1', [productId])
+    const afterStock = await revisions()
+    assert.equal(afterStock.warehouse_stock, beforeStock.warehouse_stock + 1)
+    assert.equal(afterStock.warehouse_stock_structure, beforeStock.warehouse_stock_structure)
+    await pool.query('UPDATE warehouse_stock SET inventory_sqm = inventory_sqm - 1, revision = revision - 1 WHERE product_id = $1', [productId])
+    await pool.query('UPDATE products SET base_price_per_sqm = base_price_per_sqm + 1 WHERE id = $1', [productId])
+    assert.equal((await revisions()).products, afterStock.products + 1)
+    const tracked = Object.keys(await revisions()).filter(name => name !== 'warehouse_stock_structure')
+    const covered = (await pool.query("SELECT DISTINCT event_object_table FROM information_schema.triggers WHERE trigger_name LIKE 'mark_offline_%'")).rows
+      .map(row => row.event_object_table)
+    assert.deepEqual(tracked.sort(), covered.sort())
+
     assert.equal((await pool.query(
       'SELECT show_product_image_watermark FROM users WHERE id = $1', [legacyCustomer.rows[0]!.id],
     )).rows[0]?.show_product_image_watermark, false)

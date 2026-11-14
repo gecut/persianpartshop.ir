@@ -8,6 +8,7 @@ import { planContract } from './plan'
 import { shoppingContract } from './shopping'
 import { warehouseContract } from './warehouse'
 import { supplyRequestContract } from './supply-request'
+import { offlineContract } from './offline'
 import { activityFeedContract } from './activity-feed'
 
 /**
@@ -50,6 +51,7 @@ export const appContract = {
   warehouse: warehouseContract,
   supplyRequest: supplyRequestContract,
   activityFeed: activityFeedContract,
+  offline: offlineContract,
 }
 
 export type AppContract = typeof appContract
@@ -65,3 +67,5 @@ export * from './plan'
 export * from './warehouse'
 export * from './supply-request'
 export * from './activity-feed'
+
+export * from './offline'

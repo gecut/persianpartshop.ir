@@ -8,6 +8,7 @@ import { user } from './user'
 import { plan } from './plan'
 import { warehouse } from './warehouse'
 import { supplyRequest } from './supply-request'
+import { offline } from './offline'
 import { activityFeed } from './activity-feed'
 
 export { auth, catalog, shopping, order, customer, user, plan, activityFeed }
@@ -26,6 +27,7 @@ export const router = base.router({
   warehouse,
   supplyRequest,
   activityFeed,
+  offline,
 })
 
 export type AppRouter = typeof router

@@ -1,3 +1,4 @@
+import * as offlineSnapshots from './20261114_140000_offline_snapshots';
 import * as hookIntegrity from './20261110_120000_hook_integrity';
 import * as sharedTracking from './20261109_160000_shared_tracking_numbers';
 import * as migration_20261108_152041_baseline from './20261108_152041_baseline';
@@ -28,4 +29,5 @@ export const migrations = [
   { up: productGrades.up, down: productGrades.down, name: '20261112_120000_product_grades' },
   { up: productStockOwnership.up, down: productStockOwnership.down, name: '20261114_120000_product_stock_ownership' },
   { up: customerOtpOwnership.up, down: customerOtpOwnership.down, name: '20261114_130000_customer_otp_ownership' },
+  { up: offlineSnapshots.up, down: offlineSnapshots.down, name: '20261114_140000_offline_snapshots' },
 ];

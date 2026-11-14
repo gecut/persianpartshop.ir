@@ -8,6 +8,7 @@ import { logger } from 'hono/logger'
 import { prettyJSON } from 'hono/pretty-json'
 import { trimTrailingSlash } from 'hono/trailing-slash'
 import { jwt } from 'hono/jwt'
+import { startOfflineSnapshotCleanup } from './routers/offline'
 import { handler } from './rpc/handler'
 import { createContext } from './rpc/context'
 import { JWT_SECRET } from './lib/jwt'
@@ -204,7 +205,7 @@ const rpcHandler = async (c: Context) => {
   })
 
   if (matched && response) {
-    if (c.req.path === '/api/rpc/catalog/syncPage' || c.req.path === '/api/rpc/auth/session') {
+    if (c.req.path.startsWith('/api/rpc/offline/') || c.req.path === '/api/rpc/catalog/syncPage' || c.req.path === '/api/rpc/auth/session') {
       response.headers.set('Cache-Control', 'private, no-store')
     }
     return response
@@ -277,3 +278,5 @@ export default {
   hostname: HOSTNAME,
   fetch: app.fetch,
 }
+
+startOfflineSnapshotCleanup()
