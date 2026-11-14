@@ -6,6 +6,8 @@ import * as smsQueueAndNotifications from './20261111_010000_sms_queue_and_notif
 import * as smsQueueLockedDocs from './20261111_070000_sms_queue_locked_documents_rel';
 import * as productImageWatermark from './20261111_120000_product_image_watermark';
 import * as productGrades from './20261112_120000_product_grades';
+import * as productStockOwnership from './20261114_120000_product_stock_ownership';
+import * as customerOtpOwnership from './20261114_130000_customer_otp_ownership';
 
 export const migrations = [
   {
@@ -24,4 +26,6 @@ export const migrations = [
   { up: smsQueueLockedDocs.up, down: smsQueueLockedDocs.down, name: '20261111_070000_sms_queue_locked_documents_rel' },
   { up: productImageWatermark.up, down: productImageWatermark.down, name: '20261111_120000_product_image_watermark' },
   { up: productGrades.up, down: productGrades.down, name: '20261112_120000_product_grades' },
+  { up: productStockOwnership.up, down: productStockOwnership.down, name: '20261114_120000_product_stock_ownership' },
+  { up: customerOtpOwnership.up, down: customerOtpOwnership.down, name: '20261114_130000_customer_otp_ownership' },
 ];

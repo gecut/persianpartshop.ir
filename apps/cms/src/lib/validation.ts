@@ -27,7 +27,7 @@ export const describeDeleteConflict: AfterError = ({ error, req }) => {
   let cause: unknown = error
   for (let depth = 0; depth < 5 && cause && typeof cause === 'object'; depth++) {
     if ('code' in cause && cause.code === '23503') {
-      const message = 'این رکورد هنوز وابستگی دارد؛ صفحه را دوباره دریافت کنید و ابتدا ارتباط رکورد وابسته را بردارید. سوابق فروش قابل حذف نیستند؛ مرجع آن‌ها را غیرفعال کنید.'
+      const message = 'هنگام حذف، وابستگی این رکورد تغییر کرد. صفحه را دوباره دریافت کنید و حذف را بررسی کنید.'
       return { status: 409, response: { errors: [{ message, data: { message, code: 'REFERENCE_IN_USE' } }] } }
     }
     cause = 'cause' in cause ? cause.cause : undefined

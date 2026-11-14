@@ -72,28 +72,31 @@ export const SupplyRequests: CollectionConfig = {
       if (notes.length > 2000) throw businessError('یادداشت بیش از حد طولانی است.')
       const db = await getOrderTransaction(req)
 
-      let selectedWarehouse: { name: string; code: string } | null = null
-      if (warehouseId !== null) {
-        const lockedWarehouse = await db.execute(sql`SELECT id, name, code FROM warehouses WHERE id = ${warehouseId} AND is_active = true AND stock_mode = 'inquiry' FOR SHARE`)
-        if (!lockedWarehouse.rows.length) throw businessError('منبع تأمین انتخاب‌شده در دسترس نیست.', 'SOURCE_UNAVAILABLE', 409)
-        selectedWarehouse = lockedWarehouse.rows[0] as { name: string; code: string }
-        const sourceCheck = await db.execute(sql`SELECT id FROM warehouse_stock WHERE product_id = ${productId} AND warehouse_id = ${warehouseId} AND is_active = true FOR SHARE`)
-        if (!sourceCheck.rows.length) throw businessError('منبع تأمین انتخاب‌شده در دسترس نیست.', 'SOURCE_UNAVAILABLE', 409)
-      } else {
-        const sourceCheck = await db.execute(sql`
-          SELECT ws.id 
-          FROM warehouse_stock ws 
-          JOIN warehouses w ON w.id = ws.warehouse_id 
-          WHERE ws.product_id = ${productId} 
-            AND w.is_active = true 
-            AND w.stock_mode = 'inquiry' 
-            AND ws.is_active = true 
-          LIMIT 1 FOR SHARE
+      const unavailable = () => businessError('منبع تأمین انتخاب‌شده در دسترس نیست.', 'SOURCE_UNAVAILABLE', 409)
+      let sourceWarehouseId = warehouseId
+      if (sourceWarehouseId === null) {
+        const candidates = await db.execute(sql`
+          SELECT w.id FROM warehouse_stock ws JOIN warehouses w ON w.id = ws.warehouse_id
+          WHERE ws.product_id = ${productId} AND ws.is_active = true
+            AND w.is_active = true AND w.stock_mode = 'inquiry'
+          ORDER BY w.id LIMIT 1
         `)
-        if (!sourceCheck.rows.length) throw businessError('منبع تأمین انتخاب‌شده در دسترس نیست.', 'SOURCE_UNAVAILABLE', 409)
+        if (!candidates.rows.length) throw unavailable()
+        sourceWarehouseId = Number(candidates.rows[0]!.id)
       }
-
-      await db.execute(sql`SELECT id FROM products WHERE id = ${productId} FOR SHARE`)
+      const lockedWarehouse = await db.execute(sql`
+        SELECT name, code FROM warehouses
+        WHERE id = ${sourceWarehouseId} AND is_active = true AND stock_mode = 'inquiry' FOR SHARE
+      `)
+      if (!lockedWarehouse.rows.length) throw unavailable()
+      const lockedProduct = await db.execute(sql`SELECT id FROM products WHERE id = ${productId} FOR SHARE`)
+      if (!lockedProduct.rows.length) throw unavailable()
+      const sourceCheck = await db.execute(sql`
+        SELECT id FROM warehouse_stock
+        WHERE product_id = ${productId} AND warehouse_id = ${sourceWarehouseId} AND is_active = true FOR SHARE
+      `)
+      if (!sourceCheck.rows.length) throw unavailable()
+      const selectedWarehouse = warehouseId === null ? null : lockedWarehouse.rows[0] as { name: string; code: string }
       const user = await req.payload.findByID({ collection: 'users', id: userId, depth: 1, req })
       const product = await req.payload.findByID({ collection: 'products', id: productId, depth: 0, req })
       if (user.status !== 'active' || user.disableOrdering || user.hideExactStock) throw businessError('اجازهٔ ثبت این درخواست را ندارید.', 'FORBIDDEN', 403)
