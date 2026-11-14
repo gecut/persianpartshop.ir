@@ -4,6 +4,7 @@ import { createHmac, randomUUID } from 'node:crypto'
 import { test } from 'node:test'
 import { getPayload, createLocalReq, initTransaction, commitTransaction, killTransaction } from 'payload'
 import { stockImportEndpoints, parseStockCsv } from './collections/warehouse-stock/_import.endpoints'
+import { productStockEndpoints } from './collections/warehouse-stock/_product-stock.endpoints'
 import { activityFeedEndpoint } from './endpoints/activity-feed.endpoint'
 import { drizzle } from '@payloadcms/db-postgres/drizzle/node-postgres'
 import { getTableConfig } from '@payloadcms/db-postgres/drizzle/pg-core'
@@ -13,7 +14,7 @@ import { migrations } from './migrations/index'
 const require = createRequire(import.meta.url)
 const pg = require(require.resolve('pg', { paths: [require.resolve('@payloadcms/db-postgres')] })) as PostgresAdapter['pg']
 
-test('full migrations: schema coverage, CRUD, and warehouse rollback', { skip: !process.env.CMS_MIGRATION_TEST_DATABASE_URI }, async () => {
+test('full migrations: schema coverage, CRUD, and warehouse rollback', { skip: !process.env.CMS_MIGRATION_TEST_DATABASE_URI }, async (suite) => {
   const target = new URL(process.env.CMS_MIGRATION_TEST_DATABASE_URI!)
   assert.ok(target.protocol === 'postgres:' || target.protocol === 'postgresql:')
   assert.ok(target.hostname === '127.0.0.1' || target.hostname === 'localhost' || target.hostname === '[::1]')
@@ -42,8 +43,6 @@ test('full migrations: schema coverage, CRUD, and warehouse rollback', { skip: !
 
   try {
     await control.query(`CREATE DATABASE "${name}"`)
-    assert.equal(migrations.length, 7)
-
     // Exercise the production upgrade path with existing baseline data.
     await db.transaction(transaction => migrations[0]!.up({ db: transaction, payload } as unknown as MigrateUpArgs))
     const legacyProduct = await pool.query<{ id: number }>("INSERT INTO products (name, sku, slug) VALUES ('Legacy', 'MIGRATION-FIXTURE', 'migration-fixture') RETURNING id")
@@ -77,6 +76,16 @@ test('full migrations: schema coverage, CRUD, and warehouse rollback', { skip: !
     await db.transaction(transaction => watermarkMigration.up({ db: transaction, payload } as unknown as MigrateUpArgs))
     await db.transaction(transaction => watermarkMigration.down({ db: transaction, payload } as unknown as MigrateDownArgs))
     await db.transaction(transaction => watermarkMigration.up({ db: transaction, payload } as unknown as MigrateUpArgs))
+    for (const migration of migrations.slice(7)) {
+      await db.transaction(transaction => migration.up({ db: transaction, payload } as unknown as MigrateUpArgs))
+    }
+    const [stockOwnershipMigration, otpOwnershipMigration] = migrations.slice(-2)
+    await db.transaction(transaction => otpOwnershipMigration!.down({ db: transaction, payload } as unknown as MigrateDownArgs))
+    await db.transaction(transaction => stockOwnershipMigration!.down({ db: transaction, payload } as unknown as MigrateDownArgs))
+    assert.equal((await pool.query("SELECT confdeltype FROM pg_constraint WHERE conname = 'otps_user_id_users_id_fk'")).rows[0]?.confdeltype, 'r')
+    await assert.rejects(pool.query('DELETE FROM products WHERE id = $1', [productId]), { code: '23503' })
+    await db.transaction(transaction => stockOwnershipMigration!.up({ db: transaction, payload } as unknown as MigrateUpArgs))
+    await db.transaction(transaction => otpOwnershipMigration!.up({ db: transaction, payload } as unknown as MigrateUpArgs))
     assert.equal((await pool.query(
       'SELECT show_product_image_watermark FROM users WHERE id = $1', [legacyCustomer.rows[0]!.id],
     )).rows[0]?.show_product_image_watermark, false)
@@ -235,6 +244,120 @@ test('full migrations: schema coverage, CRUD, and warehouse rollback', { skip: !
     const managerActor = { ...supplyManager, collection: 'admins' as const }
     const serviceActor = { ...service, collection: 'admins' as const }
     const supportActor = { ...support, collection: 'admins' as const }
+    await suite.test('customer deletion cascades OTPs and preserves access rules', async () => {
+      for (const [phone, minutes] of [['09120000111', 5], ['09120000112', -5]] as const) {
+        const customer = await payload.create({ collection: 'users', data: { phone, fullName: 'OTP test', customerType: tier.id, status: 'active', showProductImageWatermark: false } })
+        await pool.query('INSERT INTO otps (user_id, phone, expires_at, cooldown_until) VALUES ($1, $2, now() + $3 * interval \'1 minute\', now())', [customer.id, customer.phone, minutes])
+        await payload.delete({ collection: 'users', id: customer.id })
+        assert.equal((await pool.query('SELECT id FROM otps WHERE user_id = $1', [customer.id])).rowCount, 0)
+      }
+      const category = await payload.create({ collection: 'categories', data: { name: 'Restricted category', slug: 'restricted-delete-test' } })
+      const customer = await payload.create({ collection: 'users', data: { phone: '09120000113', fullName: 'Restricted customer', customerType: tier.id, allowedCategories: [category.id], status: 'active', showProductImageWatermark: false } })
+      await assert.rejects(
+        payload.delete({ collection: 'categories', id: category.id, user: { ...managerActor, role: 'editor' }, overrideAccess: false }),
+        error => error instanceof Error && /کل کاتالوگ/.test(error.message) && !/شناسه/.test(error.message),
+      )
+      assert.deepEqual((await payload.findByID({ collection: 'users', id: customer.id, depth: 0 })).allowedCategories, [category.id])
+    })
+    await suite.test('product deletion removes only owned stock and preserves sales history', async () => {
+      const unusedProduct = await payload.create({ collection: 'products', data: { sku: 'PP-DELETE', slug: 'pp-delete', name: 'Unused product' } })
+      const unusedStock = await payload.create({ collection: 'warehouse-stock', data: { warehouse: warehouse.id, product: unusedProduct.id, inventorySqm: 10, revision: 0, isActive: true } })
+      await payload.create({ collection: 'warehouse-stock', data: { warehouse: inquiry.id, product: unusedProduct.id, revision: 0, isActive: false } })
+      await pool.query('INSERT INTO supply_sources_legacy (product_id, warehouse_id, last_reported_at) VALUES ($1, $2, now())', [unusedProduct.id, inquiry.id])
+      await assert.rejects(payload.delete({ collection: 'warehouse-stock', id: unusedStock.id, user: managerActor, overrideAccess: false }))
+      await assert.rejects(payload.delete({ collection: 'warehouse-stock', id: unusedStock.id }), /حذف موجودی انبار مجاز نیست/)
+      await payload.delete({ collection: 'products', id: unusedProduct.id, user: managerActor, overrideAccess: false })
+      await assert.rejects(payload.findByID({ collection: 'products', id: unusedProduct.id }))
+      assert.equal((await pool.query('SELECT id FROM warehouse_stock WHERE product_id = $1', [unusedProduct.id])).rowCount, 0)
+      assert.equal((await pool.query('SELECT id FROM supply_sources_legacy WHERE product_id = $1', [unusedProduct.id])).rowCount, 1)
+
+      const orderedProduct = await payload.create({ collection: 'products', data: { sku: 'PP-KEEP', slug: 'pp-keep', name: 'Ordered product', basePricePerSqm: 100 } })
+      const orderedStock = await payload.create({ collection: 'warehouse-stock', data: { warehouse: warehouse.id, product: orderedProduct.id, inventorySqm: 10, revision: 0, isActive: true } })
+      const order = await payload.create({
+        collection: 'orders',
+        user: serviceActor,
+        data: { user: user.id, warehouse: warehouse.id, status: 'pending', trackingNumber: 0, orderNumber: '', subtotal: 0, finalTotal: 0, items: [{ product: orderedProduct.id, requestedArea: 1 }] } as never,
+      })
+      const deleteOrderedProduct = () => payload.delete({ collection: 'products', id: orderedProduct.id, user: managerActor, overrideAccess: false })
+      await assert.rejects(deleteOrderedProduct(), /سفارش/)
+      await payload.update({ collection: 'orders', id: order.id, data: { status: 'cancelled_by_admin' }, user: managerActor, overrideAccess: false })
+      await assert.rejects(deleteOrderedProduct(), /سفارش/)
+      await assert.rejects(pool.query('DELETE FROM products WHERE id = $1', [orderedProduct.id]), { code: '23503' })
+      assert.equal((await payload.findByID({ collection: 'warehouse-stock', id: orderedStock.id })).inventorySqm, 10)
+      await pool.query("INSERT INTO otps (user_id, phone, expires_at, cooldown_until) VALUES ($1, $2, now() + interval '5 minutes', now())", [user.id, user.phone])
+      await assert.rejects(payload.delete({ collection: 'users', id: user.id }), /مسدود/)
+      await assert.rejects(pool.query('DELETE FROM users WHERE id = $1', [user.id]), { code: '23503' })
+      assert.equal((await pool.query('SELECT id FROM otps WHERE user_id = $1', [user.id])).rowCount, 1)
+    })
+    await suite.test('product stock operations enforce revision, permissions, and audit rollback', async () => {
+      const item = await payload.create({ collection: 'products', data: { sku: 'PP-INLINE', name: 'Inline stock', slug: 'pp-inline', basePricePerSqm: 100 } })
+      const [read, write] = productStockEndpoints
+      const request = async (actor: typeof managerActor, body?: { warehouseId: number; revision: number | null; amount: number | null }) => {
+        const req = await createLocalReq({ user: actor }, payload)
+        Object.assign(req, { routeParams: { productId: String(item.id) }, json: async () => body })
+        return body ? write!.handler(req) : read!.handler(req)
+      }
+      await assert.rejects(request(supportActor), { status: 403 })
+      await assert.rejects(request({ ...managerActor, role: 'editor' } as never), { status: 403 })
+      assert.equal((await (await request(serviceActor)).json()).canEdit, false)
+      const add = { warehouseId: warehouse.id, revision: null, amount: 0 }
+      await assert.rejects(request(serviceActor, add), { status: 403 })
+      const duplicate = await Promise.allSettled([request(managerActor, add), request(managerActor, add)])
+      assert.equal(duplicate.filter(result => result.status === 'fulfilled').length, 1)
+      assert.equal(duplicate.find(result => result.status === 'rejected')?.reason.data.code, 'STALE_STOCK')
+      const adjust = { ...add, revision: 0, amount: 2.88 }
+      assert.equal((await request(managerActor, adjust)).status, 200)
+      await assert.rejects(request(managerActor, adjust), { status: 409 })
+      assert.equal((await request(managerActor, { warehouseId: inquiry.id, revision: null, amount: null })).status, 200)
+      const view = await (await request(managerActor)).json()
+      assert.equal(view.rows.find((row: { warehouse: { id: number } }) => row.warehouse.id === warehouse.id).balance.amount, 2.88)
+      assert.equal(view.rows.find((row: { warehouse: { id: number } }) => row.warehouse.id === inquiry.id).balance.amount, null)
+      const balance = (await payload.find({ collection: 'warehouse-stock', where: { product: { equals: item.id }, warehouse: { equals: warehouse.id } }, depth: 0 })).docs[0]!
+      await payload.update({ collection: 'warehouse-stock', id: balance.id, data: { isActive: false } })
+      await assert.rejects(request(managerActor, { ...adjust, revision: 1, amount: 10 }), { status: 409 })
+      await payload.update({ collection: 'warehouse-stock', id: balance.id, data: { isActive: true } })
+      await pool.query("ALTER TABLE audit_logs ADD CONSTRAINT inline_stock_audit_failure CHECK (details NOT LIKE '%مقدار جدید: 99%')")
+      try {
+        await assert.rejects(request(managerActor, { ...adjust, revision: 1, amount: 99 }))
+      } finally {
+        await pool.query('ALTER TABLE audit_logs DROP CONSTRAINT inline_stock_audit_failure')
+      }
+      const unchanged = await payload.findByID({ collection: 'warehouse-stock', id: balance.id })
+      assert.equal(unchanged.inventorySqm, 2.88)
+      assert.equal(unchanged.revision, 1)
+
+      await payload.create({
+        collection: 'orders', user: serviceActor,
+        data: { user: user.id, warehouse: warehouse.id, status: 'pending', trackingNumber: 0, orderNumber: '', subtotal: 0, finalTotal: 0, items: [{ product: item.id, requestedArea: 1 }] } as never,
+      })
+      await assert.rejects(request(managerActor, { ...adjust, revision: 1, amount: 10 }), { status: 409 })
+      assert.equal((await payload.findByID({ collection: 'warehouse-stock', id: balance.id })).inventorySqm, 1.44)
+    })
+    await suite.test('product deletion and new sales dependencies cannot both commit', async () => {
+      for (const mode of ['order', 'explicit-source', 'automatic-source']) {
+        const sku = 'RACE-' + mode
+        const item = await payload.create({ collection: 'products', data: { sku, name: sku, slug: sku.toLowerCase(), basePricePerSqm: 100 } })
+        const stock = await payload.create({
+          collection: 'warehouse-stock',
+          data: { product: item.id, warehouse: mode === 'order' ? warehouse.id : inquiry.id, inventorySqm: mode === 'order' ? 10 : null, revision: 0, isActive: true },
+        })
+        const create = mode === 'order'
+          ? payload.create({
+            collection: 'orders', user: serviceActor,
+            data: { user: user.id, warehouse: warehouse.id, status: 'pending', trackingNumber: 0, orderNumber: '', subtotal: 0, finalTotal: 0, items: [{ product: item.id, requestedArea: 1 }] } as never,
+          })
+          : payload.create({
+            collection: 'supply-requests', user: serviceActor, overrideAccess: false,
+            data: { user: user.id, product: item.id, warehouse: mode === 'explicit-source' ? inquiry.id : null, requestedQuantity: 1, idempotencyKey: randomUUID() } as never,
+          })
+        const results = await Promise.allSettled([create, payload.delete({ collection: 'products', id: item.id, user: managerActor, overrideAccess: false })])
+        assert.equal(results.filter(result => result.status === 'fulfilled').length, 1)
+        const failed = results.find(result => result.status === 'rejected')
+        for (let cause = failed?.reason; cause; cause = cause.cause) assert.notEqual(cause.code, '40P01')
+        const remaining = await pool.query('SELECT id FROM warehouse_stock WHERE id = $1', [stock.id])
+        assert.equal(remaining.rowCount, results[0]!.status === 'fulfilled' ? 1 : 0)
+      }
+    })
     await payload.update({ collection: 'admins', id: support.id, data: { name: 'Changed support', phone: user.phone }, user: supportActor, overrideAccess: false })
     assert.equal((await payload.findByID({ collection: 'users', id: user.id, depth: 0 })).fullName, user.fullName)
     await assert.rejects(payload.update({ collection: 'users', id: user.id, data: { fullName: 'unauthorized' }, user: supportActor, overrideAccess: false }))
@@ -271,6 +394,8 @@ test('full migrations: schema coverage, CRUD, and warehouse rollback', { skip: !
     await payload.update({ collection: 'products', id: product.id, data: { cover: media.rows[0]!.id } })
     const supply = await createSupply(200)
     assert.equal(supply.status, 'new')
+    await assert.rejects(payload.delete({ collection: 'products', id: product.id, user: managerActor, overrideAccess: false }), /درخواست تأمین/)
+    assert.equal((await pool.query('SELECT id FROM warehouse_stock WHERE product_id = $1', [product.id])).rowCount, 2)
     assert.ok(Number.isSafeInteger(supply.trackingNumber) && supply.trackingNumber > 0)
     assert.equal(supply.requestNumber, String(supply.trackingNumber))
     await assert.rejects(payload.update({ collection: 'supply-requests', id: supply.id, data: { trackingNumber: supply.trackingNumber + 1 }, user: managerActor, overrideAccess: false }))
@@ -373,7 +498,9 @@ test('full migrations: schema coverage, CRUD, and warehouse rollback', { skip: !
     await assert.rejects(pool.query('UPDATE warehouse_stock SET revision = 0.5 WHERE warehouse_id = $1 AND product_id = $2', [warehouse.id, product.id]))
     const warehouseConstraints = await pool.query<{ conname: string; confdeltype: string }>(`SELECT conname, confdeltype FROM pg_constraint WHERE conname IN ('warehouse_stock_warehouse_id_warehouses_id_fk', 'warehouse_stock_product_id_products_id_fk', 'orders_warehouse_id_warehouses_id_fk')`)
     assert.equal(warehouseConstraints.rowCount, 3)
-    assert.ok(warehouseConstraints.rows.every(constraint => constraint.confdeltype === 'r'))
+    for (const constraint of warehouseConstraints.rows) {
+      assert.equal(constraint.confdeltype, constraint.conname === 'warehouse_stock_product_id_products_id_fk' ? 'c' : 'r')
+    }
 
     await assert.rejects(payload.update({ collection: 'products', id: product.id, data: { sqmPerCarton: 2 } }), error => error instanceof Error && 'data' in error && (error.data as { code?: string }).code === 'PACKAGING_HAS_OPEN_ACTIVITY')
     // Orders with authoritative calculation and timeline
