@@ -1,4 +1,5 @@
 import { ActivityFeedItemSchema, CatalogFacetOutputSchema, CatalogRecordSchema, CustomerOrderDocumentSchema, PlanSchema, SupplyRequestSchema } from '@persianpart/contract'
+import { isMatching, match } from 'ts-pattern'
 import { api } from '@/lib/api-client'
 import { catalogProductImages, resolveMediaUrl } from '@/modules/products/catalog-mapper'
 import { authStore, isProductAllowedForUser } from '@/modules/auth/auth-store'
@@ -17,10 +18,6 @@ export interface OfflineProgress {
 }
 
 type Report = (progress: OfflineProgress) => void
-
-function errorCode(error: unknown) {
-  return error && typeof error === 'object' && 'code' in error ? error.code : null
-}
 
 function orderImage(cover: unknown) {
   // The history UI treats numeric strings as media IDs, not file paths.
@@ -123,7 +120,12 @@ export async function downloadOfflineData(pack: OfflinePackage, canUseQr: boolea
     pack.activityDone = true
     await save()
   }
-  let remaining = data.activity.filter(item => !(item.kind === 'order' ? data.orders[item.id] : data.supplies[item.id]))
+  const isMissing = ({ kind, id }: OfflinePackage['data']['activity'][number]) => match(kind)
+    .with('order', () => !data.orders[id])
+    .with('supply', () => !data.supplies[id])
+    .exhaustive()
+
+  let remaining = data.activity.filter(isMissing)
   let done = data.activity.length - remaining.length
   report({ phase: 'history', done, total: data.activity.length })
   for (let attempt = 0; remaining.length && attempt < 2; attempt++) {
@@ -131,19 +133,22 @@ export async function downloadOfflineData(pack: OfflinePackage, canUseQr: boolea
     for (const item of remaining) {
       signal.throwIfAborted()
       try {
-        if (item.kind === 'order') {
-          const order = CustomerOrderDocumentSchema.parse(await api.order.getById({ id: item.id }, options))
-          if (String(order.id) !== String(item.id)) throw new Error('history')
-          data.orders[item.id] = order
-        } else {
-          const request = SupplyRequestSchema.parse(await api.supplyRequest.detail({ id: Number(item.id) }, options))
-          if (String(request.id) !== String(item.id)) throw new Error('history')
-          data.supplies[item.id] = request
-        }
+        await match(item)
+          .with({ kind: 'order' }, async ({ id }) => {
+            const order = CustomerOrderDocumentSchema.parse(await api.order.getById({ id }, options))
+            if (String(order.id) !== String(id)) throw new Error('history')
+            data.orders[id] = order
+          })
+          .with({ kind: 'supply' }, async ({ id }) => {
+            const request = SupplyRequestSchema.parse(await api.supplyRequest.detail({ id: Number(id) }, options))
+            if (String(request.id) !== String(id)) throw new Error('history')
+            data.supplies[id] = request
+          })
+          .exhaustive()
         await save()
         report({ phase: 'history', done: ++done, total: data.activity.length })
       } catch (error) {
-        if (errorCode(error) !== 'NOT_FOUND') throw error
+        if (!isMatching({ code: 'NOT_FOUND' }, error)) throw error
         missing = true
       }
     }
@@ -153,11 +158,11 @@ export async function downloadOfflineData(pack: OfflinePackage, canUseQr: boolea
     for (const id of Object.keys(data.orders)) if (!current.has(`order:${id}`)) delete data.orders[id]
     for (const id of Object.keys(data.supplies)) if (!current.has(`supply:${id}`)) delete data.supplies[id]
     await save()
-    remaining = data.activity.filter(item => !(item.kind === 'order' ? data.orders[item.id] : data.supplies[item.id]))
+    remaining = data.activity.filter(isMissing)
     done = data.activity.length - remaining.length
     report({ phase: 'history', done, total: data.activity.length })
   }
-  if (data.activity.some(item => !(item.kind === 'order' ? data.orders[item.id] : data.supplies[item.id]))) throw new Error('history')
+  if (data.activity.some(isMissing)) throw new Error('history')
 }
 
 export function offlineImages(data: OfflinePackage['data']) {
@@ -170,8 +175,10 @@ export function offlineImages(data: OfflinePackage['data']) {
   }
   for (const record of Object.values(data.products)) catalogProductImages(record).images.forEach(add)
   for (const item of data.activity) {
-    if (item.kind === 'order') item.productImages.forEach(add)
-    else add(item.productImage)
+    match(item)
+      .with({ kind: 'order' }, ({ productImages }) => productImages.forEach(add))
+      .with({ kind: 'supply' }, ({ productImage }) => add(productImage))
+      .exhaustive()
   }
   for (const order of Object.values(data.orders)) {
     for (const item of order.items) if (typeof item.product === 'object') add(orderImage(item.product.cover))

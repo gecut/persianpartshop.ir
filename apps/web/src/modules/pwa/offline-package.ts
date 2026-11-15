@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { isMatching, match } from 'ts-pattern'
 import { queryKeys } from '@/lib/query-keys'
 import { queryClient } from '@/lib/query-client'
 import { OfflineSnapshotSchema, type OfflineManifest } from '@persianpart/contract'
@@ -185,7 +186,7 @@ export function acceptOfflineScope(next: string) {
 
 async function verifySession(expectedOwner: string, signal: AbortSignal) {
   const session = await api.auth.session(undefined, { signal }).catch(error => {
-    if (error && typeof error === 'object' && 'code' in error && error.code === 'FORBIDDEN') authStore.logout()
+    if (isMatching({ code: 'FORBIDDEN' }, error)) authStore.logout()
     throw error
   })
   if (!session.user) {
@@ -353,11 +354,16 @@ export async function prepareOfflinePackage(manifest?: OfflineManifest) {
           if (confirmed.scopeKey !== scope) acceptOfflineScope(confirmed.scopeKey)
         } catch { /* The normal session check handles connection failures. */ }
       }
-      const label = error instanceof DOMException && error.name === 'QuotaExceededError' ? 'فضای ذخیره‌سازی کافی نیست.'
-        : message === 'busy' ? 'آماده‌سازی در پنجرهٔ دیگری در جریان است.'
-        : message === 'worker' ? 'فایل‌های برنامه هنوز آماده نیستند. دوباره تلاش کنید.'
-        : state.progress?.phase === 'images' ? 'دریافت بعضی تصاویر کامل نشد. ادامهٔ دانلود را بزنید.'
-        : 'آماده‌سازی کامل نشد. اتصال و دسترسی حساب را بررسی کنید و دوباره تلاش کنید.'
+      const label = match({
+        quotaExceeded: error instanceof DOMException && error.name === 'QuotaExceededError',
+        message,
+        phase: state.progress?.phase,
+      })
+        .with({ quotaExceeded: true }, () => 'فضای ذخیره‌سازی کافی نیست.')
+        .with({ message: 'busy' }, () => 'آماده‌سازی در پنجرهٔ دیگری در جریان است.')
+        .with({ message: 'worker' }, () => 'فایل‌های برنامه هنوز آماده نیستند. دوباره تلاش کنید.')
+        .with({ phase: 'images' }, () => 'دریافت بعضی تصاویر کامل نشد. ادامهٔ دانلود را بزنید.')
+        .otherwise(() => 'آماده‌سازی کامل نشد. اتصال و دسترسی حساب را بررسی کنید و دوباره تلاش کنید.')
       publish({ ...state, error: label })
     }
   } finally {
@@ -471,7 +477,7 @@ async function readChangedData(change: SavedChange, signal?: AbortSignal) {
         uploadedAt: document.uploadedAt ?? undefined,
       })),
     })
-    return { profile }
+    return { kind: 'profile' as const, profile }
   }
   const { kind, id } = change
   let cursor: string | undefined
@@ -479,8 +485,10 @@ async function readChangedData(change: SavedChange, signal?: AbortSignal) {
     const page = await api.activityFeed.list({ filter: kind, limit: 50, cursor }, { signal })
     const activity = page.items.find(item => item.kind === kind && String(item.id) === id)
     if (activity) {
-      if (kind === 'order') return { activity, order: await api.order.getById({ id }, { signal }) }
-      return { activity, supply: await api.supplyRequest.detail({ id: Number(id) }, { signal }) }
+      return match(kind)
+        .with('order', async kind => ({ kind, activity, order: await api.order.getById({ id }, { signal }) }))
+        .with('supply', async kind => ({ kind, activity, supply: await api.supplyRequest.detail({ id: Number(id) }, { signal }) }))
+        .exhaustive()
     }
     if (!page.hasMore || !page.nextCursor || page.nextCursor === cursor) throw new Error('history')
     cursor = page.nextCursor
@@ -488,15 +496,19 @@ async function readChangedData(change: SavedChange, signal?: AbortSignal) {
 }
 
 function applyChangedData(data: OfflinePackage['data'], change: Awaited<ReturnType<typeof readChangedData>>) {
-  if (change.profile) return { ...data, profile: change.profile }
-  const activity = change.activity
-  if (!activity) return data
+  if (change.kind === 'profile') return { ...data, profile: change.profile }
+
+  const { activity } = change
   const id = String(activity.id)
+  const details = match(change)
+    .with({ kind: 'order' }, ({ order }) => order ? { orders: { ...data.orders, [id]: order } } : {})
+    .with({ kind: 'supply' }, ({ supply }) => supply ? { supplies: { ...data.supplies, [id]: supply } } : {})
+    .exhaustive()
+
   return {
     ...data,
     activity: [...data.activity.filter(item => item.kind !== activity.kind || String(item.id) !== id), activity],
-    orders: change.order ? { ...data.orders, [id]: change.order } : data.orders,
-    supplies: change.supply ? { ...data.supplies, [id]: change.supply } : data.supplies,
+    ...details,
   }
 }
 

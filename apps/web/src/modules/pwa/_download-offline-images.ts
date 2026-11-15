@@ -1,3 +1,4 @@
+import { match } from 'ts-pattern'
 import { offlineImageCache, offlineMediaKey, sharedOfflineImageCache, type OfflinePackage } from './offline-storage'
 import type { OfflineProgress } from './_download-offline-data'
 
@@ -59,7 +60,10 @@ export async function downloadOfflineImages(
     const versioned = target.searchParams.has('v') || target.searchParams.has('version') ||
       /[-.][a-f0-9]{16,}\.[a-z]+$/i.test(target.pathname)
     const conditional = old && target.origin === location.origin && (etag || modified)
-    const fetched = old && versioned ? undefined : await fetch(conditional ? new Request(request, { headers }) : request)
+    const fetched = await match({ hasVersionedCopy: !!old && versioned, canRevalidate: !!conditional })
+      .with({ hasVersionedCopy: true }, () => undefined)
+      .with({ canRevalidate: true }, () => fetch(new Request(request, { headers })))
+      .otherwise(() => fetch(request))
     const reused = !!old && (versioned || !!conditional && fetched?.status === 304)
     const response = reused ? old : fetched
     if (!response || response.status !== 200 || !/^image\/(?:jpeg|png|webp|avif|gif)(?:;|$)/i.test(response.headers.get('content-type') ?? '') ||
