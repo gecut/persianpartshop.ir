@@ -118,13 +118,13 @@ export function ProfileView() {
 
   return (
     <div className="space-y-3.5 w-full">
-      <PwaAccountButton />
-      <OfflineAccountCard />
       <ProfileHeaderCard
         name={(!networkRead && savedProfile?.name) || user.name}
         storeName={(!networkRead && savedProfile?.storeName) || user.storeName}
         onLogout={() => setShowLogoutConfirm(true)}
       />
+      <PwaAccountButton />
+      <OfflineAccountCard />
 
       <ProfileDetailsCard
         name={(!networkRead && savedProfile?.name) || user.name}

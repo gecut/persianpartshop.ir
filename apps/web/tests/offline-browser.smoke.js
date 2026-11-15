@@ -23,7 +23,7 @@ async page => {
   const recovery = await page.evaluate(async () => {
     const urls = [...document.querySelectorAll('script[type=module][src]')].map(script => script.src)
     const bundles = await Promise.all(urls.map(url => fetch(url).then(response => response.text())))
-    return bundles.some(bundle => bundle.includes('تأیید و شروع دریافت'))
+    return bundles.some(bundle => bundle.includes('بررسی حجم بستهٔ آفلاین'))
   })
   const dimensions = [{id:1,name:'60×120',width:60,height:120,slug:'60-120',createdAt:ts,updatedAt:ts}]
   const manifestData = { products:Object.fromEntries(records.map(record => [record.id, record])), dimensions, qr:{2:qr},
@@ -72,8 +72,8 @@ async page => {
     localStorage.setItem('persianpart_auth',JSON.stringify({user}))
   },user)
   await page.goto('http://localhost:55177/account')
-  await page.getByRole('button',{name:'نصب و به‌روزرسانی برنامه'}).click()
-  await page.getByRole('dialog').getByRole('button',{name:'آماده‌سازی برای استفادهٔ آفلاین'}).click()
+  await page.getByRole('button',{name:'برنامهٔ پرشین‌پارت نصب و به‌روزرسانی'}).click()
+  await page.getByRole('dialog').getByRole('button',{name:recovery ? 'بررسی حجم بستهٔ آفلاین' : 'دانلود بستهٔ آفلاین'}).click()
   if (recovery) {
     if (snapshotRequests) throw Error('Package started before confirmation')
     await page.getByRole('button',{name:'تأیید و شروع دریافت'}).click()
@@ -82,7 +82,7 @@ async page => {
     await page.getByRole('alert').filter({hasText:'دریافت بعضی تصاویر کامل نشد'}).waitFor({timeout:10000})
     await page.getByText('۱ از ۲ تصویر ذخیره شده است.',{exact:false}).waitFor()
     await page.reload()
-    await page.getByRole('button',{name:'نصب و به‌روزرسانی برنامه'}).click()
+    await page.getByRole('button',{name:'برنامهٔ پرشین‌پارت نصب و به‌روزرسانی'}).click()
     imageBlocked = false
     await page.getByRole('button',{name:'ادامهٔ دانلود'}).click()
     await page.getByText('آمادهٔ استفادهٔ آفلاین',{exact:false}).waitFor({timeout:10000})
@@ -120,7 +120,7 @@ async page => {
   await fresh.goto('http://localhost:55177/account')
   await selectSaved()
   await fresh.getByText('پروانه کسب',{exact:true}).waitFor()
-  await fresh.getByRole('button',{name:'نصب و به‌روزرسانی برنامه'}).click()
+  await fresh.getByRole('button',{name:'برنامهٔ پرشین‌پارت نصب و به‌روزرسانی'}).click()
   await fresh.getByRole('dialog').getByText('آمادهٔ استفادهٔ آفلاین',{exact:false}).waitFor()
   await page.getByRole('dialog').getByRole('button',{name:'حذف داده‌های آفلاین'}).click()
   await fresh.getByRole('dialog').getByText('آمادهٔ استفادهٔ آفلاین',{exact:false}).waitFor({state:'hidden'})
@@ -128,7 +128,7 @@ async page => {
   await context.setOffline(false)
 
   if (recovery) return
-  await page.getByRole('button',{name:'آماده‌سازی برای استفادهٔ آفلاین'}).click()
+  await page.getByRole('button',{name:'دانلود بستهٔ آفلاین'}).click()
   await page.getByText('آمادهٔ استفادهٔ آفلاین',{exact:false}).waitFor({timeout:10000})
   await page.evaluate(() => {
     localStorage.setItem('persianpart_token', 'other-account')

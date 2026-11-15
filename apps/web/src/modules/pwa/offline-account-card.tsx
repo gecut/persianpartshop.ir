@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { match } from 'ts-pattern'
 import { api } from '@/lib/api-client'
 import { queryKeys } from '@/lib/query-keys'
 import { Button } from '@heroui/react'
@@ -32,10 +33,15 @@ export function OfflineAccountCard() {
   const networkRead = useNetworkReadSource()
   const { active, restoring, expiresSoon, updateAvailable, freshness } = useOfflineAccountStatus()
   if (!offlineRecoveryEnabled) return null
+
+  const packageStatus = match({ restoring, hasActive: !!active })
+    .with({ restoring: true }, () => <p role="status">در حال بررسی بسته</p>)
+    .with({ hasActive: false }, () => <p className="text-sm text-muted">بستهٔ قابل‌خواندن روی دستگاه وجود ندارد.</p>)
+    .otherwise(() => null)
+
   return <section className="space-y-2 rounded-xl border border-border p-4" aria-label="بستهٔ آفلاین">
     <h2 className="font-semibold">بستهٔ آفلاین</h2>
-    {restoring ? <p role="status">در حال بررسی بسته</p> :
-      !active && <p className="text-sm text-muted">بستهٔ قابل‌خواندن روی دستگاه وجود ندارد.</p>}
+    {packageStatus}
     {expiresSoon ? <p role="status">مهلت استفاده از بستهٔ آفلاین رو به پایان است.</p> : null}
     {active && updateAvailable && <p role="status">نسخهٔ جدید داده‌ها در دسترس است.</p>}
     {active && (!freshness || freshness === 'unknown') && <p className="text-sm text-muted">وضعیت نسخه بررسی نشده است.</p>}

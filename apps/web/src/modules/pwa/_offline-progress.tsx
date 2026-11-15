@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
+import { match } from 'ts-pattern'
 import { useAuth } from '@/modules/auth/auth-store'
 import { offlineRecoveryEnabled } from './read-source'
 import { Button, ProgressCircle } from '@heroui/react'
+import { DownloadMinimalisticIcon } from '@solar-icons/react/linear'
 import { formatNumber, toPersianDigits } from '@/lib/utils/currency'
 import { formatPersianDateTime } from '@/lib/utils/date'
 import type { OfflineProgress as DownloadProgress } from './_download-offline-data'
@@ -17,12 +19,27 @@ const labels = {
   verifying: 'بررسی نهایی فایل‌ها و دسترسی',
 }
 
-export function OfflineProgress({ online, detail = false }: { online: boolean; detail?: boolean }) {
+export function OfflineProgress({ online, detail = false, showHeading = false }: {
+  online: boolean
+  detail?: boolean
+  showHeading?: boolean
+}) {
   const { active, assetError, assetsReady, checkingAssets, draft, error, missingImages, progress, restoring } = useOfflinePackage()
   const { user } = useAuth()
   const [inspected, setPreview] = useState<(Awaited<ReturnType<typeof inspectOfflineDownload>> & { owner: string })>()
   const preview = inspected?.owner === user?.id ? inspected : undefined
   const [preflight, setPreflight] = useState<'pending' | 'failed' | undefined>()
+  const downloadDescriptionId = useId()
+  const showDownloadDescription = !active && !draft && !progress && !preview
+  const packageStatus = match({ checkingAssets, assetsReady })
+    .with({ checkingAssets: true }, () => 'در حال بررسی بسته')
+    .with({ assetsReady: true }, () => 'آمادهٔ استفادهٔ آفلاین')
+    .otherwise(() => 'آخرین نسخهٔ ذخیره‌شده')
+  const downloadAction = match({ hasDraft: !!draft, hasActive: !!active })
+    .with({ hasDraft: true }, () => 'ادامهٔ دانلود')
+    .with({ hasActive: true }, () => 'به‌روزرسانی داده‌های آفلاین')
+    .otherwise(() => offlineRecoveryEnabled ? 'بررسی حجم بستهٔ آفلاین' : 'دانلود بستهٔ آفلاین')
+
   async function inspect() {
     if (!offlineRecoveryEnabled) return prepareOfflinePackage()
     if (!user) return
@@ -35,9 +52,13 @@ export function OfflineProgress({ online, detail = false }: { online: boolean; d
       setPreflight('failed')
     }
   }
-  return <section className="space-y-2 border-t border-border pt-3" aria-label="استفادهٔ آفلاین">
+  return <section className={`space-y-2 border-t border-border ${showHeading ? 'pt-2' : 'pt-3'}`} aria-label="استفادهٔ آفلاین">
+    {showHeading && <h3 className="text-sm font-semibold text-foreground">استفادهٔ آفلاین</h3>}
+    {showDownloadDescription && <p id={downloadDescriptionId} className="text-xs leading-5 text-muted">
+      محصولات، تصاویر و سوابق سفارش روی این دستگاه ذخیره می‌شوند تا بدون اینترنت هم در دسترس باشند.
+    </p>}
     {active && <p className="text-sm text-muted">
-      {checkingAssets ? 'در حال بررسی بسته' : assetsReady ? 'آمادهٔ استفادهٔ آفلاین' : 'آخرین نسخهٔ ذخیره‌شده'}
+      {packageStatus}
       {active.completedAt && <> · {formatPersianDateTime(active.completedAt)} · معتبر تا {formatPersianDateTime(Math.min(active.completedAt + offlineMaxAge, active.accessUntil))}</>}
     </p>}
     {progress && <OfflineDownloadProgress progress={progress} />}
@@ -64,8 +85,11 @@ export function OfflineProgress({ online, detail = false }: { online: boolean; d
     {!online && <p className="text-xs text-muted">برای دریافت یا به‌روزرسانی داده‌ها به اینترنت وصل شوید.</p>}
     <div className="flex flex-wrap gap-2">
       {progress ? <Button variant="secondary" onPress={pauseOfflinePackage}>مکث دانلود</Button> :
-        <Button variant="secondary" isDisabled={!online || restoring || !!preview || preflight === 'pending'} isPending={preflight === 'pending'} onPress={() => void inspect()}>
-          {draft ? 'ادامهٔ دانلود' : active ? 'به‌روزرسانی داده‌های آفلاین' : 'آماده‌سازی برای استفادهٔ آفلاین'}
+        <Button variant="outline" fullWidth={showHeading} className="h-auto min-h-11 gap-2 px-3 py-2 whitespace-normal"
+          aria-describedby={showDownloadDescription ? downloadDescriptionId : undefined}
+          isDisabled={!online || restoring || !!preview || preflight === 'pending'} isPending={preflight === 'pending'} onPress={() => void inspect()}>
+          <DownloadMinimalisticIcon aria-hidden="true" size={18} className="shrink-0" />
+          {downloadAction}
         </Button>}
       {!preview && offlineRecoveryEnabled && active && !progress && assetError && <Button variant="secondary" isDisabled={!online || restoring}
         onPress={() => void repairOfflinePackage()}>تکمیل فایل‌های آفلاین</Button>}
