@@ -35,6 +35,8 @@ import { catalogBrowseEndpoint, planBrowseEndpoint } from './endpoints/catalog-b
 import { fa } from '@payloadcms/translations/languages/fa'
 import { en } from '@payloadcms/translations/languages/en'
 import { migrations } from './migrations'
+import { addMcpWriteGuards, cmsMcp } from './mcp/config'
+import { mcpUploadEndpoint } from './mcp/transfers'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -128,7 +130,7 @@ export default buildConfig({
       afterLogin: ['/components/admin/LoginFooter#LoginFooter'],
     },
   },
-  collections: protectBusinessRelations([
+  collections: addMcpWriteGuards(protectBusinessRelations([
     // کاتالوگ و انبارداری
     Products,
     Categories,
@@ -150,9 +152,10 @@ export default buildConfig({
     AuditLogs,
     // پیامک و صف اعلان‌ها
     SmsQueue,
-  ]),
+  ])),
   globals: [NotificationSettings],
-  endpoints: [activityFeedEndpoint, catalogBrowseEndpoint, planBrowseEndpoint],
+  endpoints: [activityFeedEndpoint, catalogBrowseEndpoint, planBrowseEndpoint, mcpUploadEndpoint],
+  plugins: [cmsMcp],
   editor: lexicalEditor(),
   graphQL: {
     disable: true,

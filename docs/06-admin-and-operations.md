@@ -57,3 +57,25 @@ Seed requires `NODE_ENV=development` and `CMS_SEED_DATABASE_URI` exactly matchin
 The historical [verification record](../.agents/brain/warehouse-merge-completion-2026-11-07.md) describes earlier migrations and is not a statement about a future environment.
 
 New administrator accounts default to `superadmin`; explicitly selected manager, support and service roles remain available. Creating an administrator with a valid phone also creates or updates its customer account in the same transaction. On a fresh database, the first such account creates a zero-markup regular customer tier instead of assuming a fixed relationship ID.
+
+## اتصال Codex به CMS
+
+1. image جدید CMS را همراه با migration سرویس Compose منتشر کنید. `CMS_MCP_ENABLED=false` پیش‌فرض است. پس از smoke test پنل و REST، پرچم را در محیط CMS روی `true` بگذارید و CMS را دوباره اجرا کنید. برای MCP از PostgreSQL استفاده کنید.
+2. در هر محیط یک حساب مجزای فعال با نقش `manager` بسازید. با حساب `superadmin` در **MCP → API Keys**، این حساب را مالک انتخاب کنید، تولید کلید را فعال کنید و قابلیت‌ها را متناسب با کار مشخص کنید. برای بررسی اولیهٔ محیط اصلی فقط جست‌وجوی محصول را فعال کنید.
+3. [نمونهٔ تنظیمات Codex](examples/codex-cms-mcp.toml) را در تنظیمات محلی Codex قرار دهید و URL را با دامنهٔ محیط جایگزین کنید. متغیر `PERSIANPART_CMS_MCP_TOKEN` را در محیط اجرای Codex از محل نگهداری محرمانه تأمین کنید. `codex mcp list` تنظیمات را نشان می‌دهد. از داخل یک نشست تعاملی Codex یک جست‌وجوی محصول اجرا کنید تا اتصال و مجوز واقعی بررسی شود.
+4. پیش از فعال‌کردن دسترسی نوشتن محیط اصلی، گردش‌کارهای محیط آزمایشی را اجرا کنید. در نشست تعاملی، تنظیمات تأیید باید پنجرهٔ انسانی را برای ابزارهای نشانه‌گذاری‌شده نشان دهند. پیش از فراخوانی، از Codex بخواهید شناسهٔ هدف و اثر عملیات، و برای CSV شناسه و خلاصهٔ پیش‌نمایش، را نمایش دهد. این پنجره در Codex اعمال می‌شود. کلاینت‌های دیگر با مجوزهای CMS کار می‌کنند.
+
+برای فایل محلی، ابتدا `prepareMediaUpload` یا `prepareCsvImport` را صدا بزنید. فایل را در فیلد `file` با بلیت موقت در هدر بفرستید. فرمان نمونه صرفاً برای همان دامنهٔ CMS و فایل انتخاب‌شده است.
+
+```sh
+curl --fail-with-body --request POST \
+  --header "X-MCP-Upload-Ticket: ${UPLOAD_TICKET}" \
+  --form "file=@${LOCAL_FILE}" \
+  "https://admin.persianpart.shop/api/mcp-upload"
+```
+
+بلیت پنج دقیقه اعتبار دارد و یک بار مصرف می‌شود. عکس تا ۵ MiB و ۴۰ مگاپیکسل و CSV با UTF-8 تا ۱ MB پذیرفته می‌شود. شناسهٔ عکس را در فیلد تصویر محصول قرار دهید. برای CSV، `previewId` را با `getCsvImportPreview` بررسی کنید و پیش‌نمایش بدون خطا را بعد از تأیید با `applyCsvImport` اعمال کنید. پیش‌نمایش کهنه یا مصرف‌شده باید دوباره تهیه شود. پراکسی باید هر دو مسیر را روی HTTPS با عبور هدرها عرضه کند و برای عکس حداقل ۶ MiB ظرفیت بدنه داشته باشد.
+
+برای آزمون محلی، migration را روی دیتابیس دورریختنی `persianpart_mcp` روی loopback اجرا کنید. CMS را روی loopback با `CMS_MCP_ENABLED=true` و `DISABLE_SMS=true` بالا بیاورید و با همان `DATABASE_URL` و `PAYLOAD_SECRET` و با تنظیم `CMS_MCP_TEST_URL`، دستور `pnpm --filter @persianpart/cms test:mcp:postgres` را اجرا کنید. `CMS_MCP_TEST_CODEX=true` اتصال و اجرای یک ابزار خواندنی با Codex CLI را هم بررسی می‌کند.
+
+برای بازگشت، کلید را از پنل غیرفعال یا حذف کنید و `CMS_MCP_ENABLED=false` را اعمال کنید. داده‌های migration در دیتابیس باقی می‌مانند و عملیات از REST ادامه پیدا می‌کند. برای چرخش کلید، ابتدا کلید جایگزین را در Codex بررسی کنید و سپس کلید قدیمی را لغو کنید.

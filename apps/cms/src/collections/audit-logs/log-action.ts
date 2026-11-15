@@ -64,16 +64,15 @@ export async function logAction({
   if (transaction) await transaction.execute(sql`SAVEPOINT audit_write`)
   try {
     const finalIp = ip || (req ? getClientIp(req) : '')
+    const actor = req?.user?.collection === 'admins' ? req.user : null
     const finalAdminId =
       adminId !== undefined
         ? adminId
-        : req?.user?.collection === 'admins' || req?.user?.role
-        ? req.user.id
-        : null
+        : actor?.id ?? null
     const finalAdminName =
       adminName ||
-      (req?.user
-        ? req.user.name || req.user.email || `مدیر #${req.user.id}`
+      (actor
+        ? actor.name || actor.email || `مدیر #${actor.id}`
         : 'سیستم')
 
     if (transaction) {

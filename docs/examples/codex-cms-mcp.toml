@@ -1,0 +1,39 @@
+# Copy into the local Codex configuration and replace the example URL.
+# Supply PERSIANPART_CMS_MCP_TOKEN to the Codex process separately.
+approval_policy = "on-request"
+approvals_reviewer = "user"
+
+[mcp_servers.persianpart_cms]
+url = "https://admin.persianpart.shop/api/mcp"
+bearer_token_env_var = "PERSIANPART_CMS_MCP_TOKEN"
+
+[mcp_servers.persianpart_cms.tools.deleteProducts]
+approval_mode = "prompt"
+[mcp_servers.persianpart_cms.tools.deleteCategories]
+approval_mode = "prompt"
+[mcp_servers.persianpart_cms.tools.deleteBrands]
+approval_mode = "prompt"
+[mcp_servers.persianpart_cms.tools.deleteTags]
+approval_mode = "prompt"
+[mcp_servers.persianpart_cms.tools.deleteDimensions]
+approval_mode = "prompt"
+[mcp_servers.persianpart_cms.tools.deletePlans]
+approval_mode = "prompt"
+[mcp_servers.persianpart_cms.tools.deleteMedia]
+approval_mode = "prompt"
+[mcp_servers.persianpart_cms.tools.createOrders]
+approval_mode = "prompt"
+[mcp_servers.persianpart_cms.tools.updateOrders]
+approval_mode = "prompt"
+[mcp_servers.persianpart_cms.tools.adjustProductStock]
+approval_mode = "prompt"
+[mcp_servers.persianpart_cms.tools.applyCsvImport]
+approval_mode = "prompt"
+[mcp_servers.persianpart_cms.tools.retryFailedSms]
+approval_mode = "prompt"
+[mcp_servers.persianpart_cms.tools.updateSupplyRequests]
+approval_mode = "prompt"
+[mcp_servers.persianpart_cms.tools.createPlans]
+approval_mode = "prompt"
+[mcp_servers.persianpart_cms.tools.updatePlans]
+approval_mode = "prompt"

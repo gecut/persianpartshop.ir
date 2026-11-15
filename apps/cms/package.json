@@ -41,6 +41,7 @@
     "test:hardening:postgres": "tsx --test src/collections/orders/_reservation.integration.test.ts",
     "test:hardening:migrations": "tsx --test --test-force-exit src/_schema-inspect.test.ts",
     "test:tracking:postgres": "tsx --test src/lib/tracking-number.integration.test.ts",
+    "test:mcp:postgres": "tsx --test --test-force-exit src/mcp/mcp.integration.test.ts",
     "test:catalog:postgres": "tsx --test src/endpoints/catalog-browse.integration.test.ts"
   },
   "dependencies": {
@@ -48,6 +49,7 @@
     "@payloadcms/db-postgres": "^3.90.2",
     "@payloadcms/db-sqlite": "^3.90.2",
     "@payloadcms/next": "^3.90.2",
+    "@payloadcms/plugin-mcp": "3.90.2",
     "@payloadcms/richtext-lexical": "^3.90.2",
     "@payloadcms/sdk": "^3.91.0",
     "@payloadcms/translations": "^3.90.2",

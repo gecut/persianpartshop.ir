@@ -18,7 +18,9 @@ export const SmsQueue: CollectionConfig = {
   access: {
     read: ({ req }) => {
       const admin = getAdminUser(req.user)
-      return Boolean(admin && (admin.role === 'superadmin' || admin.role === 'manager'))
+      const canRead = admin?.role === 'superadmin' || admin?.role === 'manager'
+      if (canRead && req.payloadAPI === 'MCP') return { template: { not_equals: SMS_TEMPLATES.OTP } }
+      return canRead
     },
     create: () => false,
     update: ({ req }) => {

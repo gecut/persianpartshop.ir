@@ -64,6 +64,7 @@ export type SupportedTimezones =
 export interface Config {
   auth: {
     admins: AdminAuthOperations;
+    'payload-mcp-api-keys': PayloadMcpApiKeyAuthOperations;
   };
   blocks: {};
   collections: {
@@ -84,6 +85,7 @@ export interface Config {
     admins: Admin;
     'audit-logs': AuditLog;
     'sms-queue': SmsQueue;
+    'payload-mcp-api-keys': PayloadMcpApiKey;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -108,6 +110,7 @@ export interface Config {
     admins: AdminsSelect<false> | AdminsSelect<true>;
     'audit-logs': AuditLogsSelect<false> | AuditLogsSelect<true>;
     'sms-queue': SmsQueueSelect<false> | SmsQueueSelect<true>;
+    'payload-mcp-api-keys': PayloadMcpApiKeysSelect<false> | PayloadMcpApiKeysSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -127,13 +130,31 @@ export interface Config {
   widgets: {
     collections: CollectionsWidget;
   };
-  user: Admin;
+  user: Admin | PayloadMcpApiKey;
   jobs: {
     tasks: unknown;
     workflows: unknown;
   };
 }
 export interface AdminAuthOperations {
+  forgotPassword: {
+    email: string;
+    password: string;
+  };
+  login: {
+    email: string;
+    password: string;
+  };
+  registerFirstUser: {
+    email: string;
+    password: string;
+  };
+  unlock: {
+    email: string;
+    password: string;
+  };
+}
+export interface PayloadMcpApiKeyAuthOperations {
   forgotPassword: {
     email: string;
     password: string;
@@ -872,6 +893,260 @@ export interface SmsQueue {
   createdAt: string;
 }
 /**
+ * API keys control which collections, resources, tools, and prompts MCP clients can access
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-mcp-api-keys".
+ */
+export interface PayloadMcpApiKey {
+  id: number;
+  /**
+   * The user that the API key is associated with.
+   */
+  user: number | Admin;
+  /**
+   * A useful label for the API key.
+   */
+  label?: string | null;
+  /**
+   * The purpose of the API key.
+   */
+  description?: string | null;
+  products?: {
+    /**
+     * Allow clients to find products.
+     */
+    find?: boolean | null;
+    /**
+     * Allow clients to create products.
+     */
+    create?: boolean | null;
+    /**
+     * Allow clients to update products.
+     */
+    update?: boolean | null;
+    /**
+     * Allow clients to delete products.
+     */
+    delete?: boolean | null;
+  };
+  categories?: {
+    /**
+     * Allow clients to find categories.
+     */
+    find?: boolean | null;
+    /**
+     * Allow clients to create categories.
+     */
+    create?: boolean | null;
+    /**
+     * Allow clients to update categories.
+     */
+    update?: boolean | null;
+    /**
+     * Allow clients to delete categories.
+     */
+    delete?: boolean | null;
+  };
+  brands?: {
+    /**
+     * Allow clients to find brands.
+     */
+    find?: boolean | null;
+    /**
+     * Allow clients to create brands.
+     */
+    create?: boolean | null;
+    /**
+     * Allow clients to update brands.
+     */
+    update?: boolean | null;
+    /**
+     * Allow clients to delete brands.
+     */
+    delete?: boolean | null;
+  };
+  tags?: {
+    /**
+     * Allow clients to find tags.
+     */
+    find?: boolean | null;
+    /**
+     * Allow clients to create tags.
+     */
+    create?: boolean | null;
+    /**
+     * Allow clients to update tags.
+     */
+    update?: boolean | null;
+    /**
+     * Allow clients to delete tags.
+     */
+    delete?: boolean | null;
+  };
+  dimensions?: {
+    /**
+     * Allow clients to find dimensions.
+     */
+    find?: boolean | null;
+    /**
+     * Allow clients to create dimensions.
+     */
+    create?: boolean | null;
+    /**
+     * Allow clients to update dimensions.
+     */
+    update?: boolean | null;
+    /**
+     * Allow clients to delete dimensions.
+     */
+    delete?: boolean | null;
+  };
+  plans?: {
+    /**
+     * Allow clients to find plans.
+     */
+    find?: boolean | null;
+    /**
+     * Allow clients to create plans.
+     */
+    create?: boolean | null;
+    /**
+     * Allow clients to update plans.
+     */
+    update?: boolean | null;
+    /**
+     * Allow clients to delete plans.
+     */
+    delete?: boolean | null;
+  };
+  users?: {
+    /**
+     * Allow clients to find users.
+     */
+    find?: boolean | null;
+    /**
+     * Allow clients to create users.
+     */
+    create?: boolean | null;
+    /**
+     * Allow clients to update users.
+     */
+    update?: boolean | null;
+  };
+  customerTypes?: {
+    /**
+     * Allow clients to find customer-types.
+     */
+    find?: boolean | null;
+  };
+  supplyRequests?: {
+    /**
+     * Allow clients to find supply-requests.
+     */
+    find?: boolean | null;
+    /**
+     * Allow clients to update supply-requests.
+     */
+    update?: boolean | null;
+  };
+  orders?: {
+    /**
+     * Allow clients to find orders.
+     */
+    find?: boolean | null;
+    /**
+     * Allow clients to update orders.
+     */
+    update?: boolean | null;
+  };
+  warehouses?: {
+    /**
+     * Allow clients to find warehouses.
+     */
+    find?: boolean | null;
+    /**
+     * Allow clients to create warehouses.
+     */
+    create?: boolean | null;
+    /**
+     * Allow clients to update warehouses.
+     */
+    update?: boolean | null;
+  };
+  warehouseStock?: {
+    /**
+     * Allow clients to find warehouse-stock.
+     */
+    find?: boolean | null;
+  };
+  media?: {
+    /**
+     * Allow clients to find media.
+     */
+    find?: boolean | null;
+    /**
+     * Allow clients to update media.
+     */
+    update?: boolean | null;
+    /**
+     * Allow clients to delete media.
+     */
+    delete?: boolean | null;
+  };
+  smsQueue?: {
+    /**
+     * Allow clients to find sms-queue.
+     */
+    find?: boolean | null;
+  };
+  'payload-mcp-tool'?: {
+    /**
+     * Register a pending order for one customer and warehouse. The CMS calculates prices and reserves stock. Confirm before placing.
+     */
+    createOrders?: boolean | null;
+    /**
+     * Read stock balances and versions for a product by warehouse.
+     */
+    readProductStock?: boolean | null;
+    /**
+     * Set one warehouse balance from its current revision. Confirm the warehouse and before/after amounts first.
+     */
+    adjustProductStock?: boolean | null;
+    /**
+     * Issue a five-minute ticket for one local image. Send the file as multipart to the returned path.
+     */
+    prepareMediaUpload?: boolean | null;
+    /**
+     * Issue a five-minute ticket for a local CSV. Upload it to generate a preview without changing stock or prices.
+     */
+    prepareCsvImport?: boolean | null;
+    /**
+     * Read the import preview summary plus a page of rows and errors.
+     */
+    getCsvImportPreview?: boolean | null;
+    /**
+     * Apply the exact changes in an unexpired, error-free preview. Confirm the preview before calling.
+     */
+    applyCsvImport?: boolean | null;
+    /**
+     * Export a page of 100 prices as CSV.
+     */
+    exportPrices?: boolean | null;
+    /**
+     * Requeue a single failed SMS. Confirm the message ID before calling.
+     */
+    retryFailedSms?: boolean | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+  enableAPIKey?: boolean | null;
+  apiKey?: string | null;
+  apiKeyIndex?: string | null;
+  hasAPIKey?: boolean | null;
+  collection: 'payload-mcp-api-keys';
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -964,10 +1239,15 @@ export interface PayloadLockedDocument {
         value: number | SmsQueue;
       } | null);
   globalSlug?: string | null;
-  user: {
-    relationTo: 'admins';
-    value: number | Admin;
-  };
+  user:
+    | {
+        relationTo: 'admins';
+        value: number | Admin;
+      }
+    | {
+        relationTo: 'payload-mcp-api-keys';
+        value: number | PayloadMcpApiKey;
+      };
   updatedAt: string;
   createdAt: string;
 }
@@ -977,10 +1257,15 @@ export interface PayloadLockedDocument {
  */
 export interface PayloadPreference {
   id: number;
-  user: {
-    relationTo: 'admins';
-    value: number | Admin;
-  };
+  user:
+    | {
+        relationTo: 'admins';
+        value: number | Admin;
+      }
+    | {
+        relationTo: 'payload-mcp-api-keys';
+        value: number | PayloadMcpApiKey;
+      };
   key?: string | null;
   value?:
     | {
@@ -1375,6 +1660,130 @@ export interface SmsQueueSelect<T extends boolean = true> {
   sentAt?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-mcp-api-keys_select".
+ */
+export interface PayloadMcpApiKeysSelect<T extends boolean = true> {
+  user?: T;
+  label?: T;
+  description?: T;
+  products?:
+    | T
+    | {
+        find?: T;
+        create?: T;
+        update?: T;
+        delete?: T;
+      };
+  categories?:
+    | T
+    | {
+        find?: T;
+        create?: T;
+        update?: T;
+        delete?: T;
+      };
+  brands?:
+    | T
+    | {
+        find?: T;
+        create?: T;
+        update?: T;
+        delete?: T;
+      };
+  tags?:
+    | T
+    | {
+        find?: T;
+        create?: T;
+        update?: T;
+        delete?: T;
+      };
+  dimensions?:
+    | T
+    | {
+        find?: T;
+        create?: T;
+        update?: T;
+        delete?: T;
+      };
+  plans?:
+    | T
+    | {
+        find?: T;
+        create?: T;
+        update?: T;
+        delete?: T;
+      };
+  users?:
+    | T
+    | {
+        find?: T;
+        create?: T;
+        update?: T;
+      };
+  customerTypes?:
+    | T
+    | {
+        find?: T;
+      };
+  supplyRequests?:
+    | T
+    | {
+        find?: T;
+        update?: T;
+      };
+  orders?:
+    | T
+    | {
+        find?: T;
+        update?: T;
+      };
+  warehouses?:
+    | T
+    | {
+        find?: T;
+        create?: T;
+        update?: T;
+      };
+  warehouseStock?:
+    | T
+    | {
+        find?: T;
+      };
+  media?:
+    | T
+    | {
+        find?: T;
+        update?: T;
+        delete?: T;
+      };
+  smsQueue?:
+    | T
+    | {
+        find?: T;
+      };
+  'payload-mcp-tool'?:
+    | T
+    | {
+        createOrders?: T;
+        readProductStock?: T;
+        adjustProductStock?: T;
+        prepareMediaUpload?: T;
+        prepareCsvImport?: T;
+        getCsvImportPreview?: T;
+        applyCsvImport?: T;
+        exportPrices?: T;
+        retryFailedSms?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  enableAPIKey?: T;
+  apiKey?: T;
+  apiKeyIndex?: T;
+  hasAPIKey?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
