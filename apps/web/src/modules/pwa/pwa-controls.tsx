@@ -8,7 +8,8 @@ import { useWriteActivity, writeActivity } from "@/lib/write-activity";
 import { PwaNotice } from "./pwa-notice";
 import { offlineRecoveryEnabled } from "./read-source";
 import { pauseOfflinePackage, useOfflinePackage } from "./offline-package";
-import { OfflineDownloadProgress, OfflineProgress } from "./_offline-progress";
+import { OfflineProgress } from "./_offline-progress";
+import { OfflineDownloadDialog } from "./_offline-download-dialog";
 import { useAuth } from "@/modules/auth/auth-store";
 import {
   getInstallPrompt,
@@ -327,22 +328,16 @@ export function PwaControls({
           </aside>
         )}
 
-      {offlineRecoveryEnabled && showDownload && progress && <section
-        className="fixed inset-0 z-[70] grid place-items-center bg-background p-6"
-        aria-label="دریافت بستهٔ آفلاین"
-      >
-        <div className="w-full max-w-sm space-y-4">
-          <h2 className="text-lg font-semibold">دریافت بستهٔ آفلاین</h2>
-          <OfflineDownloadProgress progress={progress} />
-          <div className="flex flex-wrap gap-2">
-            <Button variant="secondary" onPress={() => {
-              pauseOfflinePackage()
-              setShowDownload(false)
-            }}>توقف</Button>
-            <Button variant="ghost" onPress={() => setShowDownload(false)}>بازگشت به برنامه</Button>
-          </div>
-        </div>
-      </section>}
+      {offlineRecoveryEnabled && showDownload && progress && (
+        <OfflineDownloadDialog
+          progress={progress}
+          onPause={() => {
+            pauseOfflinePackage();
+            setShowDownload(false);
+          }}
+          onClose={() => setShowDownload(false)}
+        />
+      )}
 
       <PwaDialog
         view={view}

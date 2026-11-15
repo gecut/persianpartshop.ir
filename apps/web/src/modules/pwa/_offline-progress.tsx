@@ -2,22 +2,13 @@ import { useId, useState } from 'react'
 import { match } from 'ts-pattern'
 import { useAuth } from '@/modules/auth/auth-store'
 import { offlineRecoveryEnabled } from './read-source'
-import { Button, ProgressCircle } from '@heroui/react'
+import { Button } from '@heroui/react'
 import { DownloadMinimalisticIcon } from '@solar-icons/react/linear'
 import { formatNumber, toPersianDigits } from '@/lib/utils/currency'
 import { formatPersianDateTime } from '@/lib/utils/date'
-import type { OfflineProgress as DownloadProgress } from './_download-offline-data'
+import { OfflineDownloadProgress } from './_offline-download-progress'
 import { offlineMaxAge } from './offline-storage'
 import { inspectOfflineDownload, pauseOfflinePackage, prepareOfflinePackage, removeOfflinePackage, repairOfflinePackage, useOfflinePackage } from './offline-package'
-
-const labels = {
-  checking: 'بررسی دسترسی و فضای ذخیره‌سازی',
-  catalog: 'دریافت محصولات و ابعاد',
-  history: 'دریافت طرح‌ها و سوابق',
-  qr: 'آماده‌سازی کدهای QR',
-  images: 'دانلود تصاویر',
-  verifying: 'بررسی نهایی فایل‌ها و دسترسی',
-}
 
 export function OfflineProgress({ online, detail = false, showHeading = false }: {
   online: boolean
@@ -97,24 +88,4 @@ export function OfflineProgress({ online, detail = false, showHeading = false }:
       {active && <Button variant="ghost" onPress={() => void removeOfflinePackage(true)}>حذف داده‌های آفلاین</Button>}
     </div>
   </section>
-}
-
-export function OfflineDownloadProgress({ progress }: { progress: DownloadProgress }) {
-  const done = progress.done ?? 0
-  const total = progress.total
-  const label = labels[progress.phase]
-  return <div className="space-y-2">
-    <p role="status">{label}</p>
-    <ProgressCircle aria-label={label} isIndeterminate={total === undefined} value={done} maxValue={Math.max(total ?? 0, 1)}
-      aria-valuetext={total === undefined ? undefined : `${toPersianDigits(done)} از ${toPersianDigits(total)}`}>
-      <ProgressCircle.Track><ProgressCircle.TrackCircle /><ProgressCircle.FillCircle /></ProgressCircle.Track>
-    </ProgressCircle>
-    {progress.done !== undefined && <p className="text-xs text-muted">
-      {toPersianDigits(done)}{total !== undefined && <> از {toPersianDigits(total)}</>}
-      {' '}{progress.phase === 'images' ? 'تصویر' : progress.phase === 'catalog' ? 'محصول' : progress.phase === 'history' ? 'سابقه' : 'کد'} آماده است
-      {total !== undefined && <> · {toPersianDigits(Math.max(0, total - done))} باقی مانده</>}
-      {!!progress.reused && <> · {toPersianDigits(progress.reused)} تصویر از قبل موجود بود</>}
-    </p>}
-    {!!progress.bytes && <p className="text-xs text-muted">{toPersianDigits(formatNumber(progress.bytes))} بایت تصویر جدید در این نوبت ذخیره شد</p>}
-  </div>
 }
