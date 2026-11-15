@@ -16,7 +16,9 @@ interface ProductSpecGridProps {
   product: Product;
 }
 
-export function ProductSpecGrid({ product: activeProduct }: ProductSpecGridProps) {
+export function ProductSpecGrid({
+  product: activeProduct,
+}: ProductSpecGridProps) {
   return (
     <div className="space-y-1.5">
       <div className="grid grid-cols-2 gap-2 text-xs">
@@ -28,34 +30,30 @@ export function ProductSpecGrid({ product: activeProduct }: ProductSpecGridProps
               value={formatUnit(activeProduct.unit)}
             />
 
-            {activeProduct.weight != null &&
-              activeProduct.weight > 0 && (
-                <ProductSpecRow
-                  icon={<SolarLayersIcon size={14} />}
-                  label="وزن / مقدار"
-                  value={
-                    <>
-                      {toPersianDigits(activeProduct.weight)}{" "}
-                      {(activeProduct.secondary_unit ||
-                        activeProduct.secondaryUnit)
-                        ? formatUnit(
-                            activeProduct.secondary_unit ||
-                              activeProduct.secondaryUnit,
-                          )
-                        : formatUnit(activeProduct.unit)}
-                    </>
-                  }
-                />
-              )}
+            {activeProduct.weight != null && activeProduct.weight > 0 && (
+              <ProductSpecRow
+                icon={<SolarLayersIcon size={14} />}
+                label="وزن / مقدار"
+                value={
+                  <>
+                    {toPersianDigits(activeProduct.weight)}{" "}
+                    {activeProduct.secondary_unit || activeProduct.secondaryUnit
+                      ? formatUnit(
+                          activeProduct.secondary_unit ||
+                            activeProduct.secondaryUnit
+                        )
+                      : formatUnit(activeProduct.unit)}
+                  </>
+                }
+              />
+            )}
 
-            {(activeProduct.secondary_unit ||
-              activeProduct.secondaryUnit) && (
+            {(activeProduct.secondary_unit || activeProduct.secondaryUnit) && (
               <ProductSpecRow
                 icon={<SolarLayersIcon size={14} />}
                 label="واحد فرعی"
                 value={formatUnit(
-                  activeProduct.secondary_unit ||
-                    activeProduct.secondaryUnit,
+                  activeProduct.secondary_unit || activeProduct.secondaryUnit
                 )}
               />
             )}
@@ -77,7 +75,10 @@ export function ProductSpecGrid({ product: activeProduct }: ProductSpecGridProps
               />
             )}
 
-            <ProductSpecRow icon={<SolarTagIcon size={14} />} label="موجودی انبار">
+            <ProductSpecRow
+              icon={<SolarTagIcon size={14} />}
+              label="موجودی انبار"
+            >
               <ProductStockValue
                 product={activeProduct}
                 unitLabel={formatUnit(activeProduct.unit)}
@@ -107,13 +108,11 @@ export function ProductSpecGrid({ product: activeProduct }: ProductSpecGridProps
                   label="ابعاد"
                   value={
                     <>
-                      {toPersianDigits(
-                        activeProduct.dimensions.width,
-                      )}{" "}
-                      ×{" "}
-                      {toPersianDigits(
-                        activeProduct.dimensions.height,
-                      )}
+                      <div className="flex gap-0.5 opacity-70 group-hover:opacity-100 transition-opacity duration-200">
+                        <span>{toPersianDigits(activeProduct.dimensions.height)}</span>
+                        <span className="opacity-70">&times;</span>
+                        <span>{toPersianDigits(activeProduct.dimensions.width)}</span>
+                      </div>
                     </>
                   }
                 />
@@ -129,7 +128,10 @@ export function ProductSpecGrid({ product: activeProduct }: ProductSpecGridProps
                 />
               )}
 
-            <ProductSpecRow icon={<SolarTagIcon size={14} />} label={<>موجودی انبار{" "}</>}>
+            <ProductSpecRow
+              icon={<SolarTagIcon size={14} />}
+              label={<>موجودی انبار </>}
+            >
               <ProductStockValue product={activeProduct} unitLabel="متر" />
             </ProductSpecRow>
 
@@ -139,12 +141,7 @@ export function ProductSpecGrid({ product: activeProduct }: ProductSpecGridProps
                   icon={<SolarLayersIcon size={14} />}
                   label="تعداد در هر کارتن"
                   value={
-                    <>
-                      {toPersianDigits(
-                        activeProduct.piecesPerCarton,
-                      )}{" "}
-                      برگ
-                    </>
+                    <>{toPersianDigits(activeProduct.piecesPerCarton)} قالب</>
                   }
                 />
               )}
