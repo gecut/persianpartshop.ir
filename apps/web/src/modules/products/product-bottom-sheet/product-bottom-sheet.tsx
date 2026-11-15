@@ -33,7 +33,7 @@ export function ProductBottomSheet({
   onRequestSupply,
   onOrderDirect: _onOrderDirect,
 }: ProductBottomSheetProps) {
-  const [zoomImageUrl, setZoomImageUrl] = useState<string | null>(null);
+  const [zoomedImage, setZoomedImage] = useState<{ productId: string; url: string } | null>(null);
   const [qrOpen, setQrOpen] = useState(false);
 
   useLayoutEffect(() => { setQrOpen(false) }, [product?.id, isOpen]);
@@ -51,40 +51,19 @@ export function ProductBottomSheet({
 
   const activeProduct = product || renderedProduct;
 
-  // Consolidate tile angles and sample works into a unified gallery
-  const mediaItems: GalleryMediaItem[] = useMemo(() => {
-    if (!activeProduct) return [];
-    const items: GalleryMediaItem[] = [];
-    const seen = new Set<string>();
+  const gallery = activeProduct?.gallery;
+  const galleryMediaIds = activeProduct?.galleryMediaIds;
+  const mediaItems: GalleryMediaItem[] = useMemo(() => gallery?.map((url, index) => ({
+    url,
+    id: galleryMediaIds?.[url],
+    label: `تصویر ${toPersianDigits(index + 1)}`,
+  })) ?? [], [gallery, galleryMediaIds]);
+  const zoomImageUrl = isOpen && zoomedImage && zoomedImage.productId === activeProduct?.id &&
+    gallery?.includes(zoomedImage.url) ? zoomedImage.url : null;
 
-    const all = [
-      ...(activeProduct.images || []),
-      ...(activeProduct.gallery || []),
-    ].filter(Boolean);
-
-    all.forEach((url, idx) => {
-      if (!seen.has(url)) {
-        seen.add(url);
-        items.push({
-          id: `media-${idx}`,
-          url,
-          label: idx === 0 ? "تصویر اصلی" : `نمونه‌کار ${toPersianDigits(idx)}`,
-          isSampleWork: idx > 0,
-        });
-      }
-    });
-
-    if (items.length === 0) {
-      items.push({
-        id: "placeholder",
-        url: "/assets/images/placeholder.svg",
-        label: "تصویر شاخص",
-        isSampleWork: false,
-      });
-    }
-
-    return items;
-  }, [activeProduct]);
+  useEffect(() => {
+    if (!zoomImageUrl && zoomedImage) setZoomedImage(null);
+  }, [zoomedImage, zoomImageUrl]);
 
   const { user } = useAuth();
   if (!activeProduct || !isProductAllowedForUser(activeProduct, user)) return null;
@@ -136,14 +115,15 @@ export function ProductBottomSheet({
               {/* Body */}
               <Drawer.Body className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 py-2 space-y-2.5 scrollbar-none pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))]">
                 {qrOpen && <Suspense fallback={<p role="status">در حال آماده‌سازی…</p>}><ProductQrDownload productId={activeProduct.id} /></Suspense>}
-                <ProductGallery
-                  key={`${activeProduct.id}-${isOpen}`}
+                {mediaItems.length > 0 && <ProductGallery
+                  key={activeProduct.id}
                   productName={activeProduct.name}
                   items={mediaItems}
                   isOpen={isOpen}
+                  isZoomOpen={Boolean(zoomImageUrl)}
                   showProductImageWatermark={user?.showProductImageWatermark === true}
-                  onZoom={setZoomImageUrl}
-                />
+                  onZoom={url => setZoomedImage({ productId: activeProduct.id, url })}
+                />}
 
                 {/* Price & Selection Action Strip */}
                 <ProductPriceStrip
@@ -186,7 +166,7 @@ export function ProductBottomSheet({
       {zoomImageUrl && (
         <ImageViewerModal
           isOpen={Boolean(zoomImageUrl)}
-          onClose={() => setZoomImageUrl(null)}
+          onClose={() => setZoomedImage(null)}
           imageUrl={zoomImageUrl}
           title={activeProduct.name}
           showProductImageWatermark={user?.showProductImageWatermark === true}

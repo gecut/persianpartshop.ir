@@ -75,10 +75,38 @@ type CatalogProductInput = Omit<CatalogRecord, "createdAt" | "hasScanCode"> & { 
   inStock?: boolean;
 };
 
+function mediaId(media: CatalogRecord['cover'], url: string) {
+  const id = typeof media === 'object' ? media?.id : url ? undefined : media
+  if (typeof id === 'number') return String(id)
+  if (typeof id === 'string' && id.trim()) return id.trim()
+}
+
 export function catalogProductImages(item: Pick<CatalogRecord, 'cover' | 'gallery'>) {
-  const gallery = Array.isArray(item.gallery) ? item.gallery.map(entry => resolveMediaUrl(entry.image)).filter(Boolean) : []
-  const primary = resolveMediaUrl(item.cover) || gallery[0] || '/assets/images/placeholder.svg'
-  return { primary, gallery, images: [primary, ...gallery.filter(url => url !== primary)] }
+  const placeholder = '/assets/images/placeholder.svg'
+  const coverUrl = resolveMediaUrl(item.cover).trim()
+  const entries = (item.gallery ?? []).flatMap(({ image }) => {
+    const url = resolveMediaUrl(image).trim()
+    return /^(https?:\/\/|\/)/i.test(url) && url !== placeholder ? [{ url, id: mediaId(image, url) }] : []
+  })
+  const coverId = mediaId(item.cover, coverUrl) ?? entries.find(entry => entry.url === coverUrl)?.id
+  const resolvedCover = coverUrl || (coverId ? entries.find(entry => entry.id === coverId)?.url : undefined)
+  const gallery: string[] = []
+  const galleryMediaIds: Record<string, string> = {}
+  const seenUrls = new Set<string>(resolvedCover ? [resolvedCover] : [])
+  const seenIds = new Set<string>(coverId ? [coverId] : [])
+
+  for (const { url, id } of entries) {
+    const duplicate = seenUrls.has(url) || (id !== undefined && seenIds.has(id))
+    seenUrls.add(url)
+    if (id !== undefined) seenIds.add(id)
+    if (duplicate) continue
+    gallery.push(url)
+    if (id !== undefined) galleryMediaIds[url] = id
+  }
+
+  const primary = resolvedCover || entries[0]?.url || placeholder
+  seenUrls.delete(primary)
+  return { primary, gallery, galleryMediaIds, images: [primary, ...seenUrls] }
 }
 
 export function mapCatalogProduct(item: CatalogProductInput): Product {
@@ -101,7 +129,7 @@ export function mapCatalogProduct(item: CatalogProductInput): Product {
       ? item.category.name
       : item.categoryName || "عمومی";
   const basePrice = Number(item.finalCustomerPricePerSqm ?? 0);
-  const { primary: primaryImage, gallery: galleryUrls, images: imagesList } = catalogProductImages(item);
+  const { gallery, galleryMediaIds, images } = catalogProductImages(item);
 
   const finalPrice = basePrice;
   const discountPercent: number | undefined = undefined;
@@ -176,7 +204,8 @@ export function mapCatalogProduct(item: CatalogProductInput): Product {
           typeof t === "object" ? [t.name] : typeof t === "string" ? [t] : []
         )
       : [],
-    images: imagesList,
-    gallery: galleryUrls.length > 0 ? galleryUrls : [primaryImage],
+    images,
+    gallery,
+    galleryMediaIds,
   };
 }

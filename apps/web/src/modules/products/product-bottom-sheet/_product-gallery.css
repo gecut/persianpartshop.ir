@@ -1,0 +1,85 @@
+.product-gallery {
+  container-type: inline-size;
+  inline-size: 100%;
+  max-inline-size: 32rem;
+  margin-inline: auto;
+}
+
+.product-gallery__stage {
+  --stage-height: min(clamp(10rem, 58cqi, 18rem), 40dvh);
+  --side-space: 0px;
+  --slide-gap: 0px;
+  --parallax-room: 0px;
+  block-size: var(--stage-height);
+}
+
+.product-gallery__stage[data-multiple] {
+  --side-space: 12px;
+  --slide-gap: 16px;
+  --parallax-room: 6px;
+}
+
+.product-gallery__track {
+  display: flex;
+  touch-action: pan-y pinch-zoom;
+}
+
+.product-gallery__stage .product-gallery__track {
+  block-size: 100%;
+  /* Padding on every slide also supplies the gap across the loop seam. */
+  margin-inline: calc(var(--slide-gap) / -2);
+}
+
+.product-gallery__slide {
+  --frame-width: min(calc(var(--stage-height) * var(--frame-ratio)), calc(100cqi - 2 * var(--side-space)));
+  flex: 0 0 max(calc(100cqi / 3), calc(var(--frame-width) + var(--slide-gap)));
+  min-inline-size: 0;
+  display: grid;
+  place-items: center;
+  padding-inline: calc(var(--slide-gap) / 2);
+}
+
+.product-gallery__slide:only-child {
+  flex-basis: 100%;
+}
+
+.product-gallery__frame {
+  position: relative;
+  overflow: hidden;
+  inline-size: var(--frame-width);
+  aspect-ratio: var(--frame-ratio);
+}
+
+.product-gallery__photo-layer {
+  position: absolute;
+  inset: 0 calc(-1 * var(--parallax-room));
+}
+
+.product-gallery__thumb {
+  flex: 0 0 auto;
+  min-inline-size: 0;
+  padding-inline-end: 8px;
+}
+
+.product-gallery__thumb-frame {
+  position: relative;
+  display: grid;
+  place-items: center;
+  block-size: 48px;
+  inline-size: max(44px, calc(48px * var(--frame-ratio)));
+  overflow: hidden;
+}
+
+.product-gallery__thumb button[aria-pressed="true"] .product-gallery__thumb-frame::after {
+  position: absolute;
+  inset: 0;
+  border: 2px solid var(--color-primary);
+  border-radius: inherit;
+  content: "";
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .product-gallery__stage[data-multiple] {
+    --parallax-room: 0px;
+  }
+}

@@ -1,6 +1,6 @@
 .product-image-watermark {
   position: absolute;
-  inset-block-end: 12px;
+  inset-block-start: 12px;
   inset-inline-end: 12px;
   display: inline-flex;
   align-items: center;

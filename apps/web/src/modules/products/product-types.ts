@@ -58,6 +58,7 @@ export interface Product {
   tags: string[]
   images: string[]
   gallery: string[]
+  galleryMediaIds?: Readonly<Record<string, string>>
   createdAt?: string
 }
 

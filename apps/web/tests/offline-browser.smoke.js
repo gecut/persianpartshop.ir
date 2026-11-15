@@ -6,7 +6,8 @@ async page => {
   const scanHash = await page.evaluate(async code => Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(code))), n => n.toString(16).padStart(2, '0')).join(''), qr)
   const records = [
     { id: 1, name: 'First product', sku: 'PP-1', slug: 'p1', createdAt: ts, inventorySqm: 1, stockCartons: 1, availability: 'available', finalCustomerPricePerSqm: 100, hasScanCode: false, cover: { url: '/api/media/file/tile-calacatta-gold.jpg' } },
-    { id: 2, name: 'Offline target', sku: 'PP-2', slug: 'p2', createdAt: ts, inventorySqm: 1, stockCartons: 1, availability: 'available', finalCustomerPricePerSqm: 200, hasScanCode: true, scanHash, dimension: {id:1,name:'60×120',width:60,height:120}, cover: { url: '/api/media/file/tile-calacatta-gold-1.jpg' } },
+    { id: 2, name: 'Offline target', sku: 'PP-2', slug: 'p2', createdAt: ts, inventorySqm: 1, stockCartons: 1, availability: 'available', finalCustomerPricePerSqm: 200, hasScanCode: true, scanHash, dimension: {id:1,name:'60×120',width:60,height:120}, cover: { url: '/api/media/file/tile-calacatta-gold-1.jpg' },
+      gallery: [{ image: '/api/media/file/tile-calacatta-gold-1.jpg' }, { image: '/api/media/file/tile-calacatta-gold.jpg' }] },
   ]
   const user = { id: '1', fullName: 'Offline Tester', name: 'Offline Tester', phone: '09120000000', canUseProductQr: true, documents: [{id:'1',documentType:'business_license',status:'approved',file:{url:'/private-file.png'}}] }
   const order = {id:7,orderNumber:'1234567',status:'pending',warehouse:1,user:1,items:[{product:2,productName:'Offline target',requestedArea:1,cartonCount:1,deliverableArea:1,unitPrice:200,totalPrice:200}],subtotal:200,finalTotal:200,createdAt:ts,updatedAt:ts}
@@ -71,6 +72,21 @@ async page => {
     localStorage.setItem('persianpart_token','fixture')
     localStorage.setItem('persianpart_auth',JSON.stringify({user}))
   },user)
+  const assertGallery = async (target, filename) => {
+    const gallery = target.getByRole('region', { name: 'تصاویر محصول' })
+    await gallery.locator(`img[src$="/${filename}"]`).waitFor()
+    await target.waitForFunction(filename => Array.from(document.querySelectorAll('.product-gallery img')).some(
+      img => img.src.endsWith('/' + filename) && img.naturalWidth > 0
+    ), filename)
+    if (await gallery.locator('img').count() !== 1 || await gallery.getByRole('group', { name: 'انتخاب تصویر' }).count()) {
+      throw Error('Expected exactly one gallery photo and no carousel thumbnails')
+    }
+  }
+  await page.goto('http://localhost:55177/product')
+  const coverOnly = page.getByRole('img', { name: 'First product', exact: true })
+  await coverOnly.click()
+  await page.getByRole('heading', { name: 'First product', exact: true, level: 2 }).waitFor()
+  if (await page.getByRole('region', { name: 'تصاویر محصول' }).count()) throw Error('Cover-only product has a gallery')
   await page.goto('http://localhost:55177/account')
   await page.getByRole('button',{name:'برنامهٔ پرشین‌پارت نصب و به‌روزرسانی'}).click()
   await page.getByRole('dialog').getByRole('button',{name:recovery ? 'بررسی حجم بستهٔ آفلاین' : 'دانلود بستهٔ آفلاین'}).click()
@@ -95,7 +111,7 @@ async page => {
   await fresh.goto('http://localhost:55177/product?productId=2')
   await selectSaved()
   await fresh.getByText('Offline target',{exact:true}).first().waitFor()
-  await fresh.waitForFunction(() => [...document.images].some(img => img.src.endsWith('tile-calacatta-gold-1.jpg') && img.complete && img.naturalWidth > 0))
+  await assertGallery(fresh, 'tile-calacatta-gold.jpg')
   await fresh.getByRole('button',{name:'دریافت QR محصول'}).click()
   await fresh.getByText(qr,{exact:true}).waitFor()
   const download = fresh.waitForEvent('download')
