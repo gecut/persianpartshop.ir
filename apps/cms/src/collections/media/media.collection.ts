@@ -1,4 +1,6 @@
-import type { CollectionConfig } from 'payload'
+import { createHash } from 'node:crypto'
+import type { CollectionConfig, ImageSize } from 'payload'
+import type { Media as MediaDocument } from '../../payload-types'
 import { isCatalogManager } from '../../access/roles'
 
 export function buildCdnUrl(filename: string | null | undefined): string | null {
@@ -7,6 +9,22 @@ export function buildCdnUrl(filename: string | null | undefined): string | null 
   if (!cdnUrl) return null
   return `${cdnUrl.replace(/\/+$/, '')}/${encodeURIComponent(filename)}`
 }
+
+export const galleryImageSizes = [
+  { name: 'galleryThumb', edge: 256, quality: 78 },
+  { name: 'galleryPreview', edge: 1024, quality: 82 },
+] as const
+
+const imageSizes = galleryImageSizes.map(({ name, edge, quality }): ImageSize => ({
+  name,
+  width: edge,
+  height: edge,
+  fit: 'inside',
+  withoutEnlargement: true,
+  formatOptions: { format: 'webp', options: { quality, alphaQuality: 100, effort: 4 } },
+  generateImageName: ({ originalName, extension }) =>
+    `gallery-${createHash('sha256').update(originalName).digest('hex').slice(0, 24)}-${edge}.${extension}`,
+}))
 
 export const Media: CollectionConfig = {
   slug: 'media',
@@ -34,6 +52,12 @@ export const Media: CollectionConfig = {
             doc.url = cdnUrl
           }
         }
+        for (const { name } of galleryImageSizes) {
+          const size = doc.sizes?.[name]
+          if (size?.filename) {
+            size.url = buildCdnUrl(size.filename) || `/api/media/file/${encodeURIComponent(size.filename)}`
+          }
+        }
         return doc
       },
     ],
@@ -51,6 +75,7 @@ export const Media: CollectionConfig = {
   ],
   upload: {
     staticDir: 'media',
+    imageSizes,
     mimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/avif'],
     resizeOptions: {
       width: 1600,
@@ -67,8 +92,12 @@ export const Media: CollectionConfig = {
       },
     },
     withMetadata: false,
-    ...(process.env.CDN_URL ? {
-      adminThumbnail: ({ doc }: { doc: { filename?: string | null } }) => buildCdnUrl(doc.filename) || '',
-    } : {}),
+    adminThumbnail: ({ doc }) => {
+      const media = doc as Partial<MediaDocument>
+      const filename = media.sizes?.galleryThumb?.filename ?? media.filename
+      return typeof filename === 'string'
+        ? buildCdnUrl(filename) || `/api/media/file/${encodeURIComponent(filename)}`
+        : ''
+    },
   },
 }

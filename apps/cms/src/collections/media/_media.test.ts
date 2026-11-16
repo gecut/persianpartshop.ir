@@ -49,3 +49,22 @@ test('buildCdnUrl composes and encodes the public CDN URL', () => {
     else process.env.CDN_URL = prev
   }
 })
+
+test('admin thumbnails use the stored derivative on the local and CDN paths', () => {
+  const upload = Media.upload
+  assert.ok(upload && typeof upload === 'object' && typeof upload.adminThumbnail === 'function')
+  const original = { filename: 'original.webp' }
+  const resized = { ...original, sizes: { galleryThumb: { filename: 'thumb-256.webp' } } }
+  const previous = process.env.CDN_URL
+  try {
+    delete process.env.CDN_URL
+    assert.equal(upload.adminThumbnail({ doc: resized }), '/api/media/file/thumb-256.webp')
+    assert.equal(upload.adminThumbnail({ doc: original }), '/api/media/file/original.webp')
+    process.env.CDN_URL = 'https://cdn.example.com/media'
+    assert.equal(upload.adminThumbnail({ doc: resized }), 'https://cdn.example.com/media/thumb-256.webp')
+    assert.equal(upload.adminThumbnail({ doc: original }), 'https://cdn.example.com/media/original.webp')
+  } finally {
+    if (previous === undefined) delete process.env.CDN_URL
+    else process.env.CDN_URL = previous
+  }
+})

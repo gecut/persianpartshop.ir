@@ -1,4 +1,5 @@
 import * as cmsMcp from './20261115_120000_cms_mcp';
+import * as galleryImageSizes from './20261116_150000_gallery_image_sizes';
 import * as offlineSnapshots from './20261114_140000_offline_snapshots';
 import * as hookIntegrity from './20261110_120000_hook_integrity';
 import * as sharedTracking from './20261109_160000_shared_tracking_numbers';
@@ -32,4 +33,5 @@ export const migrations = [
   { up: customerOtpOwnership.up, down: customerOtpOwnership.down, name: '20261114_130000_customer_otp_ownership' },
   { up: offlineSnapshots.up, down: offlineSnapshots.down, name: '20261114_140000_offline_snapshots' },
   { up: cmsMcp.up, down: cmsMcp.down, name: '20261115_120000_cms_mcp' },
+  { up: galleryImageSizes.up, down: galleryImageSizes.down, name: '20261116_150000_gallery_image_sizes' },
 ];
