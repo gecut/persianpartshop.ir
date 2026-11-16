@@ -1,3 +1,4 @@
+import { ProductSmallImage } from "@/modules/products/product-small-image"
 import { formatCartons } from '@/lib/utils/unit'
 
 import type { Product } from "@/modules/products/product-types"
@@ -23,17 +24,11 @@ export function PreInvoiceItemCard({ item }: PreInvoiceItemCardProps) {
       {/* Product Thumbnail & Details Header */}
       <div className="flex items-center justify-between gap-3 min-w-0">
         <div className="flex items-center gap-3 min-w-0 flex-1">
-          <img
-            src={item.product.images[0] || "/assets/images/placeholder.svg"}
+          <ProductSmallImage
+            src={item.product.images[0]}
+            thumbnail={item.product.thumbnailUrl}
             alt={item.product.name}
             className="w-13 h-13 rounded-2xl object-cover shrink-0"
-            onError={(e) => {
-              if (
-                !e.currentTarget.src.endsWith("/assets/images/placeholder.svg")
-              ) {
-                e.currentTarget.src = "/assets/images/placeholder.svg";
-              }
-            }}
           />
           <div className="min-w-0 flex-1">
             <h4 className="font-bold text-foreground text-xs sm:text-sm truncate leading-snug">

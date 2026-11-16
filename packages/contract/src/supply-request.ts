@@ -16,6 +16,7 @@ export const SupplyRequestSchema = z.object({
   productName: z.string(),
   productSku: z.string(),
   productImage: z.string().nullable(),
+  productImageThumbnail: z.string().optional(),
   warehouseId: id.nullable(),
   warehouseName: z.string().nullable(),
   warehouseCode: z.string().nullable(),

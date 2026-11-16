@@ -1,3 +1,4 @@
+import { ProductSmallImage } from "@/modules/products/product-small-image"
 import type { Product } from "@/modules/products/product-types"
 import { formatToman } from "@/lib/utils/currency"
 import { cn } from "@/lib/utils"
@@ -63,24 +64,11 @@ export function PlanProductRow({ prod, isExpired, isUpcoming, onSelect }: PlanPr
         }
       >
         <div className="flex items-center gap-2.5 min-w-0 flex-1">
-          <img
-            src={
-              prod.images[0] ||
-              "/assets/images/placeholder.svg"
-            }
+          <ProductSmallImage
+            src={prod.images[0]}
+            thumbnail={prod.thumbnailUrl}
             alt={prod.name}
             className="size-12 rounded-xl object-cover shrink-0 bg-muted/20"
-            onError={(e) => {
-              const target = e.currentTarget;
-              if (
-                !target.src.endsWith(
-                  "/assets/images/placeholder.svg",
-                )
-              ) {
-                target.src =
-                  "/assets/images/placeholder.svg";
-              }
-            }}
           />
           <div className="min-w-0 flex-1">
             <span className="text-xs font-bold text-foreground truncate block">

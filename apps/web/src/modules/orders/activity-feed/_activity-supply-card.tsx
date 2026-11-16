@@ -1,3 +1,4 @@
+import { ProductSmallImage } from "@/modules/products/product-small-image"
 import { TrackingNumber } from '@/components/ui/tracking-number'
 import React from 'react'
 import { Button } from '@heroui/react'
@@ -49,17 +50,11 @@ export const ActivitySupplyCard = React.memo(function ActivitySupplyCard({
       {/* Product & quantity info */}
       <div className="space-y-2 min-w-0">
         <div className="flex items-center gap-3">
-          <img
-            src={item.productImage || '/assets/images/placeholder.svg'}
+          <ProductSmallImage
+            src={item.productImage}
+            thumbnail={item.productImageThumbnail}
             alt={item.productName}
             className="size-13 border border-primary/20 rounded-2xl object-cover shrink-0 select-none"
-            loading="lazy"
-            onError={(e) => {
-              const target = e.currentTarget
-              if (!target.src.endsWith('/assets/images/placeholder.svg')) {
-                target.src = '/assets/images/placeholder.svg'
-              }
-            }}
           />
           <div className="min-w-0 flex-1">
             <h4 className="text-sm font-bold text-foreground truncate">{item.productName}</h4>

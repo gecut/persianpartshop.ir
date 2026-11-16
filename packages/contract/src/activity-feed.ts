@@ -18,6 +18,7 @@ export const ActivityFeedItemSchema = z.discriminatedUnion('kind', [
     itemCount: z.number().int().positive(),
     quantitySummary: z.string(),
     productImages: z.array(z.string()),
+    productImageThumbnails: z.record(z.string()).optional(),
     canReorder: z.boolean(),
   }),
   z.object({
@@ -30,6 +31,7 @@ export const ActivityFeedItemSchema = z.discriminatedUnion('kind', [
     estimatedTotal: z.number().nonnegative(),
     productName: z.string(),
     productImage: z.string().nullable(),
+    productImageThumbnail: z.string().optional(),
     requestedQuantity: z.number().positive(),
     roundedQuantity: z.number().positive(),
     unit: z.string(),

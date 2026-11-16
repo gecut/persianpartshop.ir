@@ -1,3 +1,4 @@
+import { historyThumbnails } from './_history-thumbnails'
 import { ORPCError } from '@orpc/server'
 import type { ActivityFeedOutput } from '@persianpart/contract'
 import { customerOnly } from '../rpc/base'
@@ -26,7 +27,19 @@ const list = customerOnly.activityFeed.list.handler(async ({ input, context }) =
       throw new ORPCError('INTERNAL_SERVER_ERROR', { message: 'دریافت فعالیت‌ها با خطا مواجه شد.' })
     }
     const data = (await response.json()) as ActivityFeedOutput
-    return data
+    const thumbnails = await historyThumbnails(data.items.flatMap(item =>
+      item.kind === 'order' ? item.productImages : [item.productImage]
+    ))
+    return { ...data, items: data.items.map(item => {
+      if (item.kind === 'order') {
+        const productImageThumbnails = Object.fromEntries(item.productImages.flatMap(url => {
+          const thumbnail = thumbnails.get(url)
+          return thumbnail ? [[url, thumbnail]] : []
+        }))
+        return { ...item, productImageThumbnails }
+      }
+      return { ...item, productImageThumbnail: item.productImage ? thumbnails.get(item.productImage) : undefined }
+    }) }
   } catch (err) {
     if (err instanceof ORPCError) throw err
     throw new ORPCError('INTERNAL_SERVER_ERROR', { message: 'ارتباط با سرویس اطلاعات فعالیت‌ها برقرار نشد.' })

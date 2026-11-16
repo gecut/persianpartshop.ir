@@ -74,6 +74,7 @@ export const ProductCard = React.memo(function ProductCard({
       <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
         <ProductThumbnail
           src={imgSrc}
+          thumbnail={product.thumbnailUrl}
           alt={product.name}
           onOpenBottomSheet={() => onOpenBottomSheet?.(product)}
         />

@@ -1,3 +1,4 @@
+import { historyThumbnails } from './_history-thumbnails'
 import { handlePayloadError } from '../payload-error'
 import { createHash } from 'node:crypto'
 import { ORPCError } from '@orpc/server'
@@ -9,7 +10,7 @@ import { getUserPermissions } from './router.helpers'
 
 const hash = (value: string) => createHash('sha256').update(value).digest('hex')
 const idOf = (value: number | { id: number }) => typeof value === 'number' ? value : value.id
-const map = (doc: SupplyDocument) => ({
+const map = (doc: SupplyDocument, thumbnails: ReadonlyMap<string, string>) => ({
   id: doc.id,
   requestNumber: String(doc.trackingNumber ?? doc.requestNumber),
   status: doc.status,
@@ -17,6 +18,7 @@ const map = (doc: SupplyDocument) => ({
   productName: doc.productName,
   productSku: doc.productSku,
   productImage: doc.productImage ?? null,
+  productImageThumbnail: doc.productImage ? thumbnails.get(doc.productImage) : undefined,
   warehouseId: doc.warehouse ? idOf(doc.warehouse) : null,
   warehouseName: doc.warehouseName ?? null,
   warehouseCode: doc.warehouseCode ?? null,
@@ -39,6 +41,10 @@ const map = (doc: SupplyDocument) => ({
   canCancel: doc.status === 'new' && !doc.reviewStartedAt,
   isOverdue: ['new', 'reviewing'].includes(doc.status) && Date.now() >= new Date(doc.responseDueAt).getTime(),
 })
+async function mapRequest(doc: SupplyDocument) {
+  return map(doc, await historyThumbnails([doc.productImage]))
+}
+
 const requireActive = async (userId: number) => {
   const user = await sdk.findByID({ collection: 'users', id: userId, depth: 0 })
   if (user.status !== 'active') throw new ORPCError('FORBIDDEN', { message: 'حساب مشتری فعال نیست.' })
@@ -114,7 +120,7 @@ const submit = customerOnly.supplyRequest.submit.handler(async ({ input, context
   const replay = async () => (await sdk.find({ collection: 'supply-requests', where: { and: [{ user: { equals: userId } }, { idempotencyKey: { equals: key } }] }, limit: 1, depth: 0 })).docs[0]
   const resolveReplay = (doc: SupplyDocument) => {
     if (doc.requestFingerprint !== fingerprint) throw new ORPCError('CONFLICT', { message: 'کلید ثبت برای درخواست دیگری استفاده شده است.' })
-    return map(doc)
+    return mapRequest(doc)
   }
   const previous = await replay()
   if (previous) return resolveReplay(previous)
@@ -130,7 +136,7 @@ const submit = customerOnly.supplyRequest.submit.handler(async ({ input, context
     }
     if (!isV2) payloadData.warehouse = input.warehouseId
     const doc = await sdk.create({ collection: 'supply-requests', data: payloadData as never })
-    return map(doc)
+    return mapRequest(doc)
   } catch (error) {
     const winner = await replay()
     if (winner) return resolveReplay(winner)
@@ -141,15 +147,16 @@ const list = customerOnly.supplyRequest.list.handler(async ({ input, context }) 
   const userId = Number(context.user.id)
   await requireActive(userId)
   const result = await sdk.find({ collection: 'supply-requests', where: { and: [{ user: { equals: userId } }, ...(input.status ? [{ status: { equals: input.status } }] : [])] }, sort: '-createdAt', page: input.page, limit: input.limit, depth: 0 })
-  return { items: result.docs.map(map), total: result.totalDocs, page: input.page, limit: input.limit, totalPages: result.totalPages }
+  const thumbnails = await historyThumbnails(result.docs.map(doc => doc.productImage))
+  return { items: result.docs.map(doc => map(doc, thumbnails)), total: result.totalDocs, page: input.page, limit: input.limit, totalPages: result.totalPages }
 })
-const detail = customerOnly.supplyRequest.detail.handler(async ({ input, context }) => { const userId = Number(context.user.id); await requireActive(userId); return map(await findOwned(input.id, userId)) })
+const detail = customerOnly.supplyRequest.detail.handler(async ({ input, context }) => { const userId = Number(context.user.id); await requireActive(userId); return mapRequest(await findOwned(input.id, userId)) })
 const cancel = customerOnly.supplyRequest.cancel.handler(async ({ input, context }) => {
   const userId = Number(context.user.id)
   await requireActive(userId)
   const doc = await findOwned(input.id, userId)
-  if (doc.status === 'cancelled_by_customer') return map(doc)
-  try { return map(await sdk.update({ collection: 'supply-requests', id: doc.id, data: { status: 'cancelled_by_customer' }, depth: 0 })) }
+  if (doc.status === 'cancelled_by_customer') return mapRequest(doc)
+  try { return mapRequest(await sdk.update({ collection: 'supply-requests', id: doc.id, data: { status: 'cancelled_by_customer' }, depth: 0 })) }
   catch (error) {
     handlePayloadError(error)
   }

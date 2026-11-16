@@ -2,10 +2,14 @@ import { describe, test, expect, mock, beforeEach } from 'bun:test'
 import { call } from '@orpc/server'
 
 let userStatus = 'active'
+const publicPhoto = '/api/media/file/tile.webp'
+const thumbnail = '/api/media/file/tile-256.webp'
+const archivePhoto = '/api/media/file/archive.webp'
 let mockFetchResponse: { ok: boolean; status: number; json: () => Promise<unknown> }
 
 mock.module('../payload', () => ({
   sdk: {
+    find: async () => ({ docs: [{ filename: 'tile.webp', sizes: { galleryThumb: { url: thumbnail } } }] }),
     findByID: async () => ({
       id: 1,
       status: userStatus,
@@ -40,7 +44,7 @@ describe('activityFeed.list', () => {
             totalAmount: 500000,
             itemCount: 2,
             quantitySummary: '2 قلم کالا',
-            productImages: [],
+            productImages: [publicPhoto, archivePhoto],
             canReorder: true,
           },
           {
@@ -52,7 +56,7 @@ describe('activityFeed.list', () => {
             createdAt: '2026-11-08T09:00:00Z',
             estimatedTotal: 300000,
             productName: 'کاشی پرسلان',
-            productImage: null,
+            productImage: publicPhoto,
             requestedQuantity: 100,
             roundedQuantity: 100.8,
             unit: 'مترمربع',
@@ -72,8 +76,12 @@ describe('activityFeed.list', () => {
   test('successfully fetches activity feed for active customer', async () => {
     const result = await call(activityFeed.list, { filter: 'all', limit: 20 }, { context })
     expect(result.items).toHaveLength(2)
-    expect(result.items[0]?.kind).toBe('order')
-    expect(result.items[1]?.kind).toBe('supply')
+    expect(result.items[0]).toMatchObject({
+      kind: 'order', productImages: [publicPhoto, archivePhoto], productImageThumbnails: { [publicPhoto]: thumbnail },
+    })
+    expect(result.items[1]).toMatchObject({ kind: 'supply', productImage: publicPhoto, productImageThumbnail: thumbnail })
+    const order = result.items[0]
+    if (order?.kind === 'order') expect(order.productImageThumbnails?.[archivePhoto]).toBeUndefined()
     expect(result.nextCursor).toBe('cursor_123')
     expect(result.hasMore).toBe(true)
   })

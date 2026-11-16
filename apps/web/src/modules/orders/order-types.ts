@@ -25,6 +25,7 @@ export interface OrderItem {
   productSlug: string
   productSku: string
   productImage: string
+  productImageThumbnail?: string
   dimension: string
   productType?: string
   unit?: string

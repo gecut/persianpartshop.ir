@@ -38,6 +38,7 @@ export function buildReorderDraft(items: Order['items'] | undefined, allProducts
       stockStatus: 'in_stock' as const,
       applications: [],
       tags: [],
+      thumbnailUrl: item.productImageThumbnail,
       images: [item.productImage || '/placeholder.png'],
       gallery: [item.productImage || '/placeholder.png'],
     }

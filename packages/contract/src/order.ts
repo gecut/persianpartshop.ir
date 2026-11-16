@@ -1,3 +1,4 @@
+import { CatalogMediaSchema } from './media'
 import { oc } from '@orpc/contract'
 import { openapi } from '@orpc/openapi'
 import { z } from 'zod'
@@ -155,7 +156,8 @@ const CustomerProductSnapshotSchema = z.object({
   productType: z.enum(['tile', 'other']).nullable().optional(), unit: z.string().nullable().optional(),
   grade: z.string().nullable().optional(), sqmPerCarton: z.number().nullable().optional(),
   weight: z.number().nullable().optional(),
-  cover: z.union([PayloadEntityIdSchema, z.object({ url: z.string().nullable().optional(), filename: z.string().nullable().optional() })]).nullable().optional(),
+  cover: CatalogMediaSchema.nullish(),
+  gallery: z.array(z.object({ image: CatalogMediaSchema.nullish() })).nullish(),
 })
 export const CustomerOrderDocumentSchema = z.object({
   id: PayloadEntityIdSchema, orderNumber: z.string(), status: OrderStatusSchema,

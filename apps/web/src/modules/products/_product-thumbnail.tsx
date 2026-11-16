@@ -1,15 +1,17 @@
+import { ProductSmallImage } from "@/modules/products/product-small-image"
 import React from "react"
 import { ZoomInIcon } from "@/components/ui/icons"
-import { productImageCors, retryWithoutImageCors } from "./_product-image-cors"
 
 interface ProductThumbnailProps {
   src: string;
+  thumbnail?: string;
   alt: string;
   onOpenBottomSheet?: () => void;
 }
 
 export const ProductThumbnail = React.memo(function ProductThumbnail({
   src,
+  thumbnail,
   alt,
   onOpenBottomSheet,
 }: ProductThumbnailProps) {
@@ -32,21 +34,11 @@ export const ProductThumbnail = React.memo(function ProductThumbnail({
       title="مشاهده جزئیات کالا"
       aria-label={`مشاهده جزئیات ${alt}`}
     >
-      <img
-        key={src}
-        alt={alt}
-        crossOrigin={productImageCors(src)}
+      <ProductSmallImage
         src={src}
-        loading="lazy"
-        decoding="async"
+        thumbnail={thumbnail}
+        alt={alt}
         className="size-19 aspect-square object-cover rounded-2xl transition-transform duration-200 group-hover/img:scale-105"
-        onError={(e) => {
-          const target = e.currentTarget;
-          if (retryWithoutImageCors(target)) return;
-          if (!target.src.endsWith("/assets/images/placeholder.svg")) {
-            target.src = "/assets/images/placeholder.svg";
-          }
-        }}
       />
 
       <div className="absolute inset-0 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center rounded-2xl pointer-events-none">

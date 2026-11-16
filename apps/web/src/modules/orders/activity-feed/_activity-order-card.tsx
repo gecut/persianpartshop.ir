@@ -1,3 +1,4 @@
+import { ProductSmallImage } from "@/modules/products/product-small-image"
 import { TrackingNumber } from '@/components/ui/tracking-number'
 import React from 'react'
 import { Link } from '@tanstack/react-router'
@@ -46,18 +47,11 @@ export const ActivityOrderCard = React.memo(function ActivityOrderCard({
         {item.productImages.length > 0 && (
           <div className="flex items-center gap-1.5 overflow-x-auto py-0.5 scrollbar-none">
             {item.productImages.map((img, idx) => (
-              <img
-                key={idx}
-                src={img || '/assets/images/placeholder.svg'}
+              <ProductSmallImage key={idx}
+                src={img}
+                thumbnail={item.productImageThumbnails?.[img]}
                 alt=""
                 className="size-13 border border-primary/20 rounded-2xl object-cover shrink-0 select-none"
-                loading="lazy"
-                onError={(e) => {
-                  const target = e.currentTarget
-                  if (!target.src.endsWith('/assets/images/placeholder.svg')) {
-                    target.src = '/assets/images/placeholder.svg'
-                  }
-                }}
               />
             ))}
           </div>

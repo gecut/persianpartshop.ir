@@ -1,3 +1,4 @@
+import { ProductSmallImage } from "@/modules/products/product-small-image"
 import { formatCartons, formatUnit, summarizeQuantities } from '@/lib/utils/unit'
 import { Link } from "@tanstack/react-router"
 
@@ -33,19 +34,11 @@ export function OrderItemsCard({ order }: OrderItemsCardProps) {
                 search={{ productname: item.productSlug }}
                 className="relative w-16 h-16 shrink-0 block hover:opacity-90 transition-opacity"
               >
-                <img
-                  src={item.productImage || "/assets/images/placeholder.svg"}
+                <ProductSmallImage
+                  src={item.productImage}
+                  thumbnail={item.productImageThumbnail}
                   alt={item.productName}
                   className="w-16 h-16 rounded-2xl object-cover"
-                  onError={(e) => {
-                    if (
-                      !e.currentTarget.src.endsWith(
-                        "/assets/images/placeholder.svg",
-                      )
-                    ) {
-                      e.currentTarget.src = "/assets/images/placeholder.svg";
-                    }
-                  }}
                 />
               </Link>
               <div>

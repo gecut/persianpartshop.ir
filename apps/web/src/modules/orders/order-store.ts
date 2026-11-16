@@ -10,6 +10,7 @@ import { useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { type Order, type OrderItem, type TimelineStep } from './order-types'
 import { api } from '@/lib/api-client'
+import { catalogProductImages } from "@/modules/products/catalog-mapper"
 import { formatGrade } from '@/modules/products/product-store'
 import {
   formatPersianDate,
@@ -167,8 +168,6 @@ export function mapDocToOrder(doc: any): Order {
     .with([P.union('cancel', 'cancelled'), 'admin'], () => 'admin' as const)
     .otherwise(() => undefined)
 
-  const cdnUrl = import.meta.env.VITE_CDN_URL
-
   const items: OrderItem[] = (doc.items || []).map((i: any) => {
     const prod = typeof i.product === 'object' && i.product !== null ? i.product : null
     const width = prod?.width
@@ -180,18 +179,15 @@ export function mapDocToOrder(doc: any): Order {
           ? prod.dimension
           : ''
     const grade = prod?.grade ? formatGrade(prod.grade) : ''
-    const coverUrl = match(prod?.cover)
-      .with({ url: P.select(P.string) }, (url) => url)
-      .with({ filename: P.select(P.string) }, (fn) => (cdnUrl ? `${cdnUrl}/${encodeURIComponent(fn)}` : `/api/media/file/${fn}`))
-      .with(P.string.regex(/^\//), (path) => path)
-      .otherwise(() => '/assets/images/placeholder.svg')
+    const photos = catalogProductImages({ cover: prod?.cover, gallery: prod?.gallery })
 
     return {
       productId: String(prod?.id || i.product || ''),
       productName: i.productName || prod?.name || 'قطعه',
       productSlug: prod?.slug || '',
       productSku: i.productSku || prod?.sku || '',
-      productImage: coverUrl,
+      productImage: photos.primary,
+      productImageThumbnail: photos.thumbnailUrl,
       dimension,
       productType: i.productType ?? prod?.productType ?? 'tile',
       unit: i.unit ?? (prod?.productType === 'other' ? (prod?.unit ?? 'piece') : 'm2'),

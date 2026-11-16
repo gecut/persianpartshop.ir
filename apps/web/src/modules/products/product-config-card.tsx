@@ -1,10 +1,10 @@
 "use client";
 
+import { ProductSmallImage } from "@/modules/products/product-small-image"
 import { memo, useMemo } from "react";
 import { NumberField, I18nProvider, Button } from "@heroui/react";
 import { MoneyBagOutlineIcon } from "@solar-icons/react";
 import type { Product } from "./product-types";
-import { productImageCors, retryWithoutImageCors } from "./_product-image-cors";
 import { calculateCartonRequirement } from "@/lib/utils/math";
 import { formatToman, toPersianDigits } from "@/lib/utils/currency";
 import { parseCartons } from "@/lib/utils/unit";
@@ -72,22 +72,11 @@ function ProductConfigCardComponent({
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
           <div className="size-16 rounded-2xl overflow-hidden shrink-0 bg-muted/10">
-            <img
-              key={product.images[0]}
-              crossOrigin={productImageCors(product.images[0] || "")}
-              src={product.images[0] || "/assets/images/placeholder.svg"}
+            <ProductSmallImage
+              src={product.images[0]}
+              thumbnail={product.thumbnailUrl}
               alt={product.name}
               className="w-full h-full object-cover"
-              onError={(e) => {
-                if (retryWithoutImageCors(e.currentTarget)) return;
-                if (
-                  !e.currentTarget.src.endsWith(
-                    "/assets/images/placeholder.svg"
-                  )
-                ) {
-                  e.currentTarget.src = "/assets/images/placeholder.svg";
-                }
-              }}
             />
           </div>
 

@@ -1,3 +1,4 @@
+import { ProductSmallImage } from "@/modules/products/product-small-image"
 import { formatCartons, formatUnit } from '@/lib/utils/unit'
 import React from "react";
 import { Link } from "@tanstack/react-router";
@@ -101,16 +102,11 @@ export const CartItemRow = React.memo(function CartItemRow({
           className="relative size-18 shrink-0 block hover:opacity-90 transition-opacity"
           title="مشاهده مشخصات کالا در لیست محصولات"
         >
-          <img
-            src={item.image || "/assets/images/placeholder.svg"}
+          <ProductSmallImage
+            src={item.image}
+            thumbnail={item.thumbnailUrl}
             alt={item.name}
             className="size-18 object-cover rounded-2xl"
-            onError={(e) => {
-              const target = e.currentTarget;
-              if (!target.src.endsWith("/assets/images/placeholder.svg")) {
-                target.src = "/assets/images/placeholder.svg";
-              }
-            }}
           />
         </Link>
 

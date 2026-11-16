@@ -1,3 +1,5 @@
+import { ScannedCatalogProductSchema } from "@persianpart/contract"
+import { catalogProductImages } from "@/modules/products/catalog-mapper"
 import { useMemo } from "react";
 import type { Plan } from "@/modules/plans/plan-types"
 import type { Product } from "@/modules/products/product-types"
@@ -69,6 +71,8 @@ export function usePlanProducts(
               ? ("in_stock" as const)
               : ("out_of_stock" as const));
 
+          const media = ScannedCatalogProductSchema.pick({ cover: true, gallery: true }).safeParse(p)
+          const photos = media.success ? catalogProductImages(media.data) : undefined
           return {
             id: String(p.id),
             slug: p.slug || String(p.id),
@@ -102,7 +106,8 @@ export function usePlanProducts(
             applications: [],
             tags: [],
             gallery: [],
-            images: Array.isArray(p.images)
+            thumbnailUrl: photos?.thumbnailUrl,
+            images: photos && photos.primary !== "/assets/images/placeholder.svg" ? [photos.primary] : Array.isArray(p.images)
               ? p.images.map((img: any) =>
                   typeof img === "object" && img?.url ? img.url : String(img),
                 )
