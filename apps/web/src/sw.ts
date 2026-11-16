@@ -80,16 +80,21 @@ self.addEventListener('message', (event) => {
   if (event.data?.type === 'VERIFY_OFFLINE_SHELL' && event.ports[0]) {
     event.waitUntil((async () => {
       const urls = manifest.map(entry => typeof entry === 'string' ? entry : entry.url)
-      const hasQr = urls.some(url => /\/zxing_reader-.*\.wasm$/.test(url)) &&
-        urls.some(url => /\/product-qr-camera-.*\.js$/.test(url)) &&
-        urls.some(url => /\/product-qr-download-.*\.js$/.test(url))
+      const requiredChunks = [
+        /\/zxing_reader-.*\.wasm$/,
+        /\/product-qr-camera-.*\.js$/,
+        /\/product-qr-download-.*\.js$/,
+        /\/_product-image-viewer-.*\.js$/,
+        /\/_product-image-viewer-.*\.css$/,
+      ]
+      const hasRequiredChunks = requiredChunks.every(pattern => urls.some(url => pattern.test(url)))
       for (const url of urls) {
         if (!await matchPrecache(url)) {
           event.ports[0]?.postMessage(false)
           return
         }
       }
-      event.ports[0]?.postMessage(hasQr && !!await matchPrecache('/index.html'))
+      event.ports[0]?.postMessage(hasRequiredChunks && !!await matchPrecache('/index.html'))
     })().catch(() => event.ports[0]?.postMessage(false)))
   }
 })

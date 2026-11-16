@@ -24,6 +24,7 @@ export interface OfflineData {
   orders: Record<string, ReturnType<typeof CustomerOrderDocumentSchema.parse>>
   supplies: Record<string, SupplyRequest>
   plans: PlanDto[]
+  mediaPaths?: Record<string, string>
   profile?: OfflineProfile
 }
 

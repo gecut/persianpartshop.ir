@@ -3,11 +3,11 @@ import { useQuery } from '@tanstack/react-query'
 import { isMatching, match } from 'ts-pattern'
 import { queryKeys } from '@/lib/query-keys'
 import { queryClient } from '@/lib/query-client'
-import { OfflineSnapshotSchema, type OfflineManifest } from '@persianpart/contract'
+import { projectOfflineHistory, OfflineSnapshotSchema, type OfflineManifest } from '@persianpart/contract'
 import { offlineRecoveryEnabled, useNetworkReadSource } from './read-source'
 import { api } from '@/lib/api-client'
 import { authStore } from '@/modules/auth/auth-store'
-import { downloadOfflineData, offlineImages, type OfflineProgress } from './_download-offline-data'
+import { downloadOfflineData, manifestImagePaths, offlineImages, resolveOfflineMedia, type OfflineProgress } from './_download-offline-data'
 import { downloadOfflineImages, missingOfflineImages, verifyOfflineAssets } from './_download-offline-images'
 import { offlineImageCache, offlineMediaKey, sharedOfflineImageCache, offlineMaxAge, readOfflineEntry, updateOfflineEntry, validOfflinePackage, type OfflineEntry, type OfflinePackage } from './offline-storage'
 
@@ -231,9 +231,10 @@ async function receiveSnapshot(pack: OfflinePackage, manifest: OfflineManifest, 
     const section = pack.data[name as keyof OfflinePackage['data']]
     if (!section || Object.keys(section).length !== count) throw new Error('snapshot')
   }
-  pack.images = offlineImages(pack.data)
+  pack.images = manifestImagePaths(pack.data, manifest.optimizedMedia)
   const expected = new Set(manifest.media.map(item => new URL(item.path, location.origin).href))
-  if (expected.size !== pack.images.length || pack.images.some(url => !expected.has(url))) throw new Error('image')
+  if (expected.size !== manifest.media.length || expected.size !== pack.images.length ||
+      pack.images.some(url => !expected.has(url))) throw new Error('image')
   pack.catalogDone = true
 }
 
@@ -326,9 +327,9 @@ export async function prepareOfflinePackage(manifest?: OfflineManifest) {
       if (manifest) {
         do {
           appliedSequence = changeSequence
-          for (const change of pendingChanges.values()) pack.data = applyChangedData(pack.data, await readChangedData(change, signal))
+          for (const change of pendingChanges.values()) pack.data = applyChangedData(pack, await readChangedData(change, signal))
         } while (appliedSequence !== changeSequence)
-        const images = offlineImages(pack.data)
+        const images = manifestImagePaths(pack.data, manifest.optimizedMedia)
         if (images.some(url => !pack.images.includes(url))) throw new Error('image')
       }
       pack.completedAt = Date.now()
@@ -458,7 +459,7 @@ export async function updateSavedOfflineRecord(change: SavedChange) {
   await updateOfflineEntry(entry => {
     if (revision !== expectedRevision || latestChanges.get(key) !== changeId || !entry?.active || entry.owner !== active.owner || entry.active.id !== active.id ||
       (scope && entry.active.scopeKey !== scope)) return entry
-    return { ...entry, active: { ...entry.active, data: applyChangedData(entry.active.data, changedData) } }
+    return { ...entry, active: { ...entry.active, data: applyChangedData(entry.active, changedData) } }
   })
   await queryClient.invalidateQueries({ queryKey: queryKeys.offline.package(active.owner, active.scopeKey, active.id) })
   changed()
@@ -495,20 +496,34 @@ async function readChangedData(change: SavedChange, signal?: AbortSignal) {
   }
 }
 
-function applyChangedData(data: OfflinePackage['data'], change: Awaited<ReturnType<typeof readChangedData>>) {
+function applyChangedData(pack: OfflinePackage, change: Awaited<ReturnType<typeof readChangedData>>) {
+  const { data } = pack
   if (change.kind === 'profile') return { ...data, profile: change.profile }
 
-  const { activity } = change
-  const id = String(activity.id)
-  const details = match(change)
-    .with({ kind: 'order' }, ({ order }) => order ? { orders: { ...data.orders, [id]: order } } : {})
-    .with({ kind: 'supply' }, ({ supply }) => supply ? { supplies: { ...data.supplies, [id]: supply } } : {})
-    .exhaustive()
+  const id = String(change.activity.id)
+  const changed = {
+    activity: [change.activity],
+    orders: change.kind === 'order' ? { [id]: change.order } : {},
+    supplies: change.kind === 'supply' ? { [id]: change.supply } : {},
+  }
+  const available = new Set(pack.images)
+  const resolve = (media: Parameters<typeof resolveOfflineMedia>[0]) => {
+    try { return resolveOfflineMedia(media) } catch { return undefined }
+  }
+  const history = pack.manifest?.optimizedMedia
+    ? projectOfflineHistory(changed, resolve, (original, thumbnail) => {
+      if (available.has(original)) return original
+      const mapped = data.mediaPaths?.[original] ?? data.mediaPaths?.[new URL(original).pathname]
+      const candidate = resolve(mapped ?? thumbnail)
+      return candidate && available.has(candidate) ? candidate : undefined
+    })
+    : changed
 
   return {
     ...data,
-    activity: [...data.activity.filter(item => item.kind !== activity.kind || String(item.id) !== id), activity],
-    ...details,
+    activity: [...data.activity.filter(item => item.kind !== change.activity.kind || String(item.id) !== id), ...history.activity],
+    orders: { ...data.orders, ...history.orders },
+    supplies: { ...data.supplies, ...history.supplies },
   }
 }
 

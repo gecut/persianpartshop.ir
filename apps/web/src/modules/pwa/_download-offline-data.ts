@@ -1,4 +1,4 @@
-import { ActivityFeedItemSchema, CatalogFacetOutputSchema, CatalogRecordSchema, CustomerOrderDocumentSchema, PlanSchema, SupplyRequestSchema } from '@persianpart/contract'
+import { mediaUrl, offlineSnapshotImagePaths, type CatalogMedia, ActivityFeedItemSchema, CatalogFacetOutputSchema, CatalogRecordSchema, CustomerOrderDocumentSchema, PlanSchema, SupplyRequestSchema } from '@persianpart/contract'
 import { isMatching, match } from 'ts-pattern'
 import { api } from '@/lib/api-client'
 import { catalogProductImages, resolveMediaUrl } from '@/modules/products/catalog-mapper'
@@ -163,6 +163,18 @@ export async function downloadOfflineData(pack: OfflinePackage, canUseQr: boolea
     report({ phase: 'history', done, total: data.activity.length })
   }
   if (data.activity.some(isMissing)) throw new Error('history')
+}
+
+export function resolveOfflineMedia(media: CatalogMedia | null | undefined) {
+  const raw = mediaUrl(media, import.meta.env.VITE_CDN_URL)
+  if (!raw || raw === '/assets/images/placeholder.svg') return
+  const url = publicImageUrl(raw, location.origin, cdn)
+  if (!url) throw new Error('image')
+  return url
+}
+
+export function manifestImagePaths(data: OfflinePackage['data'], optimized?: boolean) {
+  return optimized ? offlineSnapshotImagePaths(data, resolveOfflineMedia) : offlineImages(data)
 }
 
 export function offlineImages(data: OfflinePackage['data']) {

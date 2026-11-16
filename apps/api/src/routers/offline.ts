@@ -1,15 +1,13 @@
 import { createHash, randomUUID } from 'node:crypto'
-import { readFile } from 'node:fs/promises'
-import { fileURLToPath } from 'node:url'
-import { resolve, basename } from 'node:path'
 import { gzipSync } from 'node:zlib'
 import { Pool, type PoolClient } from 'pg'
 import { ORPCError } from '@orpc/server'
-import { OfflineManifestSchema, type OfflineManifest, type OfflineSnapshot } from '@persianpart/contract'
+import { OfflineManifestSchema, type OfflineManifest } from '@persianpart/contract'
 import { offlineAccessUntil } from '../lib/offline-access'
 import { createContext } from '../rpc/context'
 import { customerOnly } from '../rpc/base'
 import { catalogScope } from './catalog-sync'
+import { mediaEntries, projectMedia } from './_offline-media'
 import { readOfflineData, structuralOfflineData } from './offline-data'
 
 function positiveLimit(name: string, fallback: number) {
@@ -25,7 +23,6 @@ const maxSnapshotBytes = positiveLimit('OFFLINE_SNAPSHOT_MAX_BYTES', 8 * 1024 * 
 const maxStoredBytes = positiveLimit('OFFLINE_SNAPSHOT_MAX_STORED_BYTES', maxSnapshots * maxSnapshotBytes)
 const configured = () => process.env.OFFLINE_SNAPSHOTS_ENABLED === 'true'
 const sha = (data: string | Buffer) => createHash('sha256').update(data).digest('hex')
-const mediaDir = () => resolve(process.env.MEDIA_DIR || fileURLToPath(new URL('../../../cms/media', import.meta.url)))
 let pool: Pool | undefined
 function database() {
   const connectionString = process.env.DATABASE_URL ?? process.env.DATABASE_URI
@@ -43,53 +40,6 @@ async function revision(client: Pick<PoolClient, 'query'>, includeStock = true) 
   return key
 }
 
-function mediaPath(value: unknown): string | undefined {
-  if (value && typeof value === 'object') {
-    if ('url' in value && typeof value.url === 'string' && value.url) return mediaPath(value.url)
-    if ('filename' in value && typeof value.filename === 'string') return mediaPath(value.filename)
-    return
-  }
-  if (typeof value !== 'string' || !/\.(?:jpe?g|png|webp|avif|gif)(?:[?#]|$)/i.test(value)) return
-  const cdn = process.env.CDN_URL ? new URL(process.env.CDN_URL).origin : undefined
-  const url = new URL(value, cdn ? cdn + '/' : 'https://offline.invalid/api/media/file/')
-  if (url.username || url.password || (url.origin !== cdn &&
-    (url.origin !== 'https://offline.invalid' || !url.pathname.startsWith('/api/media/file/')))) {
-    throw new ORPCError('SERVICE_UNAVAILABLE', { message: 'نسخهٔ قابل‌دریافت رسانه در دسترس نیست.' })
-  }
-  return url.origin === 'https://offline.invalid' ? url.pathname : url.href
-}
-
-async function mediaEntries(data: OfflineSnapshot) {
-  const urls = new Set<string>()
-  const add = (value: unknown) => {
-    const path = mediaPath(value)
-    if (path) urls.add(path)
-  }
-  for (const product of Object.values(data.products)) {
-    add(product.cover)
-    product.gallery?.forEach(item => add(item.image))
-  }
-  for (const item of data.activity) {
-    if (item.kind === 'order') item.productImages.forEach(add)
-    else add(item.productImage)
-  }
-  for (const item of Object.values(data.supplies)) add(item.productImage)
-  for (const order of Object.values(data.orders)) {
-    for (const item of order.items) {
-      if (typeof item.product === 'object' && item.product) add(item.product.cover)
-    }
-  }
-  const media: OfflineManifest['media'] = []
-  for (const path of [...urls].sort()) {
-    const name = decodeURIComponent(basename(new URL(path, 'https://offline.invalid').pathname))
-    if (!name || name !== basename(name) || name.includes('\\') || name === '..') throw new ORPCError('SERVICE_UNAVAILABLE')
-    const bytes = await readFile(resolve(mediaDir(), name)).catch(() => undefined)
-    if (!bytes?.length) throw new ORPCError('SERVICE_UNAVAILABLE', { message: 'فایل یک تصویر بسته در دسترس نیست.' })
-    media.push({ path, hash: sha(bytes), bytes: bytes.length })
-  }
-  return media
-}
-
 type SnapshotRow = { manifest: unknown; source_revision: string; structural_revision: string }
 const checks = new Map<string, Promise<void>>()
 
@@ -100,7 +50,7 @@ function scheduleFreshness(context: Parameters<typeof readOfflineData>[0], scope
   const work = (async () => {
     const currentContext = await createContext(context.req)
     if (!currentContext.user || currentContext.authUnavailable || (await catalogScope(currentContext)).scopeKey !== scopeKey) return
-    const data = await readOfflineData(currentContext, scopeKey)
+    const data = await projectMedia(await readOfflineData(currentContext, scopeKey))
     const media = await mediaEntries(data)
     if (source !== await revision(db, false)) return
     const version = sha(JSON.stringify({ data: structuralOfflineData(data), media }))
@@ -124,6 +74,7 @@ const status = customerOnly.offline.status.handler(async ({ input, context }) =>
   if (!row) return unknown
   const current = OfflineManifestSchema.parse(row.manifest)
   if (current.scopeKey !== scopeKey) return unknown
+  if (!current.optimizedMedia) return { scopeKey, freshness: 'updateAvailable' as const }
   const observed = await revision(db, false)
   const version = row.structural_revision === observed ? current.version :
     row.latest_structural_revision === observed ? row.latest_version : null
@@ -152,7 +103,7 @@ const manifest = customerOnly.offline.manifest.handler(async ({ input, context }
     const before = await revision(connection)
     const structuralRevision = await revision(connection, false)
     if (saved && saved.scopeKey === scopeKey) {
-      if (!input.replace || previous.source_revision === before) {
+      if (!input.replace || saved.optimizedMedia && previous.source_revision === before) {
         await connection.query('COMMIT')
         return saved
       }
@@ -167,7 +118,7 @@ const manifest = customerOnly.offline.manifest.handler(async ({ input, context }
 
     // The adapters use separate CMS connections. Accept a capture only when every
     // tracked table has the same revision on both sides of the read.
-    const data = await readOfflineData(context, scopeKey)
+    const data = await projectMedia(await readOfflineData(context, scopeKey))
     const media = await mediaEntries(data)
     const after = await revision(connection)
     if (before !== after || structuralRevision !== await revision(connection, false)) throw new ORPCError('CONFLICT', { message: 'داده‌ها هنگام آماده‌سازی تغییر کردند. دوباره تلاش کنید.' })
@@ -188,7 +139,7 @@ const manifest = customerOnly.offline.manifest.handler(async ({ input, context }
     }
     const result: OfflineManifest = {
       id: randomUUID(), scopeKey, version: sha(JSON.stringify({ data: structuralOfflineData(data), media })),
-      dataHash: sha(raw), capturedAt: now, expiresAt: Math.min(accessUntil, now + ttl), format: 1,
+      dataHash: sha(raw), capturedAt: now, expiresAt: Math.min(accessUntil, now + ttl), format: 1, optimizedMedia: true,
       compressedBytes: body.length, dataBytes: raw.length, media,
       counts: {
         products: Object.keys(data.products).length, dimensions: data.dimensions.length, qr: Object.keys(data.qr).length,

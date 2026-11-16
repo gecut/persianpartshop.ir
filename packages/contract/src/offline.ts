@@ -4,6 +4,7 @@ import { ActivityFeedItemSchema } from './activity-feed'
 import { CatalogRecordSchema, DimensionSchema } from './catalog'
 import { CustomerOrderDocumentSchema } from './order'
 import { PlanSchema } from './plan'
+import { selectCatalogPhotos, type CatalogMedia } from './media'
 import { SupplyRequestSchema } from './supply-request'
 
 export const OfflineProfileSchema = z.object({
@@ -28,6 +29,7 @@ export const OfflineSnapshotSchema = z.object({
   supplies: z.record(SupplyRequestSchema),
   plans: z.array(PlanSchema),
   profile: OfflineProfileSchema,
+  mediaPaths: z.record(z.string()).optional(),
 })
 export const OfflineManifestSchema = z.object({
   id: z.string().uuid(),
@@ -37,6 +39,7 @@ export const OfflineManifestSchema = z.object({
   capturedAt: z.number().int().positive(),
   expiresAt: z.number().int().positive(),
   format: z.literal(1),
+  optimizedMedia: z.literal(true).optional(),
   compressedBytes: z.number().int().positive(),
   dataBytes: z.number().int().positive(),
   counts: z.record(z.number().int().nonnegative()),
@@ -48,6 +51,68 @@ export const OfflineManifestSchema = z.object({
 })
 export type OfflineManifest = z.infer<typeof OfflineManifestSchema>
 export type OfflineSnapshot = z.infer<typeof OfflineSnapshotSchema>
+
+type ResolveMedia = (media: CatalogMedia | null | undefined) => string | undefined
+
+export function offlineSnapshotImagePaths(data: Pick<OfflineSnapshot, 'products' | 'activity' | 'orders' | 'supplies'>, resolve: ResolveMedia) {
+  const urls = new Set<string>()
+  const add = (media: CatalogMedia | null | undefined) => {
+    const path = resolve(media)
+    if (path) urls.add(path)
+  }
+  for (const product of Object.values(data.products)) {
+    const photos = selectCatalogPhotos(product, resolve)
+    add(photos.primary?.url)
+    for (const photo of photos.gallery) add(photo.url)
+  }
+  for (const item of data.activity) {
+    if (item.kind === 'order') item.productImages.forEach(add)
+    else add(item.productImage)
+  }
+  for (const supply of Object.values(data.supplies)) add(supply.productImage)
+  for (const order of Object.values(data.orders)) {
+    for (const item of order.items) {
+      if (typeof item.product === 'object') add(selectCatalogPhotos(item.product, resolve).primary?.url)
+    }
+  }
+  // Snapshot plans reference products by ID, so their photos are already covered.
+  return [...urls].sort()
+}
+
+export function projectOfflineHistory(
+  data: Pick<OfflineSnapshot, 'activity' | 'orders' | 'supplies'>,
+  resolve: ResolveMedia,
+  choose: (original: string, thumbnail?: string | null) => string | undefined,
+) {
+  const activity: OfflineSnapshot['activity'] = data.activity.map(item => {
+    if (item.kind === 'order') {
+      const { productImageThumbnails, ...order } = item
+      const productImages = item.productImages.flatMap(raw => {
+        const original = resolve(raw)
+        const selected = original && choose(original, productImageThumbnails?.[raw])
+        return selected ? [selected] : []
+      })
+      return { ...order, productImages }
+    }
+    const { productImageThumbnail, ...supply } = item
+    const original = resolve(supply.productImage)
+    return { ...supply, productImage: (original && choose(original, productImageThumbnail)) ?? null }
+  })
+  const orders: OfflineSnapshot['orders'] = Object.fromEntries(Object.entries(data.orders).map(([id, order]) => [
+    id, { ...order, items: order.items.map(item => {
+      if (typeof item.product !== 'object') return item
+      const photo = selectCatalogPhotos(item.product, resolve).primary
+      const thumbnail = typeof photo?.image === 'object' ? photo.image?.sizes?.galleryThumb?.url : undefined
+      return { ...item, product: { ...item.product, cover: photo ? choose(photo.url, thumbnail) : null, gallery: undefined } }
+    }) },
+  ]))
+  const supplies: OfflineSnapshot['supplies'] = Object.fromEntries(Object.entries(data.supplies).map(([id, supply]) => {
+    const { productImageThumbnail, ...details } = supply
+    const original = resolve(details.productImage)
+    return [id, { ...details, productImage: (original && choose(original, productImageThumbnail)) ?? null }]
+  }))
+  return { activity, orders, supplies }
+}
 
 export const offlineContract = {
   status: oc.input(z.object({ scopeKey: z.string(), version: z.string() })).output(z.object({

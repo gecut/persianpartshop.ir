@@ -28,7 +28,9 @@ export async function downloadOfflineImages(
     total: pack.images.length, reused: pack.reusedImages, bytes,
   })
   for (const url of Object.keys(pack.imageSizes)) {
-    if (!await cache.match(cacheKey(url))) delete pack.imageSizes[url]
+    const cached = await cache.match(cacheKey(url))
+    const item = expected.get(url)
+    if (!cached || (item && !await matchesMedia(cached, item))) delete pack.imageSizes[url]
   }
   await save()
   reportImages()
