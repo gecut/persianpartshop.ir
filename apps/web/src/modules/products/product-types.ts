@@ -13,6 +13,12 @@ export interface ProductDimensions {
 
 export type ProductType = 'tile' | 'other'
 
+export interface GalleryMediaDetails {
+  thumbnailUrl?: string
+  previewUrl?: string
+  ratio?: number
+}
+
 export interface Product {
   id: string
   slug: string
@@ -56,9 +62,11 @@ export interface Product {
   richDescription?: string
   applications: string[]
   tags: string[]
+  thumbnailUrl?: string
   images: string[]
   gallery: string[]
   galleryMediaIds?: Readonly<Record<string, string>>
+  galleryMediaDetails?: Readonly<Record<string, GalleryMediaDetails>>
   createdAt?: string
 }
 

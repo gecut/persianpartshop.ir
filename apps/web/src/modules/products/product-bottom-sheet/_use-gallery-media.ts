@@ -1,121 +1,149 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import type { ImgHTMLAttributes } from "react"
 import type { UseEmblaCarouselType } from "embla-carousel-react"
+import { useNetworkReadSource } from "@/modules/pwa/read-source"
 import { productImageCors } from "../_product-image-cors"
+import type { GalleryMediaItem } from "./_product-gallery"
 
 type Carousel = UseEmblaCarouselType[1]
-
-interface ImageState {
-  ratio?: number
-  withoutCors?: boolean
-  failed?: boolean
-}
-
+type AssetState = "loaded" | "loaded-without-cors" | "retry" | "failed"
 export const galleryPlaceholder = "/assets/images/placeholder.svg"
 
+function includeUrls(previous: ReadonlySet<string>, urls: string[]) {
+  return urls.every(url => previous.has(url)) ? previous : new Set([...previous, ...urls])
+}
+
 export function useGalleryMedia(
-  urls: readonly string[],
+  items: readonly GalleryMediaItem[],
   main: Carousel,
   thumbs: Carousel,
   isOpen: boolean,
+  selectedIndex: number,
 ) {
-  const [requested, setRequested] = useState<ReadonlySet<string>>(() => new Set())
-  const [images, setImages] = useState<ReadonlyMap<string, ImageState>>(() => new Map())
+  const online = useNetworkReadSource()
+  const [previews, setPreviews] = useState<ReadonlySet<string>>(() => new Set())
+  const [thumbnails, setThumbnails] = useState<ReadonlySet<string>>(() => new Set())
+  const [assets, setAssets] = useState<ReadonlyMap<string, AssetState>>(() => new Map())
+  const [ratios, setRatios] = useState<ReadonlyMap<string, number>>(() => new Map())
   const measured = useRef(new Map<string, number>())
   const pendingRatios = useRef(new Map<string, number>())
+  const frame = useRef(0)
 
-  const publishRatios = useCallback(() => {
-    if (pendingRatios.current.size === 0) return
-    const galleries = [main, thumbs]
-    if (galleries.some(api => {
-      const engine = api?.internalEngine()
-      return engine && (engine.dragHandler.pointerDown() || !engine.scrollBody.settled())
-    })) return
+  const scheduleRatios = useCallback(() => {
+    if (!pendingRatios.current.size || frame.current) return
+    frame.current = requestAnimationFrame(() => {
+      frame.current = 0
+      if ([main, thumbs].some(api => {
+        const engine = api?.internalEngine()
+        return engine && (engine.dragHandler.pointerDown() || !engine.scrollBody.settled())
+      })) return
 
-    const ratios = pendingRatios.current
-    pendingRatios.current = new Map()
-    setImages(previous => {
-      const updated = new Map(previous)
-      for (const [url, ratio] of ratios) {
-        const image = updated.get(url)
-        if (!image?.failed) updated.set(url, { ...image, ratio })
-      }
-      return updated
+      const batch = pendingRatios.current
+      pendingRatios.current = new Map()
+      setRatios(previous => new Map([...previous, ...batch]))
     })
   }, [main, thumbs])
 
   useEffect(() => {
     if (!isOpen) return
-    let frame = 0
-    const scheduleRatios = () => {
-      cancelAnimationFrame(frame)
-      frame = requestAnimationFrame(publishRatios)
+    let previewFrame = 0
+    const requestNeighbors = () => {
+      if (!main) return
+      const engine = main.internalEngine()
+      if (engine.dragHandler.pointerDown() || !engine.scrollBody.settled()) return
+      const index = main.selectedScrollSnap()
+      const candidates = [index - 1, index, index + 1].map(index =>
+        items[engine.options.loop ? (index + items.length) % items.length : index]?.url,
+      ).filter((url): url is string => Boolean(url))
+      setPreviews(previous => includeUrls(previous, candidates))
     }
-    const syncRequests = () => {
-      const selected = main?.selectedScrollSnap() ?? 0
-      const nearby = new Set([selected])
-      for (const index of main?.slidesInView() ?? []) nearby.add(index)
-      // Do not mount every full-sized original just because there is a thumbnail.
-      for (const index of thumbs?.slidesInView() ?? []) nearby.add(index)
-      if (main?.internalEngine().options.loop || selected > 0) {
-        nearby.add((selected - 1 + urls.length) % urls.length)
-      }
-      if (main?.internalEngine().options.loop || selected + 1 < urls.length) {
-        nearby.add((selected + 1) % urls.length)
-      }
-      const visibleUrls = Array.from(nearby, index => urls[index]).filter(Boolean)
-      setRequested(previous => {
-        if (visibleUrls.every(url => previous.has(url))) return previous
-        return new Set([...previous, ...visibleUrls])
-      })
+    const schedulePreviews = () => {
+      cancelAnimationFrame(previewFrame)
+      previewFrame = requestAnimationFrame(requestNeighbors)
+    }
+    const requestThumbnails = () => {
+      const urls = (thumbs?.slidesInView() ?? []).flatMap(index => items[index] ? [items[index].url] : [])
+      setThumbnails(previous => includeUrls(previous, urls))
     }
 
-    syncRequests()
+    schedulePreviews()
+    requestThumbnails()
     scheduleRatios()
+    main?.on("settle", schedulePreviews).on("select", schedulePreviews).on("pointerUp", schedulePreviews).on("reInit", schedulePreviews)
+    thumbs?.on("slidesInView", requestThumbnails).on("reInit", requestThumbnails)
     for (const api of [main, thumbs]) {
-      api?.on("slidesInView", syncRequests).on("reInit", syncRequests)
-        .on("reInit", scheduleRatios).on("pointerUp", scheduleRatios).on("settle", scheduleRatios)
+      api?.on("reInit", scheduleRatios).on("pointerUp", scheduleRatios).on("settle", scheduleRatios)
     }
-    main?.on("select", syncRequests)
     return () => {
-      cancelAnimationFrame(frame)
+      cancelAnimationFrame(previewFrame)
+      cancelAnimationFrame(frame.current)
+      frame.current = 0
+      main?.off("settle", schedulePreviews).off("select", schedulePreviews).off("pointerUp", schedulePreviews).off("reInit", schedulePreviews)
+      thumbs?.off("slidesInView", requestThumbnails).off("reInit", requestThumbnails)
       for (const api of [main, thumbs]) {
-        api?.off("slidesInView", syncRequests).off("reInit", syncRequests)
-          .off("reInit", scheduleRatios).off("pointerUp", scheduleRatios).off("settle", scheduleRatios)
+        api?.off("reInit", scheduleRatios).off("pointerUp", scheduleRatios).off("settle", scheduleRatios)
       }
-      main?.off("select", syncRequests)
     }
-  }, [isOpen, main, publishRatios, thumbs, urls])
+  }, [isOpen, items, main, scheduleRatios, thumbs])
 
-  function getImageProps(url: string, priority = false): ImgHTMLAttributes<HTMLImageElement> {
-    const state = images.get(url)
-    const placeholder = url === galleryPlaceholder || state?.failed
-    const crossOrigin = placeholder || state?.withoutCors ? undefined : productImageCors(url)
+  function isLoaded(src: string) {
+    return assets.get(src) === "loaded" || assets.get(src) === "loaded-without-cors"
+  }
+
+  function mainSource(item: GalleryMediaItem) {
+    return online && item.previewUrl && assets.get(item.previewUrl) !== "failed" ? item.previewUrl : item.url
+  }
+
+  function getImageProps(item: GalleryMediaItem, row: "main" | "thumb", index: number): ImgHTMLAttributes<HTMLImageElement> {
+    const primary = isOpen && row === "main" && index === 0
+    const requested = row === "main"
+      ? (isOpen && index === selectedIndex) || previews.has(item.url) || isLoaded(mainSource(item))
+      : thumbnails.has(item.url)
+    if (!requested) return {}
+
+    const preview = mainSource(item)
+    const thumbnail = item.thumbnailUrl
+    let src = preview
+    if (row === "thumb") {
+      src = !online ? item.url
+        : thumbnail && assets.get(thumbnail) !== "failed" ? thumbnail
+          : isLoaded(preview) ? preview : galleryPlaceholder
+    }
+    if (assets.get(src) === "failed") src = galleryPlaceholder
+    if (!isOpen && !isLoaded(src) && src !== galleryPlaceholder) return {}
+    const status = assets.get(src)
+    const placeholder = src === galleryPlaceholder
+    const crossOrigin = placeholder || status === "retry" || status === "loaded-without-cors" ? undefined : productImageCors(src)
     return {
+      src,
       crossOrigin,
-      src: placeholder ? galleryPlaceholder : priority || requested.has(url) ? url : undefined,
-      fetchPriority: priority ? "high" : undefined,
+      fetchPriority: primary && !placeholder ? "high" : undefined,
       decoding: "async",
       draggable: false,
       onLoad: ({ currentTarget: image }) => {
-        if (placeholder || measured.current.has(url) || !image.naturalWidth || !image.naturalHeight) return
+        if (placeholder || !image.naturalWidth || !image.naturalHeight) return
+        const loaded = status === "retry" || status === "loaded-without-cors" ? "loaded-without-cors" : "loaded"
+        setAssets(previous => previous.get(src) === loaded ? previous : new Map(previous).set(src, loaded))
+        if (item.ratio || measured.current.has(item.url)) return
         const ratio = image.naturalWidth / image.naturalHeight
-        measured.current.set(url, ratio)
-        pendingRatios.current.set(url, ratio)
-        publishRatios()
+        measured.current.set(item.url, ratio)
+        pendingRatios.current.set(item.url, ratio)
+        scheduleRatios()
       },
       onError: () => {
         if (placeholder) return
-        setImages(previous => {
-          const current = previous.get(url)
-          if (current?.failed || (crossOrigin && current?.withoutCors)) return previous
-          return new Map(previous).set(url, crossOrigin
-            ? { ...current, withoutCors: true }
-            : { ...current, failed: true })
+        setAssets(previous => {
+          const current = previous.get(src)
+          if (current === "failed" || (crossOrigin && current === "retry")) return previous
+          return new Map(previous).set(src, crossOrigin ? "retry" : "failed")
         })
       },
     }
   }
 
-  return { images, getImageProps }
+  return {
+    getRatio: (item: GalleryMediaItem) => item.ratio ?? ratios.get(item.url) ?? 1,
+    canZoom: (item: GalleryMediaItem) => isOpen && isLoaded(mainSource(item)),
+    getImageProps,
+  }
 }

@@ -1,3 +1,4 @@
+import { CatalogMediaSchema } from './media'
 import { oc } from '@orpc/contract'
 import { openapi } from '@orpc/openapi'
 import { z } from 'zod'
@@ -389,11 +390,6 @@ const CatalogRelationSchema = z.union([
   z.number().int().positive(),
   EntityIdSchema,
   z.object({ id: z.union([z.number().int().positive(), EntityIdSchema]), name: z.string(), slug: z.string().optional() }),
-])
-const CatalogMediaSchema = z.union([
-  z.number().int().positive(),
-  z.string(),
-  z.object({ id: z.union([z.number(), z.string()]).optional(), url: z.string().nullish(), thumbnailURL: z.string().nullish(), filename: z.string().nullish() }),
 ])
 export const ScannedCatalogProductSchema = z.object({
   id: z.union([z.number().int().positive(), EntityIdSchema]),

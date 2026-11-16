@@ -1,5 +1,5 @@
-import type { Product } from "./product-types"
-import { PRODUCT_GRADE_OPTIONS, type CatalogRecord } from "@persianpart/contract"
+import type { GalleryMediaDetails, Product } from "./product-types"
+import { mediaUrl, PRODUCT_GRADE_OPTIONS, selectCatalogPhotos, type CatalogMedia, type CatalogRecord } from "@persianpart/contract"
 import { toPersianDigits } from "@/lib/utils/currency"
 import { match, P } from "ts-pattern"
 
@@ -75,38 +75,34 @@ type CatalogProductInput = Omit<CatalogRecord, "createdAt" | "hasScanCode"> & { 
   inStock?: boolean;
 };
 
-function mediaId(media: CatalogRecord['cover'], url: string) {
-  const id = typeof media === 'object' ? media?.id : url ? undefined : media
-  if (typeof id === 'number') return String(id)
-  if (typeof id === 'string' && id.trim()) return id.trim()
-}
-
 export function catalogProductImages(item: Pick<CatalogRecord, 'cover' | 'gallery'>) {
-  const placeholder = '/assets/images/placeholder.svg'
-  const coverUrl = resolveMediaUrl(item.cover).trim()
-  const entries = (item.gallery ?? []).flatMap(({ image }) => {
-    const url = resolveMediaUrl(image).trim()
-    return /^(https?:\/\/|\/)/i.test(url) && url !== placeholder ? [{ url, id: mediaId(image, url) }] : []
-  })
-  const coverId = mediaId(item.cover, coverUrl) ?? entries.find(entry => entry.url === coverUrl)?.id
-  const resolvedCover = coverUrl || (coverId ? entries.find(entry => entry.id === coverId)?.url : undefined)
-  const gallery: string[] = []
+  const { primary, gallery, urls } = selectCatalogPhotos(item, media => mediaUrl(media, cdnUrl))
   const galleryMediaIds: Record<string, string> = {}
-  const seenUrls = new Set<string>(resolvedCover ? [resolvedCover] : [])
-  const seenIds = new Set<string>(coverId ? [coverId] : [])
-
-  for (const { url, id } of entries) {
-    const duplicate = seenUrls.has(url) || (id !== undefined && seenIds.has(id))
-    seenUrls.add(url)
-    if (id !== undefined) seenIds.add(id)
-    if (duplicate) continue
-    gallery.push(url)
+  const galleryMediaDetails: Record<string, GalleryMediaDetails> = {}
+  for (const { url, id, image } of gallery) {
     if (id !== undefined) galleryMediaIds[url] = id
+    if (typeof image === 'object' && image) {
+      const thumbnailUrl = image.sizes?.galleryThumb?.url || undefined
+      const previewUrl = image.sizes?.galleryPreview?.url || undefined
+      const ratio = image.width && image.height && image.width > 0 && image.height > 0 ? image.width / image.height : undefined
+      if (thumbnailUrl || previewUrl || ratio) galleryMediaDetails[url] = { thumbnailUrl, previewUrl, ratio }
+    }
   }
 
-  const primary = resolvedCover || entries[0]?.url || placeholder
-  seenUrls.delete(primary)
-  return { primary, gallery, galleryMediaIds, images: [primary, ...seenUrls] }
+  const primaryUrl = primary?.url ?? '/assets/images/placeholder.svg'
+  urls.delete(primaryUrl)
+  return {
+    primary: primaryUrl,
+    thumbnailUrl: mediaThumbnailUrl(primary?.image),
+    gallery: gallery.map(entry => entry.url),
+    galleryMediaIds,
+    galleryMediaDetails,
+    images: [primaryUrl, ...urls],
+  }
+}
+
+export function mediaThumbnailUrl(media: CatalogMedia | null | undefined) {
+  return typeof media === 'object' ? media?.sizes?.galleryThumb?.url || undefined : undefined
 }
 
 export function mapCatalogProduct(item: CatalogProductInput): Product {
@@ -129,7 +125,7 @@ export function mapCatalogProduct(item: CatalogProductInput): Product {
       ? item.category.name
       : item.categoryName || "عمومی";
   const basePrice = Number(item.finalCustomerPricePerSqm ?? 0);
-  const { gallery, galleryMediaIds, images } = catalogProductImages(item);
+  const { gallery, galleryMediaIds, galleryMediaDetails, images, thumbnailUrl } = catalogProductImages(item);
 
   const finalPrice = basePrice;
   const discountPercent: number | undefined = undefined;
@@ -205,7 +201,9 @@ export function mapCatalogProduct(item: CatalogProductInput): Product {
         )
       : [],
     images,
+    thumbnailUrl,
     gallery,
     galleryMediaIds,
+    galleryMediaDetails,
   };
 }

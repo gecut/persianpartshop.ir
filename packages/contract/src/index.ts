@@ -69,3 +69,5 @@ export * from './supply-request'
 export * from './activity-feed'
 
 export * from './offline'
+
+export * from './media'

@@ -1,22 +1,30 @@
 .product-gallery {
   container-type: inline-size;
   inline-size: 100%;
-  max-inline-size: 32rem;
   margin-inline: auto;
 }
 
 .product-gallery__stage {
   --stage-height: min(clamp(10rem, 58cqi, 18rem), 40dvh);
-  --side-space: 0px;
+  --stage-bleed: calc(var(--product-details-inset) - var(--product-details-body-bleed));
+  --stage-width: calc(100cqi + 2 * var(--stage-bleed));
+  --available-frame-height: max(1px, calc(var(--stage-height) - 20px));
+  --min-frame-ratio: .75;
+  --max-frame-ratio: 2;
   --slide-gap: 0px;
-  --parallax-room: 0px;
+  --frame-limit: var(--stage-width);
+  --frame-height: min(var(--available-frame-height), calc(var(--frame-limit) / var(--min-frame-ratio)));
   block-size: var(--stage-height);
+  margin-inline: calc(-1 * var(--stage-bleed));
 }
 
 .product-gallery__stage[data-multiple] {
-  --side-space: 12px;
   --slide-gap: 16px;
-  --parallax-room: 6px;
+  /* Embla measures integer slide offsets. Reserve one pixel per edge for rounding. */
+  --peek-limit: calc(var(--stage-width) * .8 - 2 * (var(--slide-gap) + 1px));
+  --narrow-frame: min(calc(var(--available-frame-height) * var(--min-frame-ratio)), var(--peek-limit));
+  --extra-neighbor-inset: max(0px, calc(var(--stage-width) / 3 - var(--narrow-frame) - var(--slide-gap)));
+  --frame-limit: max(1px, calc(var(--peek-limit) - var(--extra-neighbor-inset)));
 }
 
 .product-gallery__track {
@@ -31,8 +39,11 @@
 }
 
 .product-gallery__slide {
-  --frame-width: min(calc(var(--stage-height) * var(--frame-ratio)), calc(100cqi - 2 * var(--side-space)));
-  flex: 0 0 max(calc(100cqi / 3), calc(var(--frame-width) + var(--slide-gap)));
+  --frame-width: min(
+    calc(var(--frame-height) * clamp(var(--min-frame-ratio), var(--image-ratio), var(--max-frame-ratio))),
+    var(--frame-limit)
+  );
+  flex: 0 0 max(calc(var(--stage-width) / 3), calc(var(--frame-width) + var(--slide-gap)));
   min-inline-size: 0;
   display: grid;
   place-items: center;
@@ -47,12 +58,13 @@
   position: relative;
   overflow: hidden;
   inline-size: var(--frame-width);
-  aspect-ratio: var(--frame-ratio);
+  block-size: var(--frame-height);
+  box-shadow: 0 4px 10px -5px rgb(0 0 0 / 0.13);
 }
 
-.product-gallery__photo-layer {
-  position: absolute;
-  inset: 0 calc(-1 * var(--parallax-room));
+.product-gallery__stage .product-image-watermark {
+  backdrop-filter: none;
+  background-color: rgb(0 0 0 / 76%);
 }
 
 .product-gallery__thumb {
@@ -66,7 +78,7 @@
   display: grid;
   place-items: center;
   block-size: 48px;
-  inline-size: max(44px, calc(48px * var(--frame-ratio)));
+  inline-size: max(44px, calc(48px * clamp(.8, var(--image-ratio), 16 / 9)));
   overflow: hidden;
 }
 
@@ -76,10 +88,4 @@
   border: 2px solid var(--color-primary);
   border-radius: inherit;
   content: "";
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .product-gallery__stage[data-multiple] {
-    --parallax-room: 0px;
-  }
 }

@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test'
-import type { CatalogRecord } from '@persianpart/contract'
+import { CatalogRecordSchema, type CatalogRecord } from '@persianpart/contract'
 import { mapCatalogProduct } from '../src/modules/products/catalog-mapper'
 
 function product(media: Pick<CatalogRecord, 'cover' | 'gallery'>) {
@@ -61,4 +61,33 @@ test('does not synthesize gallery slides for the cover or placeholder', () => {
   expect(product({ cover: '/cover.jpg' }).gallery).toEqual([])
   expect(product({ gallery: [{ image: '/assets/images/placeholder.svg' }] }).gallery).toEqual([])
   expect(product({}).images[0]).toBe('/assets/images/placeholder.svg')
+})
+
+test('preserves gallery variants through the catalog contract without replacing original URLs', () => {
+  const mapped = mapCatalogProduct(CatalogRecordSchema.parse({
+    id: 1,
+    name: 'کاشی',
+    slug: 'tile',
+    sku: 'PP-1',
+    availability: 'available',
+    finalCustomerPricePerSqm: 100,
+    createdAt: '2026-01-01T00:00:00.000Z',
+    inventorySqm: 1,
+    stockCartons: 1,
+    hasScanCode: false,
+    cover: { id: 12, url: '/cover.webp' },
+    gallery: [
+      { image: { id: 12, url: '/cover.webp', sizes: { galleryThumb: { url: '/cover-small.webp' } } } },
+      { image: { id: 13, url: '/first.webp', width: 1400, height: 700, sizes: {
+        galleryThumb: { url: '/first-small.webp' },
+        galleryPreview: { url: '/first-preview.webp' },
+      } } },
+      { image: '/legacy.webp' },
+    ],
+  }))
+  expect(mapped.images).toEqual(['/cover.webp', '/first.webp', '/legacy.webp'])
+  expect(mapped.thumbnailUrl).toBe('/cover-small.webp')
+  expect(mapped.galleryMediaDetails).toEqual({
+    '/first.webp': { thumbnailUrl: '/first-small.webp', previewUrl: '/first-preview.webp', ratio: 2 },
+  })
 })

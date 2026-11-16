@@ -13,6 +13,7 @@ WORKDIR /app
 
 # Copy monorepo configurations and manifests for caching
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json .npmrc* ./
+COPY patches ./patches
 COPY packages/contract/package.json ./packages/contract/
 COPY apps/api/package.json ./apps/api/
 COPY apps/cms/package.json ./apps/cms/

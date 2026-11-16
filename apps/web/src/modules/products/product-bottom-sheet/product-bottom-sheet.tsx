@@ -1,8 +1,7 @@
-import { useState, useMemo, useEffect, useLayoutEffect, lazy, Suspense } from "react"
+import { useState, useMemo, useEffect, useLayoutEffect, useRef, lazy, Suspense } from "react"
 import { Drawer, Button } from "@heroui/react"
 import type { Product } from "@/modules/products/product-types"
 import { toPersianDigits } from "@/lib/utils/currency"
-import { ImageViewerModal } from "@/components/ui/image-viewer-modal"
 import { useAuth, isProductAllowedForUser } from "@/modules/auth/auth-store"
 import { XIcon } from "@/components/ui/icons"
 import { ProductGallery, type GalleryMediaItem } from "./_product-gallery"
@@ -22,6 +21,13 @@ export interface ProductBottomSheetProps {
 }
 
 const ProductQrDownload = lazy(() => import('../product-qr-download').then(module => ({ default: module.ProductQrDownload })));
+const ProductImageViewer = lazy(() => import('./_product-image-viewer').then(module => ({ default: module.ProductImageViewer })));
+
+interface ZoomSession {
+  productId: string
+  items: GalleryMediaItem[]
+  initialIndex: number
+}
 
 export function ProductBottomSheet({
   product,
@@ -33,7 +39,9 @@ export function ProductBottomSheet({
   onRequestSupply,
   onOrderDirect: _onOrderDirect,
 }: ProductBottomSheetProps) {
-  const [zoomedImage, setZoomedImage] = useState<{ productId: string; url: string } | null>(null);
+  const [zoomSession, setZoomSession] = useState<ZoomSession | null>(null);
+  const [zoomSelection, setZoomSelection] = useState<{ productId: string; item: GalleryMediaItem } | null>(null);
+  const closeDrawerButton = useRef<HTMLButtonElement>(null);
   const [qrOpen, setQrOpen] = useState(false);
 
   useLayoutEffect(() => { setQrOpen(false) }, [product?.id, isOpen]);
@@ -53,20 +61,29 @@ export function ProductBottomSheet({
 
   const gallery = activeProduct?.gallery;
   const galleryMediaIds = activeProduct?.galleryMediaIds;
+  const galleryMediaDetails = activeProduct?.galleryMediaDetails;
   const mediaItems: GalleryMediaItem[] = useMemo(() => gallery?.map((url, index) => ({
     url,
     id: galleryMediaIds?.[url],
+    ...galleryMediaDetails?.[url],
     label: `تصویر ${toPersianDigits(index + 1)}`,
-  })) ?? [], [gallery, galleryMediaIds]);
-  const zoomImageUrl = isOpen && zoomedImage && zoomedImage.productId === activeProduct?.id &&
-    gallery?.includes(zoomedImage.url) ? zoomedImage.url : null;
+  })) ?? [], [gallery, galleryMediaIds, galleryMediaDetails]);
+  const { user } = useAuth();
+  const allowed = activeProduct && isProductAllowedForUser(activeProduct, user);
+  const viewer = isOpen && allowed && zoomSession?.productId === activeProduct?.id ? zoomSession : null;
+  const returnPhoto = zoomSelection?.productId === activeProduct?.id ? zoomSelection?.item ?? null : null;
 
   useEffect(() => {
-    if (!zoomImageUrl && zoomedImage) setZoomedImage(null);
-  }, [zoomedImage, zoomImageUrl]);
+    if (!viewer && zoomSession) setZoomSession(null);
+  }, [viewer, zoomSession]);
 
-  const { user } = useAuth();
-  if (!activeProduct || !isProductAllowedForUser(activeProduct, user)) return null;
+  useLayoutEffect(() => {
+    if (!isOpen || !returnPhoto || mediaItems.length > 0) return;
+    const frame = requestAnimationFrame(() => closeDrawerButton.current?.focus({ preventScroll: true }));
+    return () => cancelAnimationFrame(frame);
+  }, [isOpen, mediaItems.length, returnPhoto]);
+
+  if (!activeProduct || !allowed) return null;
 
   const isOutOfStock =
     activeProduct.stockStatus === "out_of_stock" ||
@@ -103,6 +120,7 @@ export function ProductBottomSheet({
 
                 {user?.canUseProductQr && activeProduct.hasScanCode && <Button type="button" isIconOnly variant="ghost" onPress={() => setQrOpen(value => !value)} aria-label="دریافت QR محصول" aria-expanded={qrOpen} className="w-10 control-height-10 shrink-0 bg-muted/10 text-muted hover:bg-muted/20 hover:text-foreground"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><path d="M14 14h2v2h-2zM19 14v2M14 19h2M19 19h1"/></svg></Button>}
                 <Button
+                  ref={closeDrawerButton}
                   type="button"
                   onClick={onClose}
                   aria-label="بستن"
@@ -113,16 +131,22 @@ export function ProductBottomSheet({
               </Drawer.Header>
 
               {/* Body */}
-              <Drawer.Body className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 py-2 space-y-2.5 scrollbar-none pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))]">
+              <Drawer.Body className="flex-1 min-h-0 overflow-y-auto overscroll-contain [--product-details-inset:--spacing(5)] [--product-details-body-bleed:3px] -mx-(--product-details-body-bleed) px-(--product-details-inset) py-2 space-y-2.5 scrollbar-none pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))]">
                 {qrOpen && <Suspense fallback={<p role="status">در حال آماده‌سازی…</p>}><ProductQrDownload productId={activeProduct.id} /></Suspense>}
                 {mediaItems.length > 0 && <ProductGallery
                   key={activeProduct.id}
                   productName={activeProduct.name}
                   items={mediaItems}
                   isOpen={isOpen}
-                  isZoomOpen={Boolean(zoomImageUrl)}
+                  isZoomOpen={Boolean(viewer)}
+                  zoomSelection={returnPhoto}
                   showProductImageWatermark={user?.showProductImageWatermark === true}
-                  onZoom={url => setZoomedImage({ productId: activeProduct.id, url })}
+                  onZoom={url => {
+                    const initialIndex = mediaItems.findIndex(item => item.url === url);
+                    if (initialIndex < 0) return;
+                    setZoomSelection(null);
+                    setZoomSession({ productId: activeProduct.id, items: mediaItems, initialIndex });
+                  }}
                 />}
 
                 {/* Price & Selection Action Strip */}
@@ -162,15 +186,19 @@ export function ProductBottomSheet({
         </Drawer.Backdrop>
       </Drawer>
 
-      {/* Standalone Image Viewer Lightbox */}
-      {zoomImageUrl && (
-        <ImageViewerModal
-          isOpen={Boolean(zoomImageUrl)}
-          onClose={() => setZoomedImage(null)}
-          imageUrl={zoomImageUrl}
-          title={activeProduct.name}
-          showProductImageWatermark={user?.showProductImageWatermark === true}
-        />
+      {viewer && (
+        <Suspense fallback={null}>
+          <ProductImageViewer
+            items={viewer.items}
+            initialIndex={viewer.initialIndex}
+            productName={activeProduct.name}
+            showWatermark={user?.showProductImageWatermark === true}
+            onClose={item => {
+              setZoomSelection({ productId: viewer.productId, item });
+              setZoomSession(null);
+            }}
+          />
+        </Suspense>
       )}
     </>
   );
