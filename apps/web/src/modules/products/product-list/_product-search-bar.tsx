@@ -69,7 +69,7 @@ export function ProductSearchBar({ searchQuery, canUseProductQr, activeFilterCou
         onClick={() => onOpenFilter()}
         aria-label="فیلترهای پیشرفته"
         className={cn(
-          "w-auto control-height-12 px-4 font-bold text-xs flex items-center justify-center shrink-0 cursor-pointer active:scale-95 select-none transition-colors duration-250",
+          "w-12 control-height-12 px-4 font-bold text-xs flex items-center justify-center shrink-0 cursor-pointer active:scale-95 select-none transition-colors duration-250",
           activeFilterCount > 0
             ? "bg-control-emphasis"
             : "bg-muted/5 text-muted hover:bg-default/20 hover:text-foreground"
