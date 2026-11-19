@@ -1,9 +1,9 @@
 import { mediaUrl, offlineSnapshotImagePaths, type CatalogMedia, ActivityFeedItemSchema, CatalogFacetOutputSchema, CatalogRecordSchema, CustomerOrderDocumentSchema, PlanSchema, SupplyRequestSchema } from '@persianpart/contract'
 import { isMatching, match } from 'ts-pattern'
 import { api } from '@/lib/api-client'
-import { catalogProductImages, resolveMediaUrl } from '@/modules/products/catalog-mapper'
+import { catalogProductImages, resolveMediaUrl } from '@/lib/media-url'
 import { authStore, isProductAllowedForUser } from '@/modules/auth/auth-store'
-import type { CustomerDocument } from '@/modules/account/customer-documents'
+import type { CustomerDocument } from '@/lib/customer-document'
 import { publicImageUrl, type OfflinePackage } from './offline-storage'
 
 const cdn = new URL(import.meta.env.VITE_CDN_URL || 'https://cdn.persianpart.shop').origin

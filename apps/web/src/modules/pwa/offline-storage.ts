@@ -1,6 +1,6 @@
 import { createStore, get } from 'idb-keyval'
 import type { OfflineManifest, ActivityFeedItem, CatalogRecord, CustomerOrderDocumentSchema, Dimension, PlanDto, SupplyRequest } from '@persianpart/contract'
-import type { CustomerDocument } from '@/modules/account/customer-documents'
+import type { CustomerDocument } from '@/lib/customer-document'
 
 export const offlineMaxAge = 7 * 24 * 60 * 60 * 1000
 export const sharedOfflineImageCache = 'persianpart-offline-media-content-v1'

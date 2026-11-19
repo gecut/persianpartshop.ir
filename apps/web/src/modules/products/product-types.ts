@@ -1,3 +1,4 @@
+import type { GalleryMediaDetails } from "@/lib/media-url"
 import type {
   Product as ContractProduct,
   CatalogProduct,
@@ -12,12 +13,6 @@ export interface ProductDimensions {
 }
 
 export type ProductType = 'tile' | 'other'
-
-export interface GalleryMediaDetails {
-  thumbnailUrl?: string
-  previewUrl?: string
-  ratio?: number
-}
 
 export interface Product {
   id: string

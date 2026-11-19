@@ -1,7 +1,7 @@
 import { Button } from "@heroui/react"
 import { FileTextIcon, PlusIcon, RefreshCwIcon } from "@/components/ui/icons"
 import { DocumentCard } from "./_document-card"
-import type { CustomerDocument } from "../customer-documents"
+import type { CustomerDocument } from "@/lib/customer-document"
 
 interface DocumentsSectionProps {
   documents: CustomerDocument[];

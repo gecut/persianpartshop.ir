@@ -1,3 +1,5 @@
+import type { CustomerDocument } from '@/lib/customer-document'
+
 export const DOCUMENT_TYPE_OPTIONS = [
   { value: 'business_license', label: 'پروانه کسب' },
   { value: 'establishment_license', label: 'جواز تأسیس' },
@@ -31,23 +33,6 @@ export function getDocumentTypeLabel(type?: string): string {
   return match ? match.label : type || 'مدرک بارگذاری شده'
 }
 
-export interface CustomerDocument {
-  id?: string
-  documentType?: string
-  title?: string
-  file?:
-    | {
-        id: number
-        url?: string
-        filename?: string
-        mimeType?: string
-      }
-    | number
-    | string
-  status?: 'pending' | 'approved' | 'rejected'
-  rejectionReason?: string | null
-  uploadedAt?: string
-}
 
 export function getDocFileUrl(file: CustomerDocument['file']): string | null {
   if (!file) return null

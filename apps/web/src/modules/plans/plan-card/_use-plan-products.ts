@@ -1,5 +1,5 @@
 import { ScannedCatalogProductSchema } from "@persianpart/contract"
-import { catalogProductImages } from "@/modules/products/catalog-mapper"
+import { catalogProductImages } from "@/lib/media-url"
 import { useMemo } from "react";
 import type { Plan } from "@/modules/plans/plan-types"
 import type { Product } from "@/modules/products/product-types"

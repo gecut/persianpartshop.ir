@@ -10,7 +10,7 @@ import { useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { type Order, type OrderItem, type TimelineStep } from './order-types'
 import { api } from '@/lib/api-client'
-import { catalogProductImages } from "@/modules/products/catalog-mapper"
+import { catalogProductImages } from "@/lib/media-url"
 import { formatGrade } from '@/modules/products/product-store'
 import {
   formatPersianDate,

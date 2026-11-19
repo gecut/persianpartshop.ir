@@ -10,7 +10,7 @@ import { queryKeys } from "@/lib/query-keys";
 
 export type { SortOption };
 
-export { mapCatalogProduct, resolveMediaUrl, formatGrade, formatUnit } from "./catalog-mapper";
+export { mapCatalogProduct, formatGrade, formatUnit } from "./catalog-mapper";
 import { mapCatalogProduct } from "./catalog-mapper";
 import { defaultBrowseFilters, firstBrowsePage, isDefaultBrowse } from "./_catalog-browse";
 import { catalogMaxAge } from "./catalog-coordinator";
