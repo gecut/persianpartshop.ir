@@ -38,13 +38,12 @@ pnpm --filter @persianpart/api typecheck
 pnpm --filter @persianpart/web build
 pnpm --filter @persianpart/cms exec tsc --noEmit --incremental false
 pnpm --filter @persianpart/cms build
-pnpm --filter @persianpart/cms test:hardening
+pnpm --filter @persianpart/cms test:unit
 pnpm --filter @persianpart/api test
 ```
 
-Root `dev` currently calls itself; use workspace commands when dev is requested. CMS/API/Web default to 5174/5175/5173. Do not manually edit generated route tree, Payload types or import map. Web catalog unit tests use Bun via `pnpm --filter @persianpart/web test:catalog:unit`.
+Root `dev` currently calls itself; use workspace commands when dev is requested. CMS/API/Web default to 5174/5175/5173. Do not manually edit generated route tree, Payload types or import map. Web catalog unit tests use Bun via `pnpm --filter @persianpart/web test:unit`.
 
-PostgreSQL tests require disposable local targets: `CMS_TEST_DATABASE_URI` for `test:hardening:postgres` must name `cms_hardening_test`; that fixture drops/truncates tables. `CMS_MIGRATION_TEST_DATABASE_URI` for `test:hardening:migrations` points at a loopback `/postgres` control database with an explicit port and creates/deletes a random database. No environment variable means skip, not successful database verification.
 
 Live API tests in `warehouse.live.test.ts` are opt-in: `WAREHOUSE_LIVE_TEST=true`, CMS on loopback 55174, and `WAREHOUSE_HTTP_TEST=true` for the API on 55175. They mutate a disposable seeded dataset. Browser mock scenario expects web on 55173. Tests must not invoke real OTP/SMS unintentionally.
 
@@ -71,14 +70,15 @@ New administrator accounts default to `superadmin`; explicitly selected manager,
 
 1. **فرمول سه‌بخشی نام‌گذاری کالا:**
    $$\mathbf{Name} = \text{[نام طرح]} + \text{[رنگ]} + \text{[نوع لعاب]}$$
-   (مانند `ولورا کرم روشن مات پانچ`، `مونزا بژ روشن پولیش`، `مالاگا صدفی مات`، `پارلا صدفی روشن`).
-2. **قواعد منفی و ممنوعیت‌های قطعی:**
-   - **حذف کامل واژه «پرسلان»:** پرسلان جنس بدنه است و نباید در نام کالا تکرار شود؛ درج `مات` یا `مات پانچ` در انتهای نام رسا و کافی است.
+   (مانند `مالاگا صدفی مات پرسلان`، `ولورا کرم روشن مات پانچ پرسلان`، `مونزا بژ روشن پولیش`، `پارلا صدفی روشن`).
+2. **قواعد منفی و استثنای انحصاری اسلب:**
+   - **قاعده واژه «پرسلان»:** پرسلان جنس بدنه است و نباید در نام کالاهای عادی درج شود. **استثنای انحصاری و الزامی اسلب‌ها (شناسه ۳):** اسلب‌های مات ساده الزماً با عنوان **«مات پرسلان»** و اسلب‌های پانچ الزماً با عنوان **«مات پانچ پرسلان»** نام‌گذاری می‌شوند. در سایر دسته‌بندی‌ها (کاشی و سرامیک، قرنیز) درج کلمه پرسلان اکیداً ممنوع است.
    - **حذف نام دسته‌بندی از عنوان:** درج کلمات `اسلب`، `قرنیز`، `کاشی` و `سرامیک` در عنوان کالا ممنوع است (تعلق کالا از طریق رابطه `category` در دیتابیس تعیین می‌شود).
    - **حذف قطعی حرف W:** کاراکتر لاتین `W` باید کاملاً از تمامی عناوین حذف شود.
    - **عدم درج درجه کیفی در عنوان:** درجه کیفی منحصراً در فیلد `grade` ثبت می‌شود.
 3. **تفکیک ابعاد و دسته‌بندی اسلب (Slab):**
    - فقط کالاهایی با ابعاد دقیق **۱۲۰×۲۸۰ سانتی‌متر** (شناسه بُعد ۱۱ / `۲۸۰×۱۲۰`) مجاز به قرارگیری در دسته اسلب (شناسه ۳) هستند. سایر ابعاد (نظیر ۱۶۰×۸۰) باید به دسته «کاشی و سرامیک» (شناسه ۱) منتقل شوند.
+   - لعاب مات ساده اسلب الزماً **«مات پرسلان»** و لعاب پانچ اسلب الزماً **«مات پانچ پرسلان»** است.
    - برای اسلب‌های درجه ۴، فیلد `grade` باید به **`grade_d`** تنظیم شود.
 4. **الزام همگام‌سازی فیلد رنگ (`products.color`):**
    - فیلد `color` در موجودیت کالا باید دقیقاً مطابق با رنگ استخراج‌شده از عنوان کالا مقداردهی شود و نباید خالی رها شود.
@@ -99,3 +99,5 @@ curl --fail-with-body --request POST \
 برای آزمون محلی، migration را روی دیتابیس دورریختنی `persianpart_mcp` روی loopback اجرا کنید. CMS را روی loopback با `CMS_MCP_ENABLED=true` و `DISABLE_SMS=true` بالا بیاورید و با همان `DATABASE_URL` و `PAYLOAD_SECRET` و با تنظیم `CMS_MCP_TEST_URL`، دستور `pnpm --filter @persianpart/cms test:mcp:postgres` را اجرا کنید. `CMS_MCP_TEST_CODEX=true` اتصال و اجرای یک ابزار خواندنی با Codex CLI را هم بررسی می‌کند.
 
 برای بازگشت، کلید را از پنل غیرفعال یا حذف کنید و `CMS_MCP_ENABLED=false` را اعمال کنید. داده‌های migration در دیتابیس باقی می‌مانند و عملیات از REST ادامه پیدا می‌کند. برای چرخش کلید، ابتدا کلید جایگزین را در Codex بررسی کنید و سپس کلید قدیمی را لغو کنید.
+
+Automated verification now retains only isolated, colocated unit tests across all workspaces (`pnpm test:unit`), plus typechecks/builds. Live/database/browser/container suites and their fixtures were removed by owner decision; manual runtime acceptance is separate.

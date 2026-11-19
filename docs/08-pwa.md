@@ -33,9 +33,8 @@ From repository root:
 
 - `pnpm --filter @persianpart/web build`
 - `pnpm --filter @persianpart/api exec tsc --noEmit`
-- `pnpm --filter @persianpart/web test:catalog:unit`
+- `pnpm --filter @persianpart/web test:unit`
 
-For a local browser smoke test, start the production preview on port 55177, open `http://localhost:55177/login` in a fresh Playwright CLI session, then run `pnpm exec playwright-cli run-code --filename=apps/web/tests/offline-browser.smoke.js` from the repository root. The script supplies fixture API and image responses and switches the browser offline after preparing the package.
 
 The web container now owns its nginx configuration: HTML, manifest and worker require revalidation, hashed assets are immutable, missing assets/API paths return 404 rather than HTML. Production must provide HTTPS and route the configured API/CDN origins correctly. Reverse proxies must preserve these policies. The build does not establish real-device installation or the live proxy configuration.
 

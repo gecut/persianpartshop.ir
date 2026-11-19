@@ -30,13 +30,11 @@ Generic audit is best effort. Its PostgreSQL insert runs directly in the owning 
 
 ## Verification
 
-- `pnpm --filter @persianpart/cms test:hardening`: hook comparisons, field validation, document protection, error shape and notification lifecycle.
-- `pnpm --filter @persianpart/cms test:hardening:migrations`: full Payload CRUD, schema/upgrade/down checks, invalid-migration preflight, full form writes, permissions, dimensions, immutable references, real commit failure, audit failure and concurrency tests. Requires the documented disposable PostgreSQL control target.
-- `pnpm --filter @persianpart/cms test:hardening:postgres`: oversell, cancellation races and reservation rollback on its separate disposable database.
-- `pnpm --filter @persianpart/api test`: structured CMS error translation and existing API regressions. Opt-in warehouse/supply HTTP tests exercise the actual CMS SDK/Hono boundary against seeded disposable services.
-- CMS/API/Web typechecks and production builds; browser smoke checks for approval, address/notes edits, terminal notes, cancellation, disabled controls and a visible packaging-conflict message.
+- `pnpm --filter @persianpart/cms test:unit`: hook comparisons, field validation, document protection, error shape and notification lifecycle.
+- `pnpm --filter @persianpart/api test`: isolated API-client lifecycle and CMS error translation.
+- CMS/API/Web typechecks and production builds; manual browser checks for approval, address/notes edits, terminal notes, cancellation, disabled controls and a visible packaging-conflict message.
 
-No test requires modifying the application database. An unset live-test variable means the corresponding test was skipped, not verified.
+Current automated suites have no live-test variables and do not modify the application database. The dated observations below describe historical suites that have since been removed.
 
 ### Observed checks on 2026-11-10
 
@@ -58,3 +56,5 @@ All PostgreSQL and browser changes used a temporary instance on a separate loopb
 The timeline-echo follow-up passed 90 CMS unit tests, the full Payload/PostgreSQL integration suite (including full-form echoes on both notes and status updates), TypeScript and the CMS production build.
 
 The legacy-empty-array follow-up reproduces the production validation failure in `beforeOperation` with `timeline: 0` before the fix, and passes the same update afterward. Verification: 91 CMS unit tests, the full Payload/PostgreSQL suite and the CMS production build passed; attempts to erase a nonempty timeline remain rejected.
+
+Database, migration and browser automation was removed by owner decision. Current unit results do not verify concurrency, transaction integration or live authorization; those require separate manual checks.

@@ -46,9 +46,10 @@
 
 ## راستی‌آزمایی
 
-تست‌های unit CMS، API، PostgreSQL و migration روی DB موقت جداگانه اجرا شوند. `test:hardening:postgres` جدول‌های fixture را پاک می‌کند؛ هرگز URI دیتابیس کاری ندهید. `test:hardening:migrations` دیتابیس تصادفی خودش را می‌سازد و حذف می‌کند.
 
 
 ## نتیجهٔ ادغام ۲۰۲۶/۱۱/۰۷
 
 نسخهٔ ادغام‌شده با ۲۱ کامیت remote روی PostgreSQL مستقل آزموده شد؛ دیتابیس کاری تغییر نکرد. گزارش دقیق و محدودیت انتشار در `.agents/brain/warehouse-merge-completion-2026-11-07.md` ثبت است. آزمون opt-in در `apps/api/src/routers/warehouse.live.test.ts` به CMS موقت seedشده روی `127.0.0.1:55174` و آزمون HTTP به API روی `127.0.0.1:55175` نیاز دارد. متغیرهای فعال‌سازی `WAREHOUSE_LIVE_TEST=true` و `WAREHOUSE_HTTP_TEST=true` هستند؛ هنگام همهٔ آزمون‌ها و seed، `DISABLE_SMS=true` تنظیم شود.
+
+Automated checks now retain only isolated unit tests (`pnpm test:unit`). Warehouse concurrency and database integration require manual verification; no automated live/database fixtures remain.

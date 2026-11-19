@@ -16,6 +16,7 @@
 | [05 — Architecture](docs/05-architecture-and-contracts.md) | معماری اجرا، قرارداد و تنظیمات انتشار |
 | [06 — Operations](docs/06-admin-and-operations.md) | راهنمای مدیریت، migration، seed و آزمون |
 | [07 — Warehouses](docs/07-warehouses.md) | تصمیم‌های انبار و قرارداد سبد تک‌انباره |
+| [12 — Public Catalog](docs/12-public-catalog.md) | کاتالوگ عمومی، سیاست انتشار، ISR و راهنمای استقرار |
 
 ## ساختار
 
@@ -23,5 +24,6 @@
 - `apps/cms`: Payload روی Next.js؛ مالک داده، موجودی و چرخهٔ سفارش.
 - `apps/api`: Hono روی Bun؛ دسترسی به CMS با REST SDK.
 - `apps/web`: React SPA، TanStack Router/Query، HeroUI v3 و Tailwind v4.
+- `apps/catalog`: کاتالوگ عمومی مستقل با Next.js و ISR؛ بدون ورود و سفارش.
 
 Package manager: pnpm. فرمان‌های اجرا و شرایط آزمون در [runbook](docs/06-admin-and-operations.md) آمده‌اند. تعریف یک تنظیم در کد به معنی اجرا یا تأیید آن در محیط production نیست.

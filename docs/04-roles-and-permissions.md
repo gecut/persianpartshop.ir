@@ -14,6 +14,9 @@ The admin field offers `support`; legacy helpers also recognize `editor`, which 
 | --- | --- | --- | --- | --- |
 | Product/media content create/update/delete | Yes | Yes | No | Yes |
 | Product base-price create/update | Yes | Yes | No | No |
+| Read raw product records | Yes | Yes | Yes | Yes |
+| Read Catalog Global | Yes | Yes | No | Yes |
+| Edit/version/preview Catalog Global | Yes | Yes | No | No |
 | Read customers | Yes | Yes | Yes | Yes |
 | Create/update customers | Yes | Yes | No | Yes |
 | Delete customers | No | Yes | No | No |
@@ -46,11 +49,11 @@ Order access is owner-scoped; unauthorized order lookup returns `NOT_FOUND` to a
 
 Catalog/shopping mappings remove wholesale base price and apply customer markup. Order mapping strips specified internal fields; this is not proof that every field on every API/REST path is confidential. In particular:
 
-- Product collection `read: () => true` and no base-price read guard mean direct CMS reads are not covered by customer DTO sanitization.
-- Catalog uses `base`, not authenticated middleware. The private web portal requirement is not fully enforced at every catalog endpoint.
+- Raw product reads require an active staff/service identity. Anonymous and customer direct CMS reads are denied; customers use their authenticated API. Catalog/shopping legacy product procedures now require authentication without changing their schemas.
+- Catalog's anonymous renderer receives only a saved-policy projection. Its server uses `@payloadcms/sdk` directly against CMS with the existing active admins service API key; browser credentials never become its CMS identity. CMS `/api/catalog/:operation` enforces the existing role and sanitizes DTOs. Preview runs locally in CMS with the actual active manager/superadmin session, without a separate secret or API bridge. Admin roles/API-key authentication and generic guards are unchanged; the API `adminOnly` middleware is not reused.
 - The server CORS middleware reflects request origin; configured Compose `CORS_ORIGINS` is not itself evidence of an enforced allowlist.
 
-These are documented implementation boundaries, not approvals to weaken the private-portal requirement. This task does not change access code.
+These changes were verified in a disposable local environment on 2026-11-18. Shared-environment deployment is [UNKNOWN] and requires separate owner approval for the ACL change. See [Catalog rollout and consumer inventory](12-public-catalog.md).
 
 ## Audit
 
