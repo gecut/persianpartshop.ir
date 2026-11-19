@@ -1,5 +1,5 @@
 import { sql } from '@payloadcms/db-postgres'
-import { getOrderTransaction } from '../orders/_transaction'
+import { getTransactionDb } from '../../lib/transaction'
 import type { PayloadRequest } from 'payload'
 import type { Payload } from 'payload'
 
@@ -59,7 +59,7 @@ export async function logAction({
   adminName,
   ip,
 }: LogActionParams) {
-  const transaction = req?.payload.db.name === 'postgres' && await req.transactionID != null ? await getOrderTransaction(req) : null
+  const transaction = req?.payload.db.name === 'postgres' && await req.transactionID != null ? await getTransactionDb(req) : null
   // Audit writes are sequential within a request; a savepoint contains a rejected insert.
   if (transaction) await transaction.execute(sql`SAVEPOINT audit_write`)
   try {

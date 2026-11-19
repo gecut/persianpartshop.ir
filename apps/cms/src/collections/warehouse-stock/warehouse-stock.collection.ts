@@ -5,7 +5,7 @@ import { stockImportEndpoints } from './_import.endpoints'
 import { productStockEndpoints } from './_product-stock.endpoints'
 import { manageWarehouses, readWarehouseStock } from '../warehouses/warehouses.collection'
 import { sql } from '@payloadcms/db-postgres'
-import { getOrderTransaction } from '../orders/_transaction'
+import { getTransactionDb } from '../../lib/transaction'
 
 export const WarehouseStock: CollectionConfig = {
   slug: 'warehouse-stock',
@@ -63,7 +63,7 @@ export const WarehouseStock: CollectionConfig = {
       if (!('id' in args)) throw businessError('ویرایش گروهی موجودی مجاز نیست.', 'BULK_UPDATE_FORBIDDEN')
       const id = Number(args.id)
       if (!Number.isSafeInteger(id) || id <= 0) fieldError('id', 'شناسهٔ موجودی نامعتبر است.')
-      const db = await getOrderTransaction(req)
+      const db = await getTransactionDb(req)
       await db.execute(sql`SELECT id FROM warehouse_stock WHERE id = ${id} FOR UPDATE`)
       const original = await req.payload.findByID({ collection: 'warehouse-stock', id, depth: 0, req, overrideAccess: true })
       for (const key of ['inventorySqm', 'revision']) {
@@ -79,7 +79,7 @@ export const WarehouseStock: CollectionConfig = {
             : (data.warehouse ?? originalDoc?.warehouse)
         )
         if (!Number.isSafeInteger(warehouseId) || warehouseId <= 0) fieldError('warehouse', 'انبار معتبر نیست.')
-        const db = await getOrderTransaction(req)
+        const db = await getTransactionDb(req)
         const warehouseResult = await db.execute(sql`SELECT id, stock_mode FROM warehouses WHERE id = ${warehouseId} FOR SHARE`)
         if (warehouseResult.rows.length !== 1) throw businessError('انبار یافت نشد.')
         const stockMode = warehouseResult.rows[0]!.stock_mode

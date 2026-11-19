@@ -1,7 +1,7 @@
 import { businessError } from '../../lib/validation'
 import { sql } from '@payloadcms/db-postgres'
 import type { PayloadRequest } from 'payload'
-import { getOrderTransaction } from '../orders/_transaction'
+import { getTransactionDb } from '../../lib/transaction'
 
 export interface StockRequirement { productId: number; deliverableArea: number }
 
@@ -35,7 +35,7 @@ export function consolidateRequirements(items: readonly StockRequirement[]): Sto
 export async function reserveWarehouseStock(req: PayloadRequest, warehouseId: number, requirements: readonly StockRequirement[]): Promise<void> {
   validId(warehouseId)
   const items = consolidateRequirements(requirements)
-  const db = await getOrderTransaction(req)
+  const db = await getTransactionDb(req)
   const warehouse = await db.execute(sql`SELECT id FROM warehouses WHERE id = ${warehouseId} AND is_active = true AND stock_mode = 'exact' FOR SHARE`)
   if (warehouse.rows.length !== 1) throw businessError('انبار انتخاب‌شده فعال نیست.', 'WAREHOUSE_UNAVAILABLE')
   for (const item of items) {
@@ -52,7 +52,7 @@ export async function reserveWarehouseStock(req: PayloadRequest, warehouseId: nu
 export async function restoreWarehouseStock(req: PayloadRequest, warehouseId: number, requirements: readonly StockRequirement[]): Promise<void> {
   validId(warehouseId)
   const items = consolidateRequirements(requirements)
-  const db = await getOrderTransaction(req)
+  const db = await getTransactionDb(req)
   for (const item of items) {
     const result = await db.execute(sql`
       UPDATE warehouse_stock SET inventory_sqm = inventory_sqm + ${item.deliverableArea}, revision = revision + 1, updated_at = NOW()
@@ -67,7 +67,7 @@ export async function replaceWarehouseStock(req: PayloadRequest, warehouseId: nu
   validId(productId)
   validAmount(inventorySqm)
   if (!Number.isSafeInteger(revision) || revision < 0) throw new Error('نسخهٔ موجودی نامعتبر است.')
-  const db = await getOrderTransaction(req)
+  const db = await getTransactionDb(req)
   const warehouse = await db.execute(sql`SELECT id FROM warehouses WHERE id = ${warehouseId} AND is_active = true AND stock_mode = 'exact' FOR SHARE`)
   if (warehouse.rows.length !== 1) throw businessError('انبار قطعی فعال نیست.', 'WAREHOUSE_UNAVAILABLE')
   const result = await db.execute(sql`

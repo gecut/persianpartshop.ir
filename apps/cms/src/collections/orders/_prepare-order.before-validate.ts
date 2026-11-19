@@ -3,7 +3,7 @@ import { nextTrackingNumber } from '../../lib/tracking-number'
 import { getSalesFactor } from '../products/_inventory-math'
 import type { CollectionBeforeValidateHook } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
-import { getOrderTransaction } from './_transaction'
+import { getTransactionDb } from '../../lib/transaction'
 
 export const prepareOrderBeforeValidate: CollectionBeforeValidateHook = async ({
   data,
@@ -17,7 +17,7 @@ export const prepareOrderBeforeValidate: CollectionBeforeValidateHook = async ({
     return data
   }
 
-  const db = await getOrderTransaction(req)
+  const db = await getTransactionDb(req)
   const warehouseId = Number(typeof data.warehouse === 'object' ? data.warehouse?.id : data.warehouse)
   if (!Number.isSafeInteger(warehouseId) || warehouseId <= 0) fieldError('warehouse', 'انتخاب انبار الزامی است.')
   const lockedWarehouse = await db.execute(sql`SELECT id FROM warehouses WHERE id = ${warehouseId} AND is_active = true AND stock_mode = 'exact' FOR SHARE`)

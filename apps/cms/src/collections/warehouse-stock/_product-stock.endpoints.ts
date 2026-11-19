@@ -2,7 +2,7 @@ import { sql } from '@payloadcms/db-postgres'
 import { APIError, commitTransaction, initTransaction, killTransaction, type Endpoint, type PayloadRequest } from 'payload'
 import { z } from 'zod'
 import { businessError } from '../../lib/validation'
-import { getOrderTransaction } from '../orders/_transaction'
+import { getTransactionDb } from '../../lib/transaction'
 import { getSalesFactor } from '../products/_inventory-math'
 import { manageWarehouses, readWarehouseStock } from '../warehouses/warehouses.collection'
 import { replaceWarehouseStock } from './_stock-operations'
@@ -58,7 +58,7 @@ export async function adjustProductStock(req: PayloadRequest, productIdentifier:
   const { warehouseId, revision, amount } = input.data
   const started = await initTransaction(req)
   try {
-    const db = await getOrderTransaction(req)
+    const db = await getTransactionDb(req)
     const { rows: [warehouse] } = await db.execute(sql`
       SELECT name, stock_mode FROM warehouses WHERE id = ${warehouseId} AND is_active = true FOR SHARE
     `)

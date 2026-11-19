@@ -7,7 +7,7 @@ import { getAdminUser, isSalesManager } from '../../access/roles'
 import { SMS_TEMPLATES } from '../../modules/sms/constants'
 import { enqueueSms } from '../../modules/sms/queue-service'
 import { getNotificationSettings } from '../../globals/notification-settings.global'
-import { getOrderTransaction } from '../orders/_transaction'
+import { getTransactionDb } from '../../lib/transaction'
 import { calculateSupplyEstimate, getSalesFactor } from '../products/_inventory-math'
 
 const idOf = (value: unknown): number => Number(typeof value === 'object' && value !== null && 'id' in value ? (value as { id: unknown }).id : value)
@@ -33,7 +33,7 @@ export const SupplyRequests: CollectionConfig = {
       if (!('id' in args)) throw businessError('ویرایش گروهی درخواست مجاز نیست.')
       const id = Number(args.id)
       if (!Number.isSafeInteger(id) || id <= 0) throw businessError('شناسه درخواست نامعتبر است.')
-      const db = await getOrderTransaction(req)
+      const db = await getTransactionDb(req)
       await db.execute(sql`SELECT id FROM supply_requests WHERE id = ${id} FOR UPDATE`)
     }],
     beforeValidate: [async ({ data, originalDoc, operation, req }) => {
@@ -70,7 +70,7 @@ export const SupplyRequests: CollectionConfig = {
       if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(key)) throw businessError('کلید درخواست معتبر نیست.')
       const notes = typeof data.notes === 'string' ? data.notes.trim() : ''
       if (notes.length > 2000) throw businessError('یادداشت بیش از حد طولانی است.')
-      const db = await getOrderTransaction(req)
+      const db = await getTransactionDb(req)
 
       const unavailable = () => businessError('منبع تأمین انتخاب‌شده در دسترس نیست.', 'SOURCE_UNAVAILABLE', 409)
       let sourceWarehouseId = warehouseId

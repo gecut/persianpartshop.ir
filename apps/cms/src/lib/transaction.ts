@@ -1,9 +1,9 @@
 import type { PostgresAdapter } from '@payloadcms/db-postgres'
 import type { PayloadRequest } from 'payload'
 
-type OrderTransaction = Pick<PostgresAdapter['drizzle'], 'execute'>
+type TransactionDb = Pick<PostgresAdapter['drizzle'], 'execute'>
 
-export const getOrderTransaction = async (req: PayloadRequest): Promise<OrderTransaction> => {
+export const getTransactionDb = async (req: PayloadRequest): Promise<TransactionDb> => {
   const transactionID = await req.transactionID
   if (req.payload.db.name !== 'postgres' || transactionID == null) {
     throw new Error('Order inventory requires an active PostgreSQL transaction.')
@@ -13,5 +13,5 @@ export const getOrderTransaction = async (req: PayloadRequest): Promise<OrderTra
     !('execute' in session.db) || typeof session.db.execute !== 'function') {
     throw new Error('Order inventory requires an active PostgreSQL transaction.')
   }
-  return session.db as OrderTransaction
+  return session.db as TransactionDb
 }

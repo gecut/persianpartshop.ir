@@ -1,7 +1,7 @@
 import { businessError } from '../../lib/validation'
 import type { CollectionBeforeChangeHook } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
-import { getOrderTransaction } from './_transaction'
+import { getTransactionDb } from '../../lib/transaction'
 import { reserveWarehouseStock, restoreWarehouseStock } from '../warehouse-stock/_stock-operations'
 
 const isCancelledStatus = (s?: string) =>
@@ -49,7 +49,7 @@ export const applyReservationBeforeChange: CollectionBeforeChangeHook = async ({
 }) => {
   if (!data) return data
 
-  const db = await getOrderTransaction(req)
+  const db = await getTransactionDb(req)
 
   if (operation === 'update') {
     const orderId = positiveNumber(originalDoc?.id, true)

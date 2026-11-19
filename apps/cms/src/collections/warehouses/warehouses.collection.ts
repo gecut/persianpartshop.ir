@@ -2,7 +2,7 @@ import { businessError } from '../../lib/validation'
 import type { Access, CollectionConfig } from 'payload'
 import { getAdminUser } from '../../access/roles'
 import { sql } from '@payloadcms/db-postgres'
-import { getOrderTransaction } from '../orders/_transaction'
+import { getTransactionDb } from '../../lib/transaction'
 
 export const manageWarehouses: Access = ({ req }) => {
   const user = getAdminUser(req.user)
@@ -33,7 +33,7 @@ export const Warehouses: CollectionConfig = {
       if (!('id' in args)) throw businessError('ویرایش گروهی انبار مجاز نیست.')
       const id = Number(args.id)
       if (!Number.isSafeInteger(id) || id <= 0) throw businessError('شناسه انبار معتبر نیست.')
-      const db = await getOrderTransaction(req)
+      const db = await getTransactionDb(req)
       await db.execute(sql`SELECT id FROM warehouses WHERE id = ${id} FOR UPDATE`)
     }],
     beforeDelete: [() => { throw businessError('انبار را به‌جای حذف، غیرفعال کنید.') }],
@@ -42,7 +42,7 @@ export const Warehouses: CollectionConfig = {
         throw businessError('کد انبار پس از ایجاد قابل تغییر نیست.')
       }
       if (operation === 'update' && data.stockMode !== undefined && data.stockMode !== originalDoc.stockMode) {
-        const db = await getOrderTransaction(req)
+        const db = await getTransactionDb(req)
         const id = Number(originalDoc.id)
         const refs = await db.execute(sql`SELECT 1 WHERE EXISTS (SELECT 1 FROM warehouse_stock WHERE warehouse_id = ${id}) OR EXISTS (SELECT 1 FROM orders WHERE warehouse_id = ${id}) OR EXISTS (SELECT 1 FROM supply_sources_legacy WHERE warehouse_id = ${id}) OR EXISTS (SELECT 1 FROM supply_requests WHERE warehouse_id = ${id})`)
         if (refs.rows.length) throw businessError('نوع انبار دارای سابقه قابل تغییر نیست؛ انبار جدید بسازید.')

@@ -1,6 +1,6 @@
 import { sql } from '@payloadcms/db-postgres'
 import type { CollectionBeforeValidateHook } from 'payload'
-import { getOrderTransaction } from '../orders/_transaction'
+import { getTransactionDb } from '../../lib/transaction'
 import { businessError, fieldError, relationId } from '../../lib/validation'
 import { calculateStockCartons, roundToTwoDecimals } from './_inventory-math'
 
@@ -45,7 +45,7 @@ export const syncSlugAndDimensions: CollectionBeforeValidateHook = async ({ data
   if (dimensionId != null) {
     const id = Number(dimensionId)
     if (!Number.isSafeInteger(id) || id <= 0) fieldError('dimension', 'ابعاد انتخاب‌شده معتبر نیست.')
-    const db = await getOrderTransaction(req)
+    const db = await getTransactionDb(req)
     const result = await db.execute(sql`SELECT width, height FROM dimensions WHERE id = ${id} FOR SHARE`)
     if (!result.rows[0]) fieldError('dimension', 'ابعاد انتخاب‌شده یافت نشد.')
     data.width = Number(result.rows[0].width)
@@ -62,7 +62,7 @@ export const syncSlugAndDimensions: CollectionBeforeValidateHook = async ({ data
     const keys = ['sqmPerCarton', 'piecesPerCarton', 'productType', 'unit']
     const changed = keys.some(key => data[key] !== undefined && (data[key] ?? null) !== (originalDoc[key] ?? null))
     if (changed) {
-      const db = await getOrderTransaction(req)
+      const db = await getTransactionDb(req)
       const locked = await db.execute(sql`SELECT sqm_per_carton, pieces_per_carton, product_type, unit FROM products WHERE id = ${originalDoc.id} FOR UPDATE`)
       const current = locked.rows[0]
       const origFactor = Number(originalDoc.sqmPerCarton ?? 0)

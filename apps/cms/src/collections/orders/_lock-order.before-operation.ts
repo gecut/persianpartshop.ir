@@ -2,7 +2,7 @@ import { validateTransitionBeforeChange } from './_validate-transition.before-ch
 import { businessError } from '../../lib/validation'
 import { sql } from '@payloadcms/db-postgres'
 import type { CollectionBeforeOperationHook } from 'payload'
-import { getOrderTransaction } from './_transaction'
+import { getTransactionDb } from '../../lib/transaction'
 
 export const lockOrderBeforeOperation: CollectionBeforeOperationHook = async ({ args, operation, req }) => {
   if (operation !== 'update') return
@@ -11,7 +11,7 @@ export const lockOrderBeforeOperation: CollectionBeforeOperationHook = async ({ 
   const id = Number(args.id)
   if (!Number.isSafeInteger(id) || id <= 0) throw businessError('شناسه سفارش نامعتبر است.', 'INVALID_INPUT', 400)
 
-  const transaction = await getOrderTransaction(req)
+  const transaction = await getTransactionDb(req)
   await transaction.execute(sql`SELECT "id" FROM "orders" WHERE "id" = ${id} FOR UPDATE`)
   // Inspect the original input before field access removes protected fields.
   const originalDoc = await req.payload.findByID({ collection: 'orders', id, req, depth: 0, overrideAccess: true })

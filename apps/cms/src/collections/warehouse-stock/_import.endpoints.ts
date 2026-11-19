@@ -4,7 +4,7 @@ import { initTransaction, commitTransaction, killTransaction, type Endpoint } fr
 import { sql } from '@payloadcms/db-postgres'
 import { StockImportPreviewInputSchema, StockImportApplyInputSchema, StockImportSnapshotSchema, type StockImportPreview, type StockImportRow } from '@persianpart/contract'
 import { manageWarehouses } from '../warehouses/warehouses.collection'
-import { getOrderTransaction } from '../orders/_transaction'
+import { getTransactionDb } from '../../lib/transaction'
 import { replaceWarehouseStock } from './_stock-operations'
 import { parseImportCsv } from './_import-csv'
 
@@ -59,7 +59,7 @@ export async function applyStockImport(req: PayloadRequest, readInput: () => unk
     const snapshot = StockImportSnapshotSchema.parse(JSON.parse(Buffer.from(body, 'base64url').toString()))
     if (snapshot.expiresAt < Date.now() || snapshot.actorId !== req.user?.id) throw new Error('پیش‌نمایش منقضی یا متعلق به کاربر دیگری است.')
     started = await initTransaction(req)
-    const db = await getOrderTransaction(req)
+    const db = await getTransactionDb(req)
     if (snapshot.warehouseId) {
       const warehouse = await db.execute(sql`SELECT id FROM warehouses WHERE id = ${snapshot.warehouseId} AND is_active = true AND stock_mode = 'exact' FOR SHARE`)
       if (warehouse.rows.length !== 1) throw new Error('انبار فعال نیست.')
