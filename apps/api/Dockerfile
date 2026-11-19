@@ -11,11 +11,9 @@ RUN apk add --no-cache libc6-compat \
     && npm install -g pnpm@11.18.0
 
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json .npmrc* ./
-COPY patches ./patches
 COPY packages/contract/package.json ./packages/contract/
 COPY apps/api/package.json ./apps/api/
 COPY apps/cms/package.json ./apps/cms/
-COPY apps/web/package.json ./apps/web/
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --store-dir=/pnpm/store
 

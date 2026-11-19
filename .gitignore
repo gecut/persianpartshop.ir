@@ -51,3 +51,6 @@ playwright-report/
 # Local slab catalog source files
 /catalog/
 /SPINA SLAB CATALOG.pdf
+
+# Runtime uploads and local preview media belong to the persistent volume.
+/apps/cms/media/

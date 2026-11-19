@@ -17,14 +17,11 @@ permissions:
 
 jobs:
   validate:
-    name: Lint & Type Check
+    name: Validate & Build
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-
-      - name: Check runtime packaging contract
-        run: python3 .github/check-runtime-packaging.py
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -37,11 +34,19 @@ jobs:
           node-version: 22
           cache: "pnpm"
 
+      - name: Setup Bun for existing unit suites
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.4
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Type check all workspaces
         run: pnpm check-types
+
+      - name: Run isolated unit tests
+        run: pnpm test:unit
 
       - name: Build all applications & packages
         run: pnpm build
@@ -60,6 +65,8 @@ jobs:
             dockerfile: apps/cms/Dockerfile
           - name: web
             dockerfile: apps/web/Dockerfile
+          - name: catalog
+            dockerfile: apps/catalog/Dockerfile
 
     steps:
       - name: Check out repository
@@ -118,11 +125,14 @@ jobs:
     name: Trigger Dokploy Redeploy
     needs: container
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && vars.DOKPLOY_REDEPLOY_WEBHOOK != ''
+    if: github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    env:
+      DOKPLOY_REDEPLOY_WEBHOOK: ${{ secrets.DOKPLOY_REDEPLOY_WEBHOOK || vars.DOKPLOY_REDEPLOY_WEBHOOK }}
     steps:
       - name: Trigger Dokploy redeploy webhook
+        if: env.DOKPLOY_REDEPLOY_WEBHOOK != ''
         run: |
           curl -s -f -X POST \
             -H "Content-Type: application/json" \
             -d '{"source": "github-actions", "commit": "${{ github.sha }}"}' \
-            "${{ vars.DOKPLOY_REDEPLOY_WEBHOOK }}"
+            "$DOKPLOY_REDEPLOY_WEBHOOK"

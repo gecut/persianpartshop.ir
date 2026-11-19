@@ -1,4 +1,5 @@
-# ponytail: fixed resource limits configured; upgrade to environment variable overrides when multi-cluster sizing is required.
+# Lean starting resource budgets; validate peak memory and latency on the target server.
+# Startup: migration -> CMS -> API/Catalog. No host ports; Dokploy handles public routing.
 services:
   migration:
     image: ghcr.io/gecut/persianpartshop.ir/cms:${CMS_TAG:-${TAG:-latest}}
@@ -10,11 +11,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "1.0"
-          memory: 1024M
+          cpus: "0.50"
+          memory: 512M
         reservations:
-          cpus: "0.1"
-          memory: 256M
+          cpus: "0.05"
+          memory: 128M
     networks:
       - dokploy-network
 
@@ -27,6 +28,8 @@ services:
     depends_on:
       migration:
         condition: service_completed_successfully
+      cms:
+        condition: service_healthy
     environment:
       NODE_ENV: production
       PORT: 5175
@@ -34,7 +37,8 @@ services:
       DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:8228@postgres:5432/persianpart_cms}
       PAYLOAD_SECRET: ${PAYLOAD_SECRET:-super-secret-payload-key-must-be-at-least-32-chars-long}
       JWT_SECRET: ${JWT_SECRET:-super-secret-jwt-session-key-must-be-32-chars-long}
-      CMS_URL: ${CMS_URL:-https://${CMS_DOMAIN:-admin.persianpart.shop}}
+      CMS_URL: http://persianpart-cms:5174
+      CMS_API_URL: http://persianpart-cms:5174/api
       CMS_API_KEY: ${CMS_API_KEY}
       CDN_URL: ${CDN_URL:-https://${CDN_DOMAIN:-cdn.persianpart.shop}}
       CORS_ORIGINS: ${CORS_ORIGINS:-https://${CMS_DOMAIN:-admin.persianpart.shop},https://${WEB_DOMAIN:-persianpart.shop},https://${API_DOMAIN:-api.persianpart.shop},https://${CDN_DOMAIN:-cdn.persianpart.shop},http://localhost:3000,http://localhost:5173,http://localhost:5174,http://localhost:5175}
@@ -47,17 +51,19 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
-      start_period: 15s
+      start_period: 30s
     deploy:
       resources:
         limits:
-          cpus: "1.0"
-          memory: 1024M
+          cpus: "0.50"
+          memory: 512M
         reservations:
-          cpus: "0.1"
-          memory: 256M
+          cpus: "0.05"
+          memory: 128M
     networks:
-      - dokploy-network
+      backend:
+        aliases: [persianpart-api]
+      dokploy-network: {}
 
   cms:
     image: ghcr.io/gecut/persianpartshop.ir/cms:${CMS_TAG:-${TAG:-latest}}
@@ -68,8 +74,6 @@ services:
     depends_on:
       migration:
         condition: service_completed_successfully
-      api:
-        condition: service_started
     environment:
       NODE_ENV: production
       PORT: 5174
@@ -77,9 +81,10 @@ services:
       WEB_URL: ${WEB_URL:-https://${WEB_DOMAIN:-persianpart.shop}}
       DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:8228@postgres:5432/persianpart_cms}
       PAYLOAD_SECRET: ${PAYLOAD_SECRET:-super-secret-payload-key-must-be-at-least-32-chars-long}
-      CMS_MCP_ENABLED: ${CMS_MCP_ENABLED:-false}
+      CMS_MCP_ENABLED: ${CMS_MCP_ENABLED:-true}
       NEXT_PUBLIC_SERVER_URL: ${CMS_URL:-https://${CMS_DOMAIN:-admin.persianpart.shop}}
       CDN_URL: ${CDN_URL:-https://${CDN_DOMAIN:-cdn.persianpart.shop}}
+      CATALOG_URL: ${CATALOG_URL:-https://${CATALOG_DOMAIN:-catalog.persianpartshop.ir}}
     volumes:
       - persianpart_media_data:/app/apps/cms/media
     healthcheck:
@@ -87,17 +92,53 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
-      start_period: 30s
+      start_period: 60s
     deploy:
       resources:
         limits:
-          cpus: "2.0"
-          memory: 2048M
+          cpus: "1.00"
+          memory: 1024M
         reservations:
-          cpus: "0.25"
-          memory: 512M
+          cpus: "0.10"
+          memory: 256M
     networks:
-      - dokploy-network
+      backend:
+        aliases: [persianpart-cms]
+      dokploy-network: {}
+
+  catalog:
+    image: ghcr.io/gecut/persianpartshop.ir/catalog:${CATALOG_TAG:-${TAG:-latest}}
+    restart: unless-stopped
+    expose:
+      - "5176"
+    depends_on:
+      cms:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 5176
+      HOSTNAME: 0.0.0.0
+      CATALOG_URL: ${CATALOG_URL:-https://${CATALOG_DOMAIN:-catalog.persianpartshop.ir}}
+      CMS_API_URL: http://persianpart-cms:5174/api
+      CMS_API_KEY: ${CMS_API_KEY:?Set the existing active CMS service API key}
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5176/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 512M
+        reservations:
+          cpus: "0.05"
+          memory: 128M
+    networks:
+      backend: {}
+      dokploy-network: {}
 
   web:
     image: ghcr.io/gecut/persianpartshop.ir/web:${WEB_TAG:-${TAG:-latest}}
@@ -105,7 +146,8 @@ services:
     expose:
       - "80"
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:80/ || exit 1"]
       interval: 30s
@@ -115,11 +157,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.5"
-          memory: 256M
+          cpus: "0.25"
+          memory: 128M
         reservations:
-          cpus: "0.05"
-          memory: 64M
+          cpus: "0.01"
+          memory: 32M
     networks:
       - dokploy-network
 
@@ -144,11 +186,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.5"
-          memory: 256M
+          cpus: "0.25"
+          memory: 128M
         reservations:
-          cpus: "0.05"
-          memory: 64M
+          cpus: "0.01"
+          memory: 32M
     networks:
       - dokploy-network
 
@@ -157,5 +199,7 @@ volumes:
     name: persianpart_media_data
 
 networks:
+  backend:
+    driver: bridge
   dokploy-network:
     external: true

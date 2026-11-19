@@ -15,11 +15,8 @@ WORKDIR /app
 
 # Copy monorepo configuration files and package manifests
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json .npmrc* ./
-COPY patches ./patches
 COPY packages/contract/package.json ./packages/contract/
-COPY apps/api/package.json ./apps/api/
 COPY apps/cms/package.json ./apps/cms/
-COPY apps/web/package.json ./apps/web/
 
 # Install workspace dependencies using pnpm cache mount
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --store-dir=/pnpm/store
@@ -57,7 +54,6 @@ RUN mkdir -p /app/apps/cms/media /app/apps/cms/.next/cache && \
 # Copy monorepo workspace files, node_modules, and built CMS artifacts
 COPY --from=builder --chown=node:node /app/package.json /app/pnpm-workspace.yaml /app/pnpm-lock.yaml ./
 COPY --from=builder --chown=node:node /app/.npmrc* ./
-COPY --from=deps --chown=node:node /app/patches ./patches
 COPY --from=builder --chown=node:node /app/node_modules ./node_modules
 COPY --from=deps --chown=node:node /app/apps/cms/node_modules ./apps/cms/node_modules
 COPY --from=deps --chown=node:node /app/packages/contract/node_modules ./packages/contract/node_modules

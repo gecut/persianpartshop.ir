@@ -71,86 +71,129 @@ function devMediaPlugin() {
 }
 
 // https://vite.dev/config/
-export default defineConfig(({ mode }) => ({
-  cacheDir: process.env.VITE_CACHE_DIR || 'node_modules/.vite',
-  plugins: [
-    TanStackRouterVite({
-      routesDirectory: "./src/routes",
-      generatedRouteTree: "./src/routeTree.gen.ts",
-    }),
-    react(),
-    tailwindcss(),
-    devMediaPlugin(),
-    VitePWA({
-      strategies: 'injectManifest', srcDir: 'src', filename: 'sw.ts',
-      registerType: 'prompt', injectRegister: false,
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
-      manifest: {
-        name: 'پرشین‌پارت', short_name: 'پرشین‌پارت', lang: 'fa', dir: 'rtl',
-        id: '/', scope: '/', start_url: '/product', display: 'standalone',
-        theme_color: '#ffffff', background_color: '#ffffff',
-        icons: [
-          { src: '/favicon.ico', sizes: '16x16 32x32', type: 'image/x-icon' },
-          { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
-          { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
-          { src: '/icon-192-maskable.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
-          { src: '/icon-512-maskable.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
-        ],
-      },
-      injectManifest: {
-        globPatterns: [
-          'index.html', 'assets/**/*.{js,css,woff2,wasm}', 'assets/images/persian-part-logo.png',
-          'assets/images/persepolis-watermark.webp', 'assets/images/placeholder.svg',
-        ],
-        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
-        // A revision makes Workbox fetch with cache: 'reload', including hashed assets.
-        dontCacheBustURLsMatching: undefined,
-        buildPlugins: {
-          vite: [{
-            name: 'persianpart-worker-config',
-            config() {
-              const env = loadEnv(mode, process.cwd(), 'VITE_')
-              return {
-                define: {
-                  __PWA_RELEASE__: JSON.stringify(randomUUID()),
-                  __PWA_CDN_ORIGIN__: JSON.stringify(new URL(env.VITE_CDN_URL || 'https://cdn.persianpart.shop').origin),
-                },
-              }
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), "");
+  const apiTarget = env.API_PROXY_TARGET || "http://127.0.0.1:5175";
+  return {
+    cacheDir: process.env.VITE_CACHE_DIR || "node_modules/.vite",
+    plugins: [
+      TanStackRouterVite({
+        routesDirectory: "./src/routes",
+        generatedRouteTree: "./src/routeTree.gen.ts",
+      }),
+      react(),
+      tailwindcss(),
+      devMediaPlugin(),
+      VitePWA({
+        strategies: "injectManifest",
+        srcDir: "src",
+        filename: "sw.ts",
+        registerType: "prompt",
+        injectRegister: false,
+        includeAssets: ["favicon.ico", "apple-touch-icon.png"],
+        manifest: {
+          name: "پرشین‌پارت",
+          short_name: "پرشین‌پارت",
+          lang: "fa",
+          dir: "rtl",
+          id: "/",
+          scope: "/",
+          start_url: "/product",
+          display: "standalone",
+          theme_color: "#ffffff",
+          background_color: "#ffffff",
+          icons: [
+            { src: "/favicon.ico", sizes: "16x16 32x32", type: "image/x-icon" },
+            {
+              src: "/icon-192.png",
+              sizes: "192x192",
+              type: "image/png",
+              purpose: "any",
             },
-          }],
+            {
+              src: "/icon-512.png",
+              sizes: "512x512",
+              type: "image/png",
+              purpose: "any",
+            },
+            {
+              src: "/icon-192-maskable.png",
+              sizes: "192x192",
+              type: "image/png",
+              purpose: "maskable",
+            },
+            {
+              src: "/icon-512-maskable.png",
+              sizes: "512x512",
+              type: "image/png",
+              purpose: "maskable",
+            },
+          ],
+        },
+        injectManifest: {
+          globPatterns: [
+            "index.html",
+            "assets/**/*.{js,css,woff2,wasm}",
+            "assets/images/persian-part-logo.png",
+            "assets/images/persepolis-watermark.webp",
+            "assets/images/placeholder.svg",
+          ],
+          maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
+          // A revision makes Workbox fetch with cache: 'reload', including hashed assets.
+          dontCacheBustURLsMatching: undefined,
+          buildPlugins: {
+            vite: [
+              {
+                name: "persianpart-worker-config",
+                config() {
+                  const env = loadEnv(mode, process.cwd(), "VITE_");
+                  return {
+                    define: {
+                      __PWA_RELEASE__: JSON.stringify(randomUUID()),
+                      __PWA_CDN_ORIGIN__: JSON.stringify(
+                        new URL(
+                          env.VITE_CDN_URL || "https://cdn.persianpart.shop",
+                        ).origin,
+                      ),
+                    },
+                  };
+                },
+              },
+            ],
+          },
+        },
+      }),
+    ],
+    resolve: {
+      alias: {
+        "@": fileURLToPath(new URL("./src", import.meta.url)),
+      },
+    },
+    optimizeDeps: {
+      exclude: ["@persianpart/api", "@persianpart/contract"],
+      include: [
+        "@orpc/client",
+        "@orpc/client/fetch",
+        "@tanstack/react-query",
+        "@tanstack/react-router",
+        "@heroui/react",
+        "framer-motion",
+      ],
+    },
+    server: {
+      host: "0.0.0.0",
+      port: 5173,
+      allowedHosts: true,
+      proxy: {
+        "/api/media": {
+          target: env.MEDIA_PROXY_TARGET || apiTarget,
+          changeOrigin: true,
+        },
+        "/api": {
+          target: apiTarget,
+          changeOrigin: true,
         },
       },
-    }),
-  ],
-  resolve: {
-    alias: {
-      "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
-  },
-  optimizeDeps: {
-    exclude: ["@persianpart/api", "@persianpart/contract"],
-    include: [
-      "@orpc/client",
-      "@orpc/client/fetch",
-      "@tanstack/react-query",
-      "@tanstack/react-router",
-      "@heroui/react",
-      "framer-motion",
-    ],
-  },
-  server: {
-    host: "0.0.0.0",
-    port: 5173,
-    allowedHosts: true,
-    proxy: {
-      "/api/media": {
-        target: "https://cdn.beta.persianpartshop.ir",
-        changeOrigin: true,
-      },
-      "/api": {
-        target: "https://api.beta.persianpartshop.ir",
-        changeOrigin: true,
-      },
-    },
-  },
-}));
+  };
+});
