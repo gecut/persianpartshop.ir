@@ -1,10 +1,64 @@
-.root { display: grid; gap: 1.5rem; }
-.section { border: 1px solid var(--theme-elevation-200); padding: 1.5rem; border-radius: .5rem; }
-.section h3 { margin-block-start: 0; }
-.section p, .field small { color: var(--theme-elevation-600); line-height: 1.8; }
-.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 1rem; margin-block: 1rem; align-items: start; }
-.field { display: grid; gap: .5rem; min-width: 0; }
-.field input, .field select { width: 100%; min-height: 40px; padding: .5rem; background: var(--theme-input-bg); color: var(--theme-text); border: 1px solid var(--theme-elevation-300); border-radius: 4px; }
-.check { display: flex; align-items: center; gap: .5rem; margin-block: .8rem; }
-.button { align-self: end; padding: .75rem; cursor: pointer; }
-.sample { padding: 1rem; border: 1px solid var(--theme-elevation-200); border-radius: .5rem; }
+.root {
+  display: grid;
+  gap: calc(var(--base) * 1.5);
+  min-width: 0;
+}
+.status,
+.sectionBody {
+  display: grid;
+  gap: var(--base);
+  min-width: 0;
+}
+.root h3,
+.root h4,
+.root p {
+  margin-block: 0;
+}
+.root p {
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+.root :global(.field-type) {
+  margin-bottom: 0;
+  min-width: 0;
+}
+.root :global(.collapsible__content) {
+  overflow: visible;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: var(--base);
+  align-items: start;
+  min-width: 0;
+}
+.actions {
+  display: flex;
+  gap: calc(var(--base) / 2);
+  flex-wrap: wrap;
+  align-items: center;
+}
+.actions :global(.btn) {
+  margin: 0;
+}
+.channel,
+.sample {
+  display: grid;
+  gap: var(--base);
+  padding: var(--base);
+  border: 1px solid var(--theme-border-color);
+  border-radius: var(--style-radius-m);
+  min-width: 0;
+}
+.media {
+  display: block;
+  max-width: 100%;
+  width: 160px;
+  height: 120px;
+  object-fit: contain;
+}
+.ltr input,
+.ltr textarea {
+  direction: ltr;
+  text-align: start;
+}

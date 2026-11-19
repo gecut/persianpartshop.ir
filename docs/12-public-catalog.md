@@ -33,6 +33,12 @@ The root optional catch-all accepts only an empty path; unknown paths return the
 - Hidden prices/stock also remove dependent controls and reject direct filter/sort attempts. Public DTOs omit base prices, internal percentages, scan codes, full settings and private stock. Missing/invalid settings or infrastructure failures produce service errors, never fake empty success, missing products or unavailability.
 - Settings contain only generic contact channels; no store URL or store-specific switch exists. Legacy stored indexing/store-link JSON keys are ignored without rewriting saved versions or applying a destructive migration.
 
+## Managing settings in Payload
+
+The existing `policy` JSON is edited through controlled Payload UI inputs; its storage shape, access rules, versioning and publication compiler are unchanged. The publication switch uses positive wording while preserving the inverse `paused` value. Selection is grouped into all active products, filtered active products, and manual-only selection. Inactive criteria and numeric stock caps retain their values when hidden.
+
+Sections use native collapsibles, with selection open initially and errors opening their owning section. The selection summary describes the current form, not a database count. Preview is an explicit, unsaved request: edits invalidate its result and cancel an outstanding request. Changing a price percentage clears its one-save confirmation; the existing server hook remains authoritative.
+
 ## Rendering, sharing and freshness
 
 Both pages use empty static params, dynamicParams=true and revalidate=300, with Cache Components off. Build requires no CMS connection/key. Page and social metadata share the central cached product read. The interval is an ISR threshold, not a maximum age: expired requests may receive old HTML; failed regeneration preserves the last successful page. This also applies to pause, product removal, prices and visibility. There is no purge/webhook/polling or additional proxy/CDN page cache.

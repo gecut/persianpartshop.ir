@@ -1,5 +1,9 @@
 import type { GlobalConfig } from 'payload'
-import { CATALOG_PRICE_CHANGE_THRESHOLD, CatalogSettingsSchema, defaultCatalogSettings } from '@persianpart/contract/public-catalog'
+import {
+  CATALOG_PRICE_CHANGE_THRESHOLD,
+  CatalogSettingsSchema,
+  defaultCatalogSettings,
+} from '@persianpart/contract/public-catalog'
 import { getAdminUser } from '../access/roles'
 import {
   manageWarehouses,
@@ -43,7 +47,7 @@ export const CatalogSettingsGlobal: GlobalConfig = {
   admin: {
     group: 'محصولات و کاتالوگ',
     description:
-      'سیاست انتشار عمومی؛ ذخیرهٔ تنظیمات بلافاصله در CMS اعمال می‌شود و صفحات با ISR به‌روز می‌شوند.',
+      'محصولات قابل نمایش، قیمت، موجودی و ظاهر کاتالوگ عمومی را مدیریت کنید.',
   },
   access: {
     read: readWarehouseStock,
@@ -94,6 +98,10 @@ export const CatalogSettingsGlobal: GlobalConfig = {
       admin: {
         readOnly: false,
         description: 'این تأیید برای یک ذخیره است و پس از ذخیره پاک می‌شود.',
+        components: {
+          Field:
+            '/globals/components/catalog-settings-field#CatalogPriceConfirmation',
+        },
       },
     },
     {

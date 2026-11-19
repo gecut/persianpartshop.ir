@@ -25,6 +25,7 @@ import { BoldFeatureClient as BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864
 import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { StockImport as StockImport_286451a0d08d0a9f8ff3a6e7382a1f64 } from '../../../collections/warehouse-stock/components/stock-import'
 import { CatalogSettingsField as CatalogSettingsField_925b96ddbb5637cff88c867662b57194 } from '../../../globals/components/catalog-settings-field'
+import { CatalogPriceConfirmation as CatalogPriceConfirmation_925b96ddbb5637cff88c867662b57194 } from '../../../globals/components/catalog-settings-field'
 import { Icon as Icon_57ef2d197ad87913c2eec929f08d82cf } from '../../../components/admin/admin-icon'
 import { Logo as Logo_ec43c518656dcf446e1b4f896c9e4fab } from '../../../components/admin/admin-logo'
 import { LoginFooter as LoginFooter_d69671912f979413d392c909bce89cb1 } from '../../../components/admin/login-footer'
@@ -60,6 +61,7 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#ItalicFeatureClient": ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "/collections/warehouse-stock/components/stock-import#StockImport": StockImport_286451a0d08d0a9f8ff3a6e7382a1f64,
   "/globals/components/catalog-settings-field#CatalogSettingsField": CatalogSettingsField_925b96ddbb5637cff88c867662b57194,
+  "/globals/components/catalog-settings-field#CatalogPriceConfirmation": CatalogPriceConfirmation_925b96ddbb5637cff88c867662b57194,
   "/components/admin/admin-icon#Icon": Icon_57ef2d197ad87913c2eec929f08d82cf,
   "/components/admin/admin-logo#Logo": Logo_ec43c518656dcf446e1b4f896c9e4fab,
   "/components/admin/login-footer#LoginFooter": LoginFooter_d69671912f979413d392c909bce89cb1,

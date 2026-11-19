@@ -1890,7 +1890,7 @@ export interface NotificationSetting {
   createdAt?: string | null;
 }
 /**
- * سیاست انتشار عمومی؛ ذخیرهٔ تنظیمات بلافاصله در CMS اعمال می‌شود و صفحات با ISR به‌روز می‌شوند.
+ * محصولات قابل نمایش، قیمت، موجودی و ظاهر کاتالوگ عمومی را مدیریت کنید.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "catalog-settings".
