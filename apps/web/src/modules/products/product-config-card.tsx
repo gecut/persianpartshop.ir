@@ -1,6 +1,6 @@
 "use client";
 
-import { ProductSmallImage } from "@/modules/products/product-small-image"
+import { ProductSmallImage } from "@/modules/products/product-small-image/product-small-image"
 import { memo, useMemo } from "react";
 import { NumberField, I18nProvider, Button } from "@heroui/react";
 import { MoneyBagOutlineIcon } from "@solar-icons/react";

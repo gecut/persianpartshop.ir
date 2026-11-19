@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { Slider, I18nProvider } from "@heroui/react";
 
 export interface ThrottledSliderProps {
@@ -22,15 +21,8 @@ export function ThrottledSlider({
   ariaLabel,
   className,
 }: ThrottledSliderProps) {
-  const [localValue, setLocalValue] = useState(value);
-
-  useEffect(() => {
-    setLocalValue(value);
-  }, [value]);
-
   const handleChange = (val: number | number[]) => {
     const num = typeof val === "number" ? val : (val[0] ?? minValue);
-    setLocalValue(num);
     onChange(num);
   };
 
@@ -40,7 +32,7 @@ export function ThrottledSlider({
         minValue={minValue}
         maxValue={maxValue}
         step={step}
-        value={localValue}
+        value={value}
         onChange={handleChange}
         aria-label={ariaLabel}
         className={className ?? "w-full"}

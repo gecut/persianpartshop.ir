@@ -1,4 +1,4 @@
-import { ProductSmallImage } from "@/modules/products/product-small-image"
+import { ProductSmallImage } from "@/modules/products/product-small-image/product-small-image"
 import { CheckoutActionFooter } from '@/modules/checkout/checkout-action-footer'
 import { CheckoutCommit } from '@/modules/checkout/checkout-commit'
 import { ArrowLeftIcon, PencilIcon, TomanIcon } from '@/components/ui/icons'

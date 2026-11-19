@@ -1,7 +1,7 @@
 import { Button } from "@heroui/react"
 import { formatPersianDate } from "@/lib/utils/date"
 import { AlertCircleIcon, LockIcon, FileTextIcon, Trash2Icon, CheckCircle2Icon, ClockIcon, RefreshCwIcon, ZoomInIcon } from "@/components/ui/icons"
-import { getDocFileUrl, getDocumentTypeLabel, type CustomerDocument } from "./_document-types"
+import { getDocFileUrl, getDocumentTypeLabel, type CustomerDocument } from "../customer-documents"
 import { match, P } from "ts-pattern"
 
 interface DocumentCardProps {

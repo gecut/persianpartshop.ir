@@ -1,6 +1,6 @@
 import { Modal as HeroUIModal, Button, TextField, Label, Input, Select, ListBox } from "@heroui/react"
 import { CheckIcon, XIcon, FileTextIcon, RefreshCwIcon } from "@/components/ui/icons"
-import { DOCUMENT_TYPE_OPTIONS, type DocumentTypeValue } from "./_document-types"
+import { DOCUMENT_TYPE_OPTIONS, type DocumentTypeValue } from "../customer-documents"
 import { DocumentFilePicker } from "./_document-file-picker"
 import type { ProfileDocumentUpload } from "./_use-profile-documents"
 

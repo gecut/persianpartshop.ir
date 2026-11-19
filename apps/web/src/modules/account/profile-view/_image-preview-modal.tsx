@@ -1,7 +1,7 @@
 import { Modal as HeroUIModal, Button } from "@heroui/react"
 import { formatPersianDate } from "@/lib/utils/date"
 import { XIcon, FileTextIcon, CheckCircle2Icon } from "@/components/ui/icons"
-import { getDocFileUrl, type CustomerDocument } from "./_document-types"
+import { getDocFileUrl, type CustomerDocument } from "../customer-documents"
 
 interface ImagePreviewModalProps {
   doc: CustomerDocument | null;

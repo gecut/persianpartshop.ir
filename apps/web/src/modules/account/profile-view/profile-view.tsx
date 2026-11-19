@@ -20,7 +20,7 @@ import { UploadDocumentModal } from "./_upload-document-modal"
 import { ImagePreviewModal } from "./_image-preview-modal"
 import { LogoutConfirmModal } from "./_logout-confirm-modal"
 import { useProfileDocuments } from "./_use-profile-documents"
-import type { CustomerDocument } from "./_document-types"
+import type { CustomerDocument } from "../customer-documents"
 import { useNetworkReadSource } from '@/modules/pwa/read-source'
 import { OfflineAccountCard } from '@/modules/pwa/offline-account-card'
 import { useOnline } from '@/lib/use-online'

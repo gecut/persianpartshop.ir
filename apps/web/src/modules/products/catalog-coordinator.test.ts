@@ -1,8 +1,11 @@
-import { describe, expect, test } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, setSystemTime, test } from 'bun:test'
 import { InfiniteQueryObserver, QueryClient, type InfiniteData } from '@tanstack/react-query'
-import { catalogMaxAge, createCatalogCoordinator, emptyCatalog, type CatalogPersistence, type CatalogSnapshot, type SavedBrowsePage } from '../src/modules/products/catalog-coordinator'
-import { defaultBrowseFilters, defaultBrowseKey, firstBrowsePage } from '../src/modules/products/_catalog-browse'
+import { catalogMaxAge, createCatalogCoordinator, emptyCatalog, type CatalogPersistence, type CatalogSnapshot, type SavedBrowsePage } from '@/modules/products/catalog-coordinator'
+import { defaultBrowseFilters, defaultBrowseKey, firstBrowsePage } from '@/modules/products/_catalog-browse'
 import type { CatalogBrowseOutput, CatalogRecord } from '@persianpart/contract'
+
+beforeEach(() => setSystemTime(new Date('2026-11-18T12:00:00Z')))
+afterEach(() => setSystemTime())
 
 const product = (id: number, price = 100): CatalogRecord => ({ id, sku: `P${id}`, name: `Product ${id}`, slug: `p${id}`, createdAt: new Date(2026, 0, id).toISOString(), inventorySqm: 100, stockCartons: 100, availability: 'available', finalCustomerPricePerSqm: price, hasScanCode: false })
 function deferred<T>() {

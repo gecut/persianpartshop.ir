@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { matchQuery } from '../src/lib/match-query'
+import { matchQuery } from '@/lib/match-query'
 
 describe('matchQuery helper', () => {
   test('renders pending state when isPending is true', () => {

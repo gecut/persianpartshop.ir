@@ -1,4 +1,4 @@
-import { ProductSmallImage } from "@/modules/products/product-small-image"
+import { ProductSmallImage } from "@/modules/products/product-small-image/product-small-image"
 import { formatCartons } from '@/lib/utils/unit'
 
 import type { Product } from "@/modules/products/product-types"

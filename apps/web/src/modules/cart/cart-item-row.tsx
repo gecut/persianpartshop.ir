@@ -1,4 +1,4 @@
-import { ProductSmallImage } from "@/modules/products/product-small-image"
+import { ProductSmallImage } from "@/modules/products/product-small-image/product-small-image"
 import { formatCartons, formatUnit } from '@/lib/utils/unit'
 import React from "react";
 import { Link } from "@tanstack/react-router";

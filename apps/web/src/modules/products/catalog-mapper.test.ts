@@ -1,6 +1,6 @@
-import { expect, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { CatalogRecordSchema, type CatalogRecord } from '@persianpart/contract'
-import { mapCatalogProduct } from '../src/modules/products/catalog-mapper'
+import { mapCatalogProduct, resolveMediaUrl } from '@/modules/products/catalog-mapper'
 
 function product(media: Pick<CatalogRecord, 'cover' | 'gallery'>) {
   return mapCatalogProduct({
@@ -89,5 +89,40 @@ test('preserves gallery variants through the catalog contract without replacing 
   expect(mapped.thumbnailUrl).toBe('/cover-small.webp')
   expect(mapped.galleryMediaDetails).toEqual({
     '/first.webp': { thumbnailUrl: '/first-small.webp', previewUrl: '/first-preview.webp', ratio: 2 },
+  })
+})
+
+describe('resolveMediaUrl', () => {
+  test('resolves absolute and root-relative URLs directly', () => {
+    expect(resolveMediaUrl('https://example.com/tile.jpg')).toBe('https://example.com/tile.jpg')
+    expect(resolveMediaUrl('http://example.com/tile.jpg')).toBe('http://example.com/tile.jpg')
+    expect(resolveMediaUrl('/assets/images/tile.jpg')).toBe('/assets/images/tile.jpg')
+  })
+
+  test('resolves standalone filenames to media API path', () => {
+    expect(resolveMediaUrl('sample-tile.png')).toBe('/api/media/file/sample-tile.png')
+  })
+
+  test('resolves object with url', () => {
+    expect(resolveMediaUrl({ url: 'https://cdn.example.com/tile.png' })).toBe('https://cdn.example.com/tile.png')
+  })
+
+  test('falls back to filename when url is empty string', () => {
+    expect(resolveMediaUrl({ url: '', filename: 'tile-fallback.jpg' })).toBe('/api/media/file/tile-fallback.jpg')
+  })
+
+  test('resolves thumbnailURL when url is absent', () => {
+    expect(resolveMediaUrl({ thumbnailURL: 'https://thumb.example.com/tile.jpg' })).toBe('https://thumb.example.com/tile.jpg')
+  })
+
+  test('resolves nested image object recursively', () => {
+    expect(resolveMediaUrl({ image: { url: '/nested-image.jpg' } })).toBe('/nested-image.jpg')
+  })
+
+  test('returns empty string for nullish or invalid values', () => {
+    expect(resolveMediaUrl(null)).toBe('')
+    expect(resolveMediaUrl(undefined)).toBe('')
+    expect(resolveMediaUrl('')).toBe('')
+    expect(resolveMediaUrl(12345)).toBe('')
   })
 })

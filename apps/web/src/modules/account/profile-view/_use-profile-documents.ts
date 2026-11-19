@@ -7,7 +7,7 @@ import { api } from "@/lib/api-client"
 import { queryKeys } from "@/lib/query-keys"
 import { toast } from "@/components/feedback/toast"
 import { compressImageFile } from "./_compress-image"
-import { getDocumentTypeLabel, type CustomerDocument, type DocumentTypeValue } from "./_document-types"
+import { getDocumentTypeLabel, type CustomerDocument, type DocumentTypeValue } from "../customer-documents"
 
 interface UseProfileDocumentsOptions {
   documents: CustomerDocument[];
