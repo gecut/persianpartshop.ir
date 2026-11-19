@@ -19,12 +19,3 @@ export const isOperationalStaff = (user: unknown): boolean => {
 export const canUpdateOperationalPrice: FieldAccess = ({ req: { user } }) => {
   return isOperationalStaff(user)
 }
-
-/**
- * Legacy operational-inventory helper, retained for compatibility.
- * Product inventory fields are write-blocked in the collection; warehouse
- * balances use controlled reserve/restore/import operations instead.
- */
-export const canUpdateOperationalInventory: FieldAccess = ({ req: { user } }) => {
-  return isOperationalStaff(user)
-}

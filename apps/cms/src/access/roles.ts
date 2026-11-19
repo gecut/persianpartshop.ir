@@ -45,16 +45,6 @@ export const isCatalogManager: Access = ({ req: { user } }) => {
   )
 }
 
-export const isCatalogEditor: Access = ({ req: { user } }) => {
-  const admin = getAdminUser(user)
-  if (!admin) return false
-  return (
-    admin.role === 'superadmin' ||
-    admin.role === 'manager' ||
-    admin.role === 'editor'
-  )
-}
-
 export const isSalesManager: Access = ({ req: { user } }) => {
   const admin = getAdminUser(user)
   if (!admin) return false

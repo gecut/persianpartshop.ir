@@ -11,13 +11,6 @@ import { parseImportCsv } from './_import-csv'
 const message = (error: unknown, fallback: string): string => error instanceof Error && (error.constructor === Error || (error instanceof APIError && error.isPublic)) && /[\u0600-\u06ff]/.test(error.message) ? error.message : fallback
 const sign = (req: PayloadRequest, text: string) => createHmac('sha256', req.payload.secret).update(text).digest('hex')
 
-// Retained for existing callers that need strict stock-only parsing.
-export function parseStockCsv(csv: string): Array<{ sku: string; inventorySqm: number }> {
-  const result = parseImportCsv(csv, 'stock')
-  if (result.errors.length) throw new Error(result.errors[0]?.message)
-  return result.rows.map(row => ({ sku: row.sku, inventorySqm: row.inventorySqm! }))
-}
-
 export async function previewStockImport(req: PayloadRequest, readInput: () => unknown | Promise<unknown>) {
   if (!await manageWarehouses({ req })) return Response.json({ error: 'دسترسی مجاز نیست.' }, { status: 403 })
   try {
