@@ -1,4 +1,4 @@
-import { sign, verify, decode } from 'hono/jwt'
+import { sign, verify } from 'hono/jwt'
 import type { SignatureAlgorithm } from 'hono/utils/jwt/jwa'
 
 const DEV_FALLBACK_SECRET = 'persianpart_jwt_auth_secret_key_production_2026_super_secure'
@@ -76,18 +76,6 @@ export async function verifyToken(token: string): Promise<UserJwtPayload | null>
     return verified as unknown as UserJwtPayload
   } catch (err) {
     // Token is expired, signature is mismatched, or token format is invalid
-    return null
-  }
-}
-
-/**
- * Decodes header and payload of a token without verifying signature
- */
-export function decodeToken(token: string): { header: any; payload: any } | null {
-  if (!token) return null
-  try {
-    return decode(token)
-  } catch {
     return null
   }
 }

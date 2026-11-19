@@ -180,32 +180,3 @@ export async function verifyOtp(
 
   return { success: true }
 }
-
-/**
- * Invalidates the OTP code if SMS delivery fails
- */
-export async function invalidateOtp(phone: string, code: string): Promise<void> {
-  const normalizedPhone = normalizeDigits(phone)
-  try {
-    const existing = await sdk.find({
-      collection: 'otps',
-      where: {
-        and: [
-          { phone: { equals: normalizedPhone } },
-          { code: { equals: code } },
-        ],
-      },
-      limit: 1,
-      depth: 0,
-    })
-    if (existing.docs.length > 0) {
-      await sdk.update({
-        collection: 'otps',
-        id: existing.docs[0].id,
-        data: { code: null },
-      })
-    }
-  } catch {
-    // Non-blocking best-effort
-  }
-}
