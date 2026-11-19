@@ -1,0 +1,100 @@
+.product-viewer-backdrop[data-slot],
+.product-viewer-container[data-slot],
+.product-viewer-dialog[data-slot] {
+  position: fixed;
+  inset: 0;
+  max-inline-size: none;
+  max-block-size: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  animation: none;
+  transition: none;
+}
+
+.product-viewer-backdrop[data-slot] {
+  z-index: 100;
+  background: #121212;
+}
+
+.product-viewer-portal {
+  position: absolute;
+  inset: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+.product-viewer.yarl__portal {
+  position: absolute;
+  --yarl__color_backdrop: #121212;
+  --yarl__button_filter: none;
+}
+
+.product-viewer .yarl__toolbar {
+  padding-block-start: .5rem;
+  padding-inline-end: .5rem;
+}
+
+.product-viewer .yarl__button {
+  min-inline-size: 44px;
+  min-block-size: 44px;
+}
+
+.product-viewer .yarl__button:focus-visible {
+  outline: 2px solid white;
+  outline-offset: -2px;
+  border-radius: .5rem;
+}
+
+.product-viewer__photo {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: none;
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+.product-viewer__image {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: contain;
+  user-select: none;
+}
+
+.product-viewer__message {
+  display: grid;
+  justify-items: center;
+  gap: .5rem;
+  padding: .5rem;
+  color: white;
+  text-align: center;
+}
+
+.product-viewer__message img {
+  inline-size: min(3rem, 100%);
+}
+
+.product-viewer__counter {
+  position: absolute;
+  inset-block-end: .75rem;
+  inset-inline: 0;
+  color: white;
+  text-align: center;
+  pointer-events: none;
+}
+
+.product-viewer__watermark {
+  position: absolute;
+  inset-block-start: max(var(--photo-top, 0px), 44px);
+  inset-inline-end: var(--photo-left, 0px);
+  pointer-events: none;
+}
+
+.product-viewer__watermark .product-image-watermark {
+  background-color: rgb(0 0 0 / 76%);
+  backdrop-filter: none;
+}

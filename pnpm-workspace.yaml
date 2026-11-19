@@ -7,5 +7,3 @@ allowBuilds:
   sharp: true
   "@swc/core": true
   unrs-resolver: true
-patchedDependencies:
-  yet-another-react-lightbox@3.33.1: patches/yet-another-react-lightbox@3.33.1.patch

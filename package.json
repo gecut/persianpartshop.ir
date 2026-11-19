@@ -5,7 +5,7 @@
     "dev": "pnpm dev",
     "dev:cms": "pnpm --filter @persianpart/cms dev",
     "dev:api": "pnpm --filter @persianpart/api dev",
-    "build": "pnpm --filter @persianpart/cms build && pnpm --filter @persianpart/api build && pnpm --filter @persianpart/web build",
+    "build": "pnpm --filter @persianpart/cms build && pnpm --filter @persianpart/api build && pnpm --filter @persianpart/web build && pnpm --filter @persianpart/catalog build",
     "build:web": "pnpm --filter @persianpart/web build",
     "build:cms": "pnpm --filter @persianpart/cms build",
     "build:api": "pnpm --filter @persianpart/api build",
@@ -13,7 +13,10 @@
     "migrate:cms": "pnpm --filter @persianpart/cms migrate",
     "migrate:cms:status": "pnpm --filter @persianpart/cms migrate:status",
     "seed:cms": "pnpm --filter @persianpart/cms seed",
-    "dev:all": "pnpm --filter @persianpart/web dev & pnpm --filter @persianpart/cms dev & pnpm --filter @persianpart/api dev"
+    "dev:all": "pnpm --filter @persianpart/web dev & pnpm --filter @persianpart/cms dev & pnpm --filter @persianpart/api dev",
+    "build:catalog": "pnpm --filter @persianpart/catalog build",
+    "dev:catalog": "pnpm --filter @persianpart/catalog dev",
+    "test:unit": "pnpm --filter @persianpart/catalog test && pnpm --filter @persianpart/cms test:unit && pnpm --filter @persianpart/api test && pnpm --filter @persianpart/web test:unit"
   },
   "packageManager": "pnpm@11.18.0"
 }

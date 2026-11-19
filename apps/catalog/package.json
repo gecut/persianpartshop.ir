@@ -1,0 +1,41 @@
+{
+  "name": "@persianpart/catalog",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev -p 5176",
+    "build": "next build",
+    "start": "next start -p 5176",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --conditions=react-server --test src/lib/*.test.ts src/modules/product/*.test.ts"
+  },
+  "dependencies": {
+    "@fontsource-variable/vazirmatn": "^5.3.0",
+    "@heroui/react": "3.2.6",
+    "@heroui/styles": "3.2.6",
+    "@payloadcms/sdk": "3.91.0",
+    "@persianpart/contract": "workspace:*",
+    "@solar-icons/react": "^2.3.2",
+    "@tanstack/react-query": "5.104.1",
+    "embla-carousel-autoplay": "8.6.0",
+    "embla-carousel-react": "^8.6.0",
+    "framer-motion": "^14.0.0",
+    "next": "16.3.8",
+    "qrcode": "1.5.4",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "server-only": "0.0.1",
+    "yet-another-react-lightbox": "3.33.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "^24.12.3",
+    "@types/qrcode": "1.5.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "tailwindcss": "4.3.3",
+    "tsx": "4.23.15",
+    "typescript": "6.0.3"
+  }
+}
