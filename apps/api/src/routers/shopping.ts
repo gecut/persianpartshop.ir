@@ -12,7 +12,7 @@ import {
   sanitizeOrderForCustomer,
 } from './router.helpers'
 
-const cartProducts = base.shopping.cartProducts.handler(async ({ input, context }) => {
+const cartProducts = authed.shopping.cartProducts.handler(async ({ input, context }) => {
   if (!input || input.length === 0) return []
 
   const permissions = await getUserPermissions(context.user?.id)
@@ -69,26 +69,26 @@ const mutateAddress = authed.shopping.mutateAddress.handler(async ({ input, cont
   return updatedUser.addresses || []
 })
 
-const categories = base.shopping.categories.handler(async ({ input, context }) => {
+const categories = authed.shopping.categories.handler(async ({ input, context }) => {
   const permissions = await getUserPermissions(context.user?.id)
   const categories = await fetchTaxonomy('categories', { onlyActive: input?.onlyActive, sort: 'ordering' })
   return permissions.allowedCategoryIds.length ? categories.filter(category => permissions.allowedCategoryIds.includes(category.id)) : categories
 })
 
-const brands = base.shopping.brands.handler(async ({ input }) => {
+const brands = authed.shopping.brands.handler(async ({ input }) => {
   return fetchTaxonomy('brands', { onlyActive: input?.onlyActive, sort: 'name' })
 })
 
-const tags = base.shopping.tags.handler(async ({ input }) => {
+const tags = authed.shopping.tags.handler(async ({ input }) => {
   return fetchTaxonomy('tags', { onlyActive: input?.onlyActive, sort: 'name' })
 })
 
-const calculateCartons = base.shopping.calculateCartons.handler(async ({ input, context }) => {
+const calculateCartons = authed.shopping.calculateCartons.handler(async ({ input, context }) => {
   const permissions = await getUserPermissions(context?.user?.id)
   return calculateCartonMetrics(input, permissions.markupPercent, permissions.allowedCategoryIds)
 })
 
-const all = base.shopping.all.handler(async ({ input, context }) => {
+const all = authed.shopping.all.handler(async ({ input, context }) => {
   const where: Record<string, any> = {
     isActive: { equals: true },
   }
@@ -123,7 +123,7 @@ const all = base.shopping.all.handler(async ({ input, context }) => {
   }
 })
 
-const detail = base.shopping.detail.handler(async ({ input, context }) => {
+const detail = authed.shopping.detail.handler(async ({ input, context }) => {
   const prod: any = await sdk.findByID({
     collection: 'products',
     id: input.id,

@@ -1,4 +1,4 @@
-import { ProductPreview as ProductPreview_7f396e54fefb0a4a5b7882a847b0f2db } from '../../../collections/products/components/ProductPreview'
+import { ProductPreview as ProductPreview_3e444d9871d1b09f3634714712e2abb4 } from '../../../collections/products/components/product-preview'
 import { ProductWarehouseStock as ProductWarehouseStock_e8ba38b2f2011a8ba7009628d091838d } from '../../../collections/products/components/product-warehouse-stock'
 import { RscEntryLexicalCell as RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { RscEntryLexicalField as RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
@@ -24,15 +24,16 @@ import { UnderlineFeatureClient as UnderlineFeatureClient_e70f5e05f09f93e00b997e
 import { BoldFeatureClient as BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { StockImport as StockImport_286451a0d08d0a9f8ff3a6e7382a1f64 } from '../../../collections/warehouse-stock/components/stock-import'
-import { Icon as Icon_dfe4008080d895d460898c3a6155e9ba } from '../../../components/admin/Icon'
-import { Logo as Logo_91a09b539d3c86b0aebf520e7564ce08 } from '../../../components/admin/Logo'
-import { LoginFooter as LoginFooter_04d0423eee645e723f0c1c985932803b } from '../../../components/admin/LoginFooter'
-import { LoginHeader as LoginHeader_d0c1ffca112feaf830ae2590e32a47bb } from '../../../components/admin/LoginHeader'
+import { CatalogSettingsField as CatalogSettingsField_925b96ddbb5637cff88c867662b57194 } from '../../../globals/components/catalog-settings-field'
+import { Icon as Icon_57ef2d197ad87913c2eec929f08d82cf } from '../../../components/admin/admin-icon'
+import { Logo as Logo_ec43c518656dcf446e1b4f896c9e4fab } from '../../../components/admin/admin-logo'
+import { LoginFooter as LoginFooter_d69671912f979413d392c909bce89cb1 } from '../../../components/admin/login-footer'
+import { LoginHeader as LoginHeader_8fd1f5fb0a0e05d0d17b0a40ec01b9ef } from '../../../components/admin/login-header'
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 
 /** @type import('payload').ImportMap */
 export const importMap = {
-  "/collections/products/components/ProductPreview#ProductPreview": ProductPreview_7f396e54fefb0a4a5b7882a847b0f2db,
+  "/collections/products/components/product-preview#ProductPreview": ProductPreview_3e444d9871d1b09f3634714712e2abb4,
   "/collections/products/components/product-warehouse-stock#ProductWarehouseStock": ProductWarehouseStock_e8ba38b2f2011a8ba7009628d091838d,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalCell": RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalField": RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e,
@@ -58,9 +59,10 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#BoldFeatureClient": BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#ItalicFeatureClient": ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "/collections/warehouse-stock/components/stock-import#StockImport": StockImport_286451a0d08d0a9f8ff3a6e7382a1f64,
-  "/components/admin/Icon#Icon": Icon_dfe4008080d895d460898c3a6155e9ba,
-  "/components/admin/Logo#Logo": Logo_91a09b539d3c86b0aebf520e7564ce08,
-  "/components/admin/LoginFooter#LoginFooter": LoginFooter_04d0423eee645e723f0c1c985932803b,
-  "/components/admin/LoginHeader#LoginHeader": LoginHeader_d0c1ffca112feaf830ae2590e32a47bb,
+  "/globals/components/catalog-settings-field#CatalogSettingsField": CatalogSettingsField_925b96ddbb5637cff88c867662b57194,
+  "/components/admin/admin-icon#Icon": Icon_57ef2d197ad87913c2eec929f08d82cf,
+  "/components/admin/admin-logo#Logo": Logo_ec43c518656dcf446e1b4f896c9e4fab,
+  "/components/admin/login-footer#LoginFooter": LoginFooter_d69671912f979413d392c909bce89cb1,
+  "/components/admin/login-header#LoginHeader": LoginHeader_8fd1f5fb0a0e05d0d17b0a40ec01b9ef,
   "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1
 }

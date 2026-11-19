@@ -28,6 +28,9 @@ import { SupplyRequests } from './collections/supply-requests/supply-requests.co
 import { AuditLogs } from './collections/audit-logs'
 import { SmsQueue } from './collections/sms-queue/sms-queue.collection'
 import { NotificationSettings } from './globals/notification-settings.global'
+import { CatalogSettingsGlobal } from './globals/catalog-settings.global'
+import { catalogEndpoint } from './endpoints/catalog.endpoint'
+import { catalogPreviewEndpoint, catalogLocationEndpoint } from './endpoints/catalog-preview.endpoint'
 import { startSmsQueueWorker } from './modules/sms/queue-worker'
 import { activityFeedEndpoint } from './endpoints/activity-feed.endpoint'
 import { catalogBrowseEndpoint, planBrowseEndpoint } from './endpoints/catalog-browse.endpoint'
@@ -123,11 +126,11 @@ export default buildConfig({
     },
     components: {
       graphics: {
-        Logo: '/components/admin/Logo#Logo',
-        Icon: '/components/admin/Icon#Icon',
+        Logo: '/components/admin/admin-logo#Logo',
+        Icon: '/components/admin/admin-icon#Icon',
       },
-      beforeLogin: ['/components/admin/LoginHeader#LoginHeader'],
-      afterLogin: ['/components/admin/LoginFooter#LoginFooter'],
+      beforeLogin: ['/components/admin/login-header#LoginHeader'],
+      afterLogin: ['/components/admin/login-footer#LoginFooter'],
     },
   },
   collections: addMcpWriteGuards(protectBusinessRelations([
@@ -153,8 +156,8 @@ export default buildConfig({
     // پیامک و صف اعلان‌ها
     SmsQueue,
   ])),
-  globals: [NotificationSettings],
-  endpoints: [activityFeedEndpoint, catalogBrowseEndpoint, planBrowseEndpoint, mcpUploadEndpoint],
+  globals: [NotificationSettings, CatalogSettingsGlobal],
+  endpoints: [activityFeedEndpoint, catalogBrowseEndpoint, planBrowseEndpoint, mcpUploadEndpoint, catalogEndpoint, catalogPreviewEndpoint, catalogLocationEndpoint],
   plugins: [cmsMcp],
   editor: lexicalEditor(),
   graphQL: {

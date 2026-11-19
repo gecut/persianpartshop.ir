@@ -1,6 +1,4 @@
-import React from 'react'
-
-export const LoginHeader: React.FC = () => {
+export const LoginHeader = () => {
   return (
     <div
       style={{
@@ -32,5 +30,3 @@ export const LoginHeader: React.FC = () => {
     </div>
   )
 }
-
-export default LoginHeader

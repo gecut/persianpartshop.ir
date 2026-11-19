@@ -1,6 +1,4 @@
-import React from 'react'
-
-export const LoginFooter: React.FC = () => {
+export const LoginFooter = () => {
   return (
     <div
       style={{
@@ -29,5 +27,3 @@ export const LoginFooter: React.FC = () => {
     </div>
   )
 }
-
-export default LoginFooter

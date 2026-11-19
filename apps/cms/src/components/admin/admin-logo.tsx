@@ -1,6 +1,4 @@
-import React from 'react'
-
-export const Logo: React.FC = () => {
+export const Logo = () => {
   return (
     <div
       className="admin-brand-logo"
@@ -39,7 +37,9 @@ export const Logo: React.FC = () => {
           <circle cx="8" cy="17" r="1.5" fill="#818CF8" />
         </svg>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'right' }}>
+      <div
+        style={{ display: 'flex', flexDirection: 'column', textAlign: 'right' }}
+      >
         <span
           style={{
             fontSize: '1.125rem',
@@ -66,5 +66,3 @@ export const Logo: React.FC = () => {
     </div>
   )
 }
-
-export default Logo

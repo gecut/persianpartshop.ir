@@ -1,7 +1,7 @@
 import type { CollectionConfig } from "payload";
 import { PRODUCT_GRADE_OPTIONS } from "@persianpart/contract";
 import { syncSlugAndDimensions } from "./_sync-slug-and-dimensions.before-validate";
-import { getAdminUser, isCatalogManager } from "../../access/roles";
+import { getAdminUser, isAdminAuthenticated, isCatalogManager } from "../../access/roles";
 import { logAction } from "../audit-logs/log-action";
 import {
   canUpdateOperationalPrice,
@@ -28,7 +28,7 @@ export const Products: CollectionConfig = {
     description: "کاتالوگ و موجودی محصولات.",
   },
   access: {
-    read: () => true,
+    read: isAdminAuthenticated,
     create: isCatalogManager,
     update: isCatalogManager,
     delete: isCatalogManager,
@@ -222,7 +222,7 @@ export const Products: CollectionConfig = {
               admin: { hidden: true }, access: { update: () => false, create: () => false },
             },
             { name: "stockCartons", type: "number", defaultValue: 0, label: "تعداد کارتن", admin: { hidden: true, readOnly: true } },
-            { name: "productPreviewUi", type: "ui", admin: { components: { Field: "/collections/products/components/ProductPreview#ProductPreview" } } },
+            { name: "productPreviewUi", type: "ui", admin: { components: { Field: "/collections/products/components/product-preview#ProductPreview" } } },
           ],
         },
         {

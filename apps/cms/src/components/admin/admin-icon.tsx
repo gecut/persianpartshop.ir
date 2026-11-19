@@ -1,6 +1,4 @@
-import React from 'react'
-
-export const Icon: React.FC = () => {
+export const Icon = () => {
   return (
     <svg
       className="graphic-icon"
@@ -24,5 +22,3 @@ export const Icon: React.FC = () => {
     </svg>
   )
 }
-
-export default Icon

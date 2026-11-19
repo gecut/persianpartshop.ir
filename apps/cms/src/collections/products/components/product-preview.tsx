@@ -1,10 +1,9 @@
 'use client'
 
-import React from 'react'
 import { useFormFields } from '@payloadcms/ui'
 import { calculateBasePricePerCarton } from '../_inventory-math'
 
-export const ProductPreview: React.FC = () => {
+export const ProductPreview = () => {
   const priceField = useFormFields(([fields]) => fields.basePricePerSqm)
   const sqmField = useFormFields(([fields]) => fields.sqmPerCarton)
   const typeField = useFormFields(([fields]) => fields.productType)
@@ -108,5 +107,3 @@ export const ProductPreview: React.FC = () => {
     </div>
   )
 }
-
-export default ProductPreview

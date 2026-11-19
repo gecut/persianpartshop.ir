@@ -122,9 +122,11 @@ export interface Config {
   fallbackLocale: null;
   globals: {
     'notification-settings': NotificationSetting;
+    'catalog-settings': CatalogSetting;
   };
   globalsSelect: {
     'notification-settings': NotificationSettingsSelect<false> | NotificationSettingsSelect<true>;
+    'catalog-settings': CatalogSettingsSelect<false> | CatalogSettingsSelect<true>;
   };
   locale: null;
   widgets: {
@@ -1888,6 +1890,31 @@ export interface NotificationSetting {
   createdAt?: string | null;
 }
 /**
+ * سیاست انتشار عمومی؛ ذخیرهٔ تنظیمات بلافاصله در CMS اعمال می‌شود و صفحات با ISR به‌روز می‌شوند.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "catalog-settings".
+ */
+export interface CatalogSetting {
+  id: number;
+  policy:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * این تأیید برای یک ذخیره است و پس از ذخیره پاک می‌شود.
+   */
+  confirmPriceChange?: boolean | null;
+  lastEditedBy?: number | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "notification-settings_select".
  */
@@ -1901,6 +1928,18 @@ export interface NotificationSettingsSelect<T extends boolean = true> {
       };
   enableOrderNotifications?: T;
   enableSupplyNotifications?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "catalog-settings_select".
+ */
+export interface CatalogSettingsSelect<T extends boolean = true> {
+  policy?: T;
+  confirmPriceChange?: T;
+  lastEditedBy?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

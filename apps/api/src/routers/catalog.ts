@@ -12,7 +12,7 @@ import {
   applyProductPricing,
 } from './router.helpers'
 
-const list = base.catalog.list.handler(async ({ input, context }) => {
+const list = authed.catalog.list.handler(async ({ input, context }) => {
   const isAdmin = context.user?.role === 'admin' || context.user?.role === 'superadmin'
   const userPerms = await getUserPermissions(context.user?.id, context)
   const where: Record<string, any> = {}
@@ -90,7 +90,7 @@ const list = base.catalog.list.handler(async ({ input, context }) => {
   }
 })
 
-const getById = base.catalog.getById.handler(async ({ input, context, errors }) => {
+const getById = authed.catalog.getById.handler(async ({ input, context, errors }) => {
   const id = Number(input.id)
   if (isNaN(id) || id <= 0) {
     throw errors.BAD_REQUEST({ data: { message: 'شناسه محصول نامعتبر است.' } })
@@ -155,7 +155,7 @@ const getProductQr = customerOnly.catalog.getProductQr.handler(async ({ input, c
   return { scanCode: product.scanCode }
 })
 
-const categories = base.catalog.categories.handler(async ({ input, context }) => {
+const categories = authed.catalog.categories.handler(async ({ input, context }) => {
   const isAdmin = context?.user?.role === 'admin' || context?.user?.role === 'superadmin'
   const userPerms = await getUserPermissions(context?.user?.id, context)
   const docs = (await fetchTaxonomy('categories', { onlyActive: input?.onlyActive, sort: 'ordering' })) as Category[]
@@ -166,12 +166,12 @@ const categories = base.catalog.categories.handler(async ({ input, context }) =>
   return docs
 })
 
-const brands = base.catalog.brands.handler(async ({ input }) => {
+const brands = authed.catalog.brands.handler(async ({ input }) => {
   const docs = await fetchTaxonomy('brands', { onlyActive: input?.onlyActive, sort: 'name' })
   return docs as Brand[]
 })
 
-const tags = base.catalog.tags.handler(async ({ input }) => {
+const tags = authed.catalog.tags.handler(async ({ input }) => {
   const docs = await fetchTaxonomy('tags', { onlyActive: input?.onlyActive, sort: 'name' })
   return docs as Tag[]
 })
@@ -203,7 +203,7 @@ async function catalogDimensions(input: { onlyActive?: boolean } | undefined, co
   }
   return docs.sort((a, b) => (counts.get(String(b.id)) ?? 0) - (counts.get(String(a.id)) ?? 0))
 }
-const dimensions = base.catalog.dimensions.handler(({ input, context }) => catalogDimensions(input, context))
+const dimensions = authed.catalog.dimensions.handler(({ input, context }) => catalogDimensions(input, context))
 
 const deleteProduct = adminOnly.catalog.deleteProduct.handler(async ({ input, errors }) => {
   const id = Number(input.id)
@@ -261,7 +261,7 @@ const deleteCategory = adminOnly.catalog.deleteCategory.handler(async ({ input, 
   return sdk.delete({ collection: 'categories', id })
 })
 
-const calculateCartons = base.catalog.calculateCartons.handler(async ({ input, context }) => {
+const calculateCartons = authed.catalog.calculateCartons.handler(async ({ input, context }) => {
   const permissions = await getUserPermissions(context?.user?.id, context)
   return calculateCartonMetrics(input, permissions.markupPercent, permissions.allowedCategoryIds)
 })
