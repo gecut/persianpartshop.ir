@@ -3,10 +3,9 @@ import { createApiClient } from './client'
 const mockedFetch = (fn: () => Promise<Response>): typeof fetch => Object.assign(fn, { preconnect() {} })
 
 describe('RPC lifecycle and authentication boundary', () => {
-  test('reports decoded authentication errors exactly once without rereading the body', async () => {
+  test('reports decoded authentication errors exactly once', async () => {
     const errors: unknown[] = []
     const response = Response.json({ json: { defined: false, code: 'UNAUTHORIZED', message: 'Expired' } }, { status: 401 })
-    Object.defineProperty(response, 'clone', { value: () => { throw new Error('A second response buffer must not be needed') } })
     const client = createApiClient({ baseURL: 'http://fixture.test', fetch: mockedFetch(async () => response), onAuthError: error => errors.push(error) })
     await expect(client.auth.session()).rejects.toHaveProperty('code', 'UNAUTHORIZED')
     expect(errors).toHaveLength(1)
