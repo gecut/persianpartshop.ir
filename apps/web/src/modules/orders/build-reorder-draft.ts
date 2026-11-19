@@ -1,14 +1,13 @@
-import type { Order } from "@/modules/orders/order-types";
-import type { Product } from "@/modules/products/product-types";
+import type { Order } from '@/modules/orders/order-types'
+import type { Product } from '@/modules/products/product-types'
 
-export function buildReorderDraft(items: Order["items"] | undefined, allProducts: Product[]) {
-  if (!items) return { reorderProducts: [], reorderQuantities: {} };
+export function buildReorderDraft(items: Order['items'] | undefined, allProducts: Product[]) {
+  if (!items) return { reorderProducts: [], reorderQuantities: {} }
   const products: Product[] = items.map((item) => {
     const found = allProducts.find(
-      (p) =>
-        String(p.id) === String(item.productId) || p.sku === item.productSku,
-    );
-    if (found) return found;
+      (p) => String(p.id) === String(item.productId) || p.sku === item.productSku,
+    )
+    if (found) return found
     return {
       productType: item.productType === 'other' ? 'other' as const : 'tile' as const,
       unit: item.unit,
@@ -18,10 +17,10 @@ export function buildReorderDraft(items: Order["items"] | undefined, allProducts
       sku: item.productSku,
       dimension: item.dimension,
       dimensions: { width: 0, height: 0 },
-      brand: "پرشین پارت",
-      color: "",
-      grade: "درجه ۱" as const,
-      category: "پرسلان کف" as const,
+      brand: 'پرشین پارت',
+      color: '',
+      grade: 'درجه ۱' as const,
+      category: 'پرسلان کف' as const,
       finalCustomerPricePerSqm: item.unitPrice,
       pricePerM2: item.unitPrice,
       sqmPerCarton:
@@ -38,17 +37,17 @@ export function buildReorderDraft(items: Order["items"] | undefined, allProducts
       inventorySqm: 9999,
       stockCartons: 999,
       inStock: true,
-      stockStatus: "in_stock" as const,
+      stockStatus: 'in_stock' as const,
       applications: [],
       tags: [],
       thumbnailUrl: item.productImageThumbnail,
-      images: [item.productImage || "/placeholder.png"],
-      gallery: [item.productImage || "/placeholder.png"],
-    };
-  });
-  const quantities: Record<string, number> = {};
+      images: [item.productImage || '/placeholder.png'],
+      gallery: [item.productImage || '/placeholder.png'],
+    }
+  })
+  const quantities: Record<string, number> = {}
   items.forEach((item) => {
-    quantities[item.productId] = item.requestedArea || item.deliverableArea;
-  });
-  return { reorderProducts: products, reorderQuantities: quantities };
+    quantities[item.productId] = item.requestedArea || item.deliverableArea
+  })
+  return { reorderProducts: products, reorderQuantities: quantities }
 }

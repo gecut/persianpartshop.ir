@@ -18,7 +18,7 @@ import { OrderInvoiceModal } from "@/modules/orders/order-invoice-modal/order-in
 import { useCatalogIds } from "@/modules/products/catalog-data"
 import { CANCELLATION_REASONS, formatInvoiceNumber } from "./_order-helpers"
 import { useCancelCountdown } from "./_use-cancel-countdown"
-import { buildReorderDraft } from "./_build-reorder-draft"
+import { buildReorderDraft } from "@/modules/orders/build-reorder-draft"
 import { OrderHeaderCard } from "./_order-header-card"
 import { OrderItemsCard } from "./_order-items-card"
 import { OrderDeliveryCard } from "./_order-delivery-card"

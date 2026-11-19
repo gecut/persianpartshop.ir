@@ -25,7 +25,7 @@ import { ActivityTypeTabs } from './_activity-type-tabs'
 import { ActivityStatusTabs } from './_activity-status-tabs'
 import { ActivityEmptyState } from './_activity-empty-state'
 import { SupplyDetailModal } from './_supply-detail-modal'
-import { buildReorderDraft } from './_build-reorder-draft'
+import { buildReorderDraft } from '@/modules/orders/build-reorder-draft'
 
 const routeApi = getRouteApi('/orders/')
 
