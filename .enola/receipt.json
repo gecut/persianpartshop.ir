@@ -1,14 +1,14 @@
 {
-  "snapshot_id": "sha256:dcc56f59b3c07b919bc605e31abc342532a3ea3a8aa3bba9597a6495da54e949",
+  "snapshot_id": "sha256:38674d3f85fa6f016f26adaa35abd8d724bf37b0bd11e93e9b24280a6094bdfc",
   "format_version": 1,
   "enola_version": "0.4.38",
   "extractor_version": "v500",
-  "generated_at": "2026-11-07T07:36:03Z",
-  "duration": "8.236018541s",
+  "generated_at": "2026-11-19T20:57:41Z",
+  "duration": "476.119167ms",
   "repo_path": "/Users/mm25zamanian/Codes/persianpartshop.ir",
   "git": {
     "ref": "main",
-    "commit": "8c39a55c27629c3512c8f6faa62d147bee1aee9e",
+    "commit": "49912fff5583301a6da988e47a3d2d1563bb5b6b",
     "dirty": true,
     "remote": "github.com/gecut/persianpartshop.ir"
   },
@@ -51,19 +51,19 @@
   "config_hash": "sha256:0bd4dd70eadd883034fcb98b5d4c9bf19bf25984306c3557610420f86875a2cd",
   "ignore_glob_hash": "sha256:83dbf7e109a97f4fbe4c6255c5ea1648b57ede0e31e953295664e95171114a16",
   "output_hashes": {
-    "docs.jsonl": "sha256:bd4fd4ea5f357984e296cd1e8383d3a55be7f2d9f2b76f81b22d54c6ac7745d8",
-    "facts.jsonl": "sha256:2543f43c45cdcde4dea36336843a4965505875795d21f73d0bfc60a95be38e46",
-    "flows.json": "sha256:f480fe5d0c0b92739b6b0de95f20abc9cf47306b9135f856550176ddf8e785ee",
-    "insights.json": "sha256:c626fb54ae9477c263cf2d213afeb04327291b0fef4c9891c3f4e0b2e833112e",
-    "llm_context.md": "sha256:309d15d97919331dcdbc55971e09bfb948802b5d1c49fb552e56483ae7ecc15d"
+    "docs.jsonl": "sha256:227baeb0558626f2685bc204f347723ab2e5834e8112762bcfc4e6dba45170b0",
+    "facts.jsonl": "sha256:03533811ba0bbd2026fa0ef668e9d6613819a8699603d740063856613b7d01bf",
+    "flows.json": "sha256:f946ce98b7c8a0adf43d976db1198c65aa68211d2909a35d9f9cd6da622da6e0",
+    "insights.json": "sha256:c9cb0b8ca574c131859d8ec3b223bcbb8f676a6c74f616079cac7fa6b019b929",
+    "llm_context.md": "sha256:f87931eb3e40f19a8ec483b241c970380047aa2ca17b5fefcedf1aba761c89cb"
   },
-  "fact_count": 4629,
-  "insight_count": 89,
+  "fact_count": 8870,
+  "insight_count": 152,
   "quality": {
-    "files_seen": 467,
-    "files_parsed": 322,
-    "files_skipped": 19,
-    "dirs_skipped": 10,
+    "files_seen": 1749,
+    "files_parsed": 713,
+    "files_skipped": 39,
+    "dirs_skipped": 13,
     "skipped_sample": [
       ".agents/skills/nexload-cto-review/evals/fixtures/approved-clean-package/test/cache.test.ts (glob: **/*.test.ts)",
       ".agents/skills/nexload-cto-review/evals/fixtures/change-with-existing-debt/target/ (glob: **/target/**)",
@@ -80,48 +80,52 @@
       ".agents/skills/ui-ux-pro-max/scripts/tests/test_web_stack_freshness.py (glob: **/test_*.py)",
       ".git/ (glob: **/.git/**)",
       "apps/api/node_modules/ (glob: **/node_modules/**)",
-      "apps/cms/.next/ (glob: **/.next/**)",
-      "apps/cms/node_modules/ (glob: **/node_modules/**)",
-      "apps/cms/src/_schema-inspect.test.ts (glob: **/*.test.ts)",
-      "apps/cms/src/_sdk.test.ts (glob: **/*.test.ts)",
-      "apps/cms/src/_seed-target.test.ts (glob: **/*.test.ts)"
+      "apps/api/src/client.test.ts (glob: **/*.test.ts)",
+      "apps/api/src/payload-error.test.ts (glob: **/*.test.ts)",
+      "apps/catalog/.next/ (glob: **/.next/**)",
+      "apps/catalog/node_modules/ (glob: **/node_modules/**)",
+      "apps/catalog/src/lib/catalog-cms.test.ts (glob: **/*.test.ts)"
     ],
     "parse_errors": 0,
-    "heuristic_insights": 87,
+    "heuristic_insights": 147,
     "coverage": {
       "services_total": 0,
       "coverage_gaps": 0,
       "unresolved_edges": 0,
       "extractors_reporting": 2,
-      "extraction_unresolved": 294
+      "extraction_unresolved": 1013
     },
     "census": {
-      "files_walked": 486,
-      "parsed": 322,
-      "excluded_by_ignore": 19,
-      "excluded_by_kind": 132,
+      "files_walked": 1788,
+      "parsed": 713,
+      "excluded_by_ignore": 39,
+      "excluded_by_kind": 1020,
       "excluded_kinds": {
-        "(no extension)": 3,
-        ".css": 10,
+        "(no extension)": 25,
+        ".css": 18,
         ".csv": 37,
         ".dockerignore": 1,
-        ".env": 2,
-        ".example": 3,
+        ".env": 3,
+        ".example": 4,
         ".gitignore": 1,
-        ".gitkeep": 5,
-        ".jpg": 17,
-        ".json": 34,
+        ".gitkeep": 1,
+        ".ico": 2,
+        ".jpg": 280,
+        ".json": 38,
+        ".local": 1,
+        ".log": 61,
         ".npmrc": 1,
-        ".png": 4,
-        ".svg": 1,
-        ".tsbuildinfo": 2,
+        ".png": 14,
+        ".sh": 1,
+        ".svg": 3,
+        ".tsbuildinfo": 3,
         ".ttf": 1,
-        ".webp": 5,
+        ".webp": 425,
         ".woff2": 1,
-        ".yaml": 2,
-        ".yml": 2
+        ".yaml": 4,
+        ".yml": 95
       },
-      "skipped_with_cause": 13,
+      "skipped_with_cause": 16,
       "top_skip_causes": [
         {
           "cause": "claimed by manifests, no facts emitted",
@@ -129,7 +133,7 @@
         },
         {
           "cause": "claimed by typescript, no facts emitted",
-          "count": 1
+          "count": 4
         }
       ]
     }

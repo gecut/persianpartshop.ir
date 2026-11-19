@@ -1,17 +1,113 @@
 {
   "roots": {
     "main": 1,
-    "registered": 15,
-    "route": 5
+    "registered": 26,
+    "route": 10
   },
-  "leaves": 18,
-  "total": 3,
-  "described": 3,
+  "leaves": 30,
+  "total": 7,
+  "described": 7,
   "flows": [
+    {
+      "id": "67e9bac39b888d2507dc1e7633828360",
+      "name": "apps/web/src/lib.api.onCall",
+      "rank": 1,
+      "repo": "persianpartshop.ir",
+      "mechanism": "registered",
+      "entry": {
+        "name": "apps/web/src/lib.api.onCall",
+        "id": "a87d1de8655f657135f57ebc37c31462",
+        "file": "apps/web/src/lib/api-client.ts",
+        "line": 23
+      },
+      "summary": "The framework invokes lib.api.onCall. It calls lib.writeActivity.begin, lib.writeActivity.clearUncertainOrder and lib.writeActivity.markUncertainOrder.",
+      "metrics": {
+        "reach": 8,
+        "modules": 1,
+        "max_depth": 3,
+        "unresolved_calls": 6,
+        "external_calls": 0
+      },
+      "modules": [
+        {
+          "name": "apps/web/src/lib",
+          "symbols": 8
+        }
+      ],
+      "stages": [
+        {
+          "order": 1,
+          "depth": 1,
+          "name": "apps/web/src/lib.writeActivity.begin",
+          "id": "42868723f709601576163ad032662ee1",
+          "file": "apps/web/src/lib/write-activity.ts",
+          "line": 45,
+          "reach": 3
+        },
+        {
+          "order": 2,
+          "depth": 2,
+          "parent": "42868723f709601576163ad032662ee1",
+          "name": "apps/web/src/lib.announce",
+          "id": "8557c90fc18e1de68b9947003a91dc07",
+          "file": "apps/web/src/lib/write-activity.ts",
+          "line": 31,
+          "reach": 2
+        },
+        {
+          "order": 3,
+          "depth": 3,
+          "parent": "8557c90fc18e1de68b9947003a91dc07",
+          "name": "apps/web/src/lib.refresh",
+          "id": "c23a84d6739a3a7b37345076b89c0d57",
+          "file": "apps/web/src/lib/write-activity.ts",
+          "line": 19,
+          "reach": 1
+        },
+        {
+          "order": 4,
+          "depth": 1,
+          "name": "apps/web/src/lib.writeActivity.clearUncertainOrder",
+          "id": "51d609facea4eb28b6fdbb30d34e40d1",
+          "file": "apps/web/src/lib/write-activity.ts",
+          "line": 48,
+          "reach": 3
+        },
+        {
+          "order": 5,
+          "depth": 2,
+          "parent": "51d609facea4eb28b6fdbb30d34e40d1",
+          "name": "apps/web/src/lib.uncertaintyKey",
+          "id": "67fe5988457bbf60a93c475a639b60d1",
+          "file": "apps/web/src/lib/write-activity.ts",
+          "line": 16,
+          "reach": 2
+        },
+        {
+          "order": 6,
+          "depth": 3,
+          "parent": "67fe5988457bbf60a93c475a639b60d1",
+          "name": "apps/web/src/lib.accountId",
+          "id": "66d54a6bf44b77bff36cf96c86ea8717",
+          "file": "apps/web/src/lib/write-activity.ts",
+          "line": 9,
+          "reach": 1
+        },
+        {
+          "order": 7,
+          "depth": 1,
+          "name": "apps/web/src/lib.writeActivity.markUncertainOrder",
+          "id": "9a4411a962cfd83bc9d1349fe6ea7142",
+          "file": "apps/web/src/lib/write-activity.ts",
+          "line": 46,
+          "reach": 1
+        }
+      ]
+    },
     {
       "id": "ac52e2e9c6fc6a4825b445b539340f8c",
       "name": "ALL /api/rpc",
-      "rank": 1,
+      "rank": 2,
       "repo": "persianpartshop.ir",
       "mechanism": "route",
       "routes": [
@@ -20,21 +116,21 @@
           "method": "ALL",
           "id": "7318fabbb64328752b152597a300876a",
           "file": "apps/api/src/server.ts",
-          "line": 189
+          "line": 217
         },
         {
           "name": "/api/rpc/*",
           "method": "ALL",
           "id": "0728e3d827bc69fe01c8490aeefbc0f4",
           "file": "apps/api/src/server.ts",
-          "line": 190
+          "line": 218
         }
       ],
       "entry": {
         "name": "apps/api/src.rpcHandler",
         "id": "a29f7e4c2a24b544b635df98ac637f12",
         "file": "apps/api/src/server.ts",
-        "line": 176,
+        "line": 201,
         "doc": "3. oRPC Server Integration (/api/rpc/*)"
       },
       "summary": "HTTP ALL /api/rpc enters at src.rpcHandler (\"3. oRPC Server Integration (/api/rpc/*)\"). It hands off to rpc.createContext, which calls lib.extractBearerToken, lib.isTokenRevoked and lib.verifyToken. Most of its 5 symbols sit in apps/api/src/lib (3 symbols), apps/api/src (1) and apps/api/src/rpc (1).",
@@ -66,7 +162,7 @@
           "name": "apps/api/src/rpc.createContext",
           "id": "0ee29b1c4bbd95a280f71984e0408cd4",
           "file": "apps/api/src/rpc/context.ts",
-          "line": 18,
+          "line": 23,
           "reach": 4
         },
         {
@@ -105,18 +201,172 @@
       ]
     },
     {
-      "id": "b2ba91f5be7584ef4b73c85a8f650feb",
-      "name": "apps/web/src/routes.Route.beforeLoad",
-      "rank": 2,
+      "id": "bb576b645aef9d6510f7104ca09b95c4",
+      "name": "GET /p/[identifier]",
+      "rank": 3,
       "repo": "persianpartshop.ir",
-      "mechanism": "registered",
+      "mechanism": "route",
+      "routes": [
+        {
+          "name": "/p/[identifier]",
+          "method": "GET",
+          "id": "299a9f7baca18ff7fdc5645d14e97cb0",
+          "file": "apps/catalog/src/app/p/[identifier]/page.tsx",
+          "line": 1
+        }
+      ],
       "entry": {
-        "name": "apps/web/src/routes.Route.beforeLoad",
-        "id": "66cd05f0c0cabe930f7a26c518241a29",
-        "file": "apps/web/src/routes/__root.tsx",
-        "line": 11
+        "name": "apps/catalog/src/app/p/[identifier].ProductPage",
+        "id": "99d1cbb4d5343e0f3772a67ef7ff6458",
+        "file": "apps/catalog/src/app/p/[identifier]/page.tsx",
+        "line": 13
       },
-      "summary": "The framework invokes routes.Route.beforeLoad. It hands off to auth.authStore.getState. Most of its 2 symbols sit in apps/web/src/features/auth (1 symbol) and apps/web/src/routes (1).",
+      "summary": "HTTP GET /p/[identifier] enters at [identifier].ProductPage. It hands off to product.loadProduct, which calls lib.getProduct and lib.isCatalogNotFound. Most of its 4 symbols sit in apps/catalog/src/lib (2 symbols), apps/catalog/src/app/p/[identifier] (1) and apps/catalog/src/modules/product (1).",
+      "metrics": {
+        "reach": 4,
+        "modules": 3,
+        "max_depth": 2,
+        "unresolved_calls": 2,
+        "external_calls": 1
+      },
+      "modules": [
+        {
+          "name": "apps/catalog/src/lib",
+          "symbols": 2
+        },
+        {
+          "name": "apps/catalog/src/app/p/[identifier]",
+          "symbols": 1
+        },
+        {
+          "name": "apps/catalog/src/modules/product",
+          "symbols": 1
+        }
+      ],
+      "stages": [
+        {
+          "order": 1,
+          "depth": 1,
+          "name": "apps/catalog/src/modules/product.loadProduct",
+          "id": "5e84e6b2cd86d67cb1d3866cfc691fb1",
+          "file": "apps/catalog/src/modules/product/product-server.ts",
+          "line": 7,
+          "reach": 3
+        },
+        {
+          "order": 2,
+          "depth": 2,
+          "parent": "5e84e6b2cd86d67cb1d3866cfc691fb1",
+          "name": "apps/catalog/src/lib.getProduct",
+          "id": "22ec12b0aace9375fe20e8f5786bb5f3",
+          "file": "apps/catalog/src/lib/catalog-server.ts",
+          "line": 14,
+          "reach": 1
+        },
+        {
+          "order": 3,
+          "depth": 2,
+          "parent": "5e84e6b2cd86d67cb1d3866cfc691fb1",
+          "name": "apps/catalog/src/lib.isCatalogNotFound",
+          "id": "35d3feea1f9226f5f2afe883591263b5",
+          "file": "apps/catalog/src/lib/catalog-cms.ts",
+          "line": 60,
+          "reach": 1
+        }
+      ]
+    },
+    {
+      "id": "f3c349f707710ebac83eae5ec0541b93",
+      "name": "POST /api/catalog/browse",
+      "rank": 4,
+      "repo": "persianpartshop.ir",
+      "mechanism": "route",
+      "routes": [
+        {
+          "name": "/api/catalog/browse",
+          "method": "POST",
+          "id": "3111394d715ca70cb9e51fc7e46f3b76",
+          "file": "apps/catalog/src/app/api/catalog/browse/route.ts",
+          "line": 7
+        }
+      ],
+      "entry": {
+        "name": "apps/catalog/src/app/api/catalog/browse.POST",
+        "id": "e7b5b2ef0725dc6e962b88548db1eaba",
+        "file": "apps/catalog/src/app/api/catalog/browse/route.ts",
+        "line": 7
+      },
+      "summary": "HTTP POST /api/catalog/browse enters at browse.POST. It calls lib.readCatalogCMS and lib.isCatalogNotFound. Most of its 4 symbols sit in apps/catalog/src/lib (3 symbols) and apps/catalog/src/app/api/catalog/browse (1).",
+      "metrics": {
+        "reach": 4,
+        "modules": 2,
+        "max_depth": 2,
+        "unresolved_calls": 1,
+        "external_calls": 0
+      },
+      "modules": [
+        {
+          "name": "apps/catalog/src/lib",
+          "symbols": 3
+        },
+        {
+          "name": "apps/catalog/src/app/api/catalog/browse",
+          "symbols": 1
+        }
+      ],
+      "stages": [
+        {
+          "order": 1,
+          "depth": 1,
+          "name": "apps/catalog/src/lib.readCatalogCMS",
+          "id": "78c9fd2b88149cc2bc2acfe1008a5d9d",
+          "file": "apps/catalog/src/lib/catalog-cms.ts",
+          "line": 37,
+          "reach": 2
+        },
+        {
+          "order": 2,
+          "depth": 2,
+          "parent": "78c9fd2b88149cc2bc2acfe1008a5d9d",
+          "name": "apps/catalog/src/lib.createCatalogCMSClient",
+          "id": "b03d8fe30d9a57533b41e6794f8f6cce",
+          "file": "apps/catalog/src/lib/catalog-cms.ts",
+          "line": 10,
+          "reach": 1
+        },
+        {
+          "order": 3,
+          "depth": 1,
+          "name": "apps/catalog/src/lib.isCatalogNotFound",
+          "id": "35d3feea1f9226f5f2afe883591263b5",
+          "file": "apps/catalog/src/lib/catalog-cms.ts",
+          "line": 60,
+          "reach": 1
+        }
+      ]
+    },
+    {
+      "id": "cb0ef16bf0bc7d46361257d152fbf5bd",
+      "name": "GET /[[...entry]]",
+      "rank": 5,
+      "repo": "persianpartshop.ir",
+      "mechanism": "route",
+      "routes": [
+        {
+          "name": "/[[...entry]]",
+          "method": "GET",
+          "id": "abfeebb54596122bdf7b71bd3f87644e",
+          "file": "apps/catalog/src/app/[[...entry]]/page.tsx",
+          "line": 1
+        }
+      ],
+      "entry": {
+        "name": "apps/catalog/src/app/[[...entry]].Home",
+        "id": "a319547ce003fa3be238e641007890fa",
+        "file": "apps/catalog/src/app/[[...entry]]/page.tsx",
+        "line": 12
+      },
+      "summary": "HTTP GET /[[...entry]] enters at [[...entry]].Home. It hands off to lib.getCatalog. Most of its 2 symbols sit in apps/catalog/src/app/[[...entry]] (1 symbol) and apps/catalog/src/lib (1).",
       "metrics": {
         "reach": 2,
         "modules": 2,
@@ -126,11 +376,11 @@
       },
       "modules": [
         {
-          "name": "apps/web/src/features/auth",
+          "name": "apps/catalog/src/app/[[...entry]]",
           "symbols": 1
         },
         {
-          "name": "apps/web/src/routes",
+          "name": "apps/catalog/src/lib",
           "symbols": 1
         }
       ],
@@ -138,10 +388,48 @@
         {
           "order": 1,
           "depth": 1,
-          "name": "apps/web/src/features/auth.authStore.getState",
-          "id": "95bba5d59c8ea3624d6a840107d9ff49",
-          "file": "apps/web/src/features/auth/auth-store.ts",
-          "line": 57,
+          "name": "apps/catalog/src/lib.getCatalog",
+          "id": "6262640125c734124d8fe90c858043a1",
+          "file": "apps/catalog/src/lib/catalog-server.ts",
+          "line": 11,
+          "reach": 1
+        }
+      ]
+    },
+    {
+      "id": "cf3e8782fb9e679eb9371bc0e1441db4",
+      "name": "apps/web/src/lib.api.onAuthError",
+      "rank": 6,
+      "repo": "persianpartshop.ir",
+      "mechanism": "registered",
+      "entry": {
+        "name": "apps/web/src/lib.api.onAuthError",
+        "id": "55a27f6e2f98cb157f1f32bcb9d6b934",
+        "file": "apps/web/src/lib/api-client.ts",
+        "line": 65
+      },
+      "summary": "The framework invokes lib.api.onAuthError. It hands off to lib.onAuthErrorCallback.",
+      "metrics": {
+        "reach": 2,
+        "modules": 1,
+        "max_depth": 1,
+        "unresolved_calls": 0,
+        "external_calls": 0
+      },
+      "modules": [
+        {
+          "name": "apps/web/src/lib",
+          "symbols": 2
+        }
+      ],
+      "stages": [
+        {
+          "order": 1,
+          "depth": 1,
+          "name": "apps/web/src/lib.onAuthErrorCallback",
+          "id": "289aabee4437968947738b4379d8d56f",
+          "file": "apps/web/src/lib/api-client.ts",
+          "line": 12,
           "reach": 1
         }
       ]
@@ -149,7 +437,7 @@
     {
       "id": "b551538d43b284b280c5290a9ffebb09",
       "name": ".agents/skills/ui-ux-pro-max/scripts/validate_data.main",
-      "rank": 3,
+      "rank": 7,
       "repo": "persianpartshop.ir",
       "mechanism": "main",
       "side": true,
