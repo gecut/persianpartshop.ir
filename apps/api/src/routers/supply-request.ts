@@ -5,7 +5,7 @@ import { ORPCError } from '@orpc/server'
 import { calculateSupplyEstimate, getSalesFactor } from '@persianpart/cms/inventory'
 import type { SupplyRequest as SupplyDocument } from '@persianpart/cms/types'
 import { customerOnly } from '../rpc/base'
-import { sdk } from '../payload'
+import { sdk } from '../lib/payload'
 import { getUserPermissions } from './router.helpers'
 
 const hash = (value: string) => createHash('sha256').update(value).digest('hex')

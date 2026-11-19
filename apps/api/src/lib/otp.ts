@@ -1,5 +1,5 @@
 import crypto from 'node:crypto'
-import { sdk } from '../payload'
+import { sdk } from './payload'
 
 export const OTP_EXPIRY_SECONDS = 120 // 2 minutes
 export const OTP_COOLDOWN_SECONDS = 60 // 1 minute between requests

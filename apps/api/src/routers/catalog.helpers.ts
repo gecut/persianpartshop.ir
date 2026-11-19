@@ -1,6 +1,6 @@
 import { getSalesFactor } from '@persianpart/cms/inventory'
 import { ORPCError } from '@orpc/server'
-import { sdk } from '../payload'
+import { sdk } from '../lib/payload'
 
 export interface CartonCalcInput {
   productId?: string | number

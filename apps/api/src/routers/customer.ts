@@ -1,4 +1,4 @@
-import { sdk } from '../payload'
+import { sdk } from '../lib/payload'
 import { base, authed } from '../rpc/base'
 import { fetchTaxonomy, getUserProfile, formatCustomerProfile } from './router.helpers'
 

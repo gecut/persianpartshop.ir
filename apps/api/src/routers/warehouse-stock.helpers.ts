@@ -1,6 +1,6 @@
 import { getSalesFactor } from '@persianpart/cms/inventory'
 import type { Product } from '@persianpart/cms/types'
-import { sdk } from '../payload'
+import { sdk } from '../lib/payload'
 
 // Catalog hints use the largest single active warehouse balance, never a sum.
 export async function attachWarehouseStock(products: Product[]) {

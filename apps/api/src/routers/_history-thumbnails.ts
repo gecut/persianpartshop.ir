@@ -1,4 +1,4 @@
-import { sdk } from '../payload'
+import { sdk } from '../lib/payload'
 
 const localBase = 'https://offline.invalid/api/media/file/'
 

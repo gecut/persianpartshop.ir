@@ -1,7 +1,7 @@
 import type { Context } from '../rpc/context'
 import { attachWarehouseStock } from './warehouse-stock.helpers'
 import { catalogSync, catalogScope, catalogRecord } from './catalog-sync'
-import { sdk } from '../payload'
+import { sdk } from '../lib/payload'
 import { base, customerOnly, adminOnly, authed } from '../rpc/base'
 import { ORPCError } from '@orpc/server'
 import type { Product, Category, Brand, Tag, Dimension } from '@persianpart/cms/types'

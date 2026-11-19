@@ -2,7 +2,7 @@ import { historyThumbnails } from './_history-thumbnails'
 import { ORPCError } from '@orpc/server'
 import type { ActivityFeedOutput } from '@persianpart/contract'
 import { customerOnly } from '../rpc/base'
-import { sdk } from '../payload'
+import { sdk } from '../lib/payload'
 
 const list = customerOnly.activityFeed.list.handler(async ({ input, context }) => {
   const userId = Number(context.user.id)

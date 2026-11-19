@@ -1,7 +1,7 @@
 import { attachWarehouseStock } from './warehouse-stock.helpers'
 import { call } from '@orpc/server'
 import { submit } from './order'
-import { sdk } from '../payload'
+import { sdk } from '../lib/payload'
 import { base, authed } from '../rpc/base'
 import { calculateCartonMetrics } from './catalog.helpers'
 import {

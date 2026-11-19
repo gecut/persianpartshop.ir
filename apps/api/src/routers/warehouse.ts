@@ -1,6 +1,6 @@
 import { getSalesFactor } from '@persianpart/cms/inventory'
 import { authed } from '../rpc/base'
-import { sdk } from '../payload'
+import { sdk } from '../lib/payload'
 import { getUserPermissions } from './router.helpers'
 import type { WarehouseStock } from '@persianpart/cms/types'
 

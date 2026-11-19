@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { ORPCError } from '@orpc/server';
-import { sdk } from "../payload";
+import { sdk } from "../lib/payload";
 import { base, adminOnly } from "../rpc/base";
 import { enrichPlanWithUserName, sanitizePlanProducts } from "./router.helpers";
 

@@ -1,5 +1,5 @@
 import { ORPCError } from '@orpc/server'
-import { sdk } from '../payload'
+import { sdk } from '../lib/payload'
 import { normalizeDigits } from '../lib/otp'
 import { extractBearerToken, revokeToken } from '../lib/jwt'
 import type { Context } from '../rpc/context'

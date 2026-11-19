@@ -1,5 +1,5 @@
 import { getSalesFactor } from '@persianpart/cms/inventory'
-import { sdk } from '../payload'
+import { sdk } from '../lib/payload'
 import type { Order, Product } from '@persianpart/cms/types'
 import type { UserContext } from '../rpc/context'
 import { findOrderByIdOrNumber } from './router.helpers'
