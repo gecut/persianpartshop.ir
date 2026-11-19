@@ -1,82 +1,103 @@
 import type { Payload } from 'payload'
+import { sql, type PostgresAdapter } from '@payloadcms/db-postgres'
 import { sendKavenegarPattern } from './kavenegar-client'
 
-export async function processSmsQueueTick(payload: Payload): Promise<number> {
-  const now = new Date()
-  const pendingJobs = await payload.find({
+const BATCH_SIZE = 10
+const SEND_CONCURRENCY = 3
+const MAX_ATTEMPTS = 2
+const RETRY_DELAY_MS = 30_000
+// Far above the provider timeout: a job still claimed after this belongs to a dead process.
+const STALE_CLAIM_SECONDS = 120
+
+export interface ClaimedSmsJob {
+  id: number
+  receptor: string
+  template: string
+  tokens: unknown
+  attempts: number
+}
+
+interface SmsQueueDeps {
+  claim: (payload: Payload, limit: number) => Promise<ClaimedSmsJob[]>
+  send: typeof sendKavenegarPattern
+}
+
+/**
+ * Atomically moves due jobs to `sending`. SKIP LOCKED lets concurrent ticks or replicas
+ * claim disjoint jobs; stale claims are re-taken, so delivery is at-least-once.
+ */
+export async function claimSmsJobs(payload: Payload, limit: number): Promise<ClaimedSmsJob[]> {
+  if (payload.db.name !== 'postgres') throw new Error('SMS queue requires PostgreSQL.')
+  // Payload's global adapter type is augmented by several adapters; the name check selects PostgreSQL.
+  const db = (payload.db as unknown as PostgresAdapter).drizzle
+  const result = await db.execute(sql`
+    UPDATE sms_queue SET status = 'sending', claimed_at = NOW(), updated_at = NOW()
+    WHERE id IN (
+      SELECT id FROM sms_queue
+      WHERE status = 'pending'
+        OR (status = 'retry_scheduled' AND next_retry_at <= NOW())
+        OR (status = 'sending' AND claimed_at < NOW() - make_interval(secs => ${STALE_CLAIM_SECONDS}))
+      ORDER BY created_at
+      LIMIT ${limit}
+      FOR UPDATE SKIP LOCKED
+    )
+    RETURNING id, receptor, template, tokens, attempts
+  `)
+  return result.rows.map(row => ({
+    id: Number(row.id),
+    receptor: String(row.receptor),
+    template: String(row.template),
+    tokens: row.tokens,
+    attempts: Number(row.attempts) || 0,
+  }))
+}
+
+async function runLimited<T>(items: readonly T[], limit: number, run: (item: T) => Promise<void>): Promise<void> {
+  let next = 0
+  const lane = async () => {
+    while (next < items.length) await run(items[next++]!)
+  }
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, lane))
+}
+
+const parseTokens = (tokens: unknown): Record<string, string> =>
+  typeof tokens === 'string' ? JSON.parse(tokens) : ((tokens as Record<string, string> | null) ?? {})
+
+async function deliver(payload: Payload, job: ClaimedSmsJob, send: SmsQueueDeps['send']): Promise<void> {
+  const attempts = job.attempts + 1
+  let failure: string | null = null
+  try {
+    await send({ template: job.template, receptor: job.receptor, tokens: parseTokens(job.tokens) } as Parameters<typeof send>[0])
+  } catch (err: any) {
+    failure = err?.message || String(err)
+  }
+  // Only a provider failure schedules a retry; a failed status write propagates to the caller.
+  await payload.update({
     collection: 'sms-queue',
-    where: {
-      or: [
-        { status: { equals: 'pending' } },
-        {
-          and: [
-            { status: { equals: 'retry_scheduled' } },
-            { nextRetryAt: { less_than_equal: now.toISOString() } },
-          ],
-        },
-      ],
-    },
-    sort: 'createdAt',
-    limit: 10,
-    depth: 0,
+    id: job.id,
+    data: failure == null
+      ? { status: 'sent', attempts, sentAt: new Date().toISOString(), lastError: null }
+      : attempts < MAX_ATTEMPTS
+        ? { status: 'retry_scheduled', attempts, nextRetryAt: new Date(Date.now() + RETRY_DELAY_MS).toISOString(), lastError: failure }
+        : { status: 'failed', attempts, lastError: failure },
     overrideAccess: true,
   })
+}
 
-  let processedCount = 0
-
-  for (const job of pendingJobs.docs as any[]) {
-    processedCount++
-    const tokens = typeof job.tokens === 'string' ? JSON.parse(job.tokens) : (job.tokens || {})
+export async function processSmsQueueTick(
+  payload: Payload,
+  deps: SmsQueueDeps = { claim: claimSmsJobs, send: sendKavenegarPattern },
+): Promise<number> {
+  const jobs = await deps.claim(payload, BATCH_SIZE)
+  await runLimited(jobs, SEND_CONCURRENCY, async job => {
     try {
-      await sendKavenegarPattern({
-        template: job.template,
-        receptor: job.receptor,
-        tokens,
-      })
-
-      const finalAttempts = (job.attempts || 0) + 1
-      await payload.update({
-        collection: 'sms-queue',
-        id: job.id,
-        data: {
-          status: 'sent',
-          attempts: finalAttempts,
-          sentAt: new Date().toISOString(),
-          lastError: null,
-        },
-        overrideAccess: true,
-      })
-    } catch (err: any) {
-      const attempts = (job.attempts || 0) + 1
-      if (attempts < 2) {
-        const nextRetryAt = new Date(Date.now() + 30_000).toISOString()
-        await payload.update({
-          collection: 'sms-queue',
-          id: job.id,
-          data: {
-            status: 'retry_scheduled',
-            attempts,
-            nextRetryAt,
-            lastError: err?.message || String(err),
-          },
-          overrideAccess: true,
-        })
-      } else {
-        await payload.update({
-          collection: 'sms-queue',
-          id: job.id,
-          data: {
-            status: 'failed',
-            attempts,
-            lastError: err?.message || String(err),
-          },
-          overrideAccess: true,
-        })
-      }
+      await deliver(payload, job, deps.send)
+    } catch (err) {
+      // A failed status write leaves the claim to expire and be retried.
+      payload.logger.error({ msg: '[SmsQueueWorker] Job status update failed', jobId: job.id, err })
     }
-  }
-
-  return processedCount
+  })
+  return jobs.length
 }
 
 export function startSmsQueueWorker(payload: Payload, intervalMs = 10_000): () => void {

@@ -904,10 +904,11 @@ export interface SmsQueue {
     | number
     | boolean
     | null;
-  status: 'pending' | 'retry_scheduled' | 'sent' | 'failed';
+  status: 'pending' | 'retry_scheduled' | 'sending' | 'sent' | 'failed';
   attempts: number;
   lastError?: string | null;
   nextRetryAt?: string | null;
+  claimedAt?: string | null;
   sentAt?: string | null;
   updatedAt: string;
   createdAt: string;
@@ -1701,6 +1702,7 @@ export interface SmsQueueSelect<T extends boolean = true> {
   attempts?: T;
   lastError?: T;
   nextRetryAt?: T;
+  claimedAt?: T;
   sentAt?: T;
   updatedAt?: T;
   createdAt?: T;

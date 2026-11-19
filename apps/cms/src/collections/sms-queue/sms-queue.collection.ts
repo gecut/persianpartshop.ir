@@ -81,6 +81,7 @@ export const SmsQueue: CollectionConfig = {
       options: [
         { label: 'در انتظار ارسال', value: 'pending' },
         { label: 'برنامه‌ریزی تلاش مجدد', value: 'retry_scheduled' },
+        { label: 'در حال ارسال', value: 'sending' },
         { label: 'ارسال شده', value: 'sent' },
         { label: 'ناموفق', value: 'failed' },
       ],
@@ -104,6 +105,12 @@ export const SmsQueue: CollectionConfig = {
       type: 'date',
       index: true,
       label: 'زمان تلاش مجدد',
+      admin: { readOnly: true },
+    },
+    {
+      name: 'claimedAt',
+      type: 'date',
+      label: 'زمان شروع ارسال',
       admin: { readOnly: true },
     },
     {
