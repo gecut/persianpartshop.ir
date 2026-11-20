@@ -1,5 +1,5 @@
 import { Modal } from '@/components/ui/modal'
-import { SupplyRequestForm } from './supply-request-form'
+import { SupplyRequestForm } from './supply-request-form/supply-request-form'
 
 interface SupplyRequestModalProps {
   productId: number

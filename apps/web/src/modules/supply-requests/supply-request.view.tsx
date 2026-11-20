@@ -1,5 +1,5 @@
 import { Link, useNavigate, getRouteApi } from '@tanstack/react-router'
-import { SupplyRequestForm } from './supply-request-form'
+import { SupplyRequestForm } from './supply-request-form/supply-request-form'
 import { ArrowRightIcon } from '@/components/ui/icons'
 
 
