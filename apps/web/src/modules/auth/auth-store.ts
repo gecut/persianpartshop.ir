@@ -1,7 +1,6 @@
 import { clearAccountDrafts } from '@/lib/drafts'
 import { writeActivity } from '@/lib/write-activity'
 import { isSessionError } from '@/lib/session-error'
-import { selectionStore } from '@/modules/products/selection-store'
 import { useState, useEffect } from 'react'
 import { api, setAuthErrorHandler } from '@/lib/api-client'
 import { clearTanStackCache, queryClient } from '@/lib/query-client'
@@ -140,6 +139,17 @@ function getInitialState(): AuthState {
 let currentState: AuthState = getInitialState()
 const listeners = new Set<(state: AuthState) => void>()
 
+// Stores owned by other modules reset themselves here, so auth never imports them.
+type SessionEndListener = (event: { discardDrafts: boolean }) => void
+const sessionEndListeners = new Set<SessionEndListener>()
+export function onSessionEnd(listener: SessionEndListener): () => void {
+  sessionEndListeners.add(listener)
+  return () => { sessionEndListeners.delete(listener) }
+}
+function endSession(discardDrafts: boolean) {
+  sessionEndListeners.forEach(listener => listener({ discardDrafts }))
+}
+
 function broadcast(nextState: AuthState) {
   currentState = nextState
   if (typeof window !== 'undefined') {
@@ -221,11 +231,12 @@ export const authStore = {
     if (explicit && writeActivity.hasUncertainOrder() && !window.confirm('ممکن است سفارش شما ثبت شده باشد. با خروج، پیش‌نویس حذف می‌شود؛ پیش از ثبت دوباره سفارش‌ها را بررسی کنید. ادامه می‌دهید؟')) return false
     if (explicit && currentState.user) {
       try { localStorage.setItem('persianpart_explicit_logout', JSON.stringify({ owner: String(currentState.user.id), at: Date.now() })) } catch { /* Same-tab deletion remains available. */ }
-      selectionStore.clearSelection()
+      endSession(true)
       clearAccountDrafts(String(currentState.user.id))
       writeActivity.clearUncertainOrder()
+    } else {
+      endSession(false)
     }
-    selectionStore.setOwner('')
     try {
       if (navigator.onLine) void api.auth.logout().catch(() => {})
     } catch {
@@ -292,7 +303,7 @@ window.addEventListener('storage', event => {
     currentState.user?.id !== next.user?.id || currentState.isAuthenticated !== next.isAuthenticated
   if (changedSession) {
     clearTanStackCache()
-    selectionStore.setOwner('')
+    endSession(false)
   }
   currentState = next
   listeners.forEach(listener => listener(currentState))

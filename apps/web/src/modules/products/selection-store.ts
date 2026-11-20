@@ -3,6 +3,7 @@ import { useSyncExternalStore } from 'react'
 import type { WarehouseSummary } from '@persianpart/contract'
 import { api } from '@/lib/api-client'
 import { toast } from '@/components/feedback/toast'
+import { onSessionEnd } from '@/modules/auth/auth-store'
 
 export type DraftWarehouse = WarehouseSummary
 interface QuoteItem { productType: 'tile' | 'other'; unit: string; productId: number; requestedArea: number; cartonCount: number; deliverableArea: number; unitPrice: number; totalPrice: number; sqmPerCarton: number }
@@ -195,6 +196,10 @@ export const selectionStore = {
   },
   clearSelection: clear,
 }
+onSessionEnd(({ discardDrafts }) => {
+  if (discardDrafts) selectionStore.clearSelection()
+  selectionStore.setOwner('')
+})
 if (typeof window !== 'undefined') window.addEventListener('storage', event => {
   if (owner && event.key === key()) {
     invalidateValidation()
