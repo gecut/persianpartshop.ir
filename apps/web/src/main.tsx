@@ -7,6 +7,8 @@ import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { routeTree } from '@/routeTree.gen'
 import { authStore } from '@/modules/auth/auth-store'
 import { queryClient, setQueryAuthErrorHandler } from '@/lib/query-client'
+import { setDraftFailureReporter } from '@/lib/drafts'
+import { toast } from '@/components/feedback/toast'
 import '@/styles/globals.css'
 
 // Globally disable text selection except in inputs and editable areas
@@ -27,6 +29,7 @@ if (typeof window !== 'undefined') {
 }
 
 setQueryAuthErrorHandler(error => { if (isSessionError(error)) authStore.logout() })
+setDraftFailureReporter(() => toast.warning('پیش‌نویس ذخیره نشد', 'فضای ذخیره‌سازی در دسترس نیست؛ پیش از بستن برنامه دوباره تلاش کنید.'))
 
 const router = createRouter({
   routeTree,

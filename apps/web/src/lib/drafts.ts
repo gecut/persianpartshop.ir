@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState, type SetStateAction } from 'react'
-import { toast } from '@/components/feedback/toast'
 
 const prefix = 'persianpart_text_v1:'
+// lib stays UI-free; the app entry registers how a failed save is shown.
+let reportDraftFailure = () => {}
+export function setDraftFailureReporter(report: () => void) { reportDraftFailure = report }
 export function saveDraft(key: string, value: unknown) {
   try { localStorage.setItem(key, JSON.stringify(value)); return true }
-  catch { toast.warning('پیش‌نویس ذخیره نشد', 'فضای ذخیره‌سازی در دسترس نیست؛ پیش از بستن برنامه دوباره تلاش کنید.'); return false }
+  catch { reportDraftFailure(); return false }
 }
 export function clearAccountDrafts(owner: string) {
   window.dispatchEvent(new CustomEvent('persianpart:discard-drafts', { detail: owner }))
