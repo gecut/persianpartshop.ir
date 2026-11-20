@@ -114,6 +114,31 @@ None of these were measured; loop nesting only multiplies when each level walks 
 - **Duplicated helpers inside one app**: digit normalization in `apps/api` (`normalizeDigits`) and `apps/cms/src/modules/sms/kavenegar-client.ts`; `buildReorderDraft` in both `orders/activity-feed` and `orders/order-detail`; two stock CSV parsers. Catalog ↔ Web formatting duplication is intentional (see [12 — Public Catalog](12-public-catalog.md)) and is not a finding.
 - **Outbound HTTP not visible from this repo's routes**: `apps/cms/src/globals/components` (4 endpoints), `apps/api/src/routers` (3: `/activity-feed`, `/catalog-browse`, `/plan-browse`), `apps/cms/src/collections/warehouse-stock/components` (2).
 
+## 6. Disposition (2026-11-20)
+
+Re-checked against source before acting. A Tarjan SCC pass over each app's resolved import graph found **no runtime file-level import cycle** in web, cms or api. C1–C5 are folder/module coupling, not load-order hazards.
+
+| Finding | Disposition | Evidence |
+| --- | --- | --- |
+| Duplicate `buildReorderDraft` | **Fixed (behaviour bug).** The feed copy dropped `productType`/`unit` for items missing from the catalog. Both views now share `orders/build-reorder-draft.ts`. | `63ec2d4`, unit test |
+| C1 web | **Fixed for non-view code.** Media helpers and document types moved to `lib/`; `auth` exposes `onSessionEnd`; catalog core split into `modules/catalog`. Edges toward features remain only from `*.view.tsx` composition roots (e.g. `orders/*.view → checkout`). | `2bc126d`, `4b208d2`, `742bf2a` |
+| C2 cms | **Fixed.** `getOrderTransaction` → `lib/transaction.ts` `getTransactionDb`. | `8c1195d` |
+| C3 cms | **Accepted.** Type-only through `payload-types`. | — |
+| C4 api | **Fixed.** Adapter moved to `src/lib/payload.ts`; unused `payloadAuth` removed. | `8482b43` |
+| C5 plans | **Accepted.** `plans.view → plan-card` plus type-only `plan-types` imports. | — |
+| `processSmsQueueTick` | **Fixed.** Atomic `FOR UPDATE SKIP LOCKED` claim (`sending`, `claimedAt`, 2-minute stale reclaim, at-least-once), concurrency 3. A failed status write no longer schedules a provider retry. | `03a0978`, unit tests. Migration **not yet run against a database.** |
+| Stock reserve/restore/import, `prepareOrderBeforeValidate` | **Accepted by design.** Per-row statements keep a deterministic lock order (deadlock avoidance) and per-item error detection; bounded by cart/CSV size. | — |
+| `backfill`, `StockImport` fetch loop | **False positive.** One-off script; paginated warehouse list. | — |
+| Nested-loop leads | **Needs profiling.** Not measured; no change without a measurement. | — |
+| `createCatalogCoordinator` | **Reduced.** Pure snapshot transforms extracted to `_catalog-snapshot.ts` with tests. | `348fba3` |
+| `SupplyRequestForm` | **Reduced.** State moved to `supply-request-form/_use-supply-request-form.ts`. | `d1c376c` |
+| `Counter`, `CodeSlots`, `SlideCommit`, `runSeed`, `syncSlugAndDimensions`, offline download functions | **Accepted.** Self-contained UI primitives, dev seed, tested hook; offline functions left until covered by tests. | — |
+| Verified dead code | **Removed**, plus `canUpdateOperationalInventory` (inventory fields hard-deny writes). | `1fa4473`, `6dc5166`, `e11ba04` |
+| `sendAfterCommit` | **Kept, open.** Unused, but it shares `lib/committed-sms.ts` with the live PostgreSQL commit-failure patch; removing the notification path would also drop that file's only test. | — |
+| Layer violations | **Fixed.** `lib/drafts.ts` uses `setDraftFailureReporter`; api lib no longer imports root. | `9d5b857`, `8482b43` |
+| `normalizeDigits` api/cms, `/health`, outbound HTTP | **Accepted / false positive.** Separate services; no shared runtime package. | — |
+| Regression guard | **Added.** `pnpm check:deps` (dependency-cruiser) rejects runtime cycles, layer and private-file violations. | `871863d` |
+
 ## Reproduce
 
 ```bash

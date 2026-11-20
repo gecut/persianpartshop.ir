@@ -30,7 +30,7 @@ flowchart TD
     J -->|Success| L[Return server order; clear matching draft]
 ```
 
-Changes to a bound cart are checked against its warehouse. Account switches/removals invalidate stale async work; another tab invalidates stored quotes. Order responses and caches must not expose a previous account after logout. See [selection store](../apps/web/src/features/products/selection-store.ts) and [order store](../apps/web/src/features/orders/order-store.ts).
+Changes to a bound cart are checked against its warehouse. Account switches/removals invalidate stale async work; another tab invalidates stored quotes. Order responses and caches must not expose a previous account after logout. See [selection store](../apps/web/src/modules/catalog/selection-store.ts) and [order store](../apps/web/src/modules/orders/order-store.ts).
 
 ## Persisted order state
 

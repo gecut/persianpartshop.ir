@@ -179,6 +179,9 @@ pnpm --filter @persianpart/web dev --port 5173
 # 4. Linting & Formatting (To be configured: recommended Biome or ESLint v9)
 # Current: Enforced via TypeScript compiler strictness flags in tsconfig.json
 
+# 4b. Architecture guard (import cycles, layers, private files; runs under Bun)
+pnpm check:deps
+
 # 5. Tests (existing, not aspirational)
 pnpm test:unit                                      # isolated unit tests across workspaces
 pnpm --filter @persianpart/cms test:unit              # node:test via tsx
@@ -197,9 +200,10 @@ pnpm --filter @persianpart/catalog test               # node:test via tsx
 - `app/` — application shell (root layout view, header, bottom nav, auth guard, session sync).
 - `modules/<name>/` — feature modules. Pages are `<name>.view.tsx` in the owning module; module-private files start with `_` (never imported from another module); search parsers are `<name>-search.ts`. Views read route params/search through `getRouteApi('<route id>')`, so modules never import `routes/`.
 - One significant component per file. A component with two or more extracted parts gets a folder named after it (`product-bottom-sheet/product-bottom-sheet.tsx` + `_parts`); `_` files hold sub-components, `_use-*.ts` hooks and `_*.ts` pure helpers. State stays in the parent; children take props. Grouped exceptions: icon registries (`components/ui/icons.tsx`, `solar-icons.tsx`).
-- `components/` (pure shared UI) and `lib/` (infra, utils, query keys) must not import from `modules/` or `app/`.
+- `components/` (pure shared UI) and `lib/` (infra, utils, query keys) must not import from `modules/` or `app/`; `lib/` must not import `components/` either (register UI callbacks from `main.tsx`, as with `setDraftFailureReporter`).
 - Imports: `@/…` across directories, relative inside one module. No barrel (`index.ts`) files. Filenames are kebab-case.
-- Known exception: import cycles between `products`, `auth` and `cart` pre-date this structure and are left as-is.
+- Module layers: non-view files may import only earlier layers — `auth` → `pwa` → `account`, `catalog` → `orders` → `cart` → `checkout` → `supply-requests` → `products` → `plans`. `catalog` owns the shared catalog core (selection store, catalog data/coordinator, mapper, types, small product image); `products` owns product pages and UI. `*.view.tsx` files are composition roots and may compose any module. A lower module that must react to a higher one subscribes to it (e.g. `onSessionEnd` in `auth-store`) instead of being imported by it.
+- `pnpm check:deps` enforces these rules and rejects runtime import cycles; type-only imports are exempt.
 
 ---
 
