@@ -2,6 +2,7 @@ import type { InfiniteData, QueryClient } from '@tanstack/react-query'
 import type { CatalogRecord, CatalogBrowseInput, CatalogBrowseOutput } from '@persianpart/contract'
 import { queryKeys } from '@/lib/query-keys'
 import { defaultBrowseKey, firstBrowsePage, isDefaultBrowse } from './catalog-browse'
+import { dropMissing, finishSweep, mergeRecords } from './_catalog-snapshot'
 
 interface CatalogPage { items: CatalogRecord[]; scopeKey: string; nextCursor: string | null }
 interface CatalogResult { items: CatalogRecord[]; scopeKey: string }
@@ -153,13 +154,7 @@ export function createCatalogCoordinator(client: QueryClient, transport: Transpo
       queueMicrotask(() => void pump())
       throw aborted()
     }
-    publish(state => {
-      const byId = { ...state.byId }, versions = { ...state.versions }
-      for (const item of items) if ((versions[String(item.id)] ?? -1) <= read) { byId[String(item.id)] = item; versions[String(item.id)] = read }
-      const scanIndex: Record<string, string> = {}
-      for (const item of Object.values(byId)) if (item.scanHash) scanIndex[item.scanHash] = String(item.id)
-      return { ...state, byId, versions, scanIndex, scopeKey: scopeKey ?? state.scopeKey }
-    })
+    publish(state => mergeRecords(state, items, scopeKey, read))
   }
   async function request<T>(fn: (signal: AbortSignal) => Promise<T>, retry = true): Promise<T> {
     const expected = epoch, controller = new AbortController()
@@ -197,16 +192,8 @@ export function createCatalogCoordinator(client: QueryClient, transport: Transpo
           page.items.forEach(item => seen.add(String(item.id)))
           cursor = page.nextCursor ?? undefined
           if (!page.nextCursor) {
-            publish(state => {
-              const byId = Object.fromEntries(Object.entries(state.byId).filter(([id]) => seen.has(id) || (state.versions[id] ?? 0) > sweepStart && !seen.has(id)))
-              // Only targeted reads newer than the sweep may survive absence.
-              for (const id of Object.keys(byId)) if (!seen.has(id) && !targeted.has(id)) delete byId[id]
-              const scanIndex: Record<string, string> = {}
-              const versions = { ...state.versions }
-              for (const id of Object.keys(state.byId)) if (!byId[id]) versions[id] = Math.max(versions[id] ?? 0, sweepStart)
-              for (const item of Object.values(byId)) if (item.scanHash) scanIndex[item.scanHash] = String(item.id)
-              return { ...state, byId, versions, scanIndex, complete: true, completedAt: Date.now(), restoredAt: undefined }
-            })
+            // Only targeted reads newer than the sweep may survive absence.
+            publish(state => finishSweep(state, seen, targeted, sweepStart, Date.now()))
             clearTimeout(expiryTimer)
             checkpointed = true
             void storage?.save().catch(() => {})
@@ -244,12 +231,7 @@ export function createCatalogCoordinator(client: QueryClient, transport: Transpo
             merge(result.items, result.scopeKey, read)
             result.items.forEach(item => targeted.add(String(item.id)))
             const found = new Set(result.items.map(item => String(item.id)))
-            publish(state => {
-              const byId = { ...state.byId }, versions = { ...state.versions }
-              for (const id of batch) if (!found.has(id) && (state.versions[id] ?? 0) <= read) { delete byId[id]; versions[id] = read }
-              const scanIndex = Object.fromEntries(Object.entries(state.scanIndex).filter(([, id]) => !!byId[id]))
-              return { ...state, byId, versions, scanIndex }
-            })
+            publish(state => dropMissing(state, batch, found, read))
           }
         } finally { foreground--; if (expected === epoch) fresh.forEach(id => pendingIds.delete(id)); if (started && !snapshot().error) void pump() }
       })()
