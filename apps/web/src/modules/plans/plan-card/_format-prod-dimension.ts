@@ -1,5 +1,5 @@
 import { toPersianDigits } from "@/lib/utils/currency";
-import type { Product } from "@/modules/products/product-types";
+import type { Product } from "@/modules/catalog/product-types";
 
 // Plan products come from untyped API documents, so `dimension` may be an object at runtime.
 interface DimensionObject {

@@ -2,8 +2,8 @@
 import type { Dispatch, SetStateAction } from "react"
 import { useState, useEffect, useRef, useCallback, useLayoutEffect } from "react"
 import { useWindowVirtualizer } from "@tanstack/react-virtual"
-import { useProducts } from "@/modules/products/product-store"
-import type { Product } from "@/modules/products/product-types"
+import { useProducts } from "@/modules/catalog/product-store"
+import type { Product } from "@/modules/catalog/product-types"
 import { PRODUCT_PAGE_SIZE } from "./_use-product-pagination"
 
 type ProductsHook = ReturnType<typeof useProducts>;

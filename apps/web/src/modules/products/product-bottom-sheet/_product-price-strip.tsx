@@ -1,5 +1,5 @@
 import { Button } from "@heroui/react"
-import type { Product } from "@/modules/products/product-types"
+import type { Product } from "@/modules/catalog/product-types"
 import { toPersianDigits, formatToman } from "@/lib/utils/currency"
 import { CheckIcon, PlusIcon, TomanIcon } from "@/components/ui/icons"
 

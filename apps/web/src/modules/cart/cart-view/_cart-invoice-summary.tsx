@@ -1,4 +1,4 @@
-import { selectionStore } from '@/modules/products/selection-store'
+import { selectionStore } from '@/modules/catalog/selection-store'
 
 import { Button } from '@heroui/react'
 

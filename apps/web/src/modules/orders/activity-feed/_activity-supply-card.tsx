@@ -1,4 +1,4 @@
-import { ProductSmallImage } from "@/modules/products/product-small-image/product-small-image"
+import { ProductSmallImage } from "@/modules/catalog/product-small-image/product-small-image"
 import { TrackingNumber } from '@/components/ui/tracking-number'
 import React from 'react'
 import { Button } from '@heroui/react'

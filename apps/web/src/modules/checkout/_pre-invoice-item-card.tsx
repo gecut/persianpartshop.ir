@@ -1,9 +1,9 @@
-import { ProductSmallImage } from "@/modules/products/product-small-image/product-small-image"
+import { ProductSmallImage } from "@/modules/catalog/product-small-image/product-small-image"
 import { formatCartons } from '@/lib/utils/unit'
 
-import type { Product } from "@/modules/products/product-types"
+import type { Product } from "@/modules/catalog/product-types"
 import { formatToman, toPersianDigits } from "@/lib/utils/currency"
-import { formatGrade, formatUnit } from "@/modules/products/product-store"
+import { formatGrade, formatUnit } from "@/modules/catalog/product-store"
 
 import { TomanIcon } from "@/components/ui/icons"
 

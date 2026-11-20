@@ -4,7 +4,7 @@ import { useMutation } from '@tanstack/react-query'
 import { api } from '@/lib/api-client'
 import { queryClient } from '@/lib/query-client'
 import { mutationKeys, queryKeys } from '@/lib/query-keys'
-import { catalogCoordinator } from '@/modules/products/catalog-data'
+import { catalogCoordinator } from '@/modules/catalog/catalog-data'
 import { orderStore } from './order-store'
 
 export function useSubmitOrder() {

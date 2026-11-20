@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { toPersianDigits } from "@/lib/utils/currency";
-import type { Product } from "@/modules/products/product-types";
+import type { Product } from "@/modules/catalog/product-types";
 
 interface ProductStockValueProps {
   product: Product;

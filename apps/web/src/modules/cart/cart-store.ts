@@ -1,7 +1,7 @@
 import { summarizeQuantities } from '@/lib/utils/unit'
-import type { Product } from '@/modules/products/product-types'
-import { useCatalogIds } from '@/modules/products/catalog-data'
-import { selectionStore, useProductSelection } from '@/modules/products/selection-store'
+import type { Product } from '@/modules/catalog/product-types'
+import { useCatalogIds } from '@/modules/catalog/catalog-data'
+import { selectionStore, useProductSelection } from '@/modules/catalog/selection-store'
 
 export interface CartItem {
   productType: 'tile' | 'other'; unit: string; productId: string; name: string; slug: string; sku: string; dimension: string; image: string

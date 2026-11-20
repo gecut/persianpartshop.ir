@@ -4,14 +4,14 @@ import { supplyDraftStore } from '@/modules/supply-requests/supply-request-draft
 import { useMemo, useEffect, useState, useRef } from "react";
 import { useNavigate, Link } from "@tanstack/react-router"
 import { Button } from "@heroui/react";
-import { useCatalogIds } from "./catalog-data";
+import { useCatalogIds } from "@/modules/catalog/catalog-data";
 import {
   selectionStore,
   useSelectedIds,
-} from "./selection-store";
+} from "@/modules/catalog/selection-store";
 import { ProductConfigCard } from "./product-config-card";
 import { CartSummary } from "@/modules/checkout/cart-summary";
-import type { Product } from "./product-types"
+import type { Product } from "@/modules/catalog/product-types"
 import { toast } from "@/components/feedback/toast";
 import { ArrowRightIcon, BoxIcon } from "@/components/ui/icons";
 import { useAuth, isProductAllowedForUser } from "@/modules/auth/auth-store";

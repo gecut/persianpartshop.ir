@@ -2,7 +2,7 @@ import { useSubmitOrder } from "@/modules/orders/use-submit-order"
 import { customerErrorMessage } from '@/lib/utils/error'
 import { useOnline } from '@/lib/use-online'
 import { summarizeQuantities } from '@/lib/utils/unit'
-import { useProductSelection } from '@/modules/products/selection-store'
+import { useProductSelection } from '@/modules/catalog/selection-store'
 import { WarehouseSummary } from '@/modules/cart/warehouse-summary'
 import { useMemo, useRef } from "react"
 import { Button } from "@heroui/react"
@@ -10,13 +10,13 @@ import { AnimatePresence, motion } from "framer-motion"
 import { match, P } from "ts-pattern"
 
 import { useNavigate } from "@tanstack/react-router"
-import type { Product } from "@/modules/products/product-types"
+import type { Product } from "@/modules/catalog/product-types"
 import { calculateCartonRequirement } from "@/lib/utils/math"
 import { formatToman, toPersianDigits } from "@/lib/utils/currency"
 import { CheckoutCommit } from "./checkout-commit"
 import { CheckoutActionFooter } from "./checkout-action-footer"
 import { orderStore } from "@/modules/orders/order-store"
-import { selectionStore } from "@/modules/products/selection-store"
+import { selectionStore } from "@/modules/catalog/selection-store"
 import { toast } from "@/components/feedback/toast"
 
 import { XIcon, PencilIcon, TomanIcon, ArrowRightIcon } from "@/components/ui/icons"

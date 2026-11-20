@@ -1,6 +1,6 @@
 import { QueryLoadError } from '@/components/feedback/query-load-error'
 import { customerErrorMessage } from '@/lib/utils/error'
-import { prepareReorderDraft } from '@/modules/products/selection-store'
+import { prepareReorderDraft } from '@/modules/catalog/selection-store'
 import { useState, useMemo } from "react"
 import { Link, useNavigate, getRouteApi } from "@tanstack/react-router"
 import { match, P } from 'ts-pattern'
@@ -15,7 +15,7 @@ import { OrderDetailSkeleton } from "@/modules/orders/order-detail-skeleton"
 import { ArrowRightIcon } from "@/components/ui/icons"
 import { PreInvoiceModal } from "@/modules/checkout/pre-invoice-modal"
 import { OrderInvoiceModal } from "@/modules/orders/order-invoice-modal/order-invoice-modal"
-import { useCatalogIds } from "@/modules/products/catalog-data"
+import { useCatalogIds } from "@/modules/catalog/catalog-data"
 import { CANCELLATION_REASONS, formatInvoiceNumber } from "./_order-helpers"
 import { useCancelCountdown } from "./_use-cancel-countdown"
 import { buildReorderDraft } from "@/modules/orders/build-reorder-draft"

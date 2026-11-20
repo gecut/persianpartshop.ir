@@ -2,7 +2,7 @@ import { QueryLoadError } from '@/components/feedback/query-load-error'
 import { useMemo, useState, useEffect, useRef } from "react";
 import { Link } from "@tanstack/react-router"
 import { usePlans } from "./plans-store";
-import { useCatalogIds } from "@/modules/products/catalog-data";
+import { useCatalogIds } from "@/modules/catalog/catalog-data";
 import type { Plan } from "./plan-types"
 import { PlanCard } from "./plan-card/plan-card";
 import { PlanCardSkeleton } from "./plan-card-skeleton";

@@ -1,7 +1,7 @@
 import type { InfiniteData, QueryClient } from '@tanstack/react-query'
 import type { CatalogRecord, CatalogBrowseInput, CatalogBrowseOutput } from '@persianpart/contract'
 import { queryKeys } from '@/lib/query-keys'
-import { defaultBrowseKey, firstBrowsePage, isDefaultBrowse } from './_catalog-browse'
+import { defaultBrowseKey, firstBrowsePage, isDefaultBrowse } from './catalog-browse'
 
 interface CatalogPage { items: CatalogRecord[]; scopeKey: string; nextCursor: string | null }
 interface CatalogResult { items: CatalogRecord[]; scopeKey: string }

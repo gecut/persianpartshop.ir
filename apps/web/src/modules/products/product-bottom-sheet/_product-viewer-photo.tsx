@@ -1,6 +1,6 @@
 import { useLayoutEffect, useState } from "react"
 import type { ContainerRect } from "yet-another-react-lightbox"
-import { productImageCors } from "../_product-image-cors"
+import { productImageCors } from "@/modules/catalog/product-image-cors"
 import type { GalleryMediaItem } from "./_product-gallery"
 import { galleryPlaceholder } from "./_use-gallery-media"
 

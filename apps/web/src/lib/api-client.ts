@@ -1,4 +1,4 @@
-import { writeActivity } from './write-activity'
+import { writeActivity } from '@/lib/write-activity'
 import { createApiClient } from '@persianpart/api/client'
 import type { AppRouter, ApiClient } from '@persianpart/api'
 

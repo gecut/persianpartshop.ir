@@ -1,9 +1,9 @@
 import React from "react"
-import type { Product } from "./product-types"
+import type { Product } from "@/modules/catalog/product-types"
 import { formatToman, toPersianDigits } from "@/lib/utils/currency"
 import { cn } from "@/lib/utils"
 import TomanIcon from "@/components/ui/icons"
-import { formatGrade, formatUnit } from "./product-store"
+import { formatGrade, formatUnit } from "@/modules/catalog/product-store"
 import { ProductThumbnail } from './_product-thumbnail'
 
 export interface ProductCardProps {

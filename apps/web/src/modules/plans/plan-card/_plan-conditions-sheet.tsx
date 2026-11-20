@@ -1,12 +1,12 @@
 import { useNavigate } from "@tanstack/react-router"
 import { Drawer, Button } from "@heroui/react"
 import type { Plan } from "@/modules/plans/plan-types"
-import type { Product } from "@/modules/products/product-types"
+import type { Product } from "@/modules/catalog/product-types"
 import { toPersianDigits } from "@/lib/utils/currency"
 import { formatPersianDate } from "@/lib/utils/date"
 import { BoxIcon, ArrowLeftIcon, ClockIcon, XIcon, TagIcon } from "@/components/ui/icons"
 import { toast } from "@/components/feedback/toast"
-import { selectionStore } from "@/modules/products/selection-store"
+import { selectionStore } from "@/modules/catalog/selection-store"
 import { PlanProductRow } from "./_plan-product-row"
 
 interface PlanConditionsSheetProps {

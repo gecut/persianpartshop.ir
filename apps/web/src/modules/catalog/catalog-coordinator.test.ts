@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, setSystemTime, test } from 'bun:test'
 import { InfiniteQueryObserver, QueryClient, type InfiniteData } from '@tanstack/react-query'
-import { catalogMaxAge, createCatalogCoordinator, emptyCatalog, type CatalogPersistence, type CatalogSnapshot, type SavedBrowsePage } from '@/modules/products/catalog-coordinator'
-import { defaultBrowseFilters, defaultBrowseKey, firstBrowsePage } from '@/modules/products/_catalog-browse'
+import { catalogMaxAge, createCatalogCoordinator, emptyCatalog, type CatalogPersistence, type CatalogSnapshot, type SavedBrowsePage } from '@/modules/catalog/catalog-coordinator'
+import { defaultBrowseFilters, defaultBrowseKey, firstBrowsePage } from '@/modules/catalog/catalog-browse'
 import type { CatalogBrowseOutput, CatalogRecord } from '@persianpart/contract'
 
 beforeEach(() => setSystemTime(new Date('2026-11-18T12:00:00Z')))

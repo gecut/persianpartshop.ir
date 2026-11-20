@@ -1,4 +1,4 @@
-import type { Product } from "@/modules/products/product-types"
+import type { Product } from "@/modules/catalog/product-types"
 import { calculateCartonRequirement } from "@/lib/utils/math";
 
 export interface CartTotals {

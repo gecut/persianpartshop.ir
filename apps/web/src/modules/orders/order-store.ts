@@ -3,7 +3,7 @@ import { offlineRecoveryEnabled } from '@/modules/pwa/read-source'
 import { authStore } from '@/modules/auth/auth-store'
 import { queryClient } from '@/lib/query-client'
 import { queryKeys, mutationKeys } from '@/lib/query-keys'
-import { catalogCoordinator } from '@/modules/products/catalog-data'
+import { catalogCoordinator } from '@/modules/catalog/catalog-data'
 import { useSavedOfflinePackage } from '@/modules/pwa/offline-package'
 import { useNetworkReadSource } from '@/modules/pwa/read-source'
 import { useMemo } from 'react'
@@ -11,7 +11,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { type Order, type OrderItem, type TimelineStep } from './order-types'
 import { api } from '@/lib/api-client'
 import { catalogProductImages } from "@/lib/media-url"
-import { formatGrade } from '@/modules/products/product-store'
+import { formatGrade } from '@/modules/catalog/product-store'
 import {
   formatPersianDate,
   formatPersianTimelineTs,

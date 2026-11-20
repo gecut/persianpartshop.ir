@@ -1,5 +1,5 @@
 import { useTextDraft } from '@/lib/drafts'
-import { selectionStore } from '@/modules/products/selection-store'
+import { selectionStore } from '@/modules/catalog/selection-store'
 import { WarehouseSummary } from '@/modules/cart/warehouse-summary'
 import { useRef, useState, useEffect } from 'react'
 

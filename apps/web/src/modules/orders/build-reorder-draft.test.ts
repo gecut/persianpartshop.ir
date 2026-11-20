@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import type { Order } from '@/modules/orders/order-types'
-import type { Product } from '@/modules/products/product-types'
+import type { Product } from '@/modules/catalog/product-types'
 import { buildReorderDraft } from './build-reorder-draft'
 
 const item = (overrides: Partial<Order['items'][number]>): Order['items'][number] => ({

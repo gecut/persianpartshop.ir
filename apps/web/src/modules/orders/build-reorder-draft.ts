@@ -1,5 +1,5 @@
 import type { Order } from '@/modules/orders/order-types'
-import type { Product } from '@/modules/products/product-types'
+import type { Product } from '@/modules/catalog/product-types'
 
 export function buildReorderDraft(items: Order['items'] | undefined, allProducts: Product[]) {
   if (!items) return { reorderProducts: [], reorderQuantities: {} }

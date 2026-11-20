@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useLayoutEffect, useRef, lazy, Suspense } from "react"
 import { Drawer, Button } from "@heroui/react"
-import type { Product } from "@/modules/products/product-types"
+import type { Product } from "@/modules/catalog/product-types"
 import { toPersianDigits } from "@/lib/utils/currency"
 import { useAuth, isProductAllowedForUser } from "@/modules/auth/auth-store"
 import { XIcon } from "@/components/ui/icons"

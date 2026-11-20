@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { CatalogRecordSchema, type CatalogRecord } from '@persianpart/contract'
-import { mapCatalogProduct } from '@/modules/products/catalog-mapper'
+import { mapCatalogProduct } from '@/modules/catalog/catalog-mapper'
 import { resolveMediaUrl } from '@/lib/media-url'
 
 function product(media: Pick<CatalogRecord, 'cover' | 'gallery'>) {

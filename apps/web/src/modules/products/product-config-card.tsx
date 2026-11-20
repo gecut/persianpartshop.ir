@@ -1,15 +1,15 @@
 "use client";
 
-import { ProductSmallImage } from "@/modules/products/product-small-image/product-small-image"
+import { ProductSmallImage } from "@/modules/catalog/product-small-image/product-small-image"
 import { memo, useMemo } from "react";
 import { NumberField, I18nProvider, Button } from "@heroui/react";
 import { MoneyBagOutlineIcon } from "@solar-icons/react";
-import type { Product } from "./product-types";
+import type { Product } from "@/modules/catalog/product-types";
 import { calculateCartonRequirement } from "@/lib/utils/math";
 import { formatToman, toPersianDigits } from "@/lib/utils/currency";
 import { parseCartons } from "@/lib/utils/unit";
-import { formatGrade, formatUnit } from "./product-store";
-import { selectionStore, useProductQuantity } from "./selection-store";
+import { formatGrade, formatUnit } from "@/modules/catalog/product-store";
+import { selectionStore, useProductQuantity } from "@/modules/catalog/selection-store";
 import { ThrottledSlider } from "@/components/ui/throttled-slider";
 import {
   Trash2Icon,

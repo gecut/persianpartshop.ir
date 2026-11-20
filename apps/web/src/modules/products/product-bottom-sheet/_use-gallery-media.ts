@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import type { ImgHTMLAttributes } from "react"
 import type { UseEmblaCarouselType } from "embla-carousel-react"
 import { useNetworkReadSource } from "@/modules/pwa/read-source"
-import { productImageCors } from "../_product-image-cors"
+import { productImageCors } from "@/modules/catalog/product-image-cors"
 import type { GalleryMediaItem } from "./_product-gallery"
 
 type Carousel = UseEmblaCarouselType[1]

@@ -2,10 +2,10 @@
 
 import { useDeferredValue, useMemo, useState } from "react";
 import { Button } from "@heroui/react";
-import { catalogCoordinator } from "@/modules/products/catalog-data";
+import { catalogCoordinator } from "@/modules/catalog/catalog-data";
 
-import type { Product } from "@/modules/products/product-types"
-import { useAllQuantities, useProductSelection, selectionStore } from "@/modules/products/selection-store";
+import type { Product } from "@/modules/catalog/product-types"
+import { useAllQuantities, useProductSelection, selectionStore } from "@/modules/catalog/selection-store";
 import { computeCartTotals } from "./cart-totals";
 import { PreInvoiceModal } from "./pre-invoice-modal";
 import { ArrowLeftIcon } from "@/components/ui/icons";

@@ -1,5 +1,5 @@
 import { Switch } from "@heroui/react"
-import { useProducts } from "@/modules/products/product-store"
+import { useProducts } from "@/modules/catalog/product-store"
 import { cn } from "@/lib/utils"
 
 type ProductsHook = ReturnType<typeof useProducts>;

@@ -7,8 +7,8 @@ import {
   SolarShopIcon,
   SolarShieldCheckIcon,
 } from "@/components/ui/icons";
-import { formatGrade, formatUnit } from "@/modules/products/product-store";
-import type { Product } from "@/modules/products/product-types";
+import { formatGrade, formatUnit } from "@/modules/catalog/product-store";
+import type { Product } from "@/modules/catalog/product-types";
 import { ProductSpecRow } from "./_product-spec-row";
 import { ProductStockValue } from "./_product-stock-value";
 

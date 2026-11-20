@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Drawer, Button } from "@heroui/react"
-import { useProducts } from "@/modules/products/product-store"
+import { useProducts } from "@/modules/catalog/product-store"
 import { RefreshCwIcon, XIcon } from "@/components/ui/icons"
 import { toPersianDigits } from "@/lib/utils/currency"
 import { InStockFilter } from "./_in-stock-filter"

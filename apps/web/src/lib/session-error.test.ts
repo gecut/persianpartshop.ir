@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { isSessionError } from './session-error'
+import { isSessionError } from '@/lib/session-error'
 
 describe('isSessionError', () => {
   test('identifies UNAUTHORIZED and 401 variants', () => {

@@ -1,4 +1,4 @@
-import { writeActivity } from './write-activity'
+import { writeActivity } from '@/lib/write-activity'
 import { QueryClient, QueryCache, MutationCache } from '@tanstack/react-query'
 
 let onAuthError: ((error: unknown) => void) | null = null

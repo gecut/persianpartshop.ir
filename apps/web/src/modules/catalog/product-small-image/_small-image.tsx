@@ -1,5 +1,5 @@
 import { useState, type ComponentProps } from 'react'
-import { productImageCors } from '../_product-image-cors'
+import { productImageCors } from '../product-image-cors'
 
 const placeholder = '/assets/images/placeholder.svg'
 

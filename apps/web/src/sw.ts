@@ -5,7 +5,7 @@ import { CacheExpiration, ExpirationPlugin } from 'workbox-expiration'
 import { createHandlerBoundToURL, matchPrecache, precacheAndRoute } from 'workbox-precaching'
 import { NavigationRoute, registerRoute } from 'workbox-routing'
 import { StaleWhileRevalidate } from 'workbox-strategies'
-import { offlineImageCache, offlineMaxAge, offlineMediaKey, publicImageUrl, readOfflineMedia, sharedOfflineImageCache } from './modules/pwa/offline-storage'
+import { offlineImageCache, offlineMaxAge, offlineMediaKey, publicImageUrl, readOfflineMedia, sharedOfflineImageCache } from '@/modules/pwa/offline-storage'
 
 declare const self: ServiceWorkerGlobalScope & { __WB_MANIFEST: Parameters<typeof precacheAndRoute>[0] }
 declare const __PWA_RELEASE__: string

@@ -2,7 +2,7 @@ import { ScannedCatalogProductSchema } from "@persianpart/contract"
 import { catalogProductImages } from "@/lib/media-url"
 import { useMemo } from "react";
 import type { Plan } from "@/modules/plans/plan-types"
-import type { Product } from "@/modules/products/product-types"
+import type { Product } from "@/modules/catalog/product-types"
 import { useAuth, isProductAllowedForUser } from "@/modules/auth/auth-store";
 
 export function usePlanProducts(

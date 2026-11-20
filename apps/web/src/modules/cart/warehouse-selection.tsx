@@ -1,6 +1,6 @@
 import { Button } from '@heroui/react'
 import { Modal } from '@/components/ui/modal'
-import { useProductSelection, selectionStore } from '@/modules/products/selection-store'
+import { useProductSelection, selectionStore } from '@/modules/catalog/selection-store'
 
 export function WarehouseSelection() {
   const { candidates } = useProductSelection()

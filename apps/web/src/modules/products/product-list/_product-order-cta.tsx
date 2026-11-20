@@ -1,6 +1,6 @@
 
 import { useNavigate, Link } from "@tanstack/react-router"
-import { selectionStore, type useProductSelection } from "@/modules/products/selection-store"
+import { selectionStore, type useProductSelection } from "@/modules/catalog/selection-store"
 import { toPersianDigits } from "@/lib/utils/currency"
 import { ArrowLeftIcon } from "@/components/ui/icons"
 

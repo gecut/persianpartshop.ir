@@ -7,7 +7,7 @@ import { useSessionSync } from '@/app/use-session-sync'
 import { useAuth } from '@/modules/auth/auth-store'
 import { WarehouseSelection } from '@/modules/cart/warehouse-selection'
 import { PwaControls } from '@/modules/pwa/pwa-controls'
-import { OfflineReadSuggestion } from './offline-read-suggestion'
+import { OfflineReadSuggestion } from '@/app/offline-read-suggestion'
 import { offlineRecoveryEnabled } from '@/modules/pwa/read-source'
 import { cn } from '@/lib/utils'
 

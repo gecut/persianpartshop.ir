@@ -1,5 +1,5 @@
 import { Button } from '@heroui/react'
-import { useProductSelection, selectionStore } from '@/modules/products/selection-store'
+import { useProductSelection, selectionStore } from '@/modules/catalog/selection-store'
 
 export function WarehouseSummary() {
   const { warehouse, busy, error, selectedIds, quotes } = useProductSelection()

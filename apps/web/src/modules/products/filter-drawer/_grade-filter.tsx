@@ -1,7 +1,7 @@
 import { Button } from "@heroui/react"
 import { PRODUCT_GRADE_OPTIONS } from "@persianpart/contract"
 import { StarIcon } from "@solar-icons/react/bold"
-import type { useProducts } from "@/modules/products/product-store"
+import type { useProducts } from "@/modules/catalog/product-store"
 
 type ProductsHook = ReturnType<typeof useProducts>;
 

@@ -1,6 +1,6 @@
 import { useState } from "react"
 import type { Plan } from "@/modules/plans/plan-types"
-import type { Product } from "@/modules/products/product-types"
+import type { Product } from "@/modules/catalog/product-types"
 import { cn } from "@/lib/utils"
 import { ArrowLeftIcon, ClockIcon } from "@/components/ui/icons"
 import { ProductBottomSheet } from "@/modules/products/product-bottom-sheet/product-bottom-sheet"

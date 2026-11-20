@@ -1,7 +1,7 @@
 
 import { useWindowVirtualizer } from "@tanstack/react-virtual"
 import { ProductCard } from "@/modules/products/product-card"
-import type { Product } from "@/modules/products/product-types"
+import type { Product } from "@/modules/catalog/product-types"
 import { ProductCardSkeleton } from "@/modules/products/product-card-skeleton"
 import type { RefObject } from "react"
 

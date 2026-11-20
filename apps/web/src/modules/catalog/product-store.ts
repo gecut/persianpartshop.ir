@@ -12,7 +12,7 @@ export type { SortOption };
 
 export { mapCatalogProduct, formatGrade, formatUnit } from "./catalog-mapper";
 import { mapCatalogProduct } from "./catalog-mapper";
-import { defaultBrowseFilters, firstBrowsePage, isDefaultBrowse } from "./_catalog-browse";
+import { defaultBrowseFilters, firstBrowsePage, isDefaultBrowse } from "./catalog-browse";
 import { catalogMaxAge } from "./catalog-coordinator";
 import { catalogCoordinator, useCatalogData } from "./catalog-data";
 import { offlineRecoveryEnabled } from '@/modules/pwa/read-source';

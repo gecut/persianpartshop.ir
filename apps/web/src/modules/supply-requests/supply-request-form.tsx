@@ -1,4 +1,4 @@
-import { ProductSmallImage } from "@/modules/products/product-small-image/product-small-image"
+import { ProductSmallImage } from "@/modules/catalog/product-small-image/product-small-image"
 import { CheckoutActionFooter } from '@/modules/checkout/checkout-action-footer'
 import { CheckoutCommit } from '@/modules/checkout/checkout-commit'
 import { ArrowLeftIcon, PencilIcon, TomanIcon } from '@/components/ui/icons'
@@ -11,9 +11,9 @@ import { queryKeys } from '@/lib/query-keys'
 import { useOnline } from '@/lib/use-online'
 import { formatToman, toPersianDigits } from '@/lib/utils/currency'
 import { formatCartons, formatUnit } from '@/lib/utils/unit'
-import { useCatalogProduct } from '@/modules/products/catalog-data'
+import { useCatalogProduct } from '@/modules/catalog/catalog-data'
 import { isProductAllowedForUser, useAuth } from '@/modules/auth/auth-store'
-import { selectionStore } from '@/modules/products/selection-store'
+import { selectionStore } from '@/modules/catalog/selection-store'
 import { supplyDraftStore, useSupplyDraft } from './supply-request-draft'
 import { useSupplySubmission } from './use-supply-submission'
 

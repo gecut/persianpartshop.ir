@@ -1,9 +1,9 @@
 
 import { useSessionValue } from "@/modules/products/use-session-value"
 import { useMemo, useEffect, useRef } from "react"
-import { useProducts } from "@/modules/products/product-store"
-import type { Product } from "@/modules/products/product-types"
-import { defaultBrowseFilters } from "../_catalog-browse"
+import { useProducts } from "@/modules/catalog/product-store"
+import type { Product } from "@/modules/catalog/product-types"
+import { defaultBrowseFilters } from "@/modules/catalog/catalog-browse"
 type ProductsHook = ReturnType<typeof useProducts>;
 
 export const PRODUCT_PAGE_SIZE = defaultBrowseFilters.limit;

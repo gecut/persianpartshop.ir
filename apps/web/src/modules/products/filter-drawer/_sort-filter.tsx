@@ -1,5 +1,5 @@
 import { Dropdown, Button, Label } from "@heroui/react"
-import { useProducts } from "@/modules/products/product-store"
+import { useProducts } from "@/modules/catalog/product-store"
 import { ChevronDownIcon } from "@/components/ui/icons"
 import { cn } from "@/lib/utils"
 

@@ -1,10 +1,10 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Button, Modal } from '@heroui/react'
 import { XIcon } from '@/components/ui/icons'
-import { scanOfflineProduct } from './catalog-data'
+import { scanOfflineProduct } from '@/modules/catalog/catalog-data'
 import { authStore } from '@/modules/auth/auth-store'
-import { mapCatalogProduct } from './product-store'
-import type { Product } from './product-types'
+import { mapCatalogProduct } from '@/modules/catalog/product-store'
+import type { Product } from '@/modules/catalog/product-types'
 
 const ProductQrCamera = lazy(() => import('./product-qr-camera').then(module => ({ default: module.ProductQrCamera })))
 

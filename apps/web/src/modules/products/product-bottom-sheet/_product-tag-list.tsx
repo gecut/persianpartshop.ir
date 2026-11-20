@@ -1,5 +1,5 @@
-import type { Product } from "@/modules/products/product-types"
-import { formatGrade } from "@/modules/products/product-store"
+import type { Product } from "@/modules/catalog/product-types"
+import { formatGrade } from "@/modules/catalog/product-store"
 
 interface ProductTagListProps {
   product: Product;

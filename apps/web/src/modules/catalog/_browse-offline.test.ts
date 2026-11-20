@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test'
 import { PRODUCT_GRADE_OPTIONS, type CatalogRecord } from '@persianpart/contract'
-import { browseOffline } from '@/modules/products/_browse-offline'
-import { defaultBrowseFilters } from '@/modules/products/_catalog-browse'
+import { browseOffline } from '@/modules/catalog/_browse-offline'
+import { defaultBrowseFilters } from '@/modules/catalog/catalog-browse'
 
 const product = (id: number, values: Partial<CatalogRecord> = {}): CatalogRecord => ({
   id, name: 'کاشی', sku: `PP-${id}`, slug: `p-${id}`, createdAt: '2026-01-01T00:00:00.000Z',

@@ -1,5 +1,5 @@
-import { ProductSmallImage } from "@/modules/products/product-small-image/product-small-image"
-import type { Product } from "@/modules/products/product-types"
+import { ProductSmallImage } from "@/modules/catalog/product-small-image/product-small-image"
+import type { Product } from "@/modules/catalog/product-types"
 import { formatToman } from "@/lib/utils/currency"
 import { cn } from "@/lib/utils"
 import { TomanIcon } from "@/components/ui/icons"

@@ -1,7 +1,7 @@
 import { formatTrackingNumber } from '@/lib/utils/tracking-number'
 import { useSubmitOrder } from "@/modules/orders/use-submit-order"
 import { customerErrorMessage } from '@/lib/utils/error'
-import { selectionStore } from '@/modules/products/selection-store'
+import { selectionStore } from '@/modules/catalog/selection-store'
 import { useRef } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { match, P } from 'ts-pattern'
