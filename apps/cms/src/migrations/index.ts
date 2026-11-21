@@ -2,6 +2,7 @@ import * as cmsMcp from './20261115_120000_cms_mcp';
 import * as galleryImageSizes from './20261116_150000_gallery_image_sizes';
 import * as publicCatalog from './20261118_120000_public_catalog';
 import * as smsQueueClaim from './20261120_120000_sms_queue_claim';
+import * as mcpProductFamilies from './20261121_140000_mcp_product_families'
 import * as productFamilies from './20261121_120000_product_families';
 import * as offlineSnapshots from './20261114_140000_offline_snapshots';
 import * as hookIntegrity from './20261110_120000_hook_integrity';
@@ -40,4 +41,5 @@ export const migrations = [
   { up: publicCatalog.up, down: publicCatalog.down, name: '20261118_120000_public_catalog' },
   { up: smsQueueClaim.up, down: smsQueueClaim.down, name: '20261120_120000_sms_queue_claim' },
   { up: productFamilies.up, down: productFamilies.down, name: '20261121_120000_product_families' },
+  { up: mcpProductFamilies.up, down: mcpProductFamilies.down, name: '20261121_140000_mcp_product_families' },
 ];

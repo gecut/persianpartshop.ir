@@ -1051,6 +1051,24 @@ export interface PayloadMcpApiKey {
      */
     delete?: boolean | null;
   };
+  productFamilies?: {
+    /**
+     * Allow clients to find product-families.
+     */
+    find?: boolean | null;
+    /**
+     * Allow clients to create product-families.
+     */
+    create?: boolean | null;
+    /**
+     * Allow clients to update product-families.
+     */
+    update?: boolean | null;
+    /**
+     * Allow clients to delete product-families.
+     */
+    delete?: boolean | null;
+  };
   plans?: {
     /**
      * Allow clients to find plans.
@@ -1791,6 +1809,14 @@ export interface PayloadMcpApiKeysSelect<T extends boolean = true> {
         delete?: T;
       };
   dimensions?:
+    | T
+    | {
+        find?: T;
+        create?: T;
+        update?: T;
+        delete?: T;
+      };
+  productFamilies?:
     | T
     | {
         find?: T;

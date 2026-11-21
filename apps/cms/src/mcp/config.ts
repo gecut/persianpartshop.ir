@@ -18,6 +18,7 @@ const collections = {
   brands: { enabled: full },
   tags: { enabled: full },
   dimensions: { enabled: full },
+  'product-families': { enabled: full, description: 'Product families (طرح) that group product variants. Set a product\'s family field to link it; a family linked to products cannot be deleted.' },
   plans: { enabled: full, description: 'Sales plans and eligible products or customers.' },
   users: { enabled: readWrite, description: 'Customer accounts and their assigned customer type.' },
   'customer-types': { enabled: read },
