@@ -1,27 +1,57 @@
-import { afterEach, describe, expect, spyOn, test } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, spyOn, test } from 'bun:test'
+import type { Mock } from 'bun:test'
 import { sdk } from '../lib/payload'
-import type { Context } from '../rpc/context'
-import { catalogDimensions } from './catalog'
+import { facetDimensions } from './catalog'
 
-const context = { user: { id: 1, role: 'customer' } } as Context
+type FindOptions = { collection: string; page?: number; where?: Record<string, unknown> }
+type FindResult = { docs: Record<string, unknown>[]; hasNextPage?: boolean }
 
-describe('catalog dimension facets', () => {
-  afterEach(() => { spy.mockRestore() })
-  const spy = spyOn(sdk, 'find')
+const dimensions = [
+  { id: 1, name: '60×120' }, { id: 2, name: '80×80' },
+  { id: 3, name: '40×40' }, { id: 4, name: '30x30' }, { id: 5, name: '20×20' },
+]
+const productPages: FindResult[] = [
+  { docs: [{ dimension: 1 }, { dimension: 2 }], hasNextPage: true },
+  { docs: [{ dimension: { id: 3 } }, { dimension: 4 }, { dimension: 3 }], hasNextPage: false },
+]
 
-  test('returns only dimensions with accessible matching products across pages', async () => {
-    spy.mockImplementation(async (options: any) => {
-      if (options.collection === 'dimensions') return { docs: [
-        { id: 1, name: '60×120' }, { id: 2, name: '80×80' },
-        { id: 3, name: '40×40' }, { id: 4, name: '30x30' },
-      ] } as any
-      expect(options.where.isActive).toEqual({ equals: true })
-      expect(options.where.category).toEqual({ in: [9] })
-      return (options.page === 1
-        ? { docs: [{ dimension: 1 }, { dimension: 2, productType: 'other' }], hasNextPage: true }
-        : { docs: [{ dimension: { id: 3 } }, { dimension: 4 }], hasNextPage: false }) as any
+describe('facetDimensions', () => {
+  let find: Mock<(options: FindOptions) => Promise<FindResult>>
+  const productQueries: FindOptions[] = []
+
+  beforeEach(() => {
+    productQueries.length = 0
+    // The SDK's generic signature cannot be satisfied by a hand-written fake.
+    find = spyOn(sdk, 'find') as unknown as typeof find
+    find.mockImplementation(async (options) => {
+      if (options.collection === 'dimensions') return { docs: dimensions }
+      productQueries.push(options)
+      return productPages[(options.page ?? 1) - 1]!
     })
-    const result = await catalogDimensions({ onlyActive: true }, context, [9])
-    expect(result.map(d => d.id)).toEqual([1, 3])
+  })
+  afterEach(() => { find.mockRestore() })
+
+  test('keeps dimensions used by an accessible tile, across every page, most used first', async () => {
+    const result = await facetDimensions([9])
+
+    expect(result.map((dimension) => dimension.id)).toEqual([3, 1, 2, 4])
+    expect(productQueries.map((query) => query.page)).toEqual([1, 2])
+  })
+
+  test('scopes the count to the given categories and excludes other products in the query', async () => {
+    await facetDimensions([9])
+
+    expect(productQueries[0]?.where).toEqual({
+      isActive: { equals: true },
+      dimension: { in: [1, 2, 3, 4, 5] },
+      category: { in: [9] },
+      or: [{ productType: { not_equals: 'other' } }, { productType: { exists: false } }],
+    })
+  })
+
+  test('does not restrict categories when the scope allows all of them', async () => {
+    await facetDimensions([])
+
+    expect(productQueries[0]?.where).not.toHaveProperty('category')
   })
 })
