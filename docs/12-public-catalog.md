@@ -47,6 +47,15 @@ Catalog is permanently noindex through root metadata and X-Robots-Tag. There is 
 
 Search/filter/sort state lives in the URL; server data stays in memory-only TanStack Query. Browse defaults to 24, maximum 100. Persian/Arabic letters/digits, ZWNJ, whitespace and code case normalize; search is empty or at most 100 normalized characters, with escaped SQL wildcards. Cached server pages do not inspect visitor search/cookies/headers. A pre-paint gate prevents default-list flash on filtered links. Back restores URL, loaded pages and approximate scroll; only navigation state is persisted. Policy revisions restart pagination. Images use fixed dimensions/CDN URLs and LCP priority, without runtime optimization or broad prefetch.
 
+## گزینه‌های خانواده محصول (Product Families)
+
+صفحات جزئیات محصول در کاتالوگ عمومی، سایر اعضای هم‌خانواده را در بخشی با عنوان «گزینه‌های دیگر این محصول» به مخاطبان نمایش می‌دهند:
+
+- **سیاست مستقل برای هر عضو:** هر عضو خانواده به‌صورت کاملاً مستقل و اختصاصی از خط‌مشی انتشار کاتالوگ (اعم از شرایط فعال‌بودن، شمول، استثناها، و وضعیت‌های قیمت و موجودیِ مخفی، بدون قیمت یا مشمول سقف) پیروی می‌کند؛ عضویت در یک طرح تحت هیچ شرایطی فیلترهای انتشار را دور نمی‌زند و اطلاعات حساس قیمت یا موجودی سایر اعضا را نشت نمی‌دهد.
+- **حضور همیشگی `familyOptions` در عملیات `product`:** فیلد `familyOptions` همواره در پاسخ عملیات `product` (در مسیر `POST /api/catalog/product`) حضور دارد و نیاز به هیچ فلگ اختیاری ندارد؛ در صورت نبود طرح یا نبود عضو منتشرشدهٔ دیگر، این فیلد به‌صورت یک آرایه خالی (`[]`) برگردانده می‌شود.
+- **تازگی با سازوکار ISR ۳۰۰ ثانیه:** تغییرات عضویت در طرح‌ها، حذف، انتقال یا افزوده‌شدن اعضا دقیقاً تابع همان سازوکار بازتولید تدریجی ۳۰۰ ثانیه‌ای (ISR 300s) کاتالوگ عمومی است و صفحات کش‌شده پس از انقضای این بازه مجدداً بازسازی می‌شوند.
+- **عدم افشای نام و شناسه طرح:** نام طرح (`name`) و شناسهٔ عددی آن (`family_id`) در زمره اطلاعات داخلی و مدیریتی بوده و هرگز در خروجی‌های عمومی، API یا کدهای سمت کلاینت کاتالوگ افشا نمی‌شوند؛ تفکیک اعضا در رابط کاربری صرفاً بر اساس ویژگی‌های فنی کالا (نام، لعاب، رنگ، درجه، بعد و SKU) انجام می‌شود.
+
 ## Deployment and verification
 
 Runtime variables are CATALOG_URL, CMS_API_URL and CMS_API_KEY. Compose uses the private CMS address and one non-root standalone Catalog instance with writable ISR cache. Catalog has no WEB_URL. Existing Dokploy routing targets service catalog, port 5176. Configure the existing proxy to apply no-store and IP rate limiting only to `/api/catalog/browse` (initially 10 requests/second, burst 30); trust upstream client IPs explicitly. Public domain routing does not automatically install that middleware. No extra infrastructure service is required.
