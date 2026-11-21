@@ -13,6 +13,8 @@ export interface ProductCardProps {
   isOrderingDisabled?: boolean;
   onToggleSelect: (product: Product) => void;
   onOpenBottomSheet?: (product: Product) => void;
+  isCompact?: boolean;
+  onViewProduct?: (product: Product) => void;
 }
 
 export const ProductCard = React.memo(function ProductCard({
@@ -21,6 +23,8 @@ export const ProductCard = React.memo(function ProductCard({
   isOrderingDisabled = false,
   onToggleSelect,
   onOpenBottomSheet,
+  isCompact = false,
+  onViewProduct,
 }: ProductCardProps) {
   const isOutOfStock = (
     product.stockStatus === "out_of_stock" ||
@@ -38,6 +42,10 @@ export const ProductCard = React.memo(function ProductCard({
     if (target.closest("button") || target.closest("[data-no-select]")) {
       return;
     }
+    if (onViewProduct) {
+      onViewProduct(product);
+      return;
+    }
     if (isOrderingDisabled || (isOutOfStock && !supplyOnly)) {
       onOpenBottomSheet?.(product);
       return;
@@ -51,11 +59,16 @@ export const ProductCard = React.memo(function ProductCard({
     <div
       role="button"
       tabIndex={0}
-      aria-pressed={effectiveSelected}
+      aria-pressed={onViewProduct ? undefined : effectiveSelected}
+      aria-label={onViewProduct ? `مشاهدهٔ ${product.name}` : undefined}
       onClick={handleCardClick}
       onKeyDown={(e) => {
         if (e.key === " " || e.key === "Enter") {
           e.preventDefault();
+          if (onViewProduct) {
+            onViewProduct(product);
+            return;
+          }
           if (isOrderingDisabled || (isOutOfStock && !supplyOnly)) {
             onOpenBottomSheet?.(product);
             return;
@@ -64,19 +77,21 @@ export const ProductCard = React.memo(function ProductCard({
         }
       }}
       className={cn(
-        "group relative flex items-center justify-between px-3.5 py-2.5 sm:p-3 rounded-2xl transition-all duration-300 cursor-pointer select-none text-start",
-        effectiveSelected
+        "group relative flex items-center justify-between rounded-2xl transition-all duration-300 cursor-pointer select-none text-start focus-visible:outline-2 focus-visible:outline-primary",
+        isCompact ? "p-2" : "px-3.5 py-2.5 sm:p-3",
+        isCompact ? "bg-muted/5" : effectiveSelected
           ? "bg-primary/8 ring-1 ring-primary scale-[0.98]"
           : "bg-muted/5",
         isOutOfStock && "opacity-80",
       )}
     >
-      <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+      <div className={cn("flex items-center min-w-0 flex-1", isCompact ? "gap-2" : "gap-2.5 sm:gap-3")}>
         <ProductThumbnail
           src={imgSrc}
           thumbnail={product.thumbnailUrl}
           alt={product.name}
           onOpenBottomSheet={() => onOpenBottomSheet?.(product)}
+          isCompact={isCompact}
         />
 
         <div className="flex flex-col justify-between self-stretch min-w-0 py-0.5">
@@ -90,32 +105,32 @@ export const ProductCard = React.memo(function ProductCard({
           </div>
 
           {/* Product Badges (Dimensions/Weight, Grade, Coverage) */}
-          <div className="flex items-center gap-1.5 flex-wrap mt-2">
+          <div className={cn("flex items-center flex-wrap", isCompact ? "gap-1 mt-1" : "gap-1.5 mt-2")}>
             {product.productType === "other" ? (
               <>
                 {Boolean(product.secondary_unit || product.secondaryUnit) && (
-                  <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-muted/10 text-foreground">
+                  <span className={cn("px-2 py-1 rounded-lg font-semibold bg-muted/10 text-foreground", isCompact ? "text-[0.6875rem]" : "text-xs")}>
                     {formatUnit(
                       product.secondary_unit || product.secondaryUnit,
                     )}
                   </span>
                 )}
                 {product.weight ? (
-                  <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-muted/10 text-foreground">
+                  <span className={cn("px-2 py-1 rounded-lg font-semibold bg-muted/10 text-foreground", isCompact ? "text-[0.6875rem]" : "text-xs")}>
                     {toPersianDigits(product.weight)}
                   </span>
                 ) : product.itemsPerPack ? (
-                  <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-muted/10 text-foreground">
+                  <span className={cn("px-2 py-1 rounded-lg font-semibold bg-muted/10 text-foreground", isCompact ? "text-[0.6875rem]" : "text-xs")}>
                     {toPersianDigits(product.itemsPerPack)} عدد
                   </span>
                 ) : null}
                 {product.approxCoverage && (
-                  <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-primary/10 text-primary">
+                  <span className={cn("px-2 py-1 rounded-lg font-semibold bg-primary/10 text-primary", isCompact ? "text-[0.6875rem]" : "text-xs")}>
                     {product.approxCoverage}
                   </span>
                 )}
                 {product.grade && (
-                  <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-primary/10 text-primary">
+                  <span className={cn("px-2 py-1 rounded-lg font-semibold bg-primary/10 text-primary", isCompact ? "text-[0.6875rem]" : "text-xs")}>
                     {formatGrade(product.grade)}
                   </span>
                 )}
@@ -123,7 +138,7 @@ export const ProductCard = React.memo(function ProductCard({
             ) : (
               <>
                 {product.dimensions?.width && product.dimensions?.height && (
-                  <span className="flex gap-0.5 px-2 py-1 rounded-lg text-xs font-bold bg-muted/10 text-foreground">
+                  <span className={cn("flex gap-0.5 px-2 py-1 rounded-lg font-bold bg-muted/10 text-foreground", isCompact ? "text-[0.6875rem]" : "text-xs")}>
                     <span className="flex gap-0.5 opacity-70">
                       <span>{toPersianDigits(product.dimensions.height)}</span>
                       <span className="opacity-70">&times;</span>
@@ -132,7 +147,7 @@ export const ProductCard = React.memo(function ProductCard({
                   </span>
                 )}
                 {product.grade && (
-                  <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-primary/10 text-primary">
+                  <span className={cn("px-2 py-1 rounded-lg font-semibold bg-primary/10 text-primary", isCompact ? "text-[0.6875rem]" : "text-xs")}>
                     {formatGrade(product.grade)}
                   </span>
                 )}
@@ -143,7 +158,7 @@ export const ProductCard = React.memo(function ProductCard({
       </div>
 
       {/* End (Left in RTL): Price centered vertically on top & Inventory Badge at bottom */}
-      <div className="flex flex-col justify-between items-end self-stretch shrink-0 ps-3 py-0.5 text-end">
+      <div className={cn("flex flex-col justify-between items-end self-stretch shrink-0 py-0.5 text-end", isCompact ? "ps-2" : "ps-3")}>
         {/* Top: Price & In-Cart Status - Centered vertically from top */}
         <div className="flex-1 flex flex-col justify-center items-end">
           <span className="text-sm font-bold text-foreground inline-flex items-center gap-1">
@@ -154,16 +169,16 @@ export const ProductCard = React.memo(function ProductCard({
 
         {/* Bottom: Inventory Badge - Shows red "ناموجود" if out of stock, otherwise exact stock or presence badge */}
         <div className="mt-auto">
-          {supplyOnly ? <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-primary/10 text-primary">قابل استعلام</span> : isOutOfStock ? (
-            <span className="px-2 py-1 rounded-lg flex text-xs font-semibold bg-danger/15 text-danger">
+          {supplyOnly ? <span className={cn("px-2 py-1 rounded-lg font-semibold bg-primary/10 text-primary", isCompact ? "text-[0.6875rem]" : "text-xs")}>قابل استعلام</span> : isOutOfStock ? (
+            <span className={cn("px-2 py-1 rounded-lg flex font-semibold bg-danger/15 text-danger", isCompact ? "text-[0.6875rem]" : "text-xs")}>
               <span>ناموجود</span>
             </span>
           ) : product.hideExactStock ? (
-            <span className="px-2 py-1 rounded-lg flex text-xs font-semibold bg-success/20 text-success">
+            <span className={cn("px-2 py-1 rounded-lg flex font-semibold bg-success/20 text-success", isCompact ? "text-[0.6875rem]" : "text-xs")}>
               <span>موجود</span>
             </span>
           ) : (
-            <span className="px-2 py-1 rounded-lg flex text-xs font-semibold bg-foreground text-background">
+            <span className={cn("px-2 py-1 rounded-lg flex font-semibold bg-foreground text-background", isCompact ? "text-[0.6875rem]" : "text-xs")}>
               <span className="flex items-center gap-0.5">
                 موجودی:{" "}
                 {Math.floor(

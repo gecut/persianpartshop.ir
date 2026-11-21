@@ -7,6 +7,7 @@ interface ProductThumbnailProps {
   thumbnail?: string;
   alt: string;
   onOpenBottomSheet?: () => void;
+  isCompact?: boolean;
 }
 
 export const ProductThumbnail = React.memo(function ProductThumbnail({
@@ -14,7 +15,18 @@ export const ProductThumbnail = React.memo(function ProductThumbnail({
   thumbnail,
   alt,
   onOpenBottomSheet,
+  isCompact = false,
 }: ProductThumbnailProps) {
+  if (isCompact) {
+    return (
+      <ProductSmallImage
+        src={src}
+        thumbnail={thumbnail}
+        alt={alt}
+        className="size-14 aspect-square shrink-0 object-cover rounded-xl"
+      />
+    );
+  }
   return (
     <div
       data-no-select

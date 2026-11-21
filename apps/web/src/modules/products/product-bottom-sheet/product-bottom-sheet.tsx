@@ -46,6 +46,7 @@ export function ProductBottomSheet({
   const [zoomSession, setZoomSession] = useState<ZoomSession | null>(null);
   const [zoomSelection, setZoomSelection] = useState<{ productId: string; item: GalleryMediaItem } | null>(null);
   const closeDrawerButton = useRef<HTMLButtonElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
   const [qrOpen, setQrOpen] = useState(false);
 
   useLayoutEffect(() => {
@@ -140,7 +141,7 @@ export function ProductBottomSheet({
               </Drawer.Header>
 
               {/* Body */}
-              <Drawer.Body className="flex-1 min-h-0 overflow-y-auto overscroll-contain [--product-details-inset:--spacing(5)] [--product-details-body-bleed:3px] -mx-(--product-details-body-bleed) px-(--product-details-inset) py-2 space-y-2.5 scrollbar-none pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))]">
+              <Drawer.Body ref={bodyRef} className="flex-1 min-h-0 overflow-y-auto overscroll-contain [--product-details-inset:--spacing(5)] [--product-details-body-bleed:3px] -mx-(--product-details-body-bleed) px-(--product-details-inset) py-2 space-y-2.5 scrollbar-none pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))]">
                 {qrOpen && <Suspense fallback={<p role="status">در حال آماده‌سازی…</p>}><ProductQrDownload productId={activeProduct.id} /></Suspense>}
                 {mediaItems.length > 0 && <ProductGallery
                   key={activeProduct.id}
@@ -176,7 +177,11 @@ export function ProductBottomSheet({
                   <ProductFamilyOptions
                     options={familyOptions}
                     activeId={activeProduct.id}
-                    onViewProduct={onViewProduct}
+                    onViewProduct={(nextProduct) => {
+                      onViewProduct(nextProduct);
+                      bodyRef.current?.scrollTo({ top: 0, behavior: 'instant' });
+                      closeDrawerButton.current?.focus({ preventScroll: true });
+                    }}
                   />
                 )}
 
