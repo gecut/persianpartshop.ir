@@ -89,7 +89,7 @@ export function CatalogFilters({ input, page, search }: CatalogFiltersProps) {
           </AnimatePresence>
         </Button>
       </div>
-      {!!page.facets.dimensions.length && (
+      {page.facets.dimensions.length >= 2 && (
         <div
           className="w-full overflow-x-auto pb-1 pt-0.5 scrollbar-none"
           role="group"

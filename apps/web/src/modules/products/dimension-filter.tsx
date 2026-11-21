@@ -38,6 +38,14 @@ export function DimensionFilter({
     );
   }
 
+  if (dimensions.length < 2) {
+    return error ? (
+      <Button type="button" variant="ghost" onPress={onRetry} className="h-10 text-xs text-muted">
+        دریافت دوباره ابعاد
+      </Button>
+    ) : null;
+  }
+
   return (
     <div
       className="w-full overflow-x-auto pb-1 pt-0.5 scrollbar-none"
