@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useLayoutEffect, useRef, lazy, Suspense } from "react"
+import { useState, useMemo, useEffect, useLayoutEffect, useRef, useCallback, lazy, Suspense } from "react"
 import { Drawer, Button } from "@heroui/react"
 import type { Product } from "@/modules/catalog/product-types"
 import { toPersianDigits } from "@/lib/utils/currency"
@@ -93,6 +93,13 @@ export function ProductBottomSheet({
     return () => cancelAnimationFrame(frame);
   }, [isOpen, mediaItems.length, returnPhoto]);
 
+  // Switching to a sibling unmounts its card, so keep focus inside the drawer and start the new product from the top.
+  const viewFamilyOption = useCallback((nextProduct: Product) => {
+    onViewProduct?.(nextProduct);
+    bodyRef.current?.scrollTo({ top: 0, behavior: "instant" });
+    closeDrawerButton.current?.focus({ preventScroll: true });
+  }, [onViewProduct]);
+
   if (!activeProduct || !allowed) return null;
 
   const isOutOfStock =
@@ -177,11 +184,7 @@ export function ProductBottomSheet({
                   <ProductFamilyOptions
                     options={familyOptions}
                     activeId={activeProduct.id}
-                    onViewProduct={(nextProduct) => {
-                      onViewProduct(nextProduct);
-                      bodyRef.current?.scrollTo({ top: 0, behavior: 'instant' });
-                      closeDrawerButton.current?.focus({ preventScroll: true });
-                    }}
+                    onViewProduct={viewFamilyOption}
                   />
                 )}
 
