@@ -28,7 +28,7 @@ const productProjection = {
 } satisfies ProductsSelect
 export function catalogRecord(product: Product, context: Context, scope: Scope): CatalogRecord {
   const safe = applyProductPricing(product, scope.permissions.markupPercent, scope.permissions.hideExactStock)
-  const { family: _rawFamily, ...safeWithoutFamily } = safe as typeof safe & { family?: unknown }
+  const { family: _rawFamily, ...safeWithoutFamily } = safe
   return CatalogRecordSchema.parse({
     ...safeWithoutFamily,
     familyId: familyIdOf(product.family),
