@@ -176,32 +176,36 @@ const tags = authed.catalog.tags.handler(async ({ input }) => {
   return docs as Tag[]
 })
 
-async function catalogDimensions(input: { onlyActive?: boolean } | undefined, context: Context) {
+export async function catalogDimensions(input: { onlyActive?: boolean } | undefined, context: Context, facetCategoryIds?: number[]) {
   const docs = (await fetchTaxonomy('dimensions', { onlyActive: input?.onlyActive, sort: 'width' }) as Dimension[]).map((dimension) => ({ ...dimension }))
   if (docs.length === 0) return docs
 
   const isAdmin = context.user?.role === 'admin' || context.user?.role === 'superadmin'
-  const permissions = isAdmin ? null : await getUserPermissions(context.user?.id, context)
+  const permissions = facetCategoryIds === undefined && !isAdmin ? await getUserPermissions(context.user?.id, context) : null
+  const allowedCategoryIds = facetCategoryIds ?? permissions?.allowedCategoryIds ?? []
   const where = {
     isActive: { equals: true },
     dimension: { in: docs.map((dimension) => dimension.id) },
-    ...(permissions?.allowedCategoryIds.length ? { category: { in: permissions.allowedCategoryIds } } : {}),
+    ...(allowedCategoryIds.length ? { category: { in: allowedCategoryIds } } : {}),
   }
   const counts = new Map<string, number>()
   let page = 1
   while (true) {
     const result = await sdk.find({
-      collection: 'products', where, select: { dimension: true }, depth: 0,
+      collection: 'products', where, select: { dimension: true, productType: true }, depth: 0,
       limit: 500, page, sort: 'id',
     })
     for (const product of result.docs) {
+      if (facetCategoryIds !== undefined && product.productType === 'other') continue
       const id = typeof product.dimension === 'object' ? product.dimension?.id : product.dimension
       if (id != null) counts.set(String(id), (counts.get(String(id)) ?? 0) + 1)
     }
     if (!result.hasNextPage) break
     page += 1
   }
-  return docs.sort((a, b) => (counts.get(String(b.id)) ?? 0) - (counts.get(String(a.id)) ?? 0))
+  return docs
+    .filter(dimension => facetCategoryIds === undefined || (counts.has(String(dimension.id)) && dimension.name === dimension.name.replace(/x/gi, '×').trim()))
+    .sort((a, b) => (counts.get(String(b.id)) ?? 0) - (counts.get(String(a.id)) ?? 0))
 }
 const dimensions = authed.catalog.dimensions.handler(({ input, context }) => catalogDimensions(input, context))
 
@@ -270,7 +274,7 @@ export const catalog = base.catalog.router({
   ...catalogSync,
   facets: authed.catalog.facets.handler(async ({ context }) => {
     const scope = await catalogScope(context)
-    const docs = await catalogDimensions({ onlyActive: true }, context)
+    const docs = await catalogDimensions({ onlyActive: true }, context, scope.permissions.allowedCategoryIds)
     return { scopeKey: scope.scopeKey, dimensions: docs.map(doc => ({ ...doc })) }
   }),
   list,
