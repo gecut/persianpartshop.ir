@@ -17,6 +17,7 @@ import { Categories } from './collections/categories'
 import { Brands } from './collections/brands'
 import { Tags } from './collections/tags'
 import { Products } from './collections/products'
+import { ProductFamilies } from './collections/product-families'
 import { Orders } from './collections/orders'
 import { Plans } from './collections/plans'
 import { Dimensions } from './collections/dimensions'
@@ -136,6 +137,7 @@ export default buildConfig({
   collections: addMcpWriteGuards(protectBusinessRelations([
     // کاتالوگ و انبارداری
     Products,
+    ProductFamilies,
     Categories,
     Dimensions,
     Brands,

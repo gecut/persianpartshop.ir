@@ -3,6 +3,7 @@ import { PRODUCT_GRADE_OPTIONS } from "@persianpart/contract";
 import { syncSlugAndDimensions } from "./_sync-slug-and-dimensions.before-validate";
 import { getAdminUser, isAdminAuthenticated, isCatalogManager } from "../../access/roles";
 import { logAction } from "../audit-logs/log-action";
+import { familyChange } from "./_family-change";
 import {
   canUpdateOperationalPrice,
 } from "./_product-access";
@@ -66,6 +67,10 @@ export const Products: CollectionConfig = {
           }
           if (previousDoc?.name !== doc.name) {
             changes.push(`عنوان: «${previousDoc?.name}» -> «${doc.name}»`);
+          }
+          const familyChangeLog = familyChange(previousDoc?.family, doc.family);
+          if (familyChangeLog) {
+            changes.push(familyChangeLog);
           }
           details = changes.length > 0 ? changes.join(" | ") : "ویرایش مشخصات کالا";
         }
@@ -139,6 +144,18 @@ export const Products: CollectionConfig = {
                   options: [...PRODUCT_GRADE_OPTIONS],
                 },
               ],
+            },
+            {
+              name: "family",
+              type: "relationship",
+              relationTo: "product-families",
+              hasMany: false,
+              index: true,
+              maxDepth: 0,
+              label: "طرح",
+              admin: {
+                description: "طرحی که این کالا یکی از نسخه‌های آن است. تغییر این فیلد فقط همین کالا را جابه‌جا می‌کند.",
+              },
             },
             {
               name: "dimension", type: "relationship", relationTo: "dimensions", label: "سایز / ابعاد",

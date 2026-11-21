@@ -29,6 +29,7 @@ const referenceActions: Record<string, string> = {
   'products.brand': 'ابتدا برند را در فرم محصول تغییر دهید.',
   'products.dimension': 'ابتدا ابعاد را در فرم محصول تغییر دهید.',
   'products.tags': 'ابتدا برچسب را از فرم محصول بردارید.',
+  'products.family': 'ابتدا طرح را از فرم کالاهای عضو بردارید یا تغییر دهید.',
 }
 
 export const protectReferencedDocument: CollectionBeforeDeleteHook = async ({ id, collection, req }) => {

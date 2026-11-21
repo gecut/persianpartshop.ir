@@ -69,6 +69,7 @@ export interface Config {
   blocks: {};
   collections: {
     products: Product;
+    'product-families': ProductFamily;
     categories: Category;
     dimensions: Dimension;
     brands: Brand;
@@ -91,9 +92,14 @@ export interface Config {
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
   };
-  collectionsJoins: {};
+  collectionsJoins: {
+    'product-families': {
+      products: 'products';
+    };
+  };
   collectionsSelect: {
     products: ProductsSelect<false> | ProductsSelect<true>;
+    'product-families': ProductFamiliesSelect<false> | ProductFamiliesSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     dimensions: DimensionsSelect<false> | DimensionsSelect<true>;
     brands: BrandsSelect<false> | BrandsSelect<true>;
@@ -199,6 +205,10 @@ export interface Product {
    */
   color?: string | null;
   grade?: ('grade_1' | 'grade_2' | 'grade_3' | 'grade_4' | 'grade_d' | 'grade_c' | 'cg3') | null;
+  /**
+   * طرحی که این کالا یکی از نسخه‌های آن است. تغییر این فیلد فقط همین کالا را جابه‌جا می‌کند.
+   */
+  family?: (number | null) | ProductFamily;
   dimension?: (number | null) | Dimension;
   width?: number | null;
   height?: number | null;
@@ -369,6 +379,24 @@ export interface Media {
       filename?: string | null;
     };
   };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "product-families".
+ */
+export interface ProductFamily {
+  id: number;
+  /**
+   * مثلاً «آلاوس — پرسپولیس یزد».
+   */
+  name: string;
+  products?: {
+    docs?: (number | Product)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * ابعاد استاندارد کاشی و سرامیک.
@@ -1196,6 +1224,10 @@ export interface PayloadLockedDocument {
         value: number | Product;
       } | null)
     | ({
+        relationTo: 'product-families';
+        value: number | ProductFamily;
+      } | null)
+    | ({
         relationTo: 'categories';
         value: number | Category;
       } | null)
@@ -1324,6 +1356,7 @@ export interface ProductsSelect<T extends boolean = true> {
   brand?: T;
   color?: T;
   grade?: T;
+  family?: T;
   dimension?: T;
   width?: T;
   height?: T;
@@ -1349,6 +1382,16 @@ export interface ProductsSelect<T extends boolean = true> {
   richDescription?: T;
   slug?: T;
   scanCode?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "product-families_select".
+ */
+export interface ProductFamiliesSelect<T extends boolean = true> {
+  name?: T;
+  products?: T;
   updatedAt?: T;
   createdAt?: T;
 }
