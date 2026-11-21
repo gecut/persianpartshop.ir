@@ -59,6 +59,7 @@ const projection = {
   family: true,
   updatedAt: true,
 } satisfies ProductsSelect
+const { richDescription: _rich, cover: _cover, gallery: _gallery, ...familyProjection } = projection
 
 export function createCatalogService(req: PayloadRequest) {
   async function loadSettings() {
@@ -97,6 +98,7 @@ export function createCatalogService(req: PayloadRequest) {
   async function hydrate(
     rows: CatalogQueryResult['rows'],
     settings: CatalogSettings,
+    select: ProductsSelect = projection,
   ) {
     if (!rows.length)
       return {
@@ -106,7 +108,7 @@ export function createCatalogService(req: PayloadRequest) {
     const result = await req.payload.find({
       collection: 'products',
       where: { id: { in: rows.map((row) => row.id) } },
-      select: projection,
+      select,
       limit: rows.length,
       depth: 1,
       req,
@@ -216,10 +218,9 @@ export function createCatalogService(req: PayloadRequest) {
         throw new APIError('محصول در کاتالوگ موجود نیست.', 404, {
           code: 'CATALOG_NOT_FOUND',
         })
-      const originDoc = byId.get(input.id)
-      const familyId = relationId(originDoc?.family)
-      let familyOptions: PublicCatalogFamilyOption[] = []
-      if (familyId != null) {
+      const familyId = relationId(byId.get(input.id)?.family)
+      const loadFamilyOptions = async (): Promise<PublicCatalogFamilyOption[]> => {
+        if (familyId == null) return []
         const familyData = await query({
           policy,
           mode: 'browse',
@@ -228,20 +229,15 @@ export function createCatalogService(req: PayloadRequest) {
           page: 1,
           sort: 'default',
         })
-        if (familyData.total > 100) {
-          throw unavailable()
-        }
-        const { items: familyProducts } = await hydrate(
-          familyData.rows,
-          settings,
-        )
-        familyOptions = familyProducts.map(toFamilyOption)
+        if (familyData.total > 100) throw unavailable()
+        const { items } = await hydrate(familyData.rows, settings, familyProjection)
+        return items.map(toFamilyOption)
       }
-      return {
-        product: products[0],
-        config: await config(settings),
-        familyOptions,
-      }
+      const [publicSettings, familyOptions] = await Promise.all([
+        config(settings),
+        loadFamilyOptions(),
+      ])
+      return { product: products[0], config: publicSettings, familyOptions }
     },
     preview: async (settings: CatalogSettings, productId?: number) => {
       const result = await query({
