@@ -1,6 +1,17 @@
 import { getSalesFactor } from '@persianpart/cms/inventory'
 import { ORPCError } from '@orpc/server'
+import type { Product } from '@persianpart/cms/types'
 import { sdk } from '../lib/payload'
+
+/**
+ * Normalizes a product family relation (raw ID, populated object, or null/undefined)
+ * into a valid positive integer ID or null.
+ */
+export function familyIdOf(family: Product['family']): number | null {
+  const raw: unknown = typeof family === 'object' && family !== null ? family.id : family
+  const id = typeof raw === 'string' && raw.trim() ? Number(raw) : raw
+  return typeof id === 'number' && Number.isInteger(id) && id > 0 ? id : null
+}
 
 export interface CartonCalcInput {
   productId?: string | number

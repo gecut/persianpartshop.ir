@@ -9,6 +9,7 @@ import { sdk } from '../lib/payload'
 import { ORPCError } from '@orpc/server'
 import { applyProductPricing, getUserPermissions } from './router.helpers'
 import { attachWarehouseStock } from './warehouse-stock.helpers'
+import { familyIdOf } from './catalog.helpers'
 
 const hash = (value: string) => createHash('sha256').update(value).digest('hex')
 export async function catalogScope(context: Context) {
@@ -20,13 +21,17 @@ type Scope = Awaited<ReturnType<typeof catalogScope>>
 const productProjection = {
   name: true, sku: true, slug: true, isActive: true, productType: true,
   category: true, brand: true, color: true, grade: true, tags: true, dimension: true,
+  family: true,
   width: true, height: true, basePricePerSqm: true, sqmPerCarton: true, piecesPerCarton: true,
   cartonsPerPallet: true, unit: true, weight: true, secondary_unit: true, itemsPerPack: true,
   approxCoverage: true, cover: true, gallery: true, richDescription: true, scanCode: true, createdAt: true, updatedAt: true,
 } satisfies ProductsSelect
 export function catalogRecord(product: Product, context: Context, scope: Scope): CatalogRecord {
   const safe = applyProductPricing(product, scope.permissions.markupPercent, scope.permissions.hideExactStock)
-  return CatalogRecordSchema.parse({ ...safe,
+  const { family: _rawFamily, ...safeWithoutFamily } = safe as typeof safe & { family?: unknown }
+  return CatalogRecordSchema.parse({
+    ...safeWithoutFamily,
+    familyId: familyIdOf(product.family),
     createdAt: product.createdAt,
     scanHash: context.user?.role === 'customer' && scope.permissions.canUseProductQr && product.scanCode ? hash(product.scanCode.trim().toUpperCase()) : undefined,
   })

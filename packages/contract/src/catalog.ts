@@ -432,6 +432,7 @@ export const CatalogRecordSchema = ScannedCatalogProductSchema.omit({ hasScanCod
   hasScanCode: z.boolean(),
   scanHash: z.string().regex(/^[a-f0-9]{64}$/).optional(),
   createdAt: z.string(),
+  familyId: z.number().int().positive().nullable().optional(),
 })
 export type CatalogRecord = z.infer<typeof CatalogRecordSchema>
 export const CatalogBrowseInputSchema = z.object({
