@@ -54,7 +54,7 @@ CMS stores media under its `media` directory and can return CDN URLs. API uses `
 
 Catalog is included in the main Compose file as a single Node standalone renderer on port 5176. It waits for CMS and calls `http://persianpart-cms:5174/api` through Payload SDK; it neither waits for nor calls API. CMS starts after migration; the commerce API independently waits for CMS. Dokploy Domains targets service `catalog`, port 5176; public JSON stays on Catalog with no-store/rate limiting (configure the existing proxy for `/api/catalog/browse`). No production deployment is implied.
 
-Migration is a one-shot command and API/CMS depend on its success. CMS PostgreSQL adapter also has `push: false` and `prodMigrations: migrations`. This configuration is not proof of zero-downtime deployment: the baseline targets a fresh empty database. See the [runbook](06-admin-and-operations.md).
+Migration is a one-shot command and API/CMS depend on its success. The `migration` Compose service (`payload migrate`) is the only migration runner: the CMS PostgreSQL adapter has `push: false` and no `prodMigrations`, so CMS startup never changes the schema. This configuration is not proof of zero-downtime deployment: the baseline targets a fresh empty database. See the [runbook](06-admin-and-operations.md).
 
 Shared volume mounts differ by service: API `/app/media`, CMS `/app/apps/cms/media`, CDN `/data:ro`. Normal ports are API 5175, CMS 5174, web/CDN container 80; local Vite defaults to 5173.
 

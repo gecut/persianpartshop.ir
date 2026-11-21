@@ -38,7 +38,6 @@ import { catalogBrowseEndpoint, planBrowseEndpoint } from './endpoints/catalog-b
 
 import { fa } from '@payloadcms/translations/languages/fa'
 import { en } from '@payloadcms/translations/languages/en'
-import { migrations } from './migrations'
 import { addMcpWriteGuards, cmsMcp } from './mcp/config'
 import { mcpUploadEndpoint } from './mcp/transfers'
 
@@ -176,7 +175,6 @@ export default buildConfig({
           connectionString: databaseUrl,
         },
         push: false,
-        prodMigrations: migrations,
       })
     : sqliteAdapter({
         client: {
