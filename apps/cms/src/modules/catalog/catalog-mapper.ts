@@ -1,7 +1,15 @@
 import { mediaUrl } from '@persianpart/contract'
-import { PublicCatalogConfigSchema, PublicCatalogProductSchema } from '@persianpart/contract/public-catalog'
+import {
+  PublicCatalogConfigSchema,
+  PublicCatalogProductSchema,
+  PublicCatalogFamilyOptionSchema,
+} from '@persianpart/contract/public-catalog'
 import type { CatalogMedia } from '@persianpart/contract'
-import type { CatalogSettings, PublicCatalogProduct } from '@persianpart/contract/public-catalog'
+import type {
+  CatalogSettings,
+  PublicCatalogProduct,
+  PublicCatalogFamilyOption,
+} from '@persianpart/contract/public-catalog'
 import type { Product, Media } from '../../payload-types'
 
 import type { CatalogQueryResult } from './catalog-query-types'
@@ -142,5 +150,28 @@ export function mapPublicProduct(
         : { mode: 'unpriced' },
     stock,
     updatedAt: product.updatedAt,
+  })
+}
+
+export function toFamilyOption(
+  product: PublicCatalogProduct,
+): PublicCatalogFamilyOption {
+  return PublicCatalogFamilyOptionSchema.parse({
+    id: product.id,
+    name: product.name,
+    sku: product.sku,
+    productType: product.productType,
+    brand: product.brand,
+    dimension: product.dimension,
+    color: product.color,
+    grade: product.grade,
+    tags: product.tags,
+    width: product.width,
+    height: product.height,
+    unit: product.unit,
+    weight: product.weight,
+    itemsPerPack: product.itemsPerPack,
+    price: product.price,
+    stock: product.stock,
   })
 }

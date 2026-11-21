@@ -76,10 +76,13 @@ export function catalogQuerySQL(options: CatalogQuery) {
   const pct = param(input.policy.pricing.percentage),
     step = param(input.policy.pricing.roundingStep)
   const condition = render(input.policy.condition)
-  const target =
+  let target =
     input.productId == null
       ? ''
       : ` AND p.id = ${param(input.productId)}::bigint`
+  if (input.familyId != null) {
+    target += ` AND p.family_id = ${param(input.familyId)}::bigint`
+  }
   const sort = {
     default: 'p.name ASC, p.id ASC',
     newest: 'p.created_at DESC, p.id DESC',
@@ -119,7 +122,7 @@ export function catalogQuerySQL(options: CatalogQuery) {
           THEN 'available' WHEN catalog_inquiry THEN 'inquiry' ELSE 'out_of_stock' END AS catalog_status
       FROM priced p
     ), matching AS (
-      SELECT p.* FROM enriched p LEFT JOIN brands b ON b.id=p.brand_id LEFT JOIN dimensions d ON d.id=p.dimension_id WHERE ${condition}${target}
+      SELECT p.* FROM enriched p LEFT JOIN brands b ON b.id=p.brand_id LEFT JOIN dimensions d ON d.id=p.dimension_id WHERE (${condition})${target}
     ), page AS (
       SELECT p.id,p.catalog_price AS price,p.catalog_quantity AS quantity,p.catalog_status AS status, row_number() OVER(ORDER BY ${sort}) AS ordinal
       FROM matching p ORDER BY ${sort} LIMIT ${limit} OFFSET ${offset}

@@ -36,6 +36,7 @@ export interface CatalogQuery {
   page?: number
   limit?: number
   productId?: number
+  familyId?: number
   sort?: NonNullable<PublicCatalogBrowseInput['sort']>
 }
 export const CatalogQueryResultSchema = z

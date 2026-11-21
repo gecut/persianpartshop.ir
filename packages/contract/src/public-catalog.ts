@@ -284,6 +284,27 @@ export const PublicCatalogProductSchema = z
   })
   .strict()
 export type PublicCatalogProduct = z.infer<typeof PublicCatalogProductSchema>
+export const PublicCatalogFamilyOptionSchema = PublicCatalogProductSchema.pick({
+  id: true,
+  name: true,
+  sku: true,
+  productType: true,
+  brand: true,
+  dimension: true,
+  color: true,
+  grade: true,
+  tags: true,
+  width: true,
+  height: true,
+  unit: true,
+  weight: true,
+  itemsPerPack: true,
+  price: true,
+  stock: true,
+}).strict()
+export type PublicCatalogFamilyOption = z.infer<
+  typeof PublicCatalogFamilyOptionSchema
+>
 export const PublicCatalogPageSchema = z
   .object({
     state: z.enum(['active', 'paused']),
@@ -335,6 +356,7 @@ export const catalogOperations = {
       .object({
         config: PublicCatalogConfigSchema,
         product: PublicCatalogProductSchema,
+        familyOptions: z.array(PublicCatalogFamilyOptionSchema),
       })
       .strict(),
   },

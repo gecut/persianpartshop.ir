@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { defaultCatalogSettings } from '@persianpart/contract/public-catalog'
 import type { Product } from '../../payload-types'
-import { mapPublicProduct, publicConfig } from './catalog-mapper'
+import { mapPublicProduct, publicConfig, toFamilyOption } from './catalog-mapper'
 
 const product: Product = {
   id: 1,
@@ -76,4 +76,55 @@ test('cover identity is separate from gallery; aliases and duplicate gallery URL
   const result=mapPublicProduct({...product,cover,gallery:[{image:cover},{image:gallery},{image:gallery}]},row,defaultCatalogSettings())
   assert.equal(result.cover?.alt,'cover.webp')
   assert.deepEqual(result.photos.map(photo=>photo.alt),['gallery.webp'])
+})
+
+test('toFamilyOption keeps hidden modes and drops non-option fields', () => {
+  const settings = defaultCatalogSettings()
+  settings.stock.mode = 'hidden'
+  settings.pricing.showPrice = false
+  const mapped = mapPublicProduct(product, row, settings)
+  assert.deepEqual(mapped.price, { mode: 'hidden' })
+  assert.deepEqual(mapped.stock, { mode: 'hidden' })
+
+  const option = toFamilyOption(mapped)
+  assert.deepEqual(option.price, { mode: 'hidden' })
+  assert.deepEqual(option.stock, { mode: 'hidden' })
+
+  const optionRecord = option as unknown as Record<string, unknown>
+  for (const field of [
+    'category',
+    'sqmPerCarton',
+    'piecesPerCarton',
+    'secondaryUnit',
+    'approxCoverage',
+    'description',
+    'cover',
+    'photos',
+    'updatedAt',
+    'familyId',
+    'family',
+  ]) {
+    assert.equal(field in optionRecord, false, `option must not contain ${field}`)
+  }
+
+  for (const field of [
+    'id',
+    'name',
+    'sku',
+    'productType',
+    'brand',
+    'dimension',
+    'color',
+    'grade',
+    'tags',
+    'width',
+    'height',
+    'unit',
+    'weight',
+    'itemsPerPack',
+    'price',
+    'stock',
+  ]) {
+    assert.ok(field in optionRecord, `option must contain ${field}`)
+  }
 })

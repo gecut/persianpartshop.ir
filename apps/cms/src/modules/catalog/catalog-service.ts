@@ -1,13 +1,23 @@
 import { APIError, type PayloadRequest } from 'payload'
-import { StoredCatalogSettingsSchema, PublicCatalogBrowseSchema, PublicCatalogPageSchema, CatalogPreviewSchema, type CatalogSettings, type PublicCatalogBrowseInput, type CatalogInput } from '@persianpart/contract/public-catalog'
-import type { Media, ProductsSelect } from '../../payload-types'
+import {
+  StoredCatalogSettingsSchema,
+  PublicCatalogBrowseSchema,
+  PublicCatalogPageSchema,
+  CatalogPreviewSchema,
+  type CatalogSettings,
+  type PublicCatalogBrowseInput,
+  type CatalogInput,
+  type PublicCatalogFamilyOption,
+} from '@persianpart/contract/public-catalog'
+import type { Media, Product, ProductsSelect } from '../../payload-types'
 import {
   compilePolicy,
   applyVisitorFilters,
   hasEmptyCriteria,
 } from './catalog-policy'
-import { mapPublicProduct, publicConfig } from './catalog-mapper'
+import { mapPublicProduct, publicConfig, toFamilyOption } from './catalog-mapper'
 import { catalogQuerySQL } from './catalog-query-sql'
+import { relationId } from '../../lib/relation-id'
 import {
   CatalogQueryResultSchema,
   type CatalogQuery,
@@ -46,6 +56,7 @@ const projection = {
   richDescription: true,
   cover: true,
   gallery: true,
+  family: true,
   updatedAt: true,
 } satisfies ProductsSelect
 
@@ -87,7 +98,11 @@ export function createCatalogService(req: PayloadRequest) {
     rows: CatalogQueryResult['rows'],
     settings: CatalogSettings,
   ) {
-    if (!rows.length) return []
+    if (!rows.length)
+      return {
+        items: [] as ReturnType<typeof mapPublicProduct>[],
+        byId: new Map<number, Product>(),
+      }
     const result = await req.payload.find({
       collection: 'products',
       where: { id: { in: rows.map((row) => row.id) } },
@@ -98,10 +113,11 @@ export function createCatalogService(req: PayloadRequest) {
       overrideAccess: false,
     })
     const byId = new Map(result.docs.map((product) => [product.id, product]))
-    return rows.flatMap((row) => {
+    const items = rows.flatMap((row) => {
       const product = byId.get(row.id)
       return product ? [mapPublicProduct(product, row, settings)] : []
     })
+    return { items, byId }
   }
   async function config(settings: CatalogSettings) {
     async function media(id: number | null): Promise<Media | null> {
@@ -171,7 +187,7 @@ export function createCatalogService(req: PayloadRequest) {
       state: 'active',
       revision,
       config: publicSettings,
-      items: await hydrate(data.rows, settings),
+      items: (await hydrate(data.rows, settings)).items,
       facets: facets.facets,
       total: data.total,
       page: input.page,
@@ -188,18 +204,44 @@ export function createCatalogService(req: PayloadRequest) {
         throw new APIError('محصول در کاتالوگ موجود نیست.', 404, {
           code: 'CATALOG_NOT_FOUND',
         })
+      const policy = compilePolicy(settings)
       const data = await query({
-        policy: compilePolicy(settings),
+        policy,
         mode: 'browse',
         productId: input.id,
         limit: 1,
       })
-      const products = await hydrate(data.rows, settings)
+      const { items: products, byId } = await hydrate(data.rows, settings)
       if (!products[0])
         throw new APIError('محصول در کاتالوگ موجود نیست.', 404, {
           code: 'CATALOG_NOT_FOUND',
         })
-      return { product: products[0], config: await config(settings) }
+      const originDoc = byId.get(input.id)
+      const familyId = relationId(originDoc?.family)
+      let familyOptions: PublicCatalogFamilyOption[] = []
+      if (familyId != null) {
+        const familyData = await query({
+          policy,
+          mode: 'browse',
+          familyId,
+          limit: 100,
+          page: 1,
+          sort: 'default',
+        })
+        if (familyData.total > 100) {
+          throw unavailable()
+        }
+        const { items: familyProducts } = await hydrate(
+          familyData.rows,
+          settings,
+        )
+        familyOptions = familyProducts.map(toFamilyOption)
+      }
+      return {
+        product: products[0],
+        config: await config(settings),
+        familyOptions,
+      }
     },
     preview: async (settings: CatalogSettings, productId?: number) => {
       const result = await query({
@@ -223,7 +265,7 @@ export function createCatalogService(req: PayloadRequest) {
         publishedCount: settings.paused ? 0 : result.total,
         emptyFilteredIsAll:
           settings.base === 'filtered' && hasEmptyCriteria(settings),
-        sample: await hydrate(result.rows, settings),
+        sample: (await hydrate(result.rows, settings)).items,
         explain,
       })
     },
