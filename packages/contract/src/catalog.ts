@@ -20,6 +20,31 @@ export const PRODUCT_GRADE_OPTIONS = [
   { value: 'cg3', label: 'CG3' },
 ] as const
 
+export interface FamilyOrderKey {
+  id: string | number
+  name: string
+  width: number | null
+  height: number | null
+  grade: string | null | undefined
+}
+const gradeRank = (grade: FamilyOrderKey['grade']) => {
+  const index = PRODUCT_GRADE_OPTIONS.findIndex((option) => option.value === grade)
+  return index < 0 ? Infinity : index
+}
+const nullsLast = (a: number | null, b: number | null) =>
+  a === b ? 0 : a == null ? 1 : b == null ? -1 : a - b
+/** Family member order shared by Web and Catalog: name, width, height, grade, then id. */
+export function compareFamilyOrder(a: FamilyOrderKey, b: FamilyOrderKey): number {
+  return (
+    a.name.localeCompare(b.name, 'fa') ||
+    nullsLast(a.width, b.width) ||
+    nullsLast(a.height, b.height) ||
+    (gradeRank(a.grade) === gradeRank(b.grade) ? 0 : gradeRank(a.grade) - gradeRank(b.grade)) ||
+    Number(a.id) - Number(b.id) ||
+    String(a.id).localeCompare(String(b.id))
+  )
+}
+
 // ============================================================================
 // 1. Automotive Spare Parts Schemas
 // ============================================================================
