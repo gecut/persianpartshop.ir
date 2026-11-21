@@ -6,6 +6,7 @@ import {
   handleServerFunctions,
   RootLayout,
 } from '@payloadcms/next/layouts'
+import type { Viewport } from 'next'
 import React from 'react'
 
 import { importMap } from './admin/importMap.js'
@@ -14,6 +15,13 @@ import AdminEnhancements from './admin-enhancements'
 
 type Args = {
   children: React.ReactNode
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 }
 
 const serverFunction: ServerFunctionClient = async function (args) {
