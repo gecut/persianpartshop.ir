@@ -1,10 +1,10 @@
-import { PRODUCT_GRADE_OPTIONS, type CatalogBrowseInput, type CatalogRecord } from '@persianpart/contract'
+import { PRODUCT_GRADE_OPTIONS, normalizeDimensionName, type CatalogBrowseInput, type CatalogRecord } from '@persianpart/contract'
 
 const names = new Intl.Collator('fa')
 
 export function browseOffline(records: CatalogRecord[], filters: Omit<CatalogBrowseInput, 'page'>) {
   const search = filters.search.trim().toLowerCase()
-  const dimension = filters.dimension?.replace(/x/gi, '×').trim()
+  const dimension = filters.dimension ? normalizeDimensionName(filters.dimension) : null
   const gradeValues = new Set(PRODUCT_GRADE_OPTIONS.filter(grade => filters.grades.includes(grade.label)).map(grade => String(grade.value)))
   const matches = records.filter(record => {
     const brand = typeof record.brand === 'object' ? record.brand?.name ?? 'پرشین پارت' : 'پرشین پارت'
@@ -14,7 +14,7 @@ export function browseOffline(records: CatalogRecord[], filters: Omit<CatalogBro
     const size = record.productType === 'other'
       ? record.weight && record.weight > 0 ? `${record.weight} کیلوگرم` : ''
       : (typeof record.dimension === 'object' ? record.dimension?.name : undefined) ?? `${record.width ?? 60}×${record.height ?? 120}`
-    if (dimension && size !== dimension || filters.category && category !== filters.category) return false
+    if (dimension && normalizeDimensionName(size) !== dimension || filters.category && category !== filters.category) return false
     if (filters.brands.length && !filters.brands.includes(brand) || filters.colors.length && !filters.colors.includes(color)) return false
     if (filters.grades.length && !gradeValues.has(record.grade ?? '') || filters.tags.length && !tags.some(tag => filters.tags.includes(tag))) return false
     if (filters.supplyMode ? !record.hasSupplySource : filters.inStock && !record.matchesInStockFilter) return false

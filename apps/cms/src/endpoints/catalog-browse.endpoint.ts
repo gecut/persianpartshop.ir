@@ -1,6 +1,6 @@
 import type { Endpoint } from 'payload'
 import { z } from 'zod'
-import { CatalogBrowseInputSchema, PRODUCT_GRADE_OPTIONS } from '@persianpart/contract'
+import { CatalogBrowseInputSchema, PRODUCT_GRADE_OPTIONS, normalizeDimensionName } from '@persianpart/contract'
 import { getAdminUser } from '../access/roles'
 
 export const InternalCatalogBrowseSchema = CatalogBrowseInputSchema.extend({
@@ -21,7 +21,8 @@ export function catalogBrowseQuery(input: z.infer<typeof InternalCatalogBrowseSc
       .map(({ value }) => value)
     conditions.push(`p.grade::text = ANY(${param(gradeValues)}::text[])`)
   }
-  if (input.dimension) conditions.push(`${dimension} = ${param(input.dimension.replace(/x/gi, '×').trim())}`)
+  // Same rule as normalizeDimensionName, applied to the stored name as well as the input.
+  if (input.dimension) conditions.push(`btrim(translate(${dimension}, 'xX', '××')) = ${param(normalizeDimensionName(input.dimension))}`)
   if (input.category) conditions.push(`COALESCE(c.name,'عمومی') = ${param(input.category)}`)
   for (const [values, expression] of [[input.brands, "COALESCE(b.name,'پرشین پارت')"], [input.colors, "COALESCE(NULLIF(p.color,''),'استاندارد')"]] as const) {
     if (values.length) conditions.push(`${expression} = ANY(${param(values)}::text[])`)

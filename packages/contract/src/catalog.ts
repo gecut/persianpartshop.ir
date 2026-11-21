@@ -460,6 +460,10 @@ export const CatalogRecordSchema = ScannedCatalogProductSchema.omit({ hasScanCod
   familyId: z.number().int().positive().nullable().optional(),
 })
 export type CatalogRecord = z.infer<typeof CatalogRecordSchema>
+/** Browse matches a dimension by its normalized name: `60x120` and `60×120` are the same size. */
+export function normalizeDimensionName(name: string) {
+  return name.replace(/x/gi, '×').trim()
+}
 export const CatalogBrowseInputSchema = z.object({
   page: z.number().int().positive().default(1),
   limit: z.number().int().min(1).max(100).default(24),

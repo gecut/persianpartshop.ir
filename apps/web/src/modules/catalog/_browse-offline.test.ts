@@ -22,3 +22,11 @@ test('offline search applies the online dimension, grade, tag and warehouse rule
   expect(browseOffline(products, { ...defaultBrowseFilters, sort: 'cheapest' }).map(record => record.id)).toEqual([3, 2, 1])
   expect(browseOffline(products, { ...defaultBrowseFilters, sort: 'default' }).map(record => record.id)).toEqual([1, 2, 3])
 })
+
+test('offline dimension filter matches a stored name written with x', () => {
+  const products = [
+    product(1, { dimension: { id: 4, name: '30x30', width: 30, height: 30 } }),
+    product(2, { dimension: { id: 5, name: '20×20', width: 20, height: 20 } }),
+  ]
+  expect(browseOffline(products, { ...defaultBrowseFilters, dimension: '30×30' }).map(record => record.id)).toEqual([1])
+})
