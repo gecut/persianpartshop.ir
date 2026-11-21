@@ -1,6 +1,9 @@
 import type { Metadata, Viewport } from 'next'
 import type { ReactNode } from 'react'
 import Link from 'next/link'
+import { InfoCircleIcon } from '@solar-icons/react/linear'
+import { BuiltBy } from '@/components/built-by'
+import { getCatalog } from '@/lib/catalog-server'
 import { CatalogProvider } from '@/components/catalog-provider'
 import { catalogSearchKeys } from '@/lib/catalog-search'
 import './globals.css'
@@ -17,7 +20,20 @@ export const viewport: Viewport = {
   userScalable: false,
 }
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+async function catalogTitle(): Promise<string> {
+  try {
+    return (await getCatalog()).config.title
+  } catch {
+    return 'محصولات'
+  }
+}
+
+export default async function RootLayout({
+  children,
+}: {
+  children: ReactNode
+}) {
+  const title = await catalogTitle()
   const gate = `if(${JSON.stringify(catalogSearchKeys)}.some(k=>new URLSearchParams(location.search).has(k)))document.documentElement.setAttribute('data-catalog-filtered','true');`
   return (
     <html lang="fa" dir="rtl" suppressHydrationWarning>
@@ -44,14 +60,23 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   />
                 </span>
               </Link>
-              <span className="font-bold text-foreground text-sm">محصولات</span>
-              <span className="size-10 ms-1" aria-hidden="true" />
+              <span className="min-w-0 truncate font-bold text-foreground text-sm">
+                {title}
+              </span>
+              <a
+                href="https://vc.persianpartshop.ir"
+                className="size-10 shrink-0 rounded-2xl flex items-center justify-center text-muted hover:text-foreground hover:bg-muted/10 transition-colors"
+                aria-label="درباره ما"
+              >
+                <InfoCircleIcon size={22} />
+              </a>
             </div>
           </header>
-          <main className="flex-1 w-full flex flex-col max-w-xl mx-auto pb-8">
+          <main className="flex-1 w-full flex flex-col max-w-xl mx-auto pb-16">
             {children}
           </main>
         </CatalogProvider>
+        <BuiltBy />
       </body>
     </html>
   )

@@ -1,14 +1,13 @@
 import type { CatalogOutput } from '@persianpart/contract/public-catalog'
-import { catalogOrigin } from '@/lib/catalog-server'
 import { formatGrade, formatToman } from '@/lib/format'
 import { TomanIcon } from '@/components/toman-icon'
 import { CatalogContact } from '@/components/catalog-contact'
 import { ProductGallery } from './_product-gallery'
-import { ProductShare } from './_product-share'
 import { ProductSpecGrid } from './_product-specifications'
 import { ProductFamilyOptions } from './_product-family-options'
 import { sortFamilyOptions } from './_family-options-order'
 import { CatalogBackLink } from './_catalog-back-link'
+import { ProductShareButton } from './_product-share-button'
 
 type ProductViewProps = CatalogOutput<'product'>
 export function ProductView({
@@ -16,14 +15,13 @@ export function ProductView({
   config,
   familyOptions = [],
 }: ProductViewProps) {
-  const url = `${catalogOrigin()}/p/${product.id}`
   return (
     <article className="product-detail py-2 text-start overflow-x-clip">
       <header className="w-full flex items-center justify-between px-5 pt-1 pb-1 gap-2">
         <h1 className="min-w-0 flex-1 text-sm font-extrabold text-foreground mt-0.5 text-start leading-snug">
           {product.name}
         </h1>
-        <ProductShare name={product.name} url={url} />
+        <ProductShareButton name={product.name} />
         <CatalogBackLink />
       </header>
       <div className="[--product-details-inset:--spacing(5)] [--product-details-body-bleed:3px] -mx-(--product-details-body-bleed) px-(--product-details-inset) py-2 space-y-2.5 pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))]">
@@ -51,6 +49,7 @@ export function ProductView({
         <ProductFamilyOptions
           options={sortFamilyOptions(familyOptions)}
           currentId={product.id}
+          config={config}
         />
         {product.description && (
           <div className="p-3 bg-muted/5 rounded-2xl space-y-1">
@@ -86,9 +85,6 @@ export function ProductView({
               </span>
             ))}
           </div>
-        )}
-        {config.priceNote && (
-          <p className="catalog-price-note">{config.priceNote}</p>
         )}
         <CatalogContact config={config} />
       </div>

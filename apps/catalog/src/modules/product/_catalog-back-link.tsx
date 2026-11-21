@@ -1,5 +1,5 @@
 'use client'
-import { CloseIcon } from '@solar-icons/react/linear'
+import { ArrowLeftIcon } from '@solar-icons/react/linear'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { parseCatalogSearch } from '@/lib/catalog-search'
@@ -33,7 +33,7 @@ export function CatalogBackLink() {
       prefetch={false}
       aria-label="بازگشت به محصولات"
     >
-      <CloseIcon size={20} />
+      <ArrowLeftIcon size={20} />
       <LinkPending />
     </Link>
   )

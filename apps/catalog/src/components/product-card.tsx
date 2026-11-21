@@ -2,6 +2,7 @@
 import Link from 'next/link'
 import { MagnifierZoomInIcon } from '@solar-icons/react/linear'
 import type {
+  PublicCatalogFamilyOption,
   PublicCatalogPage,
   PublicCatalogProduct,
 } from '@persianpart/contract/public-catalog'
@@ -17,10 +18,11 @@ import { ProductValues } from '@/components/product-values'
 import { LinkPending } from '@/components/link-pending'
 
 type ProductCardProps = {
-  product: PublicCatalogProduct
+  product: PublicCatalogProduct | PublicCatalogFamilyOption
   config: PublicCatalogPage['config']
   priority: boolean
-  onNavigate: () => void
+  onNavigate?: () => void
+  current?: boolean
 }
 
 export function ProductCard({
@@ -28,8 +30,11 @@ export function ProductCard({
   config,
   priority,
   onNavigate,
+  current = false,
 }: ProductCardProps) {
-  const photo = product.cover ?? product.photos[0] ?? config.fallbackImage
+  const photo =
+    ('cover' in product ? (product.cover ?? product.photos[0]) : null) ??
+    config.fallbackImage
   const unavailable =
     product.stock.mode !== 'hidden' && product.stock.status === 'out_of_stock'
   return (
@@ -37,9 +42,11 @@ export function ProductCard({
       href={`/p/${product.id}`}
       prefetch={false}
       onClick={onNavigate}
+      aria-current={current ? 'page' : undefined}
       className={cn(
         'catalog-product-card group relative flex items-center justify-between px-3.5 py-2.5 sm:p-3 rounded-2xl transition-all duration-300 cursor-pointer select-none text-start bg-muted/5',
         unavailable && 'opacity-80',
+        current && 'ring-2 ring-primary/30',
       )}
     >
       <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
@@ -53,11 +60,6 @@ export function ProductCard({
             fetchPriority={priority ? 'high' : 'auto'}
             className="size-19 aspect-square object-cover rounded-2xl transition-transform duration-200 group-hover/img:scale-105"
           />
-          {config.watermark && (
-            <span className="absolute top-1 end-1 text-[7px] bg-foreground/75 text-background rounded px-1">
-              بازرگانی زمانیان
-            </span>
-          )}
           <div className="absolute inset-0 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center rounded-2xl pointer-events-none">
             <span className="p-1 rounded-md bg-primary flex items-center justify-center size-8 text-primary-foreground">
               <MagnifierZoomInIcon size={16} />
@@ -76,7 +78,7 @@ export function ProductCard({
           <div className="flex items-center gap-1.5 flex-wrap mt-2">
             {product.productType === 'other' ? (
               <>
-                {product.secondaryUnit && (
+                {'secondaryUnit' in product && product.secondaryUnit && (
                   <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-muted/10 text-foreground">
                     {formatUnit(product.secondaryUnit)}
                   </span>
@@ -88,7 +90,7 @@ export function ProductCard({
                       : `${toPersianDigits(product.itemsPerPack!)} عدد`}
                   </span>
                 )}
-                {product.approxCoverage && (
+                {'approxCoverage' in product && product.approxCoverage && (
                   <span className="px-2 py-1 rounded-lg text-xs font-semibold bg-primary/10 text-primary">
                     {product.approxCoverage}
                   </span>

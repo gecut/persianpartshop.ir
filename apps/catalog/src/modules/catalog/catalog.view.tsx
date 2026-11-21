@@ -7,7 +7,7 @@ import { isDefaultCatalogSearch } from '@/lib/catalog-search'
 import { CatalogSkeleton } from '@/components/catalog-skeleton'
 import { CatalogContact } from '@/components/catalog-contact'
 import { CatalogFilters } from './_catalog-filters'
-import { ProductCard } from './_product-card'
+import { ProductCard } from '@/components/product-card'
 import { useCatalogQuery } from './_use-catalog-query'
 import { useCatalogRestoration } from './_use-catalog-restoration'
 
