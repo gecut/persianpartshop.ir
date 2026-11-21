@@ -38,13 +38,14 @@ export function DimensionFilter({
     );
   }
 
-  if (dimensions.length < 2) {
-    return error ? (
-      <Button type="button" variant="ghost" onPress={onRetry} className="h-10 text-xs text-muted">
-        دریافت دوباره ابعاد
-      </Button>
-    ) : null;
-  }
+  const retryButton = error && (
+    <Button type="button" variant="ghost" onPress={onRetry} className="h-10 text-xs text-muted">
+      دریافت دوباره ابعاد
+    </Button>
+  );
+
+  // One dimension offers no choice; keep only the retry affordance.
+  if (dimensions.length < 2) return retryButton || null;
 
   return (
     <div
@@ -82,16 +83,7 @@ export function DimensionFilter({
             </Button>
           );
         })}
-        {error && (
-          <Button
-            type="button"
-            variant="ghost"
-            onPress={onRetry}
-            className="h-10 text-xs text-muted"
-          >
-            دریافت دوباره ابعاد
-          </Button>
-        )}
+        {retryButton}
       </div>
     </div>
   );
