@@ -6,10 +6,16 @@ import { CatalogContact } from '@/components/catalog-contact'
 import { ProductGallery } from './_product-gallery'
 import { ProductShare } from './_product-share'
 import { ProductSpecGrid } from './_product-specifications'
+import { ProductFamilyOptions } from './_product-family-options'
+import { sortFamilyOptions } from './_family-options-order'
 import { CatalogBackLink } from './_catalog-back-link'
 
 type ProductViewProps = CatalogOutput<'product'>
-export function ProductView({ product, config }: ProductViewProps) {
+export function ProductView({
+  product,
+  config,
+  familyOptions = [],
+}: ProductViewProps) {
   const url = `${catalogOrigin()}/p/${product.id}`
   return (
     <article className="product-detail py-2 text-start overflow-x-clip">
@@ -42,6 +48,10 @@ export function ProductView({ product, config }: ProductViewProps) {
           </div>
         )}
         <ProductSpecGrid product={product} />
+        <ProductFamilyOptions
+          options={sortFamilyOptions(familyOptions)}
+          currentId={product.id}
+        />
         {product.description && (
           <div className="p-3 bg-muted/5 rounded-2xl space-y-1">
             <span className="text-xs font-bold text-muted block">توضیحات</span>

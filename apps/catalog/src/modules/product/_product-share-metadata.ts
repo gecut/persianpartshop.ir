@@ -15,7 +15,7 @@ function productMetadataDescription(product: PublicCatalogProduct): string {
 }
 
 export function buildProductShareMetadata(
-  { product, config }: CatalogOutput<'product'>,
+  { product, config }: Pick<CatalogOutput<'product'>, 'product' | 'config'>,
   origin: string,
 ): Metadata {
   const url = `${origin}/p/${product.id}`

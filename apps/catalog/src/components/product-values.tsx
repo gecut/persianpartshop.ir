@@ -1,9 +1,12 @@
-import type { PublicCatalogProduct } from '@persianpart/contract/public-catalog'
+import type {
+  PublicCatalogFamilyOption,
+  PublicCatalogProduct,
+} from '@persianpart/contract/public-catalog'
 import { cn } from '@heroui/react'
 import { formatSquareMeters, formatUnit, toPersianDigits } from '@/lib/format'
 
 type ProductValuesProps = {
-  product: PublicCatalogProduct
+  product: PublicCatalogProduct | PublicCatalogFamilyOption
   variant?: 'badge' | 'detail'
 }
 export function ProductValues({
