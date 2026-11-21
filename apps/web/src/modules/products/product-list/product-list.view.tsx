@@ -312,6 +312,7 @@ export function ProductListView() {
         }
         isOrderingDisabled={isOrderingDisabled}
         onClose={handleCloseBottomSheet}
+        onViewProduct={(product) => setActiveProductId(product.id)}
         onRequestSupply={(product) => {
           handleCloseBottomSheet();
           handleOpenSupplyRequest(product);

@@ -113,6 +113,7 @@ export function PlanCard({ plan, products }: PlanCardProps) {
         isSelected={false}
         isOrderingDisabled={true}
         onClose={() => setSelectedProductForDetail(null)}
+        onViewProduct={setSelectedProductForDetail}
       />
     </>
   );

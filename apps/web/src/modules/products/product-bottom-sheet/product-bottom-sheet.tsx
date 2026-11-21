@@ -8,6 +8,8 @@ import { ProductGallery, type GalleryMediaItem } from "./_product-gallery"
 import { ProductPriceStrip } from "./_product-price-strip"
 import { ProductSpecGrid } from "./_product-spec-grid"
 import { ProductTagList } from "./_product-tag-list"
+import { useFamilyOptions } from "./_use-family-options"
+import { ProductFamilyOptions } from "./_product-family-options"
 
 export interface ProductBottomSheetProps {
   product: Product | null;
@@ -18,6 +20,7 @@ export interface ProductBottomSheetProps {
   onToggleSelect?: () => void;
   onRequestSupply?: (product: Product) => void;
   onOrderDirect?: (product: Product) => void;
+  onViewProduct?: (product: Product) => void;
 }
 
 const ProductQrDownload = lazy(() => import('../product-qr-download').then(module => ({ default: module.ProductQrDownload })));
@@ -38,13 +41,18 @@ export function ProductBottomSheet({
   onToggleSelect,
   onRequestSupply,
   onOrderDirect: _onOrderDirect,
+  onViewProduct,
 }: ProductBottomSheetProps) {
   const [zoomSession, setZoomSession] = useState<ZoomSession | null>(null);
   const [zoomSelection, setZoomSelection] = useState<{ productId: string; item: GalleryMediaItem } | null>(null);
   const closeDrawerButton = useRef<HTMLButtonElement>(null);
   const [qrOpen, setQrOpen] = useState(false);
 
-  useLayoutEffect(() => { setQrOpen(false) }, [product?.id, isOpen]);
+  useLayoutEffect(() => {
+    setQrOpen(false);
+    setZoomSession(null);
+    setZoomSelection(null);
+  }, [product?.id, isOpen]);
 
   // Preserve rendered product for smooth close transitions
   const [renderedProduct, setRenderedProduct] = useState<Product | null>(
@@ -72,6 +80,7 @@ export function ProductBottomSheet({
   const allowed = activeProduct && isProductAllowedForUser(activeProduct, user);
   const viewer = isOpen && allowed && zoomSession?.productId === activeProduct?.id ? zoomSession : null;
   const returnPhoto = zoomSelection?.productId === activeProduct?.id ? zoomSelection?.item ?? null : null;
+  const familyOptions = useFamilyOptions(activeProduct?.id, isOpen);
 
   useEffect(() => {
     if (!viewer && zoomSession) setZoomSession(null);
@@ -161,6 +170,15 @@ export function ProductBottomSheet({
 
                 {/* Structured Specifications with Solar Icons */}
                 <ProductSpecGrid product={activeProduct} />
+
+                {/* Other Family Members ("طرح") */}
+                {onViewProduct && (
+                  <ProductFamilyOptions
+                    options={familyOptions}
+                    activeId={activeProduct.id}
+                    onViewProduct={onViewProduct}
+                  />
+                )}
 
                 {/* Optional Rich Description */}
                 {(activeProduct.richDescription ||
