@@ -1,6 +1,7 @@
 {
   "name": "persianpart",
   "private": true,
+  "license": "UNLICENSED",
   "scripts": {
     "dev": "pnpm dev",
     "dev:cms": "pnpm --filter @persianpart/cms dev",
