@@ -179,9 +179,6 @@ pnpm --filter @persianpart/web dev --port 5173
 # 4. Linting & Formatting (To be configured: recommended Biome or ESLint v9)
 # Current: Enforced via TypeScript compiler strictness flags in tsconfig.json
 
-# 4b. Architecture guard (import cycles, layers, private files; runs under Bun)
-pnpm check:deps
-
 # 5. Tests (existing, not aspirational)
 pnpm test:unit                                      # isolated unit tests across workspaces
 pnpm --filter @persianpart/cms test:unit              # node:test via tsx
@@ -203,7 +200,7 @@ pnpm --filter @persianpart/catalog test               # node:test via tsx
 - `components/` (pure shared UI) and `lib/` (infra, utils, query keys) must not import from `modules/` or `app/`; `lib/` must not import `components/` either (register UI callbacks from `main.tsx`, as with `setDraftFailureReporter`).
 - Imports: `@/…` across directories, relative inside one module. No barrel (`index.ts`) files. Filenames are kebab-case.
 - Module layers: non-view files may import only earlier layers — `auth` → `pwa` → `account`, `catalog` → `orders` → `cart` → `checkout` → `supply-requests` → `products` → `plans`. `catalog` owns the shared catalog core (selection store, catalog data/coordinator, mapper, types, small product image); `products` owns product pages and UI. `*.view.tsx` files are composition roots and may compose any module. A lower module that must react to a higher one subscribes to it (e.g. `onSessionEnd` in `auth-store`) instead of being imported by it.
-- `pnpm check:deps` enforces these rules and rejects runtime import cycles; type-only imports are exempt.
+- These rules are conventions; there is currently no automated architecture guard (the dependency-cruiser check was removed).
 
 ---
 

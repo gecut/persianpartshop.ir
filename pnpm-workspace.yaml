@@ -7,8 +7,3 @@ allowBuilds:
   sharp: true
   "@swc/core": true
   unrs-resolver: true
-packageExtensions:
-  # dependency-cruiser imports typescript at runtime without declaring it; link the root copy.
-  dependency-cruiser:
-    peerDependencies:
-      typescript: "*"

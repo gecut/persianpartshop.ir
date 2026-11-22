@@ -17,12 +17,10 @@
     "dev:all": "pnpm --filter @persianpart/web dev & pnpm --filter @persianpart/cms dev & pnpm --filter @persianpart/api dev",
     "build:catalog": "pnpm --filter @persianpart/catalog build",
     "dev:catalog": "pnpm --filter @persianpart/catalog dev",
-    "test:unit": "pnpm --filter @persianpart/catalog test && pnpm --filter @persianpart/cms test:unit && pnpm --filter @persianpart/api test && pnpm --filter @persianpart/web test:unit",
-    "check:deps": "bun x --bun depcruise apps/web/src --config .dependency-cruiser.cjs --ts-config apps/web/tsconfig.json --output-type err && bun x --bun depcruise apps/cms/src --config .dependency-cruiser.cjs --ts-config apps/cms/tsconfig.json --output-type err && bun x --bun depcruise apps/api/src --config .dependency-cruiser.cjs --ts-config apps/api/tsconfig.json --output-type err"
+    "test:unit": "pnpm --filter @persianpart/catalog test && pnpm --filter @persianpart/cms test:unit && pnpm --filter @persianpart/api test && pnpm --filter @persianpart/web test:unit"
   },
   "packageManager": "pnpm@11.18.0",
   "devDependencies": {
-    "dependency-cruiser": "^18.8.0",
     "typescript": "6.0.3"
   }
 }

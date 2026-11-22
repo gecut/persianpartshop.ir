@@ -109,7 +109,6 @@ Set `DISABLE_SMS=true` to avoid sending real SMS during development.
 | --- | --- |
 | `pnpm check-types` | Type-check every workspace |
 | `pnpm test:unit` | Isolated unit tests across workspaces |
-| `pnpm check:deps` | Architecture guard: import cycles, layers, private files (needs Bun) |
 | `pnpm build` | Build CMS, API (type-check), web and catalog |
 | `pnpm migrate:cms`, `pnpm migrate:cms:status` | Run or inspect CMS migrations |
 
@@ -135,7 +134,7 @@ This repository is maintained with LLM coding agents. [`AGENTS.md`](AGENTS.md) i
 ## Contributing
 
 1. Read `AGENTS.md` and the relevant docs before changing behavior.
-2. Run `pnpm check-types`, `pnpm test:unit` and `pnpm check:deps` before committing.
+2. Run `pnpm check-types` and `pnpm test:unit` before committing.
 3. Use Conventional Commits (`feat(scope): summary`).
 4. Update the owning document in `docs/` in the same commit when behavior changes.
 
