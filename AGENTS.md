@@ -55,7 +55,7 @@ PersianPart 2.0 is an e-commerce platform architected as a monorepo.
 | **Frontend Application** | `apps/web` (Client SPA). |
 | **Frontend Core** | **React 19** + **TypeScript 7** (Strict mode) + **Vite 8**. |
 | **Routing** | **TanStack Router** (`@tanstack/react-router`, `@tanstack/router-plugin/vite`) and file-based routing in `src/routes/` for `apps/web`. React Router and Next.js are not used in `apps/web`; `apps/cms` and `apps/catalog` use Next.js. |
-| **Public Catalog** | `apps/catalog` — **Next.js App Router**, React 19, HeroUI v3, Tailwind v4; 300-second ISR, single replica. Direct **`@payloadcms/sdk`** connection to CMS with the existing admins service API key. CMS owns publication rules; no commerce API intermediary or preview secret. See `docs/12-public-catalog.md`. |
+| **Public Catalog** | `apps/catalog` — **Next.js App Router**, React 19, HeroUI v3, Tailwind v4; 300-second ISR, single replica. Direct **`@payloadcms/sdk`** connection to CMS with the existing admins service API key. CMS owns publication rules; no commerce API intermediary or preview secret. See `docs/architecture/public-catalog.md`. |
 | **Server State / Cache** | **TanStack Query** (`@tanstack/react-query`). |
 | **Styling & Design** | **Tailwind CSS v4** (`@tailwindcss/vite`) + **HeroUI v3** (`@heroui/react`, `@heroui/styles`, `framer-motion`). RTL support enabled. |
 | **Backend (API)** | `apps/api` — **Hono + oRPC** on the **Bun** runtime (`bun --watch src/server.ts`), plus `@payloadcms/sdk`, `pg`, JWT/OTP and Kavenegar SMS. |

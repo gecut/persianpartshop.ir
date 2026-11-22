@@ -34,27 +34,6 @@ Generic audit is best effort. Its PostgreSQL insert runs directly in the owning 
 - `pnpm --filter @persianpart/api test`: isolated API-client lifecycle and CMS error translation.
 - CMS/API/Web typechecks and production builds; manual browser checks for approval, address/notes edits, terminal notes, cancellation, disabled controls and a visible packaging-conflict message.
 
-Current automated suites have no live-test variables and do not modify the application database. The dated observations below describe historical suites that have since been removed.
+Current automated suites have no live-test variables and do not modify the application database. 
 
-### Observed checks on 2026-11-10
-
-| Check | Result |
-| --- | --- |
-| CMS hardening unit suite | 87 passed |
-| Reservation PostgreSQL suite | 8 passed |
-| Full migration/Payload integration suite | Passed, including preflight rejection, upgrade/down/up, real COMMIT failure and both concurrency scenarios |
-| API default suite | 36 passed; 5 opt-in cases skipped in this invocation |
-| Warehouse live CMS/HTTP cases, enabled separately | 3 passed |
-| Supply-request live HTTP case, enabled separately | 1 passed |
-| QR live HTTP case | Not enabled; outside these hook changes |
-| Browser, disposable PostgreSQL | Approval, address/notes, terminal notes and cancellation saved; packaging conflict displayed its Persian message and tracking reference |
-| Typecheck | CMS, API and Web passed |
-| Production build | CMS and Web passed; API build is the same no-emit compiler check |
-
-All PostgreSQL and browser changes used a temporary instance on a separate loopback port. The application database was not migrated or edited. Before deployment, apply the new migration through the normal CMS migration command and explicitly link existing admin/customer accounts where appropriate.
-
-The timeline-echo follow-up passed 90 CMS unit tests, the full Payload/PostgreSQL integration suite (including full-form echoes on both notes and status updates), TypeScript and the CMS production build.
-
-The legacy-empty-array follow-up reproduces the production validation failure in `beforeOperation` with `timeline: 0` before the fix, and passes the same update afterward. Verification: 91 CMS unit tests, the full Payload/PostgreSQL suite and the CMS production build passed; attempts to erase a nonempty timeline remain rejected.
-
-Database, migration and browser automation was removed by owner decision. Current unit results do not verify concurrency, transaction integration or live authorization; those require separate manual checks.
+Dated observation tables from removed suites were dropped on 2026-11-22; see git history. Database, migration and browser automation was removed by owner decision. Current unit results do not verify concurrency, transaction integration or live authorization; those require separate manual checks.

@@ -1,6 +1,6 @@
 # 01 — Persisted domain models
 
-Reviewed: 2026-11-07. CMS collection definitions and generated [Payload types](../apps/cms/src/payload-types.ts) describe persistence. Contract/UI DTOs can rename or omit fields; they are not additional database entities. PostgreSQL collection IDs are numeric; API boundaries also accept some string IDs.
+Reviewed: 2026-11-22. CMS collection definitions and generated [Payload types](../../apps/cms/src/payload-types.ts) describe persistence. Contract/UI DTOs can rename or omit fields; they are not additional database entities. PostgreSQL collection IDs are numeric; API boundaries also accept some string IDs.
 
 ```mermaid
 erDiagram
@@ -14,6 +14,28 @@ erDiagram
     Plan }o--o{ User : assigned_to
     Plan }o--o{ Product : presents
 ```
+
+## Glossary (Persian term → meaning → where it lives)
+
+| Persian | Meaning | Model / field |
+| --- | --- | --- |
+| نماینده فروش | Customer: a shop owner/retailer who buys from PersianPart | `users` |
+| نوع مشتری | Price tier; `markupPercent` adjusts the shared base price | `customer-types` |
+| طرح (محصول) | Product family grouping variants of one design; beta has 30, all under brand «پرسپولیس یزد» | `product-families` |
+| طرح (فروش) | Sales-offer announcement; not a family. Informational only | `plans` |
+| درجه / grade | Manufacturer-defined quality class; no logic attached | `products.grade` (`grade_1..4`, `grade_d`, `grade_c`, `cg3`) |
+| انبار مشهد / کارخانه | `exact` warehouse / `inquiry` warehouse | `warehouses.stockMode` |
+| درخواست تأمین | Manual availability request for non-exact stock | `supply-requests` |
+| کیمیا | Kimia accounting software whose daily export feeds price/stock import | CSV importer in `warehouse-stock` |
+
+"طرح" is ambiguous: always say *product family* or *sales plan* in code and docs.
+
+## Observed beta facts (2026-11-22, not production)
+
+- `dimensions.name` is display text (e.g. «۶۰×۲۰») while `width`/`height` store the numeric size with width ≤ height (`width 20, height 60`). The slug follows `width x height` (`20x60`). Do not derive size from the name.
+- Slab products (category 3, 120×280, `sqmPerCarton 3.36`, `cartonsPerPallet 36`) were observed with `unit: "bag"` while `productType: "tile"`. For tile, the selling factor is `sqmPerCarton`; treat the `unit` value there as inconsistent legacy metadata `[ASSUMPTION]` and verify before relying on it.
+- Orders observed with null `productName`/`productSku` on lines (order 1, created before snapshotting). Orders 2–4 carry them.
+- Two brands exist; the three newest products sampled use brand 1; brand 2 usage is unverified.
 
 ## Customer and staff
 
@@ -36,7 +58,7 @@ Optional unique `scanCode` is normalized to uppercase, accepts ASCII letters, di
 - `basePricePerSqm` retains its historical field name: Tomans per square meter for tile, per primary selling unit for other.
 - Product `inventorySqm`/`stockCartons` columns remain for schema compatibility, are hidden/write-blocked through normal field access, and are not the operational stock source.
 
-`categories`, `brands`, `tags`, `dimensions`, `media` hold catalog metadata. See their [collection definitions](../apps/cms/src/collections) for individual constraints rather than treating illustrative trade attributes as implemented fields.
+`categories`, `brands`, `tags`, `dimensions`, `media` hold catalog metadata. See their [collection definitions](../../apps/cms/src/collections) for individual constraints rather than treating illustrative trade attributes as implemented fields.
 
 ## Warehouses and sellable stock
 

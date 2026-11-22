@@ -20,13 +20,13 @@ flowchart LR
 
 `pnpm` workspaces cover `apps/*` and `packages/*`; package manager is pinned in root `package.json`. `apps/web` uses React 19, TypeScript 7, Vite 8, TanStack Router/Query, HeroUI v3 and Tailwind v4. API/CMS TypeScript versions come from their own manifests and must not be described as uniformly TypeScript 7. Bun is the API runtime, not the package manager.
 
-API business data goes through [CMS SDK](../apps/cms/src/sdk.ts); the running API does not use a local Payload database engine for normal commerce requests. The CMS package exposes a pure inventory helper subpath used for consistent selling factors. Local Payload exists for migrations, seed and administrative server code.
+API business data goes through [CMS SDK](../../apps/cms/src/sdk.ts); the running API does not use a local Payload database engine for normal commerce requests. The CMS package exposes a pure inventory helper subpath used for consistent selling factors. Local Payload exists for migrations, seed and administrative server code.
 
 ## Actual contract surface
 
 `supplyRequest` defines preview, submit, list, detail and cancel in the shared contract. The API maps CMS snapshots into a customer DTO and scopes history to the authenticated customer. CMS owns final validation, snapshots and serialized status transitions; inquiry stock is excluded from exact warehouse availability and reservations.
 
-The root [appContract](../packages/contract/src/index.ts) exports `health`, `echo`, `auth`, `catalog`, `shopping`, `customer`, `user`, `order`, `plan`, `warehouse`, `supplyRequest`, `activityFeed` and `offline`. Catalog uses separate shared Zod `catalogOperations` for native CMS REST reads, independently of the commerce oRPC router. There is no `system` router in the current root, despite a stale source comment referring to it.
+The root [appContract](../../packages/contract/src/index.ts) exports `health`, `echo`, `auth`, `catalog`, `shopping`, `customer`, `user`, `order`, `plan`, `warehouse`, `supplyRequest`, `activityFeed` and `offline`. Catalog uses separate shared Zod `catalogOperations` for native CMS REST reads, independently of the commerce oRPC router. There is no `system` router in the current root, despite a stale source comment referring to it.
 
 Relevant names are `auth.session`, `catalog.getById`, `order.pricing.validateCart`, `order.submit`, `order.cancel`, `order.prepareReorder`, `warehouse.availability`, and `shopping.createOrder`. The latter delegates to the same submit implementation. Do not use former conceptual names such as `getBySlug`, `cancelByCustomer`, `system.previewCsvImport` or `getGlobalConfig` as executable API documentation.
 
@@ -36,7 +36,7 @@ Stock CSV endpoints are Payload collection endpoints: `/api/warehouse-stock/prev
 
 Contracts contain a mixture of specific schemas and legacy permissive outputs (`z.any`/unions); contract-first does not mean every response is strictly validated. Changed order submit/detail/cancel boundaries use `CustomerOrderDocumentSchema`; persistence shapes remain defined by CMS collections, with generated types.
 
-Catalog has strict DTOs for bootstrap, browse and product through `@persianpart/contract/public-catalog`, separate from the commerce contract root. CMS owns the single policy compiler, parameterized derived-price/stock query, explain and mapping. Its endpoint uses the existing active admins service identity and Local API reads preserve access control. Catalog reads it directly through Payload SDK with server-only credentials and ISR; preview stays inside the CMS manager session. Catalog and Web own their presentation independently and have no cross-links or direct build/runtime dependency. See [Catalog](12-public-catalog.md) for access/freshness details.
+Catalog has strict DTOs for bootstrap, browse and product through `@persianpart/contract/public-catalog`, separate from the commerce contract root. CMS owns the single policy compiler, parameterized derived-price/stock query, explain and mapping. Its endpoint uses the existing active admins service identity and Local API reads preserve access control. Catalog reads it directly through Payload SDK with server-only credentials and ISR; preview stays inside the CMS manager session. Catalog and Web own their presentation independently and have no cross-links or direct build/runtime dependency. See [Catalog](public-catalog.md) for access/freshness details.
 
 ## Transport and errors
 
@@ -50,11 +50,11 @@ CMS stores media under its `media` directory and can return CDN URLs. API uses `
 
 ## Compose topology
 
-[docker-compose.yml](../docker-compose.yml) defines `migration`, `api`, `cms`, `catalog`, `web`, `cdn` on external `dokploy-network`. API, CMS and Catalog also share a project-scoped `backend` bridge. Server traffic uses aliases present only on that bridge: `persianpart-cms:5174` and `persianpart-api:5175`. It does **not** define a PostgreSQL service. A reachable external database and its provisioning are deployment prerequisites; the hostname used by a connection setting does not create a service.
+[docker-compose.yml](../../docker-compose.yml) defines `migration`, `api`, `cms`, `catalog`, `web`, `cdn` on external `dokploy-network`. API, CMS and Catalog also share a project-scoped `backend` bridge. Server traffic uses aliases present only on that bridge: `persianpart-cms:5174` and `persianpart-api:5175`. It does **not** define a PostgreSQL service. A reachable external database and its provisioning are deployment prerequisites; the hostname used by a connection setting does not create a service.
 
 Catalog is included in the main Compose file as a single Node standalone renderer on port 5176. It waits for CMS and calls `http://persianpart-cms:5174/api` through Payload SDK; it neither waits for nor calls API. CMS starts after migration; the commerce API independently waits for CMS. Dokploy Domains targets service `catalog`, port 5176; public JSON stays on Catalog with no-store/rate limiting (configure the existing proxy for `/api/catalog/browse`). No production deployment is implied.
 
-Migration is a one-shot command and API/CMS depend on its success. The `migration` Compose service (`payload migrate`) is the only migration runner: the CMS PostgreSQL adapter has `push: false` and no `prodMigrations`, so CMS startup never changes the schema. This configuration is not proof of zero-downtime deployment: the baseline targets a fresh empty database. See the [runbook](06-admin-and-operations.md).
+Migration is a one-shot command and API/CMS depend on its success. The `migration` Compose service (`payload migrate`) is the only migration runner: the CMS PostgreSQL adapter has `push: false` and no `prodMigrations`, so CMS startup never changes the schema. This configuration is not proof of zero-downtime deployment: the baseline targets a fresh empty database. See the [runbook](../operations/runbook.md).
 
 Shared volume mounts differ by service: API `/app/media`, CMS `/app/apps/cms/media`, CDN `/data:ro`. Normal ports are API 5175, CMS 5174, web/CDN container 80; local Vite defaults to 5173.
 

@@ -1,6 +1,6 @@
 # 06 — Administration and verification runbook
 
-Human operators include manager, superadmin and support; consult [permissions](04-roles-and-permissions.md) for exact boundaries.
+Human operators include manager, superadmin and support; consult [permissions](../product/access-control.md) for exact boundaries.
 
 ## Accounts and catalog
 
@@ -45,7 +45,6 @@ pnpm --filter @persianpart/api test
 Root `dev` currently calls itself; use workspace commands when dev is requested. CMS/API/Web default to 5174/5175/5173. Do not manually edit generated route tree, Payload types or import map. Web catalog unit tests use Bun via `pnpm --filter @persianpart/web test:unit`.
 
 
-Live API tests in `warehouse.live.test.ts` are opt-in: `WAREHOUSE_LIVE_TEST=true`, CMS on loopback 55174, and `WAREHOUSE_HTTP_TEST=true` for the API on 55175. They mutate a disposable seeded dataset. Browser mock scenario expects web on 55173. Tests must not invoke real OTP/SMS unintentionally.
 
 ## Migration, seed and deployment
 
@@ -53,7 +52,7 @@ CMS has one re-created baseline covering supply requests and support roles. It i
 
 Seed requires `NODE_ENV=development` and `CMS_SEED_DATABASE_URI` exactly matching the effective local database URI with a guarded name. On a fresh target it creates 26 tile products, two other products, two exact warehouses with 56 balances, one inquiry warehouse with three supply sources, one supply request, three customers and five demo orders. A sample tile has a 48-carton pallet factor. Existing balances and the sample request are preserved on rerun; seed is not a reset command. Use `DISABLE_SMS=true` for CMS notifications.
 
-The historical [verification record](../.agents/brain/warehouse-merge-completion-2026-11-07.md) describes earlier migrations and is not a statement about a future environment.
+The historical [verification record](../../.agents/brain/warehouse-merge-completion-2026-11-07.md) describes earlier migrations and is not a statement about a future environment.
 
 New administrator accounts default to `superadmin`; explicitly selected manager, support and service roles remain available. Creating an administrator with a valid phone also creates or updates its customer account in the same transaction. On a fresh database, the first such account creates a zero-markup regular customer tier instead of assuming a fixed relationship ID.
 
@@ -61,12 +60,12 @@ New administrator accounts default to `superadmin`; explicitly selected manager,
 
 1. image جدید CMS را همراه با migration سرویس Compose منتشر کنید. `CMS_MCP_ENABLED=false` پیش‌فرض است. پس از smoke test پنل و REST، پرچم را در محیط CMS روی `true` بگذارید و CMS را دوباره اجرا کنید. برای MCP از PostgreSQL استفاده کنید.
 2. در هر محیط یک حساب مجزای فعال با نقش `manager` بسازید. با حساب `superadmin` در **MCP → API Keys**، این حساب را مالک انتخاب کنید، تولید کلید را فعال کنید و قابلیت‌ها را متناسب با کار مشخص کنید. برای بررسی اولیهٔ محیط اصلی فقط جست‌وجوی محصول را فعال کنید.
-3. [نمونهٔ تنظیمات Codex](examples/codex-cms-mcp.toml) یا [نمونهٔ تنظیمات Antigravity](examples/antigravity-cms-mcp.json) را در تنظیمات محلی کلاینت قرار دهید و URL را با دامنهٔ محیط جایگزین کنید. متغیر `PERSIANPART_CMS_MCP_TOKEN` یا توکن هدر `Authorization` را از محل نگهداری محرمانه تأمین کنید. کلاینت‌ها برای دریافت رویدادها و پاسخ‌ها باید هدر `Accept: application/json, text/event-stream` را ارسال کنند. یک جست‌وجوی محصول (`findProducts`) اجرا کنید تا اتصال و مجوز واقعی بررسی شود.
+3. نمونهٔ تنظیمات Codex یا Antigravity (فایل‌های نمونه در مخزن نیست `[UNKNOWN]`) را در تنظیمات محلی کلاینت قرار دهید و URL را با دامنهٔ محیط جایگزین کنید. متغیر `PERSIANPART_CMS_MCP_TOKEN` یا توکن هدر `Authorization` را از محل نگهداری محرمانه تأمین کنید. کلاینت‌ها برای دریافت رویدادها و پاسخ‌ها باید هدر `Accept: application/json, text/event-stream` را ارسال کنند. یک جست‌وجوی محصول (`findProducts`) اجرا کنید تا اتصال و مجوز واقعی بررسی شود.
 4. پیش از فعال‌کردن دسترسی نوشتن محیط اصلی، گردش‌کارهای محیط آزمایشی را اجرا کنید. در نشست تعاملی، تنظیمات تأیید باید پنجرهٔ انسانی را برای ابزارهای نشانه‌گذاری‌شده نشان دهند. پیش از فراخوانی، از عامل هوشمند بخواهید شناسهٔ هدف و اثر عملیات، و برای CSV شناسه و خلاصهٔ پیش‌نمایش، را نمایش دهد. این پنجره در کلاینت اعمال می‌شود. سایر کلاینت‌ها با مجوزهای CMS کار می‌کنند.
 
 ### الزامات و استانداردهای کاتالوگ برای عامل‌های هوشمند (LLM / MCP Agents)
 
-کلیه عامل‌های هوشمند متصل به CMS که ابزارهای نوشتاری نظیر `createProducts`، `updateProducts` و `applyCsvImport` را اجرا می‌کنند، ملزم به رعایت ۱۰۰٪ استانداردهای تفصیلی در **[11 — استاندارد ساخت و نام‌گذاری محصولات (LLM-Only Standard)](11-product-creation-standards.md)** هستند:
+کلیه عامل‌های هوشمند متصل به CMS که ابزارهای نوشتاری نظیر `createProducts`، `updateProducts` و `applyCsvImport` را اجرا می‌کنند، ملزم به رعایت ۱۰۰٪ استانداردهای تفصیلی در **[11 — استاندارد ساخت و نام‌گذاری محصولات (LLM-Only Standard)](../standards/catalog-product-standard.md)** هستند:
 
 1. **فرمول سه‌بخشی نام‌گذاری کالا:**
    $$\mathbf{Name} = \text{[نام طرح]} + \text{[رنگ]} + \text{[نوع لعاب]}$$
@@ -101,3 +100,15 @@ curl --fail-with-body --request POST \
 برای بازگشت، کلید را از پنل غیرفعال یا حذف کنید و `CMS_MCP_ENABLED=false` را اعمال کنید. داده‌های migration در دیتابیس باقی می‌مانند و عملیات از REST ادامه پیدا می‌کند. برای چرخش کلید، ابتدا کلید جایگزین را در Codex بررسی کنید و سپس کلید قدیمی را لغو کنید.
 
 Automated verification now retains only isolated, colocated unit tests across all workspaces (`pnpm test:unit`), plus typechecks/builds. Live/database/browser/container suites and their fixtures were removed by owner decision; manual runtime acceptance is separate.
+
+
+## Warehouse stock import details (from the former warehouse decision record)
+
+- Page «موجودی انبارها»: choose one active warehouse → upload or paste CSV with exact columns `sku,inventorySqm` → request preview → confirm.
+- Limits: 1–1,000 rows, ≤ 1 MB. Unknown/duplicate SKUs, more than two decimals, and negative values are rejected per row.
+- The file number is the **sellable balance after reservations**. The system cannot know when the physical count happened, so the file must be fresh. Absent rows are unchanged.
+- Preview has no side effects, is valid for 15 minutes, and is signed over user, warehouse, data, each balance revision and product update time. Any balance change between preview and apply rejects the whole transaction. A successful apply writes its audit log in the same transaction.
+- Endpoints (manager session): `POST /api/warehouse-stock/preview`, `POST /api/warehouse-stock/apply`. Price import is separate and rejects a stock column.
+- Managers and superadmins administer warehouses and stock; the `service` identity can read stock and run existing order operations but cannot import or edit stock. Deleting a warehouse or balance is not allowed (deactivate instead).
+- Rollout: deploy CMS, API and Web together on the new contract. A baseline migration exists for an empty database only. Seed is allowed only against a guarded local target and does not reset existing balances.
+- Automated checks today are isolated unit tests (`pnpm test:unit`). Concurrency, transactions and live authorization have no automated fixtures and need manual verification; set `DISABLE_SMS=true` while testing.

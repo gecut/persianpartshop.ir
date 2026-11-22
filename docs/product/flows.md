@@ -1,6 +1,6 @@
 # 03 — System flows
 
-Reviewed: 2026-11-07. Diagrams reflect current handlers, not planned endpoints.
+Reviewed: 2026-11-22. Diagrams reflect current handlers, not planned endpoints.
 
 ## Customer authentication
 
@@ -8,7 +8,7 @@ Reviewed: 2026-11-07. Diagrams reflect current handlers, not planned endpoints.
 
 OTP is four digits, expires after 120 seconds, has a 60-second request cooldown and at most five verification attempts. Records persist through CMS. SMS delivery failure invalidates the issued code. `auth.verifyOtp` issues a signed customer JWT; API context verifies the token and reloads account state. Web polls session every four seconds and on focus; logout clears query cache. JWT revocation storage is process-local, not a documented distributed revocation service.
 
-Sources: [auth](../apps/api/src/routers/auth.ts), [OTP](../apps/api/src/lib/otp.ts), [JWT](../apps/api/src/lib/jwt.ts), [context](../apps/api/src/rpc/context.ts).
+Sources: [auth](../../apps/api/src/routers/auth.ts), [OTP](../../apps/api/src/lib/otp.ts), [JWT](../../apps/api/src/lib/jwt.ts), [context](../../apps/api/src/rpc/context.ts).
 
 ## Selection to order
 
@@ -30,7 +30,7 @@ flowchart TD
     J -->|Success| L[Return server order; clear matching draft]
 ```
 
-Changes to a bound cart are checked against its warehouse. Account switches/removals invalidate stale async work; another tab invalidates stored quotes. Order responses and caches must not expose a previous account after logout. See [selection store](../apps/web/src/modules/catalog/selection-store.ts) and [order store](../apps/web/src/modules/orders/order-store.ts).
+Changes to a bound cart are checked against its warehouse. Account switches/removals invalidate stale async work; another tab invalidates stored quotes. Order responses and caches must not expose a previous account after logout. See [selection store](../../apps/web/src/modules/catalog/selection-store.ts) and [order store](../../apps/web/src/modules/orders/order-store.ts).
 
 ## Persisted order state
 
@@ -60,3 +60,25 @@ Stock and price imports share a signed preview and transactional apply. Stock ta
 ## Plans
 
 CMS assigns a plan to users and optional products. API exposes active assigned plans with derived upcoming/active/expired status; expired/upcoming records can still be returned with that status. Web handles display and selection of plan products. Plan content is informational and is not a pricing engine. Adding recipients can trigger a notification SMS; tests/seed must explicitly disable those notifications.
+
+## Customer lifecycle (business view)
+
+1. **Onboarding.** Staff create the account; the customer uploads documents; an admin manually verifies each one and approves or rejects it with a reason. Login is blocked while the account is inactive, banned or pending document approval (see §Customer authentication).
+2. **Active use.** The representative browses stock/prices, reserves via orders, and files supply requests.
+3. **Hold.** The company puts a person on hold («معلق»), temporarily or permanently, when it ends or pauses the relationship, and stops answering them. The decision is manual and based on financial dealings and company policy. Which stored status represents hold (`pending` or `suspended`) is `[UNKNOWN]`.
+
+## Daily operations cycle
+
+```mermaid
+flowchart LR
+    A[Representatives place orders / supply requests] --> B[Support reviews; 60-min cancel window]
+    B --> C[Orders closed by end of office hours]
+    C --> D[Accountant exports Kimia file]
+    D --> E[Import stock + prices; signed preview then apply]
+    E --> A
+```
+
+- Settlement, shipping and delivery occur in the company's own systems; the last state recorded here is `completed` ([business-rules R8](business-rules.md)).
+- `inquiry` warehouse stock is unknown to this system; staff ask the factory contact and report back outside the system ([R4](business-rules.md), [R5](business-rules.md)).
+- The Kimia CSV is an input *template*. A future accounting API or another template would be an additional importer, not a change to the order flow.
+- Staff should be able to see in the admin panel that an order is still within the 60-minute customer-cancel window. This is **not implemented** in the CMS today ([R7](business-rules.md)).
