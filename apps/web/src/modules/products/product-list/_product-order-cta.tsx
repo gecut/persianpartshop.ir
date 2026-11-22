@@ -16,7 +16,7 @@ export function ProductOrderCta({ activeFlow, supplyId, selectedCount, busy, war
   const navigate = useNavigate();
 
   return (
-    <div className="fixed bottom-24 start-1/2 translate-x-1/2 z-40 flex flex-col items-center gap-2 max-w-[calc(100%-2rem)]">
+    <div className="fixed bottom-[calc(6.5rem+env(safe-area-inset-bottom,0px))] start-1/2 translate-x-1/2 z-40 flex flex-col items-center gap-2 max-w-[calc(100%-2rem)]">
       <Link
         to={
           activeFlow === "supply" ? "/product/supply/$id" : "/product/new"
