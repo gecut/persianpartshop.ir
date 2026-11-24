@@ -4,6 +4,14 @@ import type { UseEmblaCarouselType } from "embla-carousel-react"
 import { useNetworkReadSource } from "@/modules/pwa/read-source"
 import { productImageCors } from "@/modules/catalog/product-image-cors"
 import type { GalleryMediaItem } from "./_product-gallery"
+import {
+  emptyGalleryQueue,
+  galleryQueueTimeoutMs,
+  markTimedOut,
+  nextBackgroundUrl,
+  pendingUrls,
+  startUrls,
+} from "./_gallery-queue"
 
 type Carousel = UseEmblaCarouselType[1]
 type AssetState = "loaded" | "loaded-without-cors" | "retry" | "failed"
@@ -21,13 +29,18 @@ export function useGalleryMedia(
   selectedIndex: number,
 ) {
   const online = useNetworkReadSource()
-  const [previews, setPreviews] = useState<ReadonlySet<string>>(() => new Set())
+  const [queue, setQueue] = useState(() => emptyGalleryQueue(""))
   const [thumbnails, setThumbnails] = useState<ReadonlySet<string>>(() => new Set())
   const [assets, setAssets] = useState<ReadonlyMap<string, AssetState>>(() => new Map())
   const [ratios, setRatios] = useState<ReadonlyMap<string, number>>(() => new Map())
   const measured = useRef(new Map<string, number>())
   const pendingRatios = useRef(new Map<string, number>())
   const frame = useRef(0)
+  const timing = useRef({ scope: "", startedAt: new Map<string, number>() })
+  const order = items.map(item => item.url)
+  // A new product or a closed modal starts an empty queue; events of the old scope are dropped.
+  const scope = isOpen ? order.join("\n") : ""
+  const live = queue.scope === scope ? queue : emptyGalleryQueue(scope)
 
   const scheduleRatios = useCallback(() => {
     if (!pendingRatios.current.size || frame.current) return
@@ -46,45 +59,64 @@ export function useGalleryMedia(
 
   useEffect(() => {
     if (!isOpen) return
-    let previewFrame = 0
-    const requestNeighbors = () => {
-      if (!main) return
-      const engine = main.internalEngine()
-      if (engine.dragHandler.pointerDown() || !engine.scrollBody.settled()) return
-      const index = main.selectedScrollSnap()
-      const candidates = [index - 1, index, index + 1].map(index =>
-        items[engine.options.loop ? (index + items.length) % items.length : index]?.url,
-      ).filter((url): url is string => Boolean(url))
-      setPreviews(previous => includeUrls(previous, candidates))
-    }
-    const schedulePreviews = () => {
-      cancelAnimationFrame(previewFrame)
-      previewFrame = requestAnimationFrame(requestNeighbors)
-    }
     const requestThumbnails = () => {
       const urls = (thumbs?.slidesInView() ?? []).flatMap(index => items[index] ? [items[index].url] : [])
       setThumbnails(previous => includeUrls(previous, urls))
     }
 
-    schedulePreviews()
     requestThumbnails()
     scheduleRatios()
-    main?.on("settle", schedulePreviews).on("select", schedulePreviews).on("pointerUp", schedulePreviews).on("reInit", schedulePreviews)
     thumbs?.on("slidesInView", requestThumbnails).on("reInit", requestThumbnails)
     for (const api of [main, thumbs]) {
       api?.on("reInit", scheduleRatios).on("pointerUp", scheduleRatios).on("settle", scheduleRatios)
     }
     return () => {
-      cancelAnimationFrame(previewFrame)
       cancelAnimationFrame(frame.current)
       frame.current = 0
-      main?.off("settle", schedulePreviews).off("select", schedulePreviews).off("pointerUp", schedulePreviews).off("reInit", schedulePreviews)
       thumbs?.off("slidesInView", requestThumbnails).off("reInit", requestThumbnails)
       for (const api of [main, thumbs]) {
         api?.off("reInit", scheduleRatios).off("pointerUp", scheduleRatios).off("settle", scheduleRatios)
       }
     }
   }, [isOpen, items, main, scheduleRatios, thumbs])
+
+  // The selected image always starts at once and stays requested after the user moves on.
+  const selectedUrl = items[selectedIndex]?.url
+  useEffect(() => {
+    if (!isOpen || !selectedUrl) return
+    setQueue(previous => startUrls(previous, scope, [selectedUrl]))
+  }, [isOpen, scope, selectedUrl])
+
+  // One background image at a time: start the next only after every started request is decided.
+  const next = isOpen ? nextBackgroundUrl(order, live, isDone) : null
+  useEffect(() => {
+    if (next) setQueue(previous => startUrls(previous, scope, [next]))
+  }, [next, scope])
+
+  const pending = isOpen ? pendingUrls(order, live, isDone) : []
+  const pendingKey = pending.join("\n")
+  useEffect(() => {
+    if (!pendingKey) return
+    if (timing.current.scope !== scope) timing.current = { scope, startedAt: new Map() }
+    const { startedAt } = timing.current
+    const timers = pendingKey.split("\n").map(url => {
+      const begin = startedAt.get(url) ?? Date.now()
+      startedAt.set(url, begin)
+      return setTimeout(
+        () => setQueue(previous => markTimedOut(previous, scope, url)),
+        Math.max(0, galleryQueueTimeoutMs - (Date.now() - begin)),
+      )
+    })
+    return () => timers.forEach(clearTimeout)
+  }, [pendingKey, scope])
+
+  function isDone(url: string) {
+    const item = items.find(candidate => candidate.url === url)
+    if (!item) return true
+    const source = mainSource(item)
+    const state = assets.get(source)
+    return state === "loaded" || state === "loaded-without-cors" || (state === "failed" && source === item.url)
+  }
 
   function isLoaded(src: string) {
     return assets.get(src) === "loaded" || assets.get(src) === "loaded-without-cors"
@@ -95,9 +127,9 @@ export function useGalleryMedia(
   }
 
   function getImageProps(item: GalleryMediaItem, row: "main" | "thumb", index: number): ImgHTMLAttributes<HTMLImageElement> {
-    const primary = isOpen && row === "main" && index === 0
+    const primary = isOpen && row === "main" && index === selectedIndex
     const requested = row === "main"
-      ? (isOpen && index === selectedIndex) || previews.has(item.url) || isLoaded(mainSource(item))
+      ? (isOpen && (index === selectedIndex || live.started.has(item.url))) || isLoaded(mainSource(item))
       : thumbnails.has(item.url)
     if (!requested) return {}
 
