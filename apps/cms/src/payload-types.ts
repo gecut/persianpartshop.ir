@@ -361,6 +361,7 @@ export interface Media {
   height?: number | null;
   focalX?: number | null;
   focalY?: number | null;
+  blurCSS?: unknown;
   sizes?: {
     galleryThumb?: {
       url?: string | null;

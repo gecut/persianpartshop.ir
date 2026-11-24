@@ -1,7 +1,9 @@
 import { createHash } from 'node:crypto'
 import type { CollectionConfig, ImageSize } from 'payload'
 import type { Media as MediaDocument } from '../../payload-types'
+import { BlurCssSchema } from '@persianpart/contract'
 import { isCatalogManager } from '../../access/roles'
+import { blurCssBeforeChange } from './_blur-css.before-change'
 
 export function buildCdnUrl(filename: string | null | undefined): string | null {
   if (!filename) return null
@@ -44,6 +46,7 @@ export const Media: CollectionConfig = {
     delete: isCatalogManager,
   },
   hooks: {
+    beforeChange: [blurCssBeforeChange],
     afterRead: [
       ({ doc }) => {
         if (doc.filename) {
@@ -71,6 +74,12 @@ export const Media: CollectionConfig = {
       admin: {
         description: 'توضیح کوتاه تصویر جهت سئو و دسترس\u200cپذیری.',
       },
+    },
+    {
+      name: 'blurCSS',
+      type: 'json',
+      admin: { hidden: true, readOnly: true },
+      validate: (value: unknown) => value == null || BlurCssSchema.safeParse(value).success || 'پیش‌نمایش تار نامعتبر است.',
     },
   ],
   upload: {

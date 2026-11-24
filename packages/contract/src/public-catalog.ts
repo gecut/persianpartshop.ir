@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { BlurCssSchema } from './media'
 
 const id = z.number().int().positive().max(Number.MAX_SAFE_INTEGER)
 const ids = z.array(id).max(5000).default([])
@@ -201,6 +202,7 @@ export const PublicCatalogPhotoSchema = z
     width: z.number().positive(),
     height: z.number().positive(),
     alt: z.string(),
+    blurCSS: BlurCssSchema.nullish(),
   })
   .strict()
 export const PublicCatalogPriceSchema = z.discriminatedUnion('mode', [

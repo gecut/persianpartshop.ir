@@ -1,5 +1,21 @@
 import { z } from 'zod'
 
+const blurCssWords = new Set(['linear-gradient', 'rgb', 'rgba', 'deg'])
+const blurCssBounded = (max: number) => z.string().max(max)
+
+/** Four fixed CSS properties of the blurred placeholder; every value is restricted to gradient syntax. */
+export const BlurCssSchema = z
+  .object({
+    backgroundImage: blurCssBounded(4000)
+      .regex(/^linear-gradient\([0-9a-z\s.,%()-]+\)(,\s*linear-gradient\([0-9a-z\s.,%()-]+\))*$/i)
+      .refine(value => (value.match(/[a-z-]+/gi) ?? []).every(word => blurCssWords.has(word.toLowerCase()))),
+    backgroundPosition: blurCssBounded(1000).regex(/^[0-9.,%\s-]+$/),
+    backgroundSize: blurCssBounded(100).regex(/^[0-9.%\s]+$/),
+    backgroundRepeat: z.literal('no-repeat'),
+  })
+  .strict()
+export type BlurCss = z.infer<typeof BlurCssSchema>
+
 const CatalogMediaSizeSchema = z.object({ url: z.string().nullish() })
 export const CatalogMediaSchema = z.union([
   z.number().int().positive(),
@@ -11,6 +27,7 @@ export const CatalogMediaSchema = z.union([
     filename: z.string().nullish(),
     width: z.number().nullish(),
     height: z.number().nullish(),
+    blurCSS: BlurCssSchema.nullish(),
     sizes: z.object({
       galleryThumb: CatalogMediaSizeSchema.nullish(),
       galleryPreview: CatalogMediaSizeSchema.nullish(),
