@@ -79,7 +79,7 @@ export function mapCatalogProduct(item: CatalogProductInput): Product {
       ? item.category.name
       : item.categoryName || "عمومی";
   const basePrice = Number(item.finalCustomerPricePerSqm ?? 0);
-  const { gallery, galleryMediaIds, galleryMediaDetails, images, thumbnailUrl } = catalogProductImages(item);
+  const { gallery, galleryMediaIds, galleryMediaDetails, images, thumbnailUrl, blurCSS } = catalogProductImages(item);
 
   const finalPrice = basePrice;
   const discountPercent: number | undefined = undefined;
@@ -156,6 +156,7 @@ export function mapCatalogProduct(item: CatalogProductInput): Product {
       : [],
     images,
     thumbnailUrl,
+    blurCSS,
     gallery,
     galleryMediaIds,
     galleryMediaDetails,

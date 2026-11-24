@@ -1,3 +1,4 @@
+import type { BlurCss } from "@persianpart/contract"
 import type { GalleryMediaDetails } from "@/lib/media-url"
 import type {
   Product as ContractProduct,
@@ -58,6 +59,7 @@ export interface Product {
   applications: string[]
   tags: string[]
   thumbnailUrl?: string
+  blurCSS?: BlurCss
   images: string[]
   gallery: string[]
   galleryMediaIds?: Readonly<Record<string, string>>

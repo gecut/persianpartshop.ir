@@ -1,3 +1,4 @@
+import type { BlurCss } from '@persianpart/contract'
 import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import useEmblaCarousel from 'embla-carousel-react'
@@ -12,6 +13,7 @@ import { galleryPlaceholder, useGalleryMedia } from './_use-gallery-media'
 import './_product-gallery.css'
 
 export interface GalleryMediaItem {
+  blurCSS?: BlurCss
   ratio?: number
   thumbnailUrl?: string
   previewUrl?: string
@@ -272,6 +274,9 @@ export function ProductGalleryCarousel({
                   }}
                   className={`product-gallery__frame rounded-2xl bg-muted/10 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary ${zoomable ? 'cursor-zoom-in' : ''}`}
                 >
+                  {item.blurCSS && !loaded && imageProps.src !== galleryPlaceholder && (
+                    <span aria-hidden className="product-gallery__blur" style={item.blurCSS} />
+                  )}
                   {imageProps.src && (
                     <img
                       key={`${imageProps.src}:${imageProps.crossOrigin ?? ''}`}

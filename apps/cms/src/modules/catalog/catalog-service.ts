@@ -99,6 +99,7 @@ export function createCatalogService(req: PayloadRequest) {
     rows: CatalogQueryResult['rows'],
     settings: CatalogSettings,
     select: ProductsSelect = projection,
+    detail = false,
   ) {
     if (!rows.length)
       return {
@@ -117,7 +118,7 @@ export function createCatalogService(req: PayloadRequest) {
     const byId = new Map(result.docs.map((product) => [product.id, product]))
     const items = rows.flatMap((row) => {
       const product = byId.get(row.id)
-      return product ? [mapPublicProduct(product, row, settings)] : []
+      return product ? [mapPublicProduct(product, row, settings, detail)] : []
     })
     return { items, byId }
   }
@@ -213,7 +214,7 @@ export function createCatalogService(req: PayloadRequest) {
         productId: input.id,
         limit: 1,
       })
-      const { items: products, byId } = await hydrate(data.rows, settings)
+      const { items: products, byId } = await hydrate(data.rows, settings, projection, true)
       if (!products[0])
         throw new APIError('محصول در کاتالوگ موجود نیست.', 404, {
           code: 'CATALOG_NOT_FOUND',

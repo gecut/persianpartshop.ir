@@ -128,3 +128,34 @@ test('toFamilyOption keeps hidden modes and drops non-option fields', () => {
     assert.ok(field in optionRecord, `option must contain ${field}`)
   }
 })
+
+const blurCSS = {
+  backgroundImage: 'linear-gradient(90deg, rgb(1, 2, 3) 0% 100%)',
+  backgroundPosition: '0 0%',
+  backgroundSize: '100% 100%',
+  backgroundRepeat: 'no-repeat',
+}
+const media = (id: number, extra: object = {}) => ({
+  id,
+  alt: '',
+  mimeType: 'image/webp',
+  filename: `m${id}.webp`,
+  width: 100,
+  height: 100,
+  createdAt: '2026-01-01',
+  updatedAt: '2026-01-01',
+  ...extra,
+})
+test('blur placeholder: cover always, gallery only in detail, legacy records stay valid', () => {
+  const withMedia: Product = {
+    ...product,
+    cover: media(1, { blurCSS }),
+    gallery: [{ image: media(2, { blurCSS }) }, { image: media(3, { blurCSS: { backgroundImage: 'url(https://x)' } }) }, { image: media(4) }],
+  }
+  const settings = defaultCatalogSettings()
+  const list = mapPublicProduct(withMedia, row, settings)
+  assert.deepEqual(list.cover?.blurCSS, blurCSS)
+  assert.equal(list.photos.some(photo => photo.blurCSS), false)
+  const detail = mapPublicProduct(withMedia, row, settings, true)
+  assert.deepEqual(detail.photos.map(photo => Boolean(photo.blurCSS)), [true, false, false])
+})

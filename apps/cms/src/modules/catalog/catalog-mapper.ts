@@ -1,4 +1,4 @@
-import { mediaUrl } from '@persianpart/contract'
+import { BlurCssSchema, mediaUrl } from '@persianpart/contract'
 import {
   PublicCatalogConfigSchema,
   PublicCatalogProductSchema,
@@ -36,7 +36,7 @@ function relation(value: unknown): { id: number; name: string } | null {
 function positive(value: number | null | undefined): number | null {
   return value != null && Number.isFinite(value) && value > 0 ? value : null
 }
-function publicPhoto(media: Media | number | null | undefined) {
+function publicPhoto(media: Media | number | null | undefined, withBlur = false) {
   if (
     !media ||
     typeof media !== 'object' ||
@@ -44,14 +44,15 @@ function publicPhoto(media: Media | number | null | undefined) {
   )
     return null
   const url = mediaUrl(media as CatalogMedia, process.env.CDN_URL)
-  return url
-    ? {
-        url,
-        width: positive(media.width) ?? 1200,
-        height: positive(media.height) ?? 1200,
-        alt: media.alt || '',
-      }
-    : null
+  if (!url) return null
+  const blur = withBlur ? BlurCssSchema.safeParse(media.blurCSS) : null
+  return {
+    url,
+    width: positive(media.width) ?? 1200,
+    height: positive(media.height) ?? 1200,
+    alt: media.alt || '',
+    ...(blur?.success ? { blurCSS: blur.data } : {}),
+  }
 }
 export function publicConfig(
   settings: CatalogSettings,
@@ -74,7 +75,7 @@ export function publicConfig(
     shareTitle: settings.sharing.title,
     shareDescription: settings.sharing.description,
     shareImage: publicPhoto(share),
-    fallbackImage: publicPhoto(fallback),
+    fallbackImage: publicPhoto(fallback, true),
     contact: settings.contact.channels.map((channel) => ({
       type: channel.type,
       label: channel.label,
@@ -86,12 +87,13 @@ export function mapPublicProduct(
   product: Omit<Product, 'slug' | 'createdAt'>,
   row: CatalogQueryResult['rows'][number],
   settings: CatalogSettings,
+  detail = false,
 ): PublicCatalogProduct {
-  const cover = publicPhoto(product.cover)
+  const cover = publicPhoto(product.cover, true)
   const coverId = product.cover && typeof product.cover === 'object' ? product.cover.id : product.cover
   const photos = (product.gallery ?? [])
     .filter(({ image }) => (image && typeof image === 'object' ? image.id : image) !== coverId)
-    .flatMap(({ image }) => { const photo = publicPhoto(image); return photo && photo.url !== cover?.url ? [photo] : [] })
+    .flatMap(({ image }) => { const photo = publicPhoto(image, detail); return photo && photo.url !== cover?.url ? [photo] : [] })
     .filter((photo, index, all) => all.findIndex(candidate => candidate.url === photo.url) === index)
   const cap = settings.stock.displayCap
   const stock: PublicCatalogProduct['stock'] =

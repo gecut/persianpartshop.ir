@@ -28,6 +28,7 @@ export function ProductGallery({ product, config }: ProductGalleryProps) {
       product.photos.map((photo, index) => ({
         url: photo.url,
         ratio: photo.width / photo.height,
+        blurCSS: photo.blurCSS ?? undefined,
         label: `تصویر ${toPersianDigits(index + 1)}`,
       })),
     [product.photos],

@@ -91,6 +91,7 @@ export const ProductCard = React.memo(function ProductCard(props: ProductCardPro
         <ProductThumbnail
           src={imgSrc}
           thumbnail={product.thumbnailUrl}
+          blurCSS={product.blurCSS}
           alt={product.name}
           onOpenBottomSheet={() => onOpenBottomSheet?.(product)}
           isCompact={isViewMode}

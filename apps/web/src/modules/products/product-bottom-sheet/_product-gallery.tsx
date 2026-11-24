@@ -194,6 +194,9 @@ export function ProductGallery({ productName, items, isOpen, isZoomOpen, zoomSel
                   }}
                   className={`product-gallery__frame rounded-2xl bg-muted/10 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary ${zoomable ? "cursor-zoom-in" : ""}`}
                 >
+                  {item.blurCSS && !loaded && imageProps.src !== galleryPlaceholder && (
+                    <span aria-hidden className="product-gallery__blur" style={item.blurCSS} />
+                  )}
                   {imageProps.src && (
                     <img
                       key={`${imageProps.src}:${imageProps.crossOrigin ?? ""}`}

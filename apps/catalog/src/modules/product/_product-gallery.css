@@ -116,3 +116,11 @@
   border-radius: inherit;
   content: '';
 }
+
+.product-gallery__blur {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  filter: blur(12px);
+  transform: scale(1.25);
+}

@@ -1,10 +1,12 @@
 import { ProductSmallImage } from "@/modules/catalog/product-small-image/product-small-image"
 import React from "react"
 import { ZoomInIcon } from "@/components/ui/icons"
+import type { BlurCss } from "@persianpart/contract"
 
 interface ProductThumbnailProps {
   src: string;
   thumbnail?: string;
+  blurCSS?: BlurCss;
   alt: string;
   onOpenBottomSheet?: () => void;
   isCompact?: boolean;
@@ -13,6 +15,7 @@ interface ProductThumbnailProps {
 export const ProductThumbnail = React.memo(function ProductThumbnail({
   src,
   thumbnail,
+  blurCSS,
   alt,
   onOpenBottomSheet,
   isCompact = false,
@@ -42,10 +45,11 @@ export const ProductThumbnail = React.memo(function ProductThumbnail({
           onOpenBottomSheet?.();
         }
       }}
-      className="relative size-19 aspect-square shrink-0 group/img cursor-pointer transition-transform active:scale-95 bg-muted/15 rounded-2xl overflow-hidden"
+      className="relative isolate size-19 aspect-square shrink-0 group/img cursor-pointer transition-transform active:scale-95 bg-muted/15 rounded-2xl overflow-hidden"
       title="مشاهده جزئیات کالا"
       aria-label={`مشاهده جزئیات ${alt}`}
     >
+      {blurCSS && <span aria-hidden className="absolute inset-0 -z-10 scale-125 blur-xl pointer-events-none" style={blurCSS} />}
       <ProductSmallImage
         src={src}
         thumbnail={thumbnail}

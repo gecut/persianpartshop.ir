@@ -1,4 +1,4 @@
-import { mediaUrl, selectCatalogPhotos, type CatalogMedia, type CatalogRecord } from "@persianpart/contract"
+import { mediaUrl, selectCatalogPhotos, type BlurCss, type CatalogMedia, type CatalogRecord } from "@persianpart/contract"
 import { match, P } from "ts-pattern"
 
 const cdnUrl = import.meta.env.VITE_CDN_URL;
@@ -7,6 +7,7 @@ export interface GalleryMediaDetails {
   thumbnailUrl?: string
   previewUrl?: string
   ratio?: number
+  blurCSS?: BlurCss
 }
 
 export function resolveMediaUrl(media: unknown): string {
@@ -34,7 +35,8 @@ export function catalogProductImages(item: Pick<CatalogRecord, 'cover' | 'galler
       const thumbnailUrl = image.sizes?.galleryThumb?.url || undefined
       const previewUrl = image.sizes?.galleryPreview?.url || undefined
       const ratio = image.width && image.height && image.width > 0 && image.height > 0 ? image.width / image.height : undefined
-      if (thumbnailUrl || previewUrl || ratio) galleryMediaDetails[url] = { thumbnailUrl, previewUrl, ratio }
+      const blurCSS = image.blurCSS ?? undefined
+      if (thumbnailUrl || previewUrl || ratio || blurCSS) galleryMediaDetails[url] = { thumbnailUrl, previewUrl, ratio, blurCSS }
     }
   }
 
@@ -43,6 +45,7 @@ export function catalogProductImages(item: Pick<CatalogRecord, 'cover' | 'galler
   return {
     primary: primaryUrl,
     thumbnailUrl: mediaThumbnailUrl(primary?.image),
+    blurCSS: typeof primary?.image === 'object' ? primary.image?.blurCSS ?? undefined : undefined,
     gallery: gallery.map(entry => entry.url),
     galleryMediaIds,
     galleryMediaDetails,

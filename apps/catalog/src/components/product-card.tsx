@@ -50,7 +50,14 @@ export function ProductCard({
       )}
     >
       <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
-        <div className="relative size-19 aspect-square shrink-0 group/img transition-transform active:scale-95 bg-muted/15 rounded-2xl overflow-hidden">
+        <div className="relative isolate size-19 aspect-square shrink-0 group/img transition-transform active:scale-95 bg-muted/15 rounded-2xl overflow-hidden">
+          {photo?.blurCSS && (
+            <span
+              aria-hidden
+              className="absolute inset-0 -z-10 scale-125 blur-xl pointer-events-none"
+              style={photo.blurCSS}
+            />
+          )}
           <img
             src={photo?.url ?? '/assets/images/placeholder.svg'}
             alt={photo?.alt || product.name}
