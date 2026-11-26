@@ -219,7 +219,7 @@ export function applyProductPricing(product: any, markupPercent: number, hideExa
   const basePrice = Number(product.basePricePerSqm) || 0
   const finalPrice = Math.round(basePrice * (1 + markupPercent / 100))
   // Omit basePricePerSqm from customer-facing DTO to preserve B2B confidentiality
-  const { basePricePerSqm, scanCode, ...safeProduct } = product
+  const { basePricePerSqm, ...safeProduct } = product
 
   if (hideExactStock) {
     // Customer cannot view exact stock quantities; only status of in-stock or out-of-stock
@@ -231,7 +231,6 @@ export function applyProductPricing(product: any, markupPercent: number, hideExa
 
   return {
     ...safeProduct,
-    hasScanCode: Boolean(scanCode),
     finalCustomerPricePerSqm: finalPrice,
   }
 }
@@ -248,7 +247,7 @@ export function sanitizeOrderForCustomer(order: any) {
       if (!item || typeof item !== 'object') return item
       const safeItem = { ...item }
       if (safeItem.product && typeof safeItem.product === 'object') {
-        const { basePricePerSqm, scanCode, ...safeProduct } = safeItem.product
+        const { basePricePerSqm, ...safeProduct } = safeItem.product
         safeItem.product = safeProduct
       }
       return safeItem
@@ -263,19 +262,6 @@ export function sanitizeOrderForCustomer(order: any) {
     sanitized.user = safeUser
   }
   return sanitized
-}
-
-/** Remove private scan codes from populated products returned inside customer plans. */
-export function sanitizePlanProducts<T extends { products?: unknown }>(plan: T): T {
-  if (!Array.isArray(plan.products)) return plan
-  return {
-    ...plan,
-    products: plan.products.map((product: unknown) => {
-      if (!product || typeof product !== 'object') return product
-      const { scanCode: _scanCode, ...safeProduct } = product as Record<string, unknown>
-      return safeProduct
-    }),
-  }
 }
 
 /**

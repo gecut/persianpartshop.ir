@@ -24,7 +24,7 @@ export function parseExportBody(body: unknown): number[] | null {
   if (!body || typeof body !== 'object') return null
   const { ids } = body as Record<string, unknown>
   if (!Array.isArray(ids) || ids.length < 1 || ids.length > MAX_COUNT) return null
-  if (!ids.every((id) => typeof id === 'number' && Number.isInteger(id) && id > 0)) return null
+  if (!ids.every((id) => typeof id === 'number' && Number.isSafeInteger(id) && id > 0 && id <= 2_147_483_647)) return null
   return [...new Set(ids as number[])]
 }
 
@@ -94,16 +94,21 @@ const exportZip: Endpoint = {
       collection: 'qr-codes', where: { id: { in: ids } }, limit: ids.length, depth: 0, pagination: false, req, overrideAccess: false,
     })
     if (!found.docs.length) return bad('کدی با این شناسه‌ها پیدا نشد.', 404)
-    const entries: { name: string; png: Uint8Array }[] = []
-    for (const doc of found.docs) entries.push({ name: zipEntryName(doc.store, doc.token), png: await renderToken(doc.token) })
-    const stamp = new Date().toISOString().slice(0, 10).replaceAll('-', '')
-    return new Response(buildZip(entries) as unknown as BodyInit, {
-      headers: {
-        'Content-Type': 'application/zip',
-        'Content-Disposition': `attachment; filename="qr-labels-${stamp}.zip"`,
-        'Cache-Control': 'private, no-store',
-      },
-    })
+    try {
+      const entries: { name: string; png: Uint8Array }[] = []
+      for (const doc of found.docs) entries.push({ name: zipEntryName(doc.store, doc.token), png: await renderToken(doc.token) })
+      const stamp = new Date().toISOString().slice(0, 10).replaceAll('-', '')
+      return new Response(buildZip(entries) as unknown as ConstructorParameters<typeof Response>[0], {
+        headers: {
+          'Content-Type': 'application/zip',
+          'Content-Disposition': `attachment; filename="qr-labels-${stamp}.zip"`,
+          'Cache-Control': 'private, no-store',
+        },
+      })
+    } catch (error) {
+      req.payload.logger.error({ msg: 'QR export failed', error: error instanceof Error ? error.message : 'unknown' })
+      return bad('ساخت برچسب ممکن نشد؛ دوباره تلاش کنید.', 500)
+    }
   },
 }
 
@@ -117,9 +122,14 @@ const preview: Endpoint = {
     if (!Number.isInteger(id) || id < 1) return bad('شناسه معتبر نیست.')
     const doc = await req.payload.findByID({ collection: 'qr-codes', id, depth: 0, req, overrideAccess: false }).catch(() => null)
     if (!doc) return bad('کد پیدا نشد.', 404)
-    return new Response((await renderToken(doc.token)) as unknown as BodyInit, {
-      headers: { 'Content-Type': 'image/png', 'Cache-Control': 'private, no-store' },
-    })
+    try {
+      return new Response((await renderToken(doc.token)) as unknown as ConstructorParameters<typeof Response>[0], {
+        headers: { 'Content-Type': 'image/png', 'Cache-Control': 'private, no-store' },
+      })
+    } catch (error) {
+      req.payload.logger.error({ msg: 'QR preview failed', error: error instanceof Error ? error.message : 'unknown' })
+      return bad('ساخت برچسب ممکن نشد؛ دوباره تلاش کنید.', 500)
+    }
   },
 }
 

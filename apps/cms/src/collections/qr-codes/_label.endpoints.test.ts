@@ -16,6 +16,9 @@ test('parseExportBody validates, de-duplicates and caps ids', () => {
   assert.equal(parseExportBody({ ids: Array.from({ length: 501 }, (_, i) => i + 1) }), null)
   assert.equal(parseExportBody({ ids: ['a'] }), null)
   assert.equal(parseExportBody({ ids: [0] }), null)
+  assert.equal(parseExportBody({ ids: [2_147_483_648] }), null)
+  assert.equal(parseExportBody({ ids: [Number.MAX_SAFE_INTEGER + 1] }), null)
+  assert.deepEqual(parseExportBody({ ids: [2_147_483_647] }), [2_147_483_647])
   assert.deepEqual(parseExportBody({ ids: [3, 3, 4] }), [3, 4])
 })
 

@@ -83,7 +83,6 @@ self.addEventListener('message', (event) => {
       const requiredChunks = [
         /\/zxing_reader-.*\.wasm$/,
         /\/product-qr-camera-.*\.js$/,
-        /\/product-qr-download-.*\.js$/,
         /\/_product-image-viewer-.*\.js$/,
         /\/_product-image-viewer-.*\.css$/,
       ]

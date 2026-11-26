@@ -51,7 +51,7 @@ function getDescriptionText(value: unknown): string | undefined {
     .otherwise(() => undefined);
 }
 
-type CatalogProductInput = Omit<CatalogRecord, "createdAt" | "hasScanCode"> & { hasScanCode?: boolean } & {
+type CatalogProductInput = Omit<CatalogRecord, "createdAt"> & {
   brandName?: string;
   categoryName?: string;
   categoryId?: string | number | null;
@@ -101,7 +101,6 @@ export function mapCatalogProduct(item: CatalogProductInput): Product {
     slug: item.slug || `product-${item.id}`,
     name: item.name,
     sku: item.sku,
-    hasScanCode: Boolean(item.hasScanCode),
     productType: item.productType || (isOther ? "other" : "tile"),
     dimensions: { width, height },
     dimension: dimStr,

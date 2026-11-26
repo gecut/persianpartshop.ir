@@ -19,7 +19,7 @@ export interface OfflineProfile {
 export interface OfflineData {
   products: Record<string, CatalogRecord>
   dimensions: Dimension[]
-  qr: Record<string, string>
+  qr: Record<string, number>
   activity: ActivityFeedItem[]
   orders: Record<string, ReturnType<typeof CustomerOrderDocumentSchema.parse>>
   supplies: Record<string, SupplyRequest>

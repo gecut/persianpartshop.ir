@@ -7,7 +7,7 @@ import type { CatalogBrowseOutput, CatalogRecord } from '@persianpart/contract'
 beforeEach(() => setSystemTime(new Date('2026-11-18T12:00:00Z')))
 afterEach(() => setSystemTime())
 
-const product = (id: number, price = 100): CatalogRecord => ({ id, sku: `P${id}`, name: `Product ${id}`, slug: `p${id}`, createdAt: new Date(2026, 0, id).toISOString(), inventorySqm: 100, stockCartons: 100, availability: 'available', finalCustomerPricePerSqm: price, hasScanCode: false })
+const product = (id: number, price = 100): CatalogRecord => ({ id, sku: `P${id}`, name: `Product ${id}`, slug: `p${id}`, createdAt: new Date(2026, 0, id).toISOString(), inventorySqm: 100, stockCartons: 100, availability: 'available', finalCustomerPricePerSqm: price })
 function deferred<T>() {
   let resolve!: (value: T) => void
   const promise = new Promise<T>(done => { resolve = done })
@@ -18,7 +18,7 @@ function fixture(persistence?: CatalogPersistence) {
   let visible = true
   let pages = [[product(1)], [product(2)]]
   const calls: Array<{ cursor?: string; limit: number }> = []
-  let idsCalls = 0, scans = 0
+  let idsCalls = 0
   const transport = {
     async syncPage(input: { cursor?: string; limit: number }, _signal: AbortSignal) {
       calls.push(input)
@@ -26,12 +26,11 @@ function fixture(persistence?: CatalogPersistence) {
       return { items: pages[page] ?? [], scopeKey: 'scope', nextCursor: page + 1 < pages.length ? String(page + 1) : null }
     },
     async getByIds(ids: number[], _signal: AbortSignal) { idsCalls++; return { items: ids.map(id => product(id, 200)), scopeKey: 'scope' } },
-    async scan(_code: string, _signal: AbortSignal) { scans++; return product(3) },
     async browse() { return { items: [product(4)], scopeKey: 'scope', total: 1, hasMore: false } },
   }
   const coordinator = createCatalogCoordinator(client, transport, () => visible, async () => { await Promise.resolve() }, persistence)
   coordinator.setOwner('one')
-  return { client, coordinator, transport, calls, setVisible(value: boolean) { visible = value }, setPages(value: CatalogRecord[][]) { pages = value }, idsCalls: () => idsCalls, scans: () => scans }
+  return { client, coordinator, transport, calls, setVisible(value: boolean) { visible = value }, setPages(value: CatalogRecord[][]) { pages = value }, idsCalls: () => idsCalls }
 }
 
 const browseStorage = { restoreBrowse: async () => undefined, saveBrowse: async () => {} }
@@ -136,17 +135,6 @@ describe('shared progressive catalog', () => {
     await run
     expect(f.coordinator.snapshot().byId['2']).toBeUndefined()
     expect(f.coordinator.snapshot().byId['1']?.finalCustomerPricePerSqm).toBe(300)
-  })
-  test('QR matches a local hash without a lookup; unknown codes hydrate the shared cache', async () => {
-    const f = fixture()
-    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('PP-001'))
-    const scanHash = [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, '0')).join('')
-    f.setPages([[{ ...product(1), scanHash }]])
-    await f.coordinator.start()
-    expect((await f.coordinator.scan(' pp-001 ')).id).toBe(1)
-    expect(f.scans()).toBe(0)
-    expect((await f.coordinator.scan('PP-NEW')).id).toBe(3)
-    expect(f.coordinator.snapshot().byId['3']).toBeDefined()
   })
 })
 

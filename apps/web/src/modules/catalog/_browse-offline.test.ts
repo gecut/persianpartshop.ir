@@ -5,7 +5,7 @@ import { defaultBrowseFilters } from '@/modules/catalog/catalog-browse'
 
 const product = (id: number, values: Partial<CatalogRecord> = {}): CatalogRecord => ({
   id, name: 'کاشی', sku: `PP-${id}`, slug: `p-${id}`, createdAt: '2026-01-01T00:00:00.000Z',
-  hasScanCode: false, inventorySqm: 0, stockCartons: 0, availability: 'out_of_stock', finalCustomerPricePerSqm: 100,
+  inventorySqm: 0, stockCartons: 0, availability: 'out_of_stock', finalCustomerPricePerSqm: 100,
   ...values,
 })
 

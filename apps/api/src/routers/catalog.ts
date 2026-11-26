@@ -6,6 +6,7 @@ import { base, customerOnly, adminOnly, authed } from '../rpc/base'
 import { ORPCError } from '@orpc/server'
 import type { Product, Category, Brand, Tag, Dimension } from '@persianpart/cms/types'
 import { calculateCartonMetrics } from './catalog.helpers'
+import { buildQrTokenMap, qrProductId } from './qr-token.helpers'
 import {
   fetchTaxonomy,
   getUserPermissions,
@@ -132,27 +133,59 @@ const getById = authed.catalog.getById.handler(async ({ input, context, errors }
   return catalogRecord((await attachWarehouseStock([prod]))[0]!, context, { permissions: userPerms, scopeKey: (await catalogScope(context)).scopeKey })
 })
 
-async function qrProduct(userId: string | number, where: Record<string, unknown>) {
+async function qrPermissions(userId: string | number) {
   const permissions = await getUserPermissions(userId)
   if (!permissions.canUseProductQr) throw new ORPCError('FORBIDDEN', { message: 'دسترسی اسکن محصول فعال نیست.' })
-  const result = await sdk.find({ collection: 'products', where: { ...where, isActive: { equals: true } }, limit: 1, depth: 2 })
+  return permissions
+}
+
+const getByQrToken = customerOnly.catalog.getByQrToken.handler(async ({ input, context }) => {
+  const permissions = await qrPermissions(context.user.id)
+  const found = await sdk.find({
+    collection: 'qr-codes',
+    where: { and: [{ token: { equals: input.token } }, { isActive: { equals: true } }] },
+    limit: 1,
+    depth: 0,
+  })
+  const productId = qrProductId(found.docs[0]?.product)
+  if (productId === null) throw new ORPCError('NOT_FOUND', { message: 'محصول مورد نظر یافت نشد.' })
+  const result = await sdk.find({ collection: 'products', where: { id: { equals: productId }, isActive: { equals: true } }, limit: 1, depth: 2 })
   const product = result.docs[0] as Product | undefined
   const category = typeof product?.category === 'object' ? product.category?.id : product?.category
   if (!product || (permissions.allowedCategoryIds.length > 0 && (!category || !permissions.allowedCategoryIds.includes(Number(category))))) {
     throw new ORPCError('NOT_FOUND', { message: 'محصول مورد نظر یافت نشد.' })
   }
-  return { product, permissions }
-}
-
-const getByScanCode = customerOnly.catalog.getByScanCode.handler(async ({ input, context }) => {
-  const { product, permissions } = await qrProduct(context.user.id, { scanCode: { equals: input.scanCode } })
   return catalogRecord((await attachWarehouseStock([product]))[0]!, context, { permissions, scopeKey: (await catalogScope(context)).scopeKey })
 })
 
-const getProductQr = customerOnly.catalog.getProductQr.handler(async ({ input, context }) => {
-  const { product } = await qrProduct(context.user.id, { id: { equals: input.id } })
-  if (!product.scanCode) throw new ORPCError('NOT_FOUND', { message: 'کد اسکن محصول ثبت نشده است.' })
-  return { scanCode: product.scanCode }
+const listQrTokens = customerOnly.catalog.listQrTokens.handler(async ({ context }) => {
+  const permissions = await qrPermissions(context.user.id)
+  const rows: Array<{ token: string; product?: number | { id: number } | null | undefined; isActive?: boolean | null }> = []
+  for (let page = 1; ; page++) {
+    const result = await sdk.find({
+      collection: 'qr-codes',
+      where: { and: [{ isActive: { equals: true } }, { product: { exists: true } }] },
+      limit: 1000, page, depth: 0,
+    })
+    rows.push(...result.docs)
+    if (!result.hasNextPage) break
+  }
+  const productIds = [...new Set(rows.flatMap((row) => { const id = qrProductId(row.product); return id === null ? [] : [id] }))]
+  const visible = new Set<number>()
+  for (let i = 0; i < productIds.length; i += 500) {
+    const chunk = productIds.slice(i, i + 500)
+    const result = await sdk.find({
+      collection: 'products',
+      where: { and: [
+        { id: { in: chunk } },
+        { isActive: { equals: true } },
+        ...(permissions.allowedCategoryIds.length ? [{ category: { in: permissions.allowedCategoryIds } }] : []),
+      ] },
+      select: {}, limit: chunk.length, depth: 0,
+    })
+    for (const doc of result.docs) visible.add(doc.id)
+  }
+  return { tokens: buildQrTokenMap(rows, visible) }
 })
 
 const categories = authed.catalog.categories.handler(async ({ input, context }) => {
@@ -303,8 +336,8 @@ export const catalog = base.catalog.router({
   }),
   list,
   getById,
-  getByScanCode,
-  getProductQr,
+  getByQrToken,
+  listQrTokens,
   categories,
   brands,
   tags,

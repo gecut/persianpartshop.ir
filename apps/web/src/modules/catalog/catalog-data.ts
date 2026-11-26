@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react'
 import { skipToken, useQuery } from '@tanstack/react-query'
-import { CatalogRecordSchema } from '@persianpart/contract'
+import { CatalogRecordSchema, type CatalogRecord } from '@persianpart/contract'
+import { parseQrToken } from './qr-token'
 import { api, hasForegroundRequests } from '@/lib/api-client'
 import { queryClient } from '@/lib/query-client'
 import { queryKeys } from '@/lib/query-keys'
@@ -14,25 +15,9 @@ import { offlineRecoveryEnabled, readsFromNetwork, useNetworkReadSource } from '
 
 const yieldToUI = () => new Promise<void>(resolve => setTimeout(resolve, 0))
 const persistence = offlineRecoveryEnabled ? undefined : createCatalogPersistence(queryClient, owner => catalogCoordinator.discardStored(owner))
-const offlineScanIndexes = new WeakMap<object, Record<string, string>>()
-
-function offlineScanIndex(products: CatalogSnapshot['byId']) {
-  let index = offlineScanIndexes.get(products)
-  if (!index) {
-    index = Object.fromEntries(Object.values(products).flatMap(record => record.scanHash ? [[record.scanHash, String(record.id)]] : []))
-    offlineScanIndexes.set(products, index)
-  }
-  return index
-}
 export const catalogCoordinator = createCatalogCoordinator(queryClient, {
   syncPage: (input, signal) => api.catalog.syncPage(input, { signal }),
   getByIds: (ids, signal) => api.catalog.getByIds({ ids }, { signal }),
-  scan: async (scanCode, signal) => {
-    const result = await api.catalog.getByScanCode({ scanCode }, { signal })
-    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(scanCode))
-    const scanHash = [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, '0')).join('')
-    return CatalogRecordSchema.parse({ ...result, createdAt: 'createdAt' in result ? result.createdAt : new Date().toISOString(), scanHash })
-  },
   browse: (input, signal) => api.catalog.browse(input, { signal }),
 }, initial => document.visibilityState === 'visible' && navigator.onLine && !writeActivity.count() && (initial || !hasForegroundRequests()), yieldToUI, persistence)
 
@@ -70,22 +55,19 @@ export function useCatalogData(start = false) {
   const pack = !online && offline.active?.owner === owner ? offline.active : undefined
   const state = useMemo(() => {
     if (!pack) return online || !offlineRecoveryEnabled ? result.data ?? emptyCatalog : emptyCatalog
-    const scanIndex = offlineScanIndex(pack.data.products)
-    return { ...emptyCatalog, byId: pack.data.products, scanIndex, scopeKey: pack.scopeKey, complete: true, completedAt: pack.completedAt ?? 0 }
+    return { ...emptyCatalog, byId: pack.data.products, scopeKey: pack.scopeKey, complete: true, completedAt: pack.completedAt ?? 0 }
   }, [pack, result.data, online])
   return { state, pack, owner, online, isRestoring: !!owner && (online ? !result.data || !!state.restoring : !!offline.restoring) }
 }
 
-export async function scanOfflineProduct(code: string) {
-  if (readsFromNetwork()) return catalogCoordinator.scan(code)
+export async function scanOfflineProduct(raw: string): Promise<CatalogRecord> {
+  const token = parseQrToken(raw)
+  if (!token) throw Object.assign(new Error('Invalid QR'), { code: 'BAD_REQUEST' })
+  if (readsFromNetwork()) return CatalogRecordSchema.parse(await api.catalog.getByQrToken({ token }))
   const pack = await readSavedOfflinePackage()
-  const normalized = code.trim().toUpperCase()
-  if (!/^[A-Z0-9-]{1,128}$/.test(normalized)) throw Object.assign(new Error('Invalid QR'), { code: 'BAD_REQUEST' })
-  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(normalized))
-  const hash = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('')
   if (!pack || pack.id !== offlinePackageSnapshot()?.id) throw new Error('Offline catalog unavailable')
-  const id = offlineScanIndex(pack.data.products)[hash]
-  const product = id ? pack.data.products[id] : undefined
+  const id = pack.data.qr[token]
+  const product = id === undefined ? undefined : pack.data.products[String(id)]
   if (!product) throw Object.assign(new Error('Product unavailable'), { code: 'NOT_FOUND' })
   return product
 }

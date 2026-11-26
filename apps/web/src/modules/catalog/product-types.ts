@@ -20,7 +20,6 @@ export interface Product {
   slug: string
   name: string
   sku: string
-  hasScanCode?: boolean
   productType?: ProductType
   dimensions: ProductDimensions
   dimension: string

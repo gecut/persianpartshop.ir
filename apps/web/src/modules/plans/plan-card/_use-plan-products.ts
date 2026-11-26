@@ -1,4 +1,4 @@
-import { ScannedCatalogProductSchema } from "@persianpart/contract"
+import { CatalogProductDetailSchema } from "@persianpart/contract"
 import { catalogProductImages } from "@/lib/media-url"
 import { useMemo } from "react";
 import type { Plan } from "@/modules/plans/plan-types"
@@ -71,7 +71,7 @@ export function usePlanProducts(
               ? ("in_stock" as const)
               : ("out_of_stock" as const));
 
-          const media = ScannedCatalogProductSchema.pick({ cover: true, gallery: true }).safeParse(p)
+          const media = CatalogProductDetailSchema.pick({ cover: true, gallery: true }).safeParse(p)
           const photos = media.success ? catalogProductImages(media.data) : undefined
           return {
             id: String(p.id),

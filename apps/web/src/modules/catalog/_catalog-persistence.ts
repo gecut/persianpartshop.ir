@@ -74,15 +74,13 @@ export function createCatalogPersistence(client: QueryClient, onDiscard: (owner:
             !Number.isFinite(saved.timestamp) || saved.timestamp > Date.now() || Date.now() - saved.timestamp >= catalogMaxAge) {
             throw new Error('Invalid offline catalog')
           }
-          const scanIndex: Record<string, string> = {}
           for (const [id, record] of Object.entries(data.byId)) {
             const parsed = CatalogRecordSchema.safeParse(record)
             if (!parsed.success || String(parsed.data.id) !== id) throw new Error('Invalid offline product')
-            if (parsed.data.scanHash) scanIndex[parsed.data.scanHash] = id
           }
           return { ...saved, clientState: { mutations: [], queries: [{
             ...query,
-            state: { ...query.state, data: { ...emptyCatalog, byId: data.byId, scopeKey: data.scopeKey, complete: data.complete, completedAt: data.completedAt, scanIndex, restoredAt: saved.timestamp } },
+            state: { ...query.state, data: { ...emptyCatalog, byId: data.byId, scopeKey: data.scopeKey, complete: data.complete, completedAt: data.completedAt, restoredAt: saved.timestamp } },
           }] } }
         },
         // Restore may reject an old record while a different tab is writing a fresh one.

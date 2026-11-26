@@ -7,6 +7,7 @@ import { order } from './order'
 import { plan } from './plan'
 import { supplyRequest } from './supply-request'
 import { user } from './user'
+import { getUserPermissions } from './router.helpers'
 
 export async function readOfflineData(context: Context, scopeKey: string): Promise<OfflineSnapshot> {
   const data: OfflineSnapshot = {
@@ -21,13 +22,15 @@ export async function readOfflineData(context: Context, scopeKey: string): Promi
   let cursor: string | undefined
   do {
     context.req.signal.throwIfAborted()
-    const page = await call(catalog.syncPage, { limit: 100, cursor, includeOfflineQr: true }, options)
+    const page = await call(catalog.syncPage, { limit: 100, cursor }, options)
     scope(page.scopeKey)
     for (const item of page.items) data.products[item.id] = item
-    for (const item of page.offlineQr ?? []) data.qr[item.id] = item.scanCode
     if (page.nextCursor && page.nextCursor === cursor) throw new ORPCError('CONFLICT')
     cursor = page.nextCursor ?? undefined
   } while (cursor)
+  if (context.user?.role === 'customer' && (await getUserPermissions(context.user.id, context)).canUseProductQr) {
+    data.qr = (await call(catalog.listQrTokens, undefined, options)).tokens
+  }
   const facets = await call(catalog.facets, undefined, options)
   scope(facets.scopeKey)
   data.dimensions = facets.dimensions

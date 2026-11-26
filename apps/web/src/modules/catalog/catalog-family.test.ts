@@ -14,7 +14,6 @@ function createRecord(partial: Partial<CatalogRecord> & { id: number | string; n
     stockCartons: 50,
     availability: 'available',
     finalCustomerPricePerSqm: 250000,
-    hasScanCode: false,
     ...rest,
   } as CatalogRecord
 }

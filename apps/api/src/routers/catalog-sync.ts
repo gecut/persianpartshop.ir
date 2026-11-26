@@ -14,7 +14,7 @@ import { familyIdOf } from './catalog.helpers'
 const hash = (value: string) => createHash('sha256').update(value).digest('hex')
 export async function catalogScope(context: Context) {
   const permissions = await getUserPermissions(context.user?.id, context)
-  const scopeKey = hash(JSON.stringify([context.user?.id ?? '', context.user?.role ?? '', [...permissions.allowedCategoryIds].sort((a,b) => a-b), permissions.markupPercent, permissions.hideExactStock, permissions.disableOrdering, permissions.canUseProductQr]))
+  const scopeKey = hash(JSON.stringify([context.user?.id ?? '', context.user?.role ?? '', [...permissions.allowedCategoryIds].sort((a,b) => a-b), permissions.markupPercent, permissions.hideExactStock, permissions.disableOrdering, permissions.canUseProductQr, 'qr-tokens-v1']))
   return { permissions, scopeKey }
 }
 type Scope = Awaited<ReturnType<typeof catalogScope>>
@@ -24,7 +24,7 @@ const productProjection = {
   family: true,
   width: true, height: true, basePricePerSqm: true, sqmPerCarton: true, piecesPerCarton: true,
   cartonsPerPallet: true, unit: true, weight: true, secondary_unit: true, itemsPerPack: true,
-  approxCoverage: true, cover: true, gallery: true, richDescription: true, scanCode: true, createdAt: true, updatedAt: true,
+  approxCoverage: true, cover: true, gallery: true, richDescription: true, createdAt: true, updatedAt: true,
 } satisfies ProductsSelect
 export function catalogRecord(product: Product, context: Context, scope: Scope): CatalogRecord {
   const safe = applyProductPricing(product, scope.permissions.markupPercent, scope.permissions.hideExactStock)
@@ -33,7 +33,6 @@ export function catalogRecord(product: Product, context: Context, scope: Scope):
     ...safeWithoutFamily,
     familyId: familyIdOf(product.family),
     createdAt: product.createdAt,
-    scanHash: context.user?.role === 'customer' && scope.permissions.canUseProductQr && product.scanCode ? hash(product.scanCode.trim().toUpperCase()) : undefined,
   })
 }
 function allowedWhere(scope: Scope) {
@@ -62,10 +61,7 @@ const syncPage = authed.catalog.syncPage.handler(async ({ input, context }) => {
   const products = await attachWarehouseStock(page)
   const last = page.at(-1)
   const nextCursor = result.docs.length > input.limit && last ? Buffer.from(JSON.stringify({ watermark, createdAt: last.createdAt, id: last.id, scopeKey: scope.scopeKey })).toString('base64url') : null
-  const offlineQr = input.includeOfflineQr && context.user?.role === 'customer' && scope.permissions.canUseProductQr
-    ? products.flatMap(product => product.scanCode ? [{ id: product.id, scanCode: product.scanCode }] : [])
-    : undefined
-  return { scopeKey: scope.scopeKey, items: products.map(product => catalogRecord(product, context, scope)), nextCursor, offlineQr }
+  return { scopeKey: scope.scopeKey, items: products.map(product => catalogRecord(product, context, scope)), nextCursor }
 })
 const getByIds = authed.catalog.getByIds.handler(async ({ input, context }) => {
   const scope = await catalogScope(context)

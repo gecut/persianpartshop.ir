@@ -16,7 +16,6 @@ function createOfflineSnapshot(familyId: number | null): OfflineSnapshot {
         availability: 'available',
         matchesInStockFilter: true,
         finalCustomerPricePerSqm: 300000,
-        hasScanCode: false,
         familyId,
       },
     },

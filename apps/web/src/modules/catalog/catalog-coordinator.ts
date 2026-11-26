@@ -9,13 +9,11 @@ interface CatalogResult { items: CatalogRecord[]; scopeKey: string }
 interface Transport {
   syncPage(input: { cursor?: string; limit: number }, signal: AbortSignal): Promise<CatalogPage>
   getByIds(ids: number[], signal: AbortSignal): Promise<CatalogResult>
-  scan(code: string, signal: AbortSignal): Promise<CatalogRecord>
   browse(input: CatalogBrowseInput, signal: AbortSignal): Promise<CatalogBrowseOutput>
 }
 export interface CatalogSnapshot {
   byId: Record<string, CatalogRecord>
   versions: Record<string, number>
-  scanIndex: Record<string, string>
   scopeKey: string | null
   complete: boolean
   completedAt: number
@@ -24,7 +22,7 @@ export interface CatalogSnapshot {
   restoring?: boolean
   restoredAt?: number
 }
-export const emptyCatalog: CatalogSnapshot = { byId: {}, versions: {}, scanIndex: {}, scopeKey: null, complete: false, completedAt: 0, fetching: false, error: null }
+export const emptyCatalog: CatalogSnapshot = { byId: {}, versions: {}, scopeKey: null, complete: false, completedAt: 0, fetching: false, error: null }
 export const catalogMaxAge = 48 * 60 * 60 * 1000
 export interface SavedBrowsePage {
   response: CatalogBrowseOutput
@@ -59,7 +57,6 @@ export function createCatalogCoordinator(client: QueryClient, transport: Transpo
   let browseExpiryTimer: ReturnType<typeof setTimeout> | undefined
   const controllers = new Set<AbortController>()
   const pendingIds = new Map<string, Promise<void>>()
-  const pendingScans = new Map<string, Promise<CatalogRecord>>()
   const key = () => queryKeys.products.catalog(owner)
   const snapshot = () => client.getQueryData<CatalogSnapshot>(key()) ?? emptyCatalog
   const publish = (update: (state: CatalogSnapshot) => CatalogSnapshot) => client.setQueryData<CatalogSnapshot>(key(), state => update(state ?? emptyCatalog))
@@ -82,7 +79,7 @@ export function createCatalogCoordinator(client: QueryClient, transport: Transpo
       client.removeQueries({ queryKey: key(), exact: true })
       client.removeQueries({ queryKey: queryKeys.products.browses(owner) })
     }
-    owner = nextOwner; started = false; run = null; cursor = undefined; sweepStart = 0; seen = new Set(); targeted.clear(); pendingIds.clear(); pendingScans.clear()
+    owner = nextOwner; started = false; run = null; cursor = undefined; sweepStart = 0; seen = new Set(); targeted.clear(); pendingIds.clear()
     storage = undefined; restoring = undefined; checkpointed = false
     publish(() => ({ ...emptyCatalog }))
   }
@@ -271,22 +268,6 @@ export function createCatalogCoordinator(client: QueryClient, transport: Transpo
     resume() { if (started) return pump(); return Promise.resolve() },
     refresh() { started = true; return pump(true) },
     ensureIds,
-    async scan(code: string) {
-      const expected = epoch
-      const normalized = code.trim().toUpperCase()
-      if (!/^[A-Z0-9-]{1,128}$/.test(normalized)) throw new Error('کد محصول معتبر نیست.')
-      const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(normalized))
-      const hash = [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, '0')).join('')
-      if (expected !== epoch) throw aborted()
-      const id = snapshot().scanIndex[hash]
-      if (id && snapshot().byId[id]) return snapshot().byId[id]!
-      const existing = pendingScans.get(normalized)
-      if (existing) return existing
-      const read = ++sequence; foreground++
-      const work = request(signal => transport.scan(normalized, signal)).then(item => { merge([item], null, read); targeted.add(String(item.id)); return item }).finally(() => { foreground--; if (expected === epoch) pendingScans.delete(normalized); void pump() })
-      pendingScans.set(normalized, work)
-      return work
-    },
     async browse(requestOwner: string, input: CatalogBrowseInput, signal: AbortSignal) {
       if (!requestOwner || requestOwner !== owner || signal.aborted) throw aborted()
       const expected = epoch, read = ++sequence; foreground++

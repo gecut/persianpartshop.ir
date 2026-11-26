@@ -104,7 +104,6 @@ describe('catalogRecord familyId derivation and isolation', () => {
       stockCartons: 0,
       availability: 'out_of_stock',
       finalCustomerPricePerSqm: 0,
-      hasScanCode: false,
     }
 
     const parsedLegacy = CatalogRecordSchema.parse(baseRecord)

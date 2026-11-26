@@ -23,7 +23,6 @@ export interface ProductBottomSheetProps {
   onViewProduct?: (product: Product) => void;
 }
 
-const ProductQrDownload = lazy(() => import('../product-qr-download').then(module => ({ default: module.ProductQrDownload })));
 const ProductImageViewer = lazy(() => import('./_product-image-viewer').then(module => ({ default: module.ProductImageViewer })));
 
 interface ZoomSession {
@@ -47,10 +46,8 @@ export function ProductBottomSheet({
   const [zoomSelection, setZoomSelection] = useState<{ productId: string; item: GalleryMediaItem } | null>(null);
   const closeDrawerButton = useRef<HTMLButtonElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
-  const [qrOpen, setQrOpen] = useState(false);
 
   useLayoutEffect(() => {
-    setQrOpen(false);
     setZoomSession(null);
     setZoomSelection(null);
   }, [product?.id, isOpen]);
@@ -135,7 +132,6 @@ export function ProductBottomSheet({
                   </Drawer.Heading>
                 </div>
 
-                {user?.canUseProductQr && activeProduct.hasScanCode && <Button type="button" isIconOnly variant="ghost" onPress={() => setQrOpen(value => !value)} aria-label="دریافت QR محصول" aria-expanded={qrOpen} className="w-10 control-height-10 shrink-0 bg-muted/10 text-muted hover:bg-muted/20 hover:text-foreground"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><path d="M14 14h2v2h-2zM19 14v2M14 19h2M19 19h1"/></svg></Button>}
                 <Button
                   ref={closeDrawerButton}
                   type="button"
@@ -149,7 +145,6 @@ export function ProductBottomSheet({
 
               {/* Body */}
               <Drawer.Body ref={bodyRef} className="flex-1 min-h-0 overflow-y-auto overscroll-contain [--product-details-inset:--spacing(5)] [--product-details-body-bleed:3px] -mx-(--product-details-body-bleed) px-(--product-details-inset) py-2 space-y-2.5 scrollbar-none pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))]">
-                {qrOpen && <Suspense fallback={<p role="status">در حال آماده‌سازی…</p>}><ProductQrDownload productId={activeProduct.id} /></Suspense>}
                 {mediaItems.length > 0 && <ProductGallery
                   key={activeProduct.id}
                   productName={activeProduct.name}

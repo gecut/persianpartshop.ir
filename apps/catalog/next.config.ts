@@ -15,5 +15,8 @@ const config: NextConfig = {
   htmlLimitedBots: /.*/,
   images: { unoptimized: true },
   transpilePackages: ['@persianpart/contract'],
+  async rewrites() {
+    return [{ source: '/Q/:token', destination: '/q/:token' }]
+  },
 }
 export default config

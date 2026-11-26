@@ -75,7 +75,6 @@ test('preserves gallery variants through the catalog contract without replacing 
     createdAt: '2026-01-01T00:00:00.000Z',
     inventorySqm: 1,
     stockCartons: 1,
-    hasScanCode: false,
     cover: { id: 12, url: '/cover.webp' },
     gallery: [
       { image: { id: 12, url: '/cover.webp', sizes: { galleryThumb: { url: '/cover-small.webp' } } } },

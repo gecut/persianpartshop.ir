@@ -30,22 +30,17 @@ export async function downloadOfflineData(pack: OfflinePackage, canUseQr: boolea
   report({ phase: 'catalog', done: Object.keys(data.products).length })
   while (!pack.catalogDone) {
     signal.throwIfAborted()
-    const page = await api.catalog.syncPage({ cursor: pack.cursor, limit: 100, includeOfflineQr: canUseQr }, options)
+    const page = await api.catalog.syncPage({ cursor: pack.cursor, limit: 100 }, options)
     if (page.scopeKey !== pack.scopeKey || (page.nextCursor && page.nextCursor === pack.cursor)) throw new Error('scope')
     const records = page.items.map(item => CatalogRecordSchema.parse(item))
-    const codes = new Map(page.offlineQr?.map(item => [item.id, item.scanCode]))
     for (const record of records) {
       data.products[record.id] = record
-      if (canUseQr && record.hasScanCode) {
-        const code = codes.get(Number(record.id))
-        if (!code || !record.scanHash) throw new Error('qr')
-        data.qr[record.id] = code
-      }
     }
     if (!page.nextCursor) {
       const facets = CatalogFacetOutputSchema.parse(await api.catalog.facets(undefined, options))
       if (facets.scopeKey !== pack.scopeKey) throw new Error('scope')
       data.dimensions = facets.dimensions
+      if (canUseQr) data.qr = (await api.catalog.listQrTokens(undefined, options)).tokens
       pack.catalogDone = true
     }
     pack.cursor = page.nextCursor ?? undefined

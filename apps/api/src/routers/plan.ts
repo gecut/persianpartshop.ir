@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { ORPCError } from '@orpc/server';
 import { sdk } from "../lib/payload";
 import { base, adminOnly } from "../rpc/base";
-import { enrichPlanWithUserName, sanitizePlanProducts } from "./router.helpers";
+import { enrichPlanWithUserName } from "./router.helpers";
 
 const list = base.plan.list.handler(async ({ input, context }) => {
   const where: Record<string, any> = {};
@@ -62,7 +62,7 @@ const list = base.plan.list.handler(async ({ input, context }) => {
   const items = validDocs.map((doc: any) => {
     const enriched = enrichPlanWithUserName(doc, currentUserName);
     const { users, ...safePlan } = enriched;
-    return sanitizePlanProducts({ ...safePlan, users: [context.user?.id] });
+    return { ...safePlan, users: [context.user?.id] };
   });
 
   return {
@@ -108,12 +108,12 @@ const getById = base.plan.getById.handler(
     const currentUserName = context.user?.fullName || "همکار";
     const enriched = enrichPlanWithUserName(doc, currentUserName);
     const { users, ...safePlan } = enriched;
-    return sanitizePlanProducts({
+    return {
       ...safePlan,
       status,
       isExpired,
       users: [context.user?.id],
-    });
+    };
   },
 );
 
