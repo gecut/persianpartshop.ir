@@ -69,12 +69,18 @@ test('public settings omit publication rules and percentages', () => {
   assert.equal(JSON.stringify(config).includes('37.5'), false)
 })
 
-test('cover identity is separate from gallery; aliases and duplicate gallery URLs are excluded', () => {
+test('cover is included in photos whether gallery contains it or omits it, without duplicates', () => {
   const media = (id: number, filename: string) => ({ id, alt: filename, filename, mimeType: 'image/webp', width: 800, height: 800, createdAt: '2026-01-01', updatedAt: '2026-01-01' })
   const cover=media(1,'cover.webp'), gallery=media(2,'gallery.webp')
-  const result=mapPublicProduct({...product,cover,gallery:[{image:cover},{image:gallery},{image:gallery}]},row,defaultCatalogSettings())
-  assert.equal(result.cover?.alt,'cover.webp')
-  assert.deepEqual(result.photos.map(photo=>photo.alt),['gallery.webp'])
+  const withCover=mapPublicProduct({...product,cover,gallery:[{image:cover},{image:gallery},{image:gallery}]},row,defaultCatalogSettings())
+  assert.equal(withCover.cover?.alt,'cover.webp')
+  assert.deepEqual(withCover.photos.map(photo=>photo.alt),['cover.webp','gallery.webp'])
+
+  const scenesOnly=mapPublicProduct({...product,cover,gallery:[{image:gallery}]},row,defaultCatalogSettings())
+  assert.deepEqual(scenesOnly.photos.map(photo=>photo.alt),['cover.webp','gallery.webp'])
+
+  const coverOnly=mapPublicProduct({...product,cover,gallery:[]},row,defaultCatalogSettings())
+  assert.deepEqual(coverOnly.photos.map(photo=>photo.alt),['cover.webp'])
 })
 
 test('toFamilyOption keeps hidden modes and drops non-option fields', () => {
@@ -156,5 +162,5 @@ test('blur placeholder: cover always, gallery only in detail, legacy records sta
   assert.deepEqual(list.cover?.blurCSS, blurCSS)
   assert.equal(list.photos.some(photo => photo.blurCSS), false)
   const detail = mapPublicProduct(withMedia, row, settings, true)
-  assert.deepEqual(detail.photos.map(photo => Boolean(photo.blurCSS)), [true, false, false])
+  assert.deepEqual(detail.photos.map(photo => Boolean(photo.blurCSS)), [true, true, false, false])
 })

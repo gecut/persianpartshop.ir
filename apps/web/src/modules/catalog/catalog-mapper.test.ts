@@ -17,7 +17,7 @@ function product(media: Pick<CatalogRecord, 'cover' | 'gallery'>) {
   })
 }
 
-test('keeps the cover on the card and preserves the remaining gallery order', () => {
+test('keeps the cover in both images and gallery without duplicating aliases or repeats', () => {
   const mapped = product({
     cover: { id: 12, url: '/cover.jpg' },
     gallery: [
@@ -31,8 +31,21 @@ test('keeps the cover on the card and preserves the remaining gallery order', ()
     ],
   })
   expect(mapped.images[0]).toBe('/cover.jpg')
-  expect(mapped.gallery).toEqual(['/first.jpg', '/second.jpg'])
-  expect(mapped.galleryMediaIds).toEqual({ '/first.jpg': '13' })
+  expect(mapped.gallery).toEqual(['/cover.jpg', '/first.jpg', '/second.jpg'])
+  expect(mapped.galleryMediaIds).toEqual({ '/cover.jpg': '12', '/first.jpg': '13' })
+})
+
+test('prepends the cover to gallery when gallery omits it, including single-cover products', () => {
+  const withScenesOnly = product({
+    cover: { id: 141, url: '/face.webp' },
+    gallery: [{ image: { id: 1490, url: '/scene.webp' } }],
+  })
+  expect(withScenesOnly.images).toEqual(['/face.webp', '/scene.webp'])
+  expect(withScenesOnly.gallery).toEqual(['/face.webp', '/scene.webp'])
+
+  const coverOnly = product({ cover: { id: 67, url: '/cover.jpg' }, gallery: [] })
+  expect(coverOnly.images).toEqual(['/cover.jpg'])
+  expect(coverOnly.gallery).toEqual(['/cover.jpg'])
 })
 
 test('keeps the first gallery photo when it also serves as the card fallback', () => {
@@ -47,20 +60,22 @@ test('uses the matching gallery media URL to resolve an ID-only cover', () => {
     gallery: [{ image: '/first.jpg' }, { image: '/cover.jpg' }, { image: { id: 'cover-id', url: '/cover.jpg' } }],
   })
   expect(mapped.images[0]).toBe('/cover.jpg')
-  expect(mapped.gallery).toEqual(['/first.jpg'])
+  expect(mapped.gallery).toEqual(['/first.jpg', '/cover.jpg'])
 })
 
-test('excludes a cover alias when the gallery supplies the media ID', () => {
+test('excludes a duplicate cover alias when the gallery supplies the media ID', () => {
   const mapped = product({
     cover: '/cover.jpg',
     gallery: [{ image: { id: 12, url: '/alias.jpg' } }, { image: { id: 12, url: '/cover.jpg' } }],
   })
-  expect(mapped.gallery).toEqual([])
+  expect(mapped.gallery).toEqual(['/cover.jpg'])
+  expect(mapped.images).toEqual(['/cover.jpg'])
 })
 
-test('does not synthesize gallery slides for the cover or placeholder', () => {
-  expect(product({ cover: '/cover.jpg' }).gallery).toEqual([])
+test('does not synthesize gallery slides for the placeholder', () => {
+  expect(product({ cover: '/assets/images/placeholder.svg' }).gallery).toEqual([])
   expect(product({ gallery: [{ image: '/assets/images/placeholder.svg' }] }).gallery).toEqual([])
+  expect(product({}).gallery).toEqual([])
   expect(product({}).images[0]).toBe('/assets/images/placeholder.svg')
 })
 
@@ -86,8 +101,10 @@ test('preserves gallery variants through the catalog contract without replacing 
     ],
   }))
   expect(mapped.images).toEqual(['/cover.webp', '/first.webp', '/legacy.webp'])
+  expect(mapped.gallery).toEqual(['/cover.webp', '/first.webp', '/legacy.webp'])
   expect(mapped.thumbnailUrl).toBe('/cover-small.webp')
   expect(mapped.galleryMediaDetails).toEqual({
+    '/cover.webp': { thumbnailUrl: '/cover-small.webp' },
     '/first.webp': { thumbnailUrl: '/first-small.webp', previewUrl: '/first-preview.webp', ratio: 2 },
   })
 })

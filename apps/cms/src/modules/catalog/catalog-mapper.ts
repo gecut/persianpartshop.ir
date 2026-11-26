@@ -90,11 +90,25 @@ export function mapPublicProduct(
   detail = false,
 ): PublicCatalogProduct {
   const cover = publicPhoto(product.cover, true)
+  const coverPhoto = publicPhoto(product.cover, detail)
   const coverId = product.cover && typeof product.cover === 'object' ? product.cover.id : product.cover
-  const photos = (product.gallery ?? [])
-    .filter(({ image }) => (image && typeof image === 'object' ? image.id : image) !== coverId)
-    .flatMap(({ image }) => { const photo = publicPhoto(image, detail); return photo && photo.url !== cover?.url ? [photo] : [] })
-    .filter((photo, index, all) => all.findIndex(candidate => candidate.url === photo.url) === index)
+  const galleryPhotos: NonNullable<ReturnType<typeof publicPhoto>>[] = []
+  const seenUrls = new Set<string>()
+  const seenIds = new Set<number>()
+  for (const { image } of product.gallery ?? []) {
+    const imageId = image && typeof image === 'object' ? image.id : typeof image === 'number' ? image : undefined
+    const photo = publicPhoto(image, detail)
+    if (!photo || photo.url === '/assets/images/placeholder.svg') continue
+    if (seenUrls.has(photo.url) || (imageId !== undefined && seenIds.has(imageId))) continue
+    seenUrls.add(photo.url)
+    if (imageId !== undefined) seenIds.add(imageId)
+    galleryPhotos.push(photo)
+  }
+  const hasCover = coverPhoto && (seenUrls.has(coverPhoto.url) || (typeof coverId === 'number' && seenIds.has(coverId)))
+  // Keep cover visible inside detail photos whenever CMS gallery omits it or explicitly includes it.
+  const photos = coverPhoto && coverPhoto.url !== '/assets/images/placeholder.svg' && !hasCover
+    ? [coverPhoto, ...galleryPhotos]
+    : galleryPhotos
   const cap = settings.stock.displayCap
   const stock: PublicCatalogProduct['stock'] =
     settings.stock.mode === 'hidden'

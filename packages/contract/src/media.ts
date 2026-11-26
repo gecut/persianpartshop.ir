@@ -63,19 +63,45 @@ export function selectCatalogPhotos(
   })
   const coverId = idOf(product.cover, coverUrl) ?? entries.find(entry => entry.url === coverUrl)?.id
   const matching = entries.find(entry => entry.url === coverUrl || (coverId !== undefined && entry.id === coverId))
-  const declaredCover = product.cover
-  const coverImage = typeof declaredCover === 'object' && declaredCover && declaredCover.sizes?.galleryThumb?.url
+  const declaredCover = product.cover ?? undefined
+  const coverImage = declaredCover && typeof declaredCover === 'object' && declaredCover.sizes?.galleryThumb?.url
     ? declaredCover
     : matching?.image ?? declaredCover
-  const cover = coverUrl ? { url: coverUrl, id: coverId, image: coverImage } : matching
-  const urls = new Set(cover ? [cover.url] : [])
-  const ids = new Set(coverId ? [coverId] : [])
-  const gallery = entries.filter(({ url, id }) => {
-    const duplicate = urls.has(url) || (id !== undefined && ids.has(id))
-    urls.add(url)
-    if (id !== undefined) ids.add(id)
-    return !duplicate
-  })
+  const resolvedCover = coverUrl && coverImage !== undefined ? { url: coverUrl, id: coverId, image: coverImage } : matching
+  const detailCover = resolvedCover && resolvedCover.url !== '/assets/images/placeholder.svg' ? resolvedCover : undefined
 
-  return { cover, primary: cover ?? entries[0], gallery, urls }
+  type PhotoEntry = { url: string; id: string | undefined; image: CatalogMedia }
+  const gallery: PhotoEntry[] = []
+  const urls = new Set<string>()
+  const seenUrls = new Set<string>()
+  const ids = new Set<string>()
+  const isCoverEntry = (entry: PhotoEntry) =>
+    detailCover !== undefined && (entry.url === detailCover.url || (detailCover.id !== undefined && entry.id === detailCover.id))
+
+  const pushEntry = (entry: PhotoEntry) => {
+    const coverMatch = isCoverEntry(entry) ? detailCover : undefined
+    const canonicalImage = coverMatch
+      ? typeof coverMatch.image === 'object' && coverMatch.image.sizes?.galleryThumb?.url
+        ? coverMatch.image
+        : typeof entry.image === 'object'
+          ? entry.image
+          : coverMatch.image
+      : entry.image
+    const canonical: PhotoEntry = coverMatch
+      ? { url: coverMatch.url, id: coverMatch.id ?? entry.id, image: canonicalImage }
+      : entry
+    if (seenUrls.has(entry.url) || seenUrls.has(canonical.url) || (canonical.id !== undefined && ids.has(canonical.id))) return
+    seenUrls.add(entry.url)
+    seenUrls.add(canonical.url)
+    urls.add(canonical.url)
+    if (canonical.id !== undefined) ids.add(canonical.id)
+    if (coverMatch?.id !== undefined) ids.add(coverMatch.id)
+    gallery.push(canonical)
+  }
+
+  // Always surface a non-placeholder cover in product details even when gallery omits it or duplicates it.
+  if (detailCover && !entries.some(isCoverEntry)) pushEntry(detailCover)
+  for (const entry of entries) pushEntry(entry)
+
+  return { cover: resolvedCover, primary: resolvedCover ?? entries[0], gallery, urls }
 }
