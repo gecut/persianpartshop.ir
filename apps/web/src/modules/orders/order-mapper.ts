@@ -171,6 +171,7 @@ export function mapDocToOrder(doc: CustomerOrderDocument): Order {
     const grade = prod?.grade ? formatGrade(prod.grade) : ''
     const gallery = prod?.gallery?.filter((g): g is { image: NonNullable<typeof g.image> } => g.image != null)
     const photos = catalogProductImages({ cover: prod?.cover, gallery })
+    const productType = i.productType ?? prod?.productType ?? 'tile'
 
     return {
       productId: String(prod?.id || i.product || ''),
@@ -180,8 +181,8 @@ export function mapDocToOrder(doc: CustomerOrderDocument): Order {
       productImage: photos.primary,
       productImageThumbnail: photos.thumbnailUrl,
       dimension,
-      productType: i.productType ?? prod?.productType ?? 'tile',
-      unit: i.unit ?? (prod?.productType === 'other' ? (prod?.unit ?? 'piece') : 'm2'),
+      productType,
+      unit: i.unit ?? (productType === 'other' ? (prod?.unit ?? 'piece') : 'm2'),
       grade,
       requestedArea: i.requestedArea,
       cartonCount: i.cartonCount,

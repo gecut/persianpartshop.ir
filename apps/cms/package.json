@@ -39,7 +39,7 @@
     "seed": "cross-env NODE_OPTIONS=--no-deprecation node --import tsx src/seed.ts",
     "media:gallery-sizes": "cross-env DISABLE_PAYLOAD_HMR=true tsx src/backfill-gallery-sizes.ts",
     "media:blur-css": "cross-env DISABLE_PAYLOAD_HMR=true tsx src/backfill-media-blur.ts",
-    "test:unit": "tsx --test src/_seed-target.test.ts src/collections/media/media-blur.test.ts src/collections/orders/_validate-transition.before-change.test.ts src/collections/plans/_personalize-plan.after-read.test.ts src/collections/products/_family-change.test.ts src/collections/products/_inventory-math.test.ts src/collections/products/_product-access.test.ts src/collections/products/_sync-slug-and-dimensions.before-validate.test.ts src/collections/users/_validate-user.before-change.test.ts src/collections/warehouse-stock/_import-csv.test.ts src/collections/warehouse-stock/_stock-operations.test.ts src/globals/catalog-settings.test.ts src/lib/committed-sms.test.ts src/lib/validation.test.ts src/modules/catalog/catalog-mapper.test.ts src/modules/catalog/catalog-policy.test.ts src/modules/catalog/catalog-query-sql.test.ts src/modules/sms/kavenegar-client.test.ts src/modules/sms/queue-worker.test.ts src/sdk.test.ts ../../packages/contract/src/public-catalog.test.ts"
+    "test:unit": "tsx --test src/_seed-target.test.ts src/collections/media/media-blur.test.ts src/collections/orders/_validate-transition.before-change.test.ts src/collections/plans/_personalize-plan.after-read.test.ts src/collections/products/_family-change.test.ts src/collections/products/_inventory-math.test.ts src/collections/products/_product-access.test.ts src/collections/products/_sync-slug-and-dimensions.before-validate.test.ts src/collections/users/_validate-user.before-change.test.ts src/collections/warehouse-stock/_import-csv.test.ts src/collections/warehouse-stock/_stock-operations.test.ts src/globals/catalog-settings.test.ts src/lib/committed-sms.test.ts src/lib/validation.test.ts src/modules/catalog/catalog-mapper.test.ts src/modules/catalog/catalog-policy.test.ts src/modules/catalog/catalog-query-sql.test.ts src/modules/sms/kavenegar-client.test.ts src/modules/sms/queue-worker.test.ts src/sdk.test.ts src/collections/qr-codes/_token.test.ts src/collections/qr-codes/_pick-tokens.test.ts src/modules/qr-label/kashida.test.ts src/modules/qr-label/label-url.test.ts src/modules/qr-label/render-label.test.ts ../../packages/contract/src/public-catalog.test.ts"
   },
   "dependencies": {
     "@fontsource-variable/vazirmatn": "^5.3.0",
@@ -55,8 +55,11 @@
     "cross-env": "^7.0.3",
     "csv-parse": "5.6.0",
     "dotenv": "^16.4.7",
+    "fflate": "^0.8.3",
+    "fontkit": "^3.0.0",
     "next": "16.3.8",
     "payload": "^3.90.2",
+    "qrcode": "^1.5.4",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "sharp": "^0.35.4",
@@ -64,9 +67,12 @@
   },
   "devDependencies": {
     "@next/env": "^16.4.0",
+    "@types/fontkit": "^2.0.9",
     "@types/node": "^24.12.3",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
+    "jsqr": "^1.4.0",
     "tsx": "^4.23.15",
     "typescript": "^6.0.3"
   }

@@ -20,6 +20,7 @@ export function formatInvoiceQuantity(value: number): string {
 
 export function formatInvoiceDateTime(date: Date | string): string {
   const d = typeof date === 'string' ? new Date(date) : date
+  if (Number.isNaN(d.getTime())) return '—'
   return dateTimeFormatter.format(d).replace(', ', '، ')
 }
 

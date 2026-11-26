@@ -1,7 +1,7 @@
 import { oc } from '@orpc/contract'
 import { z } from 'zod'
 import { ActivityFeedItemSchema } from './activity-feed'
-import { CatalogRecordSchema, DimensionSchema } from './catalog'
+import { CatalogRecordSchema, DimensionSchema, QrTokenSchema } from './catalog'
 import { CustomerOrderDocumentSchema } from './order'
 import { PlanSchema } from './plan'
 import { selectCatalogPhotos, type CatalogMedia } from './media'
@@ -23,7 +23,7 @@ export const OfflineProfileSchema = z.object({
 export const OfflineSnapshotSchema = z.object({
   products: z.record(CatalogRecordSchema),
   dimensions: z.array(DimensionSchema),
-  qr: z.record(z.string()),
+  qr: z.record(QrTokenSchema, z.number().int().positive()).default({}),
   activity: z.array(ActivityFeedItemSchema),
   orders: z.record(CustomerOrderDocumentSchema),
   supplies: z.record(SupplyRequestSchema),

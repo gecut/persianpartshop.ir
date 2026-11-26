@@ -11,6 +11,8 @@ describe('formatInvoiceQuantity', () => {
 describe('formatInvoiceDateTime', () => {
   test('Jalali, Tehran time, Persian comma', () =>
     expect(formatInvoiceDateTime('2026-11-24T09:42:00.000Z')).toBe('۱۴۰۵/۰۹/۰۳، ۱۳:۱۲'))
+  test('returns em-dash for invalid date', () =>
+    expect(formatInvoiceDateTime('not-a-date')).toBe('—'))
 })
 
 describe('invoiceValidUntil', () => {

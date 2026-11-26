@@ -42,7 +42,7 @@ export function InvoiceTotals({ subtotal, discountAmount, taxAmount, finalTotal 
           </div>
 
           <p className="text-[11px] text-muted print:text-[8.5px]">
-            به حروف: {tomanToPersianWords(finalTotal)}
+            به حروف: {tomanToPersianWords(Math.round(finalTotal))}
           </p>
         </div>
       </div>

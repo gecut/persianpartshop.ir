@@ -8,6 +8,10 @@ const dirname = path.dirname(__filename)
 
 const nextConfig: NextConfig = {
   agentRules: false,
+  serverExternalPackages: ['sharp', 'fontkit'],
+  outputFileTracingIncludes: {
+    '/api/**': ['./public/fonts/PEYDA-MEDIUM.TTF'],
+  },
   images: {
     localPatterns: [
       {

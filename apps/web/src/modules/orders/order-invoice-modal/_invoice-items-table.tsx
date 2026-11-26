@@ -36,14 +36,7 @@ export function InvoiceItemsTable({ order }: InvoiceItemsTableProps) {
         </thead>
         <tbody>
           {order.items.map((item, idx) => {
-            const details: string[] = []
-            if (item.dimension && item.dimension !== '—') {
-              details.push(toPersianDigits(item.dimension))
-            }
-            if (item.grade) {
-              details.push(item.grade)
-            }
-            const detailStr = details.length > 0 ? details.join(' ') : ''
+            const hasDimension = Boolean(item.dimension && item.dimension !== '—')
 
             const packageLabel =
               item.productType === 'other'
@@ -63,7 +56,13 @@ export function InvoiceItemsTable({ order }: InvoiceItemsTableProps) {
                   <div className="flex flex-col gap-0.5 leading-snug">
                     <span>
                       {item.productName}
-                      {detailStr ? ` ${detailStr}` : ''}
+                      {hasDimension && (
+                        <>
+                          {' '}
+                          <bdi dir="ltr">{toPersianDigits(item.dimension)}</bdi>
+                        </>
+                      )}
+                      {item.grade ? ` ${item.grade}` : ''}
                     </span>
                     {item.productSku && (
                       <span className="text-[11px] text-muted/70 font-normal print:text-[8.5px]">
@@ -72,10 +71,10 @@ export function InvoiceItemsTable({ order }: InvoiceItemsTableProps) {
                     )}
                   </div>
                 </th>
-                <td className="py-2.5 px-1 text-center font-bold text-foreground whitespace-nowrap">
+                <td className="py-2.5 px-1 text-center font-bold text-foreground">
                   {packageLabel}
                 </td>
-                <td className="py-2.5 px-1 text-center font-bold text-foreground whitespace-nowrap">
+                <td className="py-2.5 px-1 text-center font-bold text-foreground">
                   {quantityLabel}
                 </td>
                 <td className="py-2.5 px-2 text-end font-bold text-foreground whitespace-nowrap">

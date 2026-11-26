@@ -9,6 +9,7 @@ import {
   defaultCatalogSettings,
   normalizeCatalogSearch,
 } from './public-catalog'
+import { QrTokenSchema } from './catalog'
 
 test('normalization and complete stored defaults are restrictive and stable', () => {
   assert.equal(normalizeCatalogSearch('  كاشي‌۱۲٣ SKU-Ab  '), 'کاشی 123 sku-ab')
@@ -148,4 +149,17 @@ test('public catalog product operation enforces strict familyOptions', () => {
     PublicCatalogFamilyOptionSchema.safeParse({ ...option, familyId: 10 }).success,
     false,
   )
+})
+
+test('qr operation accepts a token and returns a product id', () => {
+  assert.equal(catalogOperations.qr.input.safeParse({ token: 'abcd2345' }).success, true)
+  assert.equal(catalogOperations.qr.input.safeParse({ token: 'abc', extra: 1 }).success, false)
+  assert.equal(catalogOperations.qr.output.safeParse({ productId: 7 }).success, true)
+  assert.equal(catalogOperations.qr.output.safeParse({ productId: 0 }).success, false)
+})
+
+test('QrTokenSchema trims, uppercases and rejects ambiguous symbols', () => {
+  assert.equal(QrTokenSchema.parse(' abcd2345 '), 'ABCD2345')
+  assert.equal(QrTokenSchema.safeParse('ABCD2340').success, false) // contains 0
+  assert.equal(QrTokenSchema.safeParse('ABCDEFGHI').success, false) // 9 chars
 })

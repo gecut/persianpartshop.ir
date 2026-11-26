@@ -42,7 +42,7 @@ export function InvoiceHeader({ order, formattedInvoiceNumber }: InvoiceHeaderPr
               تاریخ صدور:
             </span>
             <span className="font-bold text-foreground">
-              {formatInvoiceDateTime(order.createdAt ?? order.date)}
+              {order.createdAt ? formatInvoiceDateTime(order.createdAt) : order.date}
             </span>
           </div>
           {order.createdAt && (

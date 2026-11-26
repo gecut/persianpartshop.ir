@@ -362,6 +362,10 @@ export const catalogOperations = {
       })
       .strict(),
   },
+  qr: {
+    input: z.object({ token: z.string().max(64) }).strict(),
+    output: z.object({ productId: z.number().int().positive() }).strict(),
+  },
 }
 export type CatalogOperation = keyof typeof catalogOperations
 export type CatalogInput<K extends CatalogOperation> = z.input<

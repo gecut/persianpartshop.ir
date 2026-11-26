@@ -1,4 +1,4 @@
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { formatPersianDateTime } from '@/lib/utils/date'
 import { formatTrackingNumber } from '@/lib/utils/tracking-number'
 import { createPortal } from "react-dom"
@@ -25,27 +25,40 @@ export function OrderInvoiceModal({
   isOpen,
   onClose,
 }: OrderInvoiceModalProps) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
+  const hasOrder = Boolean(order);
+
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || !hasOrder) return;
+    const previouslyFocused =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    dialogRef.current?.focus();
+
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") onCloseRef.current();
     };
     window.addEventListener("keydown", onKeyDown);
     return () => {
       window.removeEventListener("keydown", onKeyDown);
       document.body.style.overflow = prevOverflow;
+      if (previouslyFocused && previouslyFocused.isConnected) {
+        previouslyFocused.focus();
+      }
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, hasOrder]);
 
   if (!order) return null;
 
   // Financial calculations
-  const subtotal = order.subtotal || 0;
-  const discountAmount = order.discountAmount || 0;
-  const taxAmount = order.taxAmount || 0;
-  const finalTotal = order.finalTotal || subtotal;
+  const subtotal = order.subtotal ?? 0;
+  const discountAmount = order.discountAmount ?? 0;
+  const taxAmount = order.taxAmount ?? 0;
+  const finalTotal = order.finalTotal ?? subtotal;
 
   const formattedInvoiceNumber = formatTrackingNumber(order.orderNumber || order.id);
 
@@ -65,6 +78,8 @@ export function OrderInvoiceModal({
     <AnimatePresence>
       {isOpen && (
         <motion.div
+          ref={dialogRef}
+          tabIndex={-1}
           id="order-invoice-portal"
           key="invoice-modal-overlay"
           role="dialog"

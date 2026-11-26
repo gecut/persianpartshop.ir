@@ -369,7 +369,6 @@ export type AvailabilityBadge = z.infer<typeof AvailabilityBadgeSchema>
 
 export const CatalogProductSchema = z.object({
   id: EntityIdSchema,
-  hasScanCode: z.boolean().optional(),
   sku: z.string(),
   name: z.string(),
   slug: z.string(),
@@ -409,14 +408,14 @@ export const CatalogProductSchema = z.object({
 
 export type CatalogProduct = z.infer<typeof CatalogProductSchema>
 
-// Payload-shaped product returned by the scan endpoint. Keep this distinct
+// Payload-shaped product returned by catalog record endpoints. Keep this distinct
 // from the older flattened CatalogProductSchema used by legacy procedures.
 const CatalogRelationSchema = z.union([
   z.number().int().positive(),
   EntityIdSchema,
   z.object({ id: z.union([z.number().int().positive(), EntityIdSchema]), name: z.string(), slug: z.string().optional() }),
 ])
-export const ScannedCatalogProductSchema = z.object({
+export const CatalogProductDetailSchema = z.object({
   id: z.union([z.number().int().positive(), EntityIdSchema]),
   sku: z.string().min(1),
   name: z.string().min(1),
@@ -447,15 +446,12 @@ export const ScannedCatalogProductSchema = z.object({
   stockCartons: z.number().nonnegative(),
   availability: AvailabilityBadgeSchema,
   hideExactStock: z.boolean().optional(),
-  hasScanCode: z.literal(true),
   finalCustomerPricePerSqm: z.number().nonnegative(),
 })
-export type ScannedCatalogProduct = z.infer<typeof ScannedCatalogProductSchema>
+export type CatalogProductDetail = z.infer<typeof CatalogProductDetailSchema>
 
 /** The complete, customer-safe product shared by every catalog consumer. */
-export const CatalogRecordSchema = ScannedCatalogProductSchema.omit({ hasScanCode: true }).extend({
-  hasScanCode: z.boolean(),
-  scanHash: z.string().regex(/^[a-f0-9]{64}$/).optional(),
+export const CatalogRecordSchema = CatalogProductDetailSchema.extend({
   createdAt: z.string(),
   familyId: z.number().int().positive().nullable().optional(),
 })
@@ -697,23 +693,22 @@ export const tagContract = {
     }),
 }
 
+export const QR_TOKEN_PATTERN = /^[A-HJKMNP-Z2-9]{8}$/
+export const QrTokenSchema = z.string().trim().toUpperCase().regex(QR_TOKEN_PATTERN)
+
 export const catalogContract = {
-  syncPage: oc.input(z.object({ cursor: z.string().max(2048).optional(), limit: z.number().int().min(1).max(100).default(24), includeOfflineQr: z.boolean().optional() }))
-    .output(CatalogScopeOutputSchema.extend({
-      nextCursor: z.string().nullable(),
-      offlineQr: z.array(z.object({ id: z.number().int().positive(), scanCode: z.string().min(1).max(128) })).optional(),
-    })),
+  syncPage: oc.input(z.object({ cursor: z.string().max(2048).optional(), limit: z.number().int().min(1).max(100).default(24) }))
+    .output(CatalogScopeOutputSchema.extend({ nextCursor: z.string().nullable() })),
   browse: oc.input(CatalogBrowseInputSchema).output(CatalogBrowseOutputSchema),
   facets: oc.output(CatalogFacetOutputSchema),
   getByIds: oc.input(z.object({ ids: z.array(z.number().int().positive()).max(100) })).output(CatalogScopeOutputSchema),
-  getByScanCode: oc
-    .meta(openapi({ method: 'POST', path: '/catalog/scan', summary: 'شناسایی محصول با کد اسکن' }))
-    .input(z.object({ scanCode: z.string().trim().min(1).max(128).regex(/^[a-zA-Z0-9-]+$/).transform(value => value.toUpperCase()) }))
+  getByQrToken: oc
+    .meta(openapi({ method: 'POST', path: '/catalog/qr', summary: 'شناسایی محصول با توکن QR' }))
+    .input(z.object({ token: QrTokenSchema }))
     .output(CatalogRecordSchema),
-  getProductQr: oc
-    .meta(openapi({ method: 'POST', path: '/catalog/product-qr', summary: 'دریافت کد QR محصول' }))
-    .input(z.object({ id: z.union([EntityIdSchema, z.number().int().positive()]) }))
-    .output(z.object({ scanCode: z.string() })),
+  listQrTokens: oc
+    .meta(openapi({ method: 'POST', path: '/catalog/qr-tokens', summary: 'فهرست توکن‌های QR مجاز برای اسکن آفلاین' }))
+    .output(z.object({ tokens: z.record(QrTokenSchema, z.number().int().positive()) })),
   list: oc
     .meta(openapi({ method: 'GET', path: '/catalog', summary: 'کاتالوگ محصولات با قیمت اختصاصی مشتری جاری' }))
     .input(CatalogFilterInputSchema)

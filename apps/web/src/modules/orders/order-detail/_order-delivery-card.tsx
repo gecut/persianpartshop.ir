@@ -32,7 +32,8 @@ export function OrderDeliveryCard({ order }: OrderDeliveryCardProps) {
           <div>
             <span className="text-muted block">تحویل‌گیرنده:</span>
             <span className="font-bold text-foreground">
-              {order.customerName} ({toPersianDigits(order.customerPhone)})
+              {order.customerName || '—'}
+              {order.customerPhone ? ` (${toPersianDigits(order.customerPhone)})` : ''}
             </span>
           </div>
         </div>
@@ -42,7 +43,7 @@ export function OrderDeliveryCard({ order }: OrderDeliveryCardProps) {
           <div>
             <span className="text-muted block">نشانی تحویل:</span>
             <span className="font-bold text-foreground">
-              {order.deliveryAddress}
+              {order.deliveryAddress || '—'}
             </span>
           </div>
         </div>
