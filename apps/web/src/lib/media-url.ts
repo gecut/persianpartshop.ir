@@ -1,7 +1,7 @@
 import { mediaUrl, selectCatalogPhotos, type BlurCss, type CatalogMedia, type CatalogRecord } from "@persianpart/contract"
 import { match, P } from "ts-pattern"
 
-const cdnUrl = import.meta.env.VITE_CDN_URL;
+const cdnUrl: string | undefined = import.meta.env.VITE_CDN_URL?.replace(/\/+$/, '') || undefined;
 
 export interface GalleryMediaDetails {
   thumbnailUrl?: string

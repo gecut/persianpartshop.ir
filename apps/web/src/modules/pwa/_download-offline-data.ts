@@ -40,7 +40,13 @@ export async function downloadOfflineData(pack: OfflinePackage, canUseQr: boolea
       const facets = CatalogFacetOutputSchema.parse(await api.catalog.facets(undefined, options))
       if (facets.scopeKey !== pack.scopeKey) throw new Error('scope')
       data.dimensions = facets.dimensions
-      if (canUseQr) data.qr = (await api.catalog.listQrTokens(undefined, options)).tokens
+      // A stale client-side QR permission must not fail the package (FORBIDDEN here would log the user out).
+      if (canUseQr) {
+        data.qr = await api.catalog.listQrTokens(undefined, options).then(result => result.tokens, (error: unknown) => {
+          if (isMatching({ code: 'FORBIDDEN' }, error)) return {}
+          throw error
+        })
+      }
       pack.catalogDone = true
     }
     pack.cursor = page.nextCursor ?? undefined

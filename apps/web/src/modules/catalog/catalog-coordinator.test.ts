@@ -84,6 +84,13 @@ describe('shared progressive catalog', () => {
     await f.coordinator.ensureIds(['7'])
     expect(f.idsCalls()).toBe(1)
   })
+  test('a fetched single record (QR scan) joins the shared snapshot', async () => {
+    const f = fixture()
+    const item = await f.coordinator.fetchRecord(async () => product(9, 300))
+    expect(item.id).toBe(9)
+    expect(f.coordinator.snapshot().byId['9']?.finalCustomerPricePerSqm).toBe(300)
+  })
+
   test('a slow background response cannot overwrite a newer targeted read', async () => {
     const f = fixture(), page = deferred<Awaited<ReturnType<typeof f.transport.syncPage>>>()
     f.transport.syncPage = () => page.promise

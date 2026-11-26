@@ -63,7 +63,9 @@ export function useCatalogData(start = false) {
 export async function scanOfflineProduct(raw: string): Promise<CatalogRecord> {
   const token = parseQrToken(raw)
   if (!token) throw Object.assign(new Error('Invalid QR'), { code: 'BAD_REQUEST' })
-  if (readsFromNetwork()) return CatalogRecordSchema.parse(await api.catalog.getByQrToken({ token }))
+  if (readsFromNetwork()) {
+    return catalogCoordinator.fetchRecord(async signal => CatalogRecordSchema.parse(await api.catalog.getByQrToken({ token }, { signal })))
+  }
   const pack = await readSavedOfflinePackage()
   if (!pack || pack.id !== offlinePackageSnapshot()?.id) throw new Error('Offline catalog unavailable')
   const qr = pack.data.qr

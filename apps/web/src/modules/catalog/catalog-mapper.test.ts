@@ -99,8 +99,11 @@ describe('resolveMediaUrl', () => {
     expect(resolveMediaUrl('/assets/images/tile.jpg')).toBe('/assets/images/tile.jpg')
   })
 
-  test('resolves standalone filenames to media API path', () => {
-    expect(resolveMediaUrl('sample-tile.png')).toBe('/api/media/file/sample-tile.png')
+  // VITE_CDN_URL comes from the environment; files resolve under the CDN when set, else the media API.
+  const mediaBase = import.meta.env.VITE_CDN_URL?.replace(/\/+$/, '') || '/api/media/file'
+
+  test('resolves standalone filenames to the CDN or media API path', () => {
+    expect(resolveMediaUrl('sample-tile.png')).toBe(`${mediaBase}/sample-tile.png`)
   })
 
   test('resolves object with url', () => {
@@ -108,7 +111,7 @@ describe('resolveMediaUrl', () => {
   })
 
   test('falls back to filename when url is empty string', () => {
-    expect(resolveMediaUrl({ url: '', filename: 'tile-fallback.jpg' })).toBe('/api/media/file/tile-fallback.jpg')
+    expect(resolveMediaUrl({ url: '', filename: 'tile-fallback.jpg' })).toBe(`${mediaBase}/tile-fallback.jpg`)
   })
 
   test('resolves thumbnailURL when url is absent', () => {

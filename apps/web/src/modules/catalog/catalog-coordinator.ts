@@ -268,6 +268,16 @@ export function createCatalogCoordinator(client: QueryClient, transport: Transpo
     resume() { if (started) return pump(); return Promise.resolve() },
     refresh() { started = true; return pump(true) },
     ensureIds,
+    /** Loads one record outside the sweep (e.g. a QR scan) and keeps it in the snapshot. */
+    async fetchRecord(load: (signal: AbortSignal) => Promise<CatalogRecord>): Promise<CatalogRecord> {
+      const expected = epoch, read = ++sequence; foreground++
+      try {
+        const item = await request(load)
+        merge([item], null, read)
+        targeted.add(String(item.id))
+        return item
+      } finally { foreground--; if (expected === epoch && started) void pump() }
+    },
     async browse(requestOwner: string, input: CatalogBrowseInput, signal: AbortSignal) {
       if (!requestOwner || requestOwner !== owner || signal.aborted) throw aborted()
       const expected = epoch, read = ++sequence; foreground++
