@@ -1,14 +1,14 @@
 {
-  "snapshot_id": "sha256:38674d3f85fa6f016f26adaa35abd8d724bf37b0bd11e93e9b24280a6094bdfc",
+  "snapshot_id": "sha256:0bd412bea9c51ede5a104933882c6ccecf4068993d734dc39f05cb3f74d94831",
   "format_version": 1,
-  "enola_version": "0.4.38",
-  "extractor_version": "v500",
-  "generated_at": "2026-11-19T20:57:41Z",
-  "duration": "476.119167ms",
+  "enola_version": "0.5.3",
+  "extractor_version": "v650",
+  "generated_at": "2026-11-24T12:12:12Z",
+  "duration": "2.517680916s",
   "repo_path": "/Users/mm25zamanian/Codes/persianpartshop.ir",
   "git": {
     "ref": "main",
-    "commit": "49912fff5583301a6da988e47a3d2d1563bb5b6b",
+    "commit": "f2727b051db99a40fb0df87b1c2850d116b7cfc1",
     "dirty": true,
     "remote": "github.com/gecut/persianpartshop.ir"
   },
@@ -41,29 +41,30 @@
     "package-metrics",
     "dead-code",
     "performance",
-    "packwerk"
+    "packwerk",
+    "final-inheritance"
   ],
   "renderers": [
     "llm_context",
     "flows",
     "docs"
   ],
-  "config_hash": "sha256:0bd4dd70eadd883034fcb98b5d4c9bf19bf25984306c3557610420f86875a2cd",
+  "config_hash": "sha256:0f67a3f7d2a43702071c35dbd9fd348b26e11b8d896fdbc0a9c2a3846c8471ba",
   "ignore_glob_hash": "sha256:83dbf7e109a97f4fbe4c6255c5ea1648b57ede0e31e953295664e95171114a16",
   "output_hashes": {
-    "docs.jsonl": "sha256:227baeb0558626f2685bc204f347723ab2e5834e8112762bcfc4e6dba45170b0",
-    "facts.jsonl": "sha256:03533811ba0bbd2026fa0ef668e9d6613819a8699603d740063856613b7d01bf",
-    "flows.json": "sha256:f946ce98b7c8a0adf43d976db1198c65aa68211d2909a35d9f9cd6da622da6e0",
-    "insights.json": "sha256:c9cb0b8ca574c131859d8ec3b223bcbb8f676a6c74f616079cac7fa6b019b929",
-    "llm_context.md": "sha256:f87931eb3e40f19a8ec483b241c970380047aa2ca17b5fefcedf1aba761c89cb"
+    "docs.jsonl": "sha256:d590f23f439932bbb3de0a503510e901ff34cbad882c35cc40f928f58754c721",
+    "facts.jsonl": "sha256:c902aaf2b01f2d1d9179dc75a32e4a203747313009be23302dd48bbc2a56f041",
+    "flows.json": "sha256:ae725fd7745caff60c69f164eafc7f2cd7fab8b6fcf7d4ba471daeceb6e90dcb",
+    "insights.json": "sha256:184181af519071d8ad896411a3e932bc12468c7080d242f5e418fe486cb6ee34",
+    "llm_context.md": "sha256:5f53d8e64dc9c413e14e53b9d6a790ce04fa6de5c67c546f7fe3459175703d37"
   },
-  "fact_count": 8870,
-  "insight_count": 152,
+  "fact_count": 10338,
+  "insight_count": 127,
   "quality": {
-    "files_seen": 1749,
-    "files_parsed": 713,
-    "files_skipped": 39,
-    "dirs_skipped": 13,
+    "files_seen": 3024,
+    "files_parsed": 818,
+    "files_skipped": 50,
+    "dirs_skipped": 14,
     "skipped_sample": [
       ".agents/skills/nexload-cto-review/evals/fixtures/approved-clean-package/test/cache.test.ts (glob: **/*.test.ts)",
       ".agents/skills/nexload-cto-review/evals/fixtures/change-with-existing-debt/target/ (glob: **/target/**)",
@@ -82,51 +83,52 @@
       "apps/api/node_modules/ (glob: **/node_modules/**)",
       "apps/api/src/client.test.ts (glob: **/*.test.ts)",
       "apps/api/src/payload-error.test.ts (glob: **/*.test.ts)",
-      "apps/catalog/.next/ (glob: **/.next/**)",
-      "apps/catalog/node_modules/ (glob: **/node_modules/**)",
-      "apps/catalog/src/lib/catalog-cms.test.ts (glob: **/*.test.ts)"
+      "apps/api/src/routers/catalog-dimensions.test.ts (glob: **/*.test.ts)",
+      "apps/api/src/routers/catalog-record.test.ts (glob: **/*.test.ts)",
+      "apps/api/src/routers/offline-data.test.ts (glob: **/*.test.ts)"
     ],
     "parse_errors": 0,
-    "heuristic_insights": 147,
+    "heuristic_insights": 122,
     "coverage": {
       "services_total": 0,
       "coverage_gaps": 0,
       "unresolved_edges": 0,
       "extractors_reporting": 2,
-      "extraction_unresolved": 1013
+      "extraction_unresolved": 1284
     },
     "census": {
-      "files_walked": 1788,
-      "parsed": 713,
-      "excluded_by_ignore": 39,
-      "excluded_by_kind": 1020,
+      "files_walked": 3074,
+      "parsed": 818,
+      "excluded_by_ignore": 50,
+      "excluded_by_kind": 2054,
       "excluded_kinds": {
-        "(no extension)": 25,
+        "(no extension)": 26,
         ".css": 18,
-        ".csv": 37,
         ".dockerignore": 1,
-        ".env": 3,
+        ".env": 4,
         ".example": 4,
         ".gitignore": 1,
         ".gitkeep": 1,
         ".ico": 2,
-        ".jpg": 280,
-        ".json": 38,
-        ".local": 1,
+        ".jpg": 1436,
+        ".json": 49,
         ".log": 61,
         ".npmrc": 1,
-        ".png": 14,
+        ".png": 15,
         ".sh": 1,
         ".svg": 3,
+        ".toml": 1,
         ".tsbuildinfo": 3,
         ".ttf": 1,
         ".webp": 425,
-        ".woff2": 1,
-        ".yaml": 4,
-        ".yml": 95
+        ".woff2": 1
       },
-      "skipped_with_cause": 16,
+      "skipped_with_cause": 152,
       "top_skip_causes": [
+        {
+          "cause": "claimed by dbt, which did not run this snapshot",
+          "count": 136
+        },
         {
           "cause": "claimed by manifests, no facts emitted",
           "count": 12

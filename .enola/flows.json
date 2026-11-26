@@ -1,12 +1,13 @@
 {
   "roots": {
-    "main": 1,
-    "registered": 26,
-    "route": 10
+    "main": 6,
+    "nextjs": 4,
+    "registered": 68,
+    "route": 13
   },
-  "leaves": 30,
-  "total": 7,
-  "described": 7,
+  "leaves": 78,
+  "total": 13,
+  "described": 13,
   "flows": [
     {
       "id": "67e9bac39b888d2507dc1e7633828360",
@@ -172,7 +173,7 @@
           "name": "apps/api/src/lib.extractBearerToken",
           "id": "f247286a560303db456379c070978ed3",
           "file": "apps/api/src/lib/jwt.ts",
-          "line": 98,
+          "line": 86,
           "doc": "Extracts the Bearer token string from an Authorization header (lightweight vanilla JS)",
           "reach": 1
         },
@@ -183,7 +184,7 @@
           "name": "apps/api/src/lib.isTokenRevoked",
           "id": "450c0b58290c3f2a5ba52a7b62ab4d41",
           "file": "apps/api/src/lib/jwt.ts",
-          "line": 128,
+          "line": 116,
           "doc": "Checks whether a token has been revoked / logged out",
           "reach": 1
         },
@@ -346,9 +347,70 @@
       ]
     },
     {
+      "id": "a400158ecfb5626b378e51d27554586b",
+      "name": "GET /",
+      "rank": 5,
+      "repo": "persianpartshop.ir",
+      "mechanism": "route",
+      "routes": [
+        {
+          "name": "/",
+          "method": "GET",
+          "id": "c75265c45edcf08e4204b08d41c3a770",
+          "file": "apps/catalog/src/app/layout.tsx",
+          "line": 1
+        }
+      ],
+      "entry": {
+        "name": "apps/catalog/src/app.RootLayout",
+        "id": "9b319f403a163f9777e410eca59bade5",
+        "file": "apps/catalog/src/app/layout.tsx",
+        "line": 31
+      },
+      "summary": "HTTP GET / enters at app.RootLayout. It hands off to app.catalogTitle, which calls lib.getCatalog. Most of its 3 symbols sit in apps/catalog/src/app (2 symbols) and apps/catalog/src/lib (1).",
+      "metrics": {
+        "reach": 3,
+        "modules": 2,
+        "max_depth": 2,
+        "unresolved_calls": 0,
+        "external_calls": 0
+      },
+      "modules": [
+        {
+          "name": "apps/catalog/src/app",
+          "symbols": 2
+        },
+        {
+          "name": "apps/catalog/src/lib",
+          "symbols": 1
+        }
+      ],
+      "stages": [
+        {
+          "order": 1,
+          "depth": 1,
+          "name": "apps/catalog/src/app.catalogTitle",
+          "id": "37ea5d271e21354b8f8f98f7e2196a87",
+          "file": "apps/catalog/src/app/layout.tsx",
+          "line": 23,
+          "reach": 2
+        },
+        {
+          "order": 2,
+          "depth": 2,
+          "parent": "37ea5d271e21354b8f8f98f7e2196a87",
+          "name": "apps/catalog/src/lib.getCatalog",
+          "id": "6262640125c734124d8fe90c858043a1",
+          "file": "apps/catalog/src/lib/catalog-server.ts",
+          "line": 11,
+          "reach": 1
+        }
+      ]
+    },
+    {
       "id": "cb0ef16bf0bc7d46361257d152fbf5bd",
       "name": "GET /[[...entry]]",
-      "rank": 5,
+      "rank": 6,
       "repo": "persianpartshop.ir",
       "mechanism": "route",
       "routes": [
@@ -399,7 +461,7 @@
     {
       "id": "cf3e8782fb9e679eb9371bc0e1441db4",
       "name": "apps/web/src/lib.api.onAuthError",
-      "rank": 6,
+      "rank": 7,
       "repo": "persianpartshop.ir",
       "mechanism": "registered",
       "entry": {
@@ -437,7 +499,7 @@
     {
       "id": "b551538d43b284b280c5290a9ffebb09",
       "name": ".agents/skills/ui-ux-pro-max/scripts/validate_data.main",
-      "rank": 7,
+      "rank": 8,
       "repo": "persianpartshop.ir",
       "mechanism": "main",
       "side": true,
@@ -573,6 +635,341 @@
           "line": 67,
           "doc": "Parse the canonical condition -\u003e action-array representation.",
           "reach": 3
+        }
+      ]
+    },
+    {
+      "id": "52471542bc7d3fc67e8d7458add74386",
+      "name": "scripts/catalog_boost_processor.main",
+      "rank": 9,
+      "repo": "persianpartshop.ir",
+      "mechanism": "main",
+      "side": true,
+      "entry": {
+        "name": "scripts/catalog_boost_processor.main",
+        "id": "badc3a6382a54536e2ca085fdfe8999b",
+        "file": "scripts/catalog_boost_processor.py",
+        "line": 458
+      },
+      "summary": "The program starts at catalog_boost_processor.main. It calls catalog_boost_processor.solve_assignment, catalog_boost_processor.classify_photo_type, catalog_boost_processor.clean_en_token and catalog_boost_processor.clean_fa_token.",
+      "metrics": {
+        "reach": 10,
+        "modules": 1,
+        "max_depth": 2,
+        "performs_io": 2,
+        "unresolved_calls": 0,
+        "external_calls": 0
+      },
+      "modules": [
+        {
+          "name": "scripts",
+          "symbols": 10
+        }
+      ],
+      "stages": [
+        {
+          "order": 1,
+          "depth": 1,
+          "name": "scripts/catalog_boost_processor.solve_assignment",
+          "id": "a5ddba3d78331bb84f02e92e3e0492b3",
+          "file": "scripts/catalog_boost_processor.py",
+          "line": 413,
+          "doc": "Optimally assigns faces to declared colors combining positional prior with chromatic affinity and physical relative constraints.",
+          "reach": 3
+        },
+        {
+          "order": 2,
+          "depth": 2,
+          "parent": "a5ddba3d78331bb84f02e92e3e0492b3",
+          "name": "scripts/catalog_boost_processor.compute_color_affinity",
+          "id": "40898f275d02c2dd9c8034a433f2d0fc",
+          "file": "scripts/catalog_boost_processor.py",
+          "line": 316,
+          "doc": "Stage 2 CV: Evaluates affinity between chromatic features and target color slug. Higher score indicates higher affinity; score \u003c 0 indicates chromatic incompatibility.",
+          "reach": 1
+        },
+        {
+          "order": 3,
+          "depth": 2,
+          "parent": "a5ddba3d78331bb84f02e92e3e0492b3",
+          "name": "scripts/catalog_boost_processor.evaluate_relative_validity",
+          "id": "64be899f6087b7583287554f2989f5da",
+          "file": "scripts/catalog_boost_processor.py",
+          "line": 375,
+          "doc": "Enforces physical chromatic ordering invariants between co-occurring colors in an album. Penalizes physically impossible configurations (e.g. dark-gray brighter than light-gray).",
+          "reach": 1
+        },
+        {
+          "order": 4,
+          "depth": 1,
+          "name": "scripts/catalog_boost_processor.classify_photo_type",
+          "id": "d31b825cda1a01d9cf51799bd00b08c1",
+          "file": "scripts/catalog_boost_processor.py",
+          "line": 257,
+          "doc": "Stage 1 CV: Classifies photo as 'promo', 'scene', or 'face'.",
+          "reach": 1
+        },
+        {
+          "order": 5,
+          "depth": 1,
+          "name": "scripts/catalog_boost_processor.clean_en_token",
+          "id": "11484fa67737c69f6f275506880bdb6a",
+          "file": "scripts/catalog_boost_processor.py",
+          "line": 211,
+          "reach": 1
+        },
+        {
+          "order": 6,
+          "depth": 1,
+          "name": "scripts/catalog_boost_processor.clean_fa_token",
+          "id": "cfd58c39a475f273c493aeb86609b0b9",
+          "file": "scripts/catalog_boost_processor.py",
+          "line": 204,
+          "reach": 1
+        }
+      ]
+    },
+    {
+      "id": "5fe152ee5d54913855459e8675d76806",
+      "name": "scripts.main",
+      "rank": 10,
+      "repo": "persianpartshop.ir",
+      "mechanism": "main",
+      "side": true,
+      "entry": {
+        "name": "scripts.main",
+        "id": "546420fdeef09bcd6111e7691cb69709",
+        "file": "scripts/test_challenger_m1.ts",
+        "line": 170
+      },
+      "summary": "The program starts at scripts.main. It calls scripts.fetchAllMedia, scripts.fetchAllProducts and scripts.probeUrl.",
+      "metrics": {
+        "reach": 6,
+        "modules": 1,
+        "max_depth": 3,
+        "performs_io": 5,
+        "unresolved_calls": 17,
+        "external_calls": 6
+      },
+      "modules": [
+        {
+          "name": "scripts",
+          "symbols": 6
+        }
+      ],
+      "stages": [
+        {
+          "order": 1,
+          "depth": 1,
+          "name": "scripts.fetchAllMedia",
+          "id": "9a972b4bf1ce17593551c370cdca8b81",
+          "file": "scripts/test_challenger_m1.ts",
+          "line": 129,
+          "reach": 3
+        },
+        {
+          "order": 2,
+          "depth": 2,
+          "parent": "9a972b4bf1ce17593551c370cdca8b81",
+          "name": "scripts.callMcpTool",
+          "id": "86fa08cde4f91b62b39954acd8cb821d",
+          "file": "scripts/cleanup_orphan_media.ts",
+          "line": 65,
+          "reach": 2
+        },
+        {
+          "order": 3,
+          "depth": 3,
+          "parent": "86fa08cde4f91b62b39954acd8cb821d",
+          "name": "scripts.getLocalAddressForMizbanCloud",
+          "id": "d1ba0db329e73aec698b10bf7a4a2023",
+          "file": "scripts/cleanup_orphan_media.ts",
+          "line": 29,
+          "reach": 1
+        },
+        {
+          "order": 4,
+          "depth": 1,
+          "name": "scripts.fetchAllProducts",
+          "id": "568d3a73e7609a1bdd04679828a2a210",
+          "file": "scripts/test_challenger_m1.ts",
+          "line": 115,
+          "reach": 1
+        },
+        {
+          "order": 5,
+          "depth": 1,
+          "name": "scripts.probeUrl",
+          "id": "656662b588ff9c46d6f55da498d5b210",
+          "file": "scripts/test_challenger_m1.ts",
+          "line": 143,
+          "reach": 1
+        }
+      ]
+    },
+    {
+      "id": "cb69c2afd0a376da804c2df2c46bd578",
+      "name": "scripts/generate_mapping_and_audit.main",
+      "rank": 11,
+      "repo": "persianpartshop.ir",
+      "mechanism": "main",
+      "side": true,
+      "entry": {
+        "name": "scripts/generate_mapping_and_audit.main",
+        "id": "83f7fe20c03bead448cee0f80b3b0dd2",
+        "file": "scripts/generate_mapping_and_audit.py",
+        "line": 106
+      },
+      "summary": "The program starts at generate_mapping_and_audit.main. It calls generate_mapping_and_audit.extract_glaze_fa, generate_mapping_and_audit.get_aspect_ratio, generate_mapping_and_audit.matches_aspect_ratio and generate_mapping_and_audit.matches_glaze.",
+      "metrics": {
+        "reach": 6,
+        "modules": 1,
+        "max_depth": 1,
+        "performs_io": 1,
+        "unresolved_calls": 0,
+        "external_calls": 0
+      },
+      "modules": [
+        {
+          "name": "scripts",
+          "symbols": 6
+        }
+      ],
+      "stages": [
+        {
+          "order": 1,
+          "depth": 1,
+          "name": "scripts/generate_mapping_and_audit.extract_glaze_fa",
+          "id": "1aea75a7c6602e01b5cbf4cfbfc4828e",
+          "file": "scripts/generate_mapping_and_audit.py",
+          "line": 97,
+          "reach": 1
+        },
+        {
+          "order": 2,
+          "depth": 1,
+          "name": "scripts/generate_mapping_and_audit.get_aspect_ratio",
+          "id": "fe3ae8b1f9f3a84eedb5a0c9b735e107",
+          "file": "scripts/generate_mapping_and_audit.py",
+          "line": 72,
+          "reach": 1
+        },
+        {
+          "order": 3,
+          "depth": 1,
+          "name": "scripts/generate_mapping_and_audit.matches_aspect_ratio",
+          "id": "549bc3c90dae3dceece2dff136d9e24b",
+          "file": "scripts/generate_mapping_and_audit.py",
+          "line": 80,
+          "reach": 1
+        },
+        {
+          "order": 4,
+          "depth": 1,
+          "name": "scripts/generate_mapping_and_audit.matches_glaze",
+          "id": "ccbe0dffbb5ad4120a15ea51404cd4f8",
+          "file": "scripts/generate_mapping_and_audit.py",
+          "line": 87,
+          "reach": 1
+        }
+      ]
+    },
+    {
+      "id": "c91aa5578a67e6b9d6c4863f244a2c24",
+      "name": "scripts/crawl_persepolistile.main",
+      "rank": 12,
+      "repo": "persianpartshop.ir",
+      "mechanism": "main",
+      "side": true,
+      "entry": {
+        "name": "scripts/crawl_persepolistile.main",
+        "id": "0ac623e1258a25977fd3fd6f8c94a59a",
+        "file": "scripts/crawl_persepolistile.py",
+        "line": 96
+      },
+      "summary": "The program starts at crawl_persepolistile.main. It calls crawl_persepolistile.find_all_product_urls and crawl_persepolistile.parse_product.",
+      "metrics": {
+        "reach": 4,
+        "modules": 1,
+        "max_depth": 2,
+        "performs_io": 4,
+        "unresolved_calls": 0,
+        "external_calls": 0
+      },
+      "modules": [
+        {
+          "name": "scripts",
+          "symbols": 4
+        }
+      ],
+      "stages": [
+        {
+          "order": 1,
+          "depth": 1,
+          "name": "scripts/crawl_persepolistile.find_all_product_urls",
+          "id": "b96690c47011e673b67d9a549a8ddc13",
+          "file": "scripts/crawl_persepolistile.py",
+          "line": 20,
+          "reach": 2
+        },
+        {
+          "order": 2,
+          "depth": 2,
+          "parent": "b96690c47011e673b67d9a549a8ddc13",
+          "name": "scripts/crawl_persepolistile.get_html",
+          "id": "6529430f031396360a364c48f55d81bd",
+          "file": "scripts/crawl_persepolistile.py",
+          "line": 10,
+          "reach": 1
+        },
+        {
+          "order": 3,
+          "depth": 1,
+          "name": "scripts/crawl_persepolistile.parse_product",
+          "id": "170d1673f0befdacf93fad9ff36df9ad",
+          "file": "scripts/crawl_persepolistile.py",
+          "line": 49,
+          "reach": 1
+        }
+      ]
+    },
+    {
+      "id": "56a9e406219fc4a1e56bcc41861a6935",
+      "name": "scripts/adversarial_challenge_suite.main",
+      "rank": 13,
+      "repo": "persianpartshop.ir",
+      "mechanism": "main",
+      "side": true,
+      "entry": {
+        "name": "scripts/adversarial_challenge_suite.main",
+        "id": "aa0f13d0838ce22bfb950c3b3c366e38",
+        "file": "scripts/adversarial_challenge_suite.py",
+        "line": 34
+      },
+      "summary": "The program starts at adversarial_challenge_suite.main. It hands off to adversarial_challenge_suite.log_section.",
+      "metrics": {
+        "reach": 2,
+        "modules": 1,
+        "max_depth": 1,
+        "performs_io": 1,
+        "unresolved_calls": 0,
+        "external_calls": 0
+      },
+      "modules": [
+        {
+          "name": "scripts",
+          "symbols": 2
+        }
+      ],
+      "stages": [
+        {
+          "order": 1,
+          "depth": 1,
+          "name": "scripts/adversarial_challenge_suite.log_section",
+          "id": "2e6dade8e0bc43e486b83aef3b2075c5",
+          "file": "scripts/adversarial_challenge_suite.py",
+          "line": 29,
+          "reach": 1
         }
       ]
     }

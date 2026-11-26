@@ -2,47 +2,48 @@
 
 ## Repository Map
 
-107 modules, 3687 symbols, grouped by area. Every module is in `facts.jsonl`, or query_facts(kind="module").
+111 modules, 3929 symbols, grouped by area. Every module is in `facts.jsonl`, or query_facts(kind="module").
 
 | Area | Modules | Symbols | Languages |
 |------|---------|---------|-----------|
-| `apps` | 87 | 3223 | typescript |
-| `packages` | 1 | 247 | typescript |
-| `.agents` | 18 | 217 | python, typescript |
+| `apps` | 90 | 3321 | typescript |
+| `packages` | 1 | 259 | typescript |
+| `.agents` | 18 | 219 | python, typescript |
+| `scripts` | 1 | 130 | python |
 | `.playwright-cli` | 1 | 0 | typescript |
 
 Largest modules:
-- `apps/cms/src` — 761 symbols (typescript)
-- `apps/web/src/modules/products` — 258 symbols (typescript)
-- `packages/contract/src` — 247 symbols (typescript)
-- `apps/api/src/routers` — 165 symbols (typescript)
+- `apps/cms/src` — 778 symbols (typescript)
+- `packages/contract/src` — 259 symbols (typescript)
+- `apps/web/src/modules/catalog` — 214 symbols (typescript)
+- `apps/api/src/routers` — 171 symbols (typescript)
 - `apps/web/src/modules/pwa` — 165 symbols (typescript)
-- `.agents/skills/ui-ux-pro-max/scripts` — 115 symbols (python)
-- `apps/web/src/modules/products/product-bottom-sheet` — 92 symbols (typescript)
+- `scripts` — 130 symbols (python)
+- `.agents/skills/ui-ux-pro-max/scripts` — 117 symbols (python)
+- `apps/web/src/modules/products/product-bottom-sheet` — 101 symbols (typescript)
+- `apps/web/src/lib` — 96 symbols (typescript)
+- `apps/catalog/src/modules/product` — 83 symbols (typescript)
 - `apps/web/src/components/ui/counter` — 78 symbols (typescript)
-- `apps/web/src/lib` — 78 symbols (typescript)
 - `apps/web/src/components/ui` — 76 symbols (typescript)
-- `apps/catalog/src/modules/product` — 75 symbols (typescript)
-- `apps/web/src/modules/account/profile-view` — 73 symbols (typescript)
-- `apps/web/src/modules/orders` — 61 symbols (typescript)
+- `apps/web/src/modules/account/profile-view` — 74 symbols (typescript)
+- `apps/web/src/modules/orders` — 67 symbols (typescript)
+- `apps/web/src/modules/products` — 63 symbols (typescript)
 - `apps/web/src` — 60 symbols (typescript)
 - `apps/web/src/components/ui/code-slots` — 59 symbols (typescript)
-- `apps/web/src/modules/supply-requests` — 57 symbols (typescript)
 - `apps/web/src/modules/products/product-list` — 52 symbols (typescript)
+- `apps/web/src/modules/supply-requests` — 50 symbols (typescript)
 - `apps/cms/src/globals/components` — 49 symbols (typescript)
-- `apps/web/src/modules/orders/order-detail` — 43 symbols (typescript)
-- `apps/web/src/components/ui/slide-commit` — 41 symbols (typescript)
 
 ## Extraction Quality
 
-- Files parsed: **713** / 1749 seen (39 file(s) + 13 directory tree(s) skipped by ignore globs)
+- Files parsed: **818** / 3024 seen (50 file(s) + 14 directory tree(s) skipped by ignore globs)
 - Parse errors: 0
 
 ## Architecture Pattern
 
-**Architecture pattern: nextjs** (confidence: 34%)
+**Architecture pattern: nextjs** (confidence: 32%)
 
-Recognised nextjs from directory names: 30 of 89 typescript modules classified — 99% of this repository's 90 modules. Of 46 imports between ordered layers, 44 run inward and 2 against it (96% obey the order); the 2 are reported separately below.
+Recognised nextjs from directory names: 30 of 93 typescript modules classified — 99% of this repository's 94 modules. Of 65 imports between ordered layers, 63 run inward and 2 against it (97% obey the order); the 2 are reported separately below.
 
 Layer mapping:
 - module "apps/api/src" maps to layer "api"
@@ -63,9 +64,10 @@ Layer mapping:
 
 This code is laid out as **nextjs**. A dependency runs from an outer layer to an inner one, so a feature is built inward:
 
-1. **api, pages** — e.g. `apps/api/src`
+1. **pages** — e.g. `apps/catalog/src/app`
 2. **components** — e.g. `apps/catalog/src/components`
-3. **lib** — e.g. `apps/api/src/lib`
+3. **api** — e.g. `apps/api/src`
+4. **lib** — e.g. `apps/api/src/lib`
 
 ## Entry Points
 
@@ -83,7 +85,12 @@ This code is laid out as **nextjs**. A dependency runs from an outer layer to an
 - **handler**: `apps/web/src/lib.setAuthErrorHandler` (apps/web/src/lib/api-client.ts)
 - **handler**: `apps/web/src/lib.setQueryAuthErrorHandler` (apps/web/src/lib/query-client.ts)
 - **main**: `.agents/skills/ui-ux-pro-max/scripts/validate_data.main` (.agents/skills/ui-ux-pro-max/scripts/validate_data.py)
-36 routes, 15 shown:
+- **main**: `scripts.main` (scripts/test_challenger_m1.ts)
+- **main**: `scripts/adversarial_challenge_suite.main` (scripts/adversarial_challenge_suite.py)
+- **main**: `scripts/catalog_boost_processor.main` (scripts/catalog_boost_processor.py)
+- **main**: `scripts/crawl_persepolistile.main` (scripts/crawl_persepolistile.py)
+- **main**: `scripts/generate_mapping_and_audit.main` (scripts/generate_mapping_and_audit.py)
+35 routes, 15 shown:
 - **route** ALL `/api/[...slug]` (apps/cms/src/app/(payload)/api/[...slug]/route.ts)
 - **route** ALL `/api/openapi/*` (apps/api/src/server.ts)
 - **route** ALL `/api/openapi` (apps/api/src/server.ts)
@@ -99,7 +106,7 @@ This code is laid out as **nextjs**. A dependency runs from an outer layer to an
 - **route** GET `/api/auth/me` (apps/api/src/server.ts)
 - **route** GET `/api/health` (apps/api/src/server.ts)
 - **route** GET `/api/media/*` (apps/api/src/server.ts)
-- … and 21 more (query_facts(kind="route") for all)
+- … and 20 more (query_facts(kind="route") for all)
 
 ## Routes
 
@@ -128,7 +135,7 @@ This code is laid out as **nextjs**. A dependency runs from an outer layer to an
 | ALL | `/api/rpc` | `apps/api/src/server.ts` |  |
 | ALL | `/api/rpc/*` | `apps/api/src/server.ts` |  |
 | POST | `/api/upload` | `apps/api/src/server.ts` |  |
-| POST | `/api/warehouse-stock/${apply` | `apps/cms/src/collections/warehouse-stock/components/stock-import.tsx` |  |
+| POST | `/api/warehouse-stock/{}` | `apps/cms/src/collections/warehouse-stock/components/stock-import.tsx` |  |
 | GET | `/api/warehouses` | `apps/cms/src/collections/warehouse-stock/components/stock-import.tsx` |  |
 | POST | `/catalog-browse` | `apps/api/src/routers/catalog-sync.ts` |  |
 | GET | `/catalog-location` | `apps/cms/src/globals/components/_catalog-location.tsx` |  |
@@ -139,27 +146,30 @@ This code is laid out as **nextjs**. A dependency runs from an outer layer to an
 | GET | `/media/{}` | `apps/cms/src/globals/components/_catalog-media-preview.tsx` |  |
 | GET | `/p/[identifier]` | `apps/catalog/src/app/p/[identifier]/page.tsx` | page |
 | POST | `/plan-browse` | `apps/api/src/routers/plan.ts` |  |
-| POST | `/v1/{}/sms/send.json` | `apps/cms/src/lib/sms.ts` |  |
 | POST | `/v1/{}/verify/lookup.json` | `apps/cms/src/modules/sms/kavenegar-client.ts` |  |
 
 ## Dependency Rules
 
-92 internal module dependencies. The modules that reach furthest; traverse() or query_facts(kind="dependency") for the edges themselves.
+106 internal module dependencies. The modules that reach furthest; traverse() or query_facts(kind="dependency") for the edges themselves.
 
 | Module | Depends on |
 |--------|------------|
-| `apps/cms/src` | 19 modules |
-| `apps/cms/src/collections` | 8 modules |
-| `apps/web/src/modules` | 8 modules |
+| `apps/cms/src` | 20 modules |
+| `apps/web/src/modules` | 9 modules |
+| `apps/web/src/modules/products` | 8 modules |
+| `apps/cms/src/collections` | 7 modules |
 | `apps/web/src/modules/cart` | 7 modules |
 | `apps/web/src/modules/orders` | 7 modules |
-| `apps/web/src/modules/products` | 7 modules |
 | `apps/web/src` | 6 modules |
 | `apps/web/src/modules/account` | 6 modules |
 | `apps/web/src/modules/plans` | 5 modules |
+| `apps/web/src/modules/supply-requests` | 5 modules |
+| `apps/api/src` | 4 modules |
 | `apps/cms` | 4 modules |
 | `apps/web/src/modules/auth` | 3 modules |
-| `apps/api/src` | 2 modules |
+| `apps/cms/src/globals` | 2 modules |
+| `apps/cms/src/modules` | 2 modules |
+| `apps/web/src/modules/catalog` | 2 modules |
 | `apps/api` | 1 modules |
 | `apps/api/src/rpc` | 1 modules |
 | `apps/catalog/src` | 1 modules |
@@ -168,34 +178,31 @@ This code is laid out as **nextjs**. A dependency runs from an outer layer to an
 | `apps/catalog/src/app/p` | 1 modules |
 | `apps/catalog/src/modules` | 1 modules |
 | `apps/cms/src/collections/products` | 1 modules |
-| `apps/cms/src/globals` | 1 modules |
 | `apps/web/src/components` | 1 modules |
 
 ## Critical Modules
 
 | Module | Fan-In | Fan-Out | Criticality |
 |--------|--------|---------|-------------|
-| `apps/web/src/modules/products` | 13 | 13 | high |
 | `apps/cms/src` | 0 | 22 | high |
-| `apps/web/src/lib/utils` | 19 | 0 | high |
+| `apps/web/src/lib/utils` | 21 | 0 | high |
+| `apps/web/src/modules/auth` | 14 | 3 | high |
 | `apps/web/src/modules/orders` | 4 | 13 | high |
-| `apps/web/src/modules/auth` | 13 | 3 | high |
-| `apps/web/src/lib` | 12 | 0 | high |
-| `apps/cms/src/lib` | 10 | 0 | high |
+| `apps/web/src/lib` | 15 | 0 | high |
+| `apps/web/src/modules/catalog` | 13 | 2 | high |
+| `apps/cms/src/lib` | 13 | 0 | high |
+| `apps/web/src/modules/products` | 1 | 12 | high |
 | `apps/web/src/components/feedback` | 10 | 0 | high |
-| `apps/cms/src/access` | 9 | 0 | medium |
-| `apps/web/src/modules/cart` | 2 | 7 | medium |
+| `apps/web/src/modules/pwa` | 10 | 0 | high |
 
 ## Risk Zones
 
-- **Cyclic dependency detected (4 modules)** (confidence: 100%): The 4 modules apps/api/src, apps/api/src/lib, apps/api/src/routers, apps/api/src/rpc depend on each other through more than one cycle. One of them: apps/api/src -> apps/api/src/lib -> apps/api/src. This can cause initialization issues, make refactoring harder, and indicates tight coupling.
-- **Cyclic dependency detected (5 modules)** (confidence: 100%): The 5 modules apps/cms/src, apps/cms/src/collections/media, apps/cms/src/collections/users, apps/cms/src/endpoints, apps/cms/src/modules/catalog depend on each other through more than one cycle. One of them: apps/cms/src -> apps/cms/src/collections/media -> apps/cms/src. This can cause initialization issues, make refactoring harder, and indicates tight coupling.
-- **Cyclic dependency detected (7 modules)** (confidence: 100%): The 7 modules apps/cms/src/collections/audit-logs, apps/cms/src/collections/orders, apps/cms/src/collections/products, apps/cms/src/collections/warehouse-stock, apps/cms/src/collections/warehouses, apps/cms/src/globals, apps/cms/src/lib depend on each other through more than one cycle. One of them: apps/cms/src/collections/audit-logs -> apps/cms/src/collections/orders -> apps/cms/src/collections/products -> apps/cms/src/collections/audit-logs. This can cause initialization issues, make refactoring harder, and indicates tight coupling.
-- **Cyclic dependency detected (11 modules)** (confidence: 100%): 11 modules depend on each other through more than one cycle. One of them: apps/web/src/modules/account -> apps/web/src/modules/account/profile-view -> apps/web/src/modules/account. Their imports are loaded, not resolved lazily, so this is a real cycle and not autoload coupling. It is too large to break in one step; the evidence lists 12 of the 11 modules, and metrics.members in the full output names every one.
-- **Cyclic dependency detected (2 modules)** (confidence: 100%): The following modules form a dependency cycle: apps/web/src/modules/plans -> apps/web/src/modules/plans/plan-card -> apps/web/src/modules/plans. This can cause initialization issues, make refactoring harder, and indicates tight coupling.
-- **Layer violation: lib -> api (nextjs)** (confidence: 80%): Module "apps/api/src/lib" (layer: lib, level 0) imports module "apps/api/src" (layer: api, level 3). Inner layers should not depend on outer layers.
-- **Layer violation: lib -> components (nextjs)** (confidence: 80%): Module "apps/web/src/lib" (layer: lib, level 0) imports module "apps/web/src/components/feedback" (layer: components, level 2). Inner layers should not depend on outer layers.
+- **Cyclic dependency detected (3 modules)** (confidence: 100%): The 3 modules apps/api/src, apps/api/src/routers, apps/api/src/rpc depend on each other through more than one cycle. One of them: apps/api/src -> apps/api/src/routers -> apps/api/src. This can cause initialization issues, make refactoring harder, and indicates tight coupling.
+- **Cyclic dependency detected (2 modules)** (confidence: 100%): The following modules form a dependency cycle: apps/web/src/modules/account -> apps/web/src/modules/account/profile-view -> apps/web/src/modules/account. This can cause initialization issues, make refactoring harder, and indicates tight coupling.
+- **Cyclic dependency detected (2 modules)** (confidence: 100%): The following modules form a dependency cycle: apps/web/src/modules/auth -> apps/web/src/modules/auth/login-card -> apps/web/src/modules/auth. This can cause initialization issues, make refactoring harder, and indicates tight coupling.
+- **Cyclic dependency detected (2 modules)** (confidence: 100%): The following modules form a dependency cycle: apps/web/src/modules/supply-requests -> apps/web/src/modules/supply-requests/supply-request-form -> apps/web/src/modules/supply-requests. This can cause initialization issues, make refactoring harder, and indicates tight coupling.
+- **Layer violation: lib -> api (nextjs)** (confidence: 80%): Module "apps/web/src/lib" (layer: lib, level 0) imports module "apps/api/src" (layer: api, level 1). Inner layers should not depend on outer layers.
 
 ---
 
-*Generated at 2026-11-19T20:57:41Z in 476.119167ms. 8870 facts, 152 insights.*
+*Generated at 2026-11-24T12:12:12Z in 2.517680916s. 10338 facts, 127 insights.*

@@ -3,8 +3,8 @@
   "format_version": 1,
   "enola_version": "0.4.38",
   "extractor_version": "v500",
-  "generated_at": "2026-11-19T20:57:35Z",
-  "duration": "909.448125ms",
+  "generated_at": "2026-11-19T20:57:41Z",
+  "duration": "476.119167ms",
   "repo_path": "/Users/mm25zamanian/Codes/persianpartshop.ir",
   "git": {
     "ref": "main",
@@ -55,7 +55,7 @@
     "facts.jsonl": "sha256:03533811ba0bbd2026fa0ef668e9d6613819a8699603d740063856613b7d01bf",
     "flows.json": "sha256:f946ce98b7c8a0adf43d976db1198c65aa68211d2909a35d9f9cd6da622da6e0",
     "insights.json": "sha256:c9cb0b8ca574c131859d8ec3b223bcbb8f676a6c74f616079cac7fa6b019b929",
-    "llm_context.md": "sha256:0548bf95afc4e399c3b72c7b651bab516e79a47b39c34c08d0856a448c820920"
+    "llm_context.md": "sha256:f87931eb3e40f19a8ec483b241c970380047aa2ca17b5fefcedf1aba761c89cb"
   },
   "fact_count": 8870,
   "insight_count": 152,
