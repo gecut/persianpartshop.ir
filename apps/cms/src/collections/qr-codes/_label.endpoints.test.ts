@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { unzipSync } from 'fflate'
-import { buildZip, parseExportBody, parseGenerateBody, zipEntryName } from './_label.endpoints'
+import { acquireExportSlot, parseExportBody, parseGenerateBody, zipEntryName } from './_label.endpoints'
 
 test('parseGenerateBody validates count and store', () => {
   for (const bad of [{ count: 0 }, { count: 501 }, { count: 1.5 }, { count: '3' }, {}, null, 'x'])
@@ -28,9 +27,13 @@ test('zipEntryName is safe', () => {
   assert.ok(!/[\\/]|\.\./.test(zipEntryName('a/b\\c..d', 'ABCD2345')))
 })
 
-test('buildZip round-trips names and bytes', () => {
-  const zip = buildZip([{ name: 'a.png', png: new Uint8Array([1, 2, 3]) }, { name: 'b.png', png: new Uint8Array([4]) }])
-  const files = unzipSync(zip)
-  assert.deepEqual(Object.keys(files).sort(), ['a.png', 'b.png'])
-  assert.deepEqual([...(files['a.png'] ?? [])], [1, 2, 3])
+test('acquireExportSlot allows one export at a time', () => {
+  const release = acquireExportSlot()
+  assert.ok(release)
+  assert.equal(acquireExportSlot(), null)
+  release()
+  release()
+  const again = acquireExportSlot()
+  assert.ok(again)
+  again()
 })

@@ -1,6 +1,6 @@
 import { initTransaction, commitTransaction, killTransaction, type Endpoint, type PayloadRequest } from 'payload'
-import { zipSync } from 'fflate'
 import { getAdminUser } from '../../access/roles'
+import { labelZipStream } from '../../modules/qr-label/label-zip-stream'
 import { renderLabel } from '../../modules/qr-label/render-label'
 import { labelUrl } from '../../modules/qr-label/label-url'
 import { canManageQr } from './_access'
@@ -37,10 +37,17 @@ export function zipEntryName(store: string | null | undefined, token: string): s
   return `${safe || 'qr'}-${token}.png`
 }
 
-export function buildZip(entries: { name: string; png: Uint8Array }[]): Uint8Array {
-  const files: Record<string, [Uint8Array, { level: 0 }]> = {}
-  for (const entry of entries) files[entry.name] = [entry.png, { level: 0 }] // PNG is already compressed
-  return zipSync(files)
+let exporting = false
+
+export function acquireExportSlot(): (() => void) | null {
+  if (exporting) return null
+  exporting = true
+  let released = false
+  return () => {
+    if (released) return
+    released = true
+    exporting = false
+  }
 }
 
 const catalogUrl = () => process.env.CATALOG_URL ?? ''
@@ -90,22 +97,33 @@ const exportZip: Endpoint = {
     if (!catalogUrl()) return bad('آدرس کاتالوگ تنظیم نشده است.', 500)
     const ids = parseExportBody(await req.json?.().catch(() => undefined))
     if (!ids) return bad(`شناسه‌ها معتبر نیست؛ حداکثر ${MAX_COUNT} کد در هر خروجی مجاز است.`)
-    const found = await req.payload.find({
-      collection: 'qr-codes', where: { id: { in: ids } }, limit: ids.length, depth: 0, pagination: false, req, overrideAccess: false,
-    })
-    if (!found.docs.length) return bad('کدی با این شناسه‌ها پیدا نشد.', 404)
+    const release = acquireExportSlot()
+    if (!release) return bad('خروجی دیگری در حال ساخت است؛ چند لحظه بعد دوباره تلاش کنید.', 429)
     try {
-      const entries: { name: string; png: Uint8Array }[] = []
-      for (const doc of found.docs) entries.push({ name: zipEntryName(doc.store, doc.token), png: await renderToken(doc.token) })
-      const stamp = new Date().toISOString().slice(0, 10).replaceAll('-', '')
-      return new Response(buildZip(entries) as unknown as ConstructorParameters<typeof Response>[0], {
-        headers: {
-          'Content-Type': 'application/zip',
-          'Content-Disposition': `attachment; filename="qr-labels-${stamp}.zip"`,
-          'Cache-Control': 'private, no-store',
-        },
+      const found = await req.payload.find({
+        collection: 'qr-codes', where: { id: { in: ids } }, limit: ids.length, depth: 0, pagination: false, req, overrideAccess: false,
       })
+      if (!found.docs.length) {
+        release()
+        return bad('کدی با این شناسه‌ها پیدا نشد.', 404)
+      }
+      const entries = found.docs.map((doc) => ({ name: zipEntryName(doc.store, doc.token), token: doc.token }))
+      const stamp = new Date().toISOString().slice(0, 10).replaceAll('-', '')
+      return new Response(
+        labelZipStream(entries, renderToken, (error) => {
+          release()
+          if (error) req.payload.logger.error({ msg: 'QR export failed', error: error instanceof Error ? error.message : 'unknown' })
+        }),
+        {
+          headers: {
+            'Content-Type': 'application/zip',
+            'Content-Disposition': `attachment; filename="qr-labels-${stamp}.zip"`,
+            'Cache-Control': 'private, no-store',
+          },
+        },
+      )
     } catch (error) {
+      release()
       req.payload.logger.error({ msg: 'QR export failed', error: error instanceof Error ? error.message : 'unknown' })
       return bad('ساخت برچسب ممکن نشد؛ دوباره تلاش کنید.', 500)
     }

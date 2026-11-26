@@ -67,7 +67,10 @@ export function QrExport() {
         const data = (await response.json().catch(() => ({}))) as { error?: string }
         throw new Error(data.error ?? 'دریافت خروجی ممکن نشد.')
       }
-      const url = URL.createObjectURL(await response.blob())
+      const blob = await response.blob().catch(() => {
+        throw new Error('دریافت خروجی نیمه‌کاره ماند؛ دوباره تلاش کنید.')
+      })
+      const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
       link.download = downloadFilename(response.headers.get('Content-Disposition'))

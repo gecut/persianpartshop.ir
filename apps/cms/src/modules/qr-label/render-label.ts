@@ -4,6 +4,11 @@ import sharp from 'sharp'
 import { openSync, type Font } from 'fontkit'
 import { justifyKashida } from './kashida'
 
+// The CMS container has one CPU; libvips otherwise starts one thread per host core and keeps an operation cache.
+// These settings are process-wide, so media upload resizing in the CMS uses them too.
+sharp.concurrency(1)
+sharp.cache(false)
+
 export const LABEL = {
   widthMm: 60,
   heightMm: 80,
