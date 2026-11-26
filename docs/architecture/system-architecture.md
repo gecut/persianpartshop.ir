@@ -30,7 +30,7 @@ The root [appContract](../../packages/contract/src/index.ts) exports `health`, `
 
 Relevant names are `auth.session`, `catalog.getById`, `order.pricing.validateCart`, `order.submit`, `order.cancel`, `order.prepareReorder`, `warehouse.availability`, and `shopping.createOrder`. The latter delegates to the same submit implementation. Do not use former conceptual names such as `getBySlug`, `cancelByCustomer`, `system.previewCsvImport` or `getGlobalConfig` as executable API documentation.
 
-`catalog.getByScanCode` performs an exact permission-checked QR lookup, independent of the initial 500-item catalog page; `catalog.getProductQr` returns the authorized product's QR payload. The web client generates PNG/SVG locally. The camera decoder's reader WASM is bundled and served with the web application.
+`catalog.getByQrToken` performs an exact permission-checked QR token lookup, independent of the initial 500-item catalog page; `catalog.listQrTokens` returns the authorized `token → productId` map for offline use. On the public catalog side, CMS exposes the `qr` operation (`POST /api/catalog/qr`) to resolve active tokens for published products. QR label image generation (60 × 80 mm PNGs and ZIP export) is handled CMS-side. The camera decoder's reader WASM is bundled and served with the web application.
 
 Stock CSV endpoints are Payload collection endpoints: `/api/warehouse-stock/preview`, `/apply`, `/export`; their data schemas are in the shared contract. They are not oRPC `system` procedures. Payload Admin endpoints and Hono health/media routes also exist outside oRPC.
 

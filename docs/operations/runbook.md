@@ -111,4 +111,7 @@ Automated verification now retains only isolated, colocated unit tests across al
 - Endpoints (manager session): `POST /api/warehouse-stock/preview`, `POST /api/warehouse-stock/apply`. Price import is separate and rejects a stock column.
 - Managers and superadmins administer warehouses and stock; the `service` identity can read stock and run existing order operations but cannot import or edit stock. Deleting a warehouse or balance is not allowed (deactivate instead).
 - Rollout: deploy CMS, API and Web together on the new contract. A baseline migration exists for an empty database only. Seed is allowed only against a guarded local target and does not reset existing balances.
+- QR token labels two-release rollout:
+  - **Release 1:** deploy code + expand migration (`20261125_120000_qr_codes` adding `qr_codes` while retaining legacy `products.scan_code`). Take a database backup first, rehearse the migration on a clone, and never use `migrate:down` for operational rollback.
+  - **Release 2:** deploy the contract migration to drop `products.scan_code` only after every container is running Release 1.
 - Automated checks today are isolated unit tests (`pnpm test:unit`). Concurrency, transactions and live authorization have no automated fixtures and need manual verification; set `DISABLE_SMS=true` while testing.

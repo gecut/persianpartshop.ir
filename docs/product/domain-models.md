@@ -49,7 +49,7 @@ erDiagram
 
 `products`: required unique `sku`, unique `slug`, `name`; optional category/brand/tags/media, grade/color/rich description and dimensions. Slug derives from SKU when missing on creation and is preserved on ordinary updates. SKU immutability is not a declared collection invariant.
 
-Optional unique `scanCode` is normalized to uppercase, accepts ASCII letters, digits and hyphens up to 128 characters, and preserves leading zeros. Empty values become null. It is independent of SKU and is editable; changing it invalidates previously printed QR codes.
+`qr-codes`: opaque 8-character uppercase `token` (generated in CMS), optional `product` relationship (many-to-one), optional `store`, optional `note`, and `isActive`. Only managers and superadmins can create or edit `qr-codes`, and deletion is forbidden. Printed labels are 60 × 80 mm PNGs rendered by the CMS pointing to `/Q/<token>`.
 
 - `productType`: `tile` or `other`.
 - Tile `sqmPerCarton` is the positive selling factor used for orders; `piecesPerCarton`, dimensions and grade are metadata. Dimension/grade are not universally required by schema; do not describe a separate completeness blocker that is not implemented.

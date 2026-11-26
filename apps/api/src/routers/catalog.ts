@@ -165,6 +165,7 @@ const listQrTokens = customerOnly.catalog.listQrTokens.handler(async ({ context 
     const result = await sdk.find({
       collection: 'qr-codes',
       where: { and: [{ isActive: { equals: true } }, { product: { exists: true } }] },
+      sort: 'id',
       limit: 1000, page, depth: 0,
     })
     rows.push(...result.docs)

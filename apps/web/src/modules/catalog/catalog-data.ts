@@ -66,8 +66,9 @@ export async function scanOfflineProduct(raw: string): Promise<CatalogRecord> {
   if (readsFromNetwork()) return CatalogRecordSchema.parse(await api.catalog.getByQrToken({ token }))
   const pack = await readSavedOfflinePackage()
   if (!pack || pack.id !== offlinePackageSnapshot()?.id) throw new Error('Offline catalog unavailable')
-  const id = pack.data.qr[token]
-  const product = id === undefined ? undefined : pack.data.products[String(id)]
+  const qr = pack.data.qr
+  const id = qr && Object.hasOwn(qr, token) ? qr[token] : undefined
+  const product = typeof id === 'number' && Number.isSafeInteger(id) && id > 0 ? pack.data.products[String(id)] : undefined
   if (!product) throw Object.assign(new Error('Product unavailable'), { code: 'NOT_FOUND' })
   return product
 }

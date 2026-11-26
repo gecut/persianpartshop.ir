@@ -14,6 +14,7 @@ CMS owns the single publication compiler, parameterized derived-price/stock quer
 | --- | --- | --- |
 | Catalog | `/` | First 24 products in HTML; interactive URL filters and pagination |
 | Catalog | `/p/[identifier]` | Stable positive ASCII numeric product identifier |
+| Catalog | `/Q/<token>` | Dynamic (no ISR) QR token resolver: temporary redirect (307) to `/p/<id>`, or Persian inactive page for unknown/inactive/unpublished tokens |
 | Catalog | `POST /api/catalog/browse` | Only anonymous data endpoint; validated input, 64 KiB limit, no-store and cancellation |
 | Catalog | `/health` | Process health independent of CMS/product data |
 | CMS | `POST /api/catalog/:operation` | Active service account only; bootstrap, browse and product |
@@ -58,7 +59,7 @@ Search/filter/sort state lives in the URL; server data stays in memory-only TanS
 
 ## Deployment and verification
 
-Runtime variables are CATALOG_URL, CMS_API_URL and CMS_API_KEY. Compose uses the private CMS address and one non-root standalone Catalog instance with writable ISR cache. Catalog has no WEB_URL. Existing Dokploy routing targets service catalog, port 5176. Configure the existing proxy to apply no-store and IP rate limiting only to `/api/catalog/browse` (initially 10 requests/second, burst 30); trust upstream client IPs explicitly. Public domain routing does not automatically install that middleware. No extra infrastructure service is required.
+Runtime variables are CATALOG_URL, CMS_API_URL and CMS_API_KEY. Compose uses the private CMS address and one non-root standalone Catalog instance with writable ISR cache. Catalog has no WEB_URL. Existing Dokploy routing targets service catalog, port 5176. Configure the existing proxy to apply no-store and IP rate limiting to `/api/catalog/browse` and `/Q/*` (initially 10 requests/second, burst 30); trust upstream client IPs explicitly. Public domain routing does not automatically install that middleware. No extra infrastructure service is required.
 
 Run `pnpm test:unit`, `pnpm check-types` and `pnpm build`. Retained unit tests are colocated, deterministic and independent of external services. SDK timers are virtual; coordinator time is fixed. Integration/live/browser/ISR/container automation and its fixtures were deliberately removed by owner decision. Unit/build success does not verify PostgreSQL execution, concurrency, migrations, production connectivity or social-platform behavior. Manual acceptance covers list/search/filter/load-more, back navigation, sharing, RTL layouts, errors/404 and the noindex/social-tag boundary.
 

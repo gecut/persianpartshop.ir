@@ -119,7 +119,7 @@ const preview: Endpoint = {
     if (!getAdminUser(req.user)) return forbidden()
     if (!catalogUrl()) return bad('آدرس کاتالوگ تنظیم نشده است.', 500)
     const id = Number(new URL(req.url ?? 'http://localhost').searchParams.get('id'))
-    if (!Number.isInteger(id) || id < 1) return bad('شناسه معتبر نیست.')
+    if (!Number.isInteger(id) || id < 1 || id > 2_147_483_647) return bad('شناسه معتبر نیست.')
     const doc = await req.payload.findByID({ collection: 'qr-codes', id, depth: 0, req, overrideAccess: false }).catch(() => null)
     if (!doc) return bad('کد پیدا نشد.', 404)
     try {
