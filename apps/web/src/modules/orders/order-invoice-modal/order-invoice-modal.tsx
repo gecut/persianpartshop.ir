@@ -73,7 +73,7 @@ export function OrderInvoiceModal({
             >
               <InvoiceHeader order={order} formattedInvoiceNumber={formattedInvoiceNumber} />
 
-              {savedAt && <p className="mb-3 text-xs text-muted print:text-black">
+              {savedAt && <p className="mb-3 text-xs text-muted no-print">
                 نسخهٔ ذخیره‌شدهٔ سند · آخرین دریافت {formatPersianDateTime(savedAt)}
               </p>}
 
@@ -95,12 +95,6 @@ export function OrderInvoiceModal({
 
               {/* 5. Signatures and Seals */}
               <InvoiceSignatures />
-
-              {/* Print Footer */}
-              <div className="text-center text-[10px] text-muted/70 mt-6 pt-3 print:block print:mt-2 print:pt-1 print:text-[7.5px]">
-                این پیش‌فاکتور توسط سامانه مکانیزه پرشین‌پارت صادر شده و ارزش
-                قانونی جهت بارگیری کالا دارد.
-              </div>
             </div>
           </div>
         </motion.div>

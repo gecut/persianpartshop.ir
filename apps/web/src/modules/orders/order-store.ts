@@ -215,7 +215,7 @@ export function mapDocToOrder(doc: any): Order {
     status: normalizedStatus as any,
     cancelledBy,
     statusLabel,
-    storeName: userObj?.companyName || 'بازرگانی دهقان (پرشین پارت)',
+    storeName: userObj?.companyName || '',
     customerName: userObj?.fullName || 'خریدار محترم',
     customerPhone: userObj?.phone || '',
     warehouseName: doc.warehouseName ?? (typeof doc.warehouse === 'object' ? doc.warehouse?.name : undefined),

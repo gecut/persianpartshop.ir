@@ -15,6 +15,7 @@ export function InvoiceTotals({ subtotal, discountAmount, taxAmount, finalTotal 
             خلاصه صورت‌حساب مالی
           </div>
           <div className="p-3 sm:p-3.5 space-y-2 sm:space-y-2.5 print:p-2 print:space-y-1.5">
+            {(discountAmount > 0 || taxAmount > 0) && <>
             <div className="flex items-center justify-between text-foreground/80 whitespace-nowrap">
               <span>جمع ناخالص کالاها:</span>
               <span className="font-bold">
@@ -42,6 +43,7 @@ export function InvoiceTotals({ subtotal, discountAmount, taxAmount, finalTotal 
               <span>مبلغ کل فاکتور:</span>
               <span>{formatToman(finalTotal)} تومان</span>
             </div>
+            </>}
 
             {/* مبلغ نهایی قابل پرداخت با اپلیکیشن */}
             <div className="flex items-center justify-between bg-foreground text-background p-2.5 sm:p-3 rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm py-2.5 sm:py-3 whitespace-nowrap print:p-2 print:rounded-lg print:text-[9px]">

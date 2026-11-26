@@ -70,8 +70,8 @@ export function InvoiceItemsTable({ order }: InvoiceItemsTableProps) {
                           {detailStr ? ` ${detailStr}` : ""}
                         </span>
                         {item.productSku && (
-                          <span className="text-[11px] text-muted/70 font-normal print:text-[8.5px] dir-ltr text-right inline-block">
-                            کد: {item.productSku}
+                          <span className="text-[11px] text-muted/70 font-normal print:text-[8.5px]">
+                            کد: <bdi dir="ltr">{item.productSku}</bdi>
                           </span>
                         )}
                       </div>

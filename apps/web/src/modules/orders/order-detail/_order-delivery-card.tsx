@@ -21,7 +21,7 @@ export function OrderDeliveryCard({ order }: OrderDeliveryCardProps) {
           <div>
             <span className="text-muted block">فروشگاه:</span>
             <span className="font-bold text-foreground">
-              {order.storeName}
+              {order.storeName || '—'}
               {order.warehouseName && <p>انبار تأمین: {order.warehouseName}</p>}
             </span>
           </div>
