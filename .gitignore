@@ -57,3 +57,7 @@ playwright-report/
 /apps/cms/media/
 
 .agents/teamwork/
+.codex/
+**/.enola/hooks.json
+.enola/session-pin.lock
+
