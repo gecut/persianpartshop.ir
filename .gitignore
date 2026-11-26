@@ -50,7 +50,10 @@ playwright-report/
 
 # Local slab catalog source files
 /catalog/
+/persepolis-catalog-ops/
 /SPINA SLAB CATALOG.pdf
 
 # Runtime uploads and local preview media belong to the persistent volume.
 /apps/cms/media/
+
+.agents/teamwork/
