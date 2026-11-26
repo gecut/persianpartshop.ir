@@ -1,3 +1,4 @@
+import { useEffect } from "react"
 import { formatPersianDateTime } from '@/lib/utils/date'
 import { formatTrackingNumber } from '@/lib/utils/tracking-number'
 import { createPortal } from "react-dom"
@@ -24,6 +25,20 @@ export function OrderInvoiceModal({
   isOpen,
   onClose,
 }: OrderInvoiceModalProps) {
+  useEffect(() => {
+    if (!isOpen) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [isOpen, onClose]);
+
   if (!order) return null;
 
   // Financial calculations
@@ -36,11 +51,12 @@ export function OrderInvoiceModal({
 
   const handlePrint = () => {
     const originalTitle = document.title;
-    document.title = `پیش‌فاکتور_${formattedInvoiceNumber.replace(/\s+/g, "_")}`;
-    window.print();
-    setTimeout(() => {
+    const restore = () => {
       document.title = originalTitle;
-    }, 1000);
+    };
+    document.title = `پیش‌فاکتور_${formattedInvoiceNumber.replace(/\s+/g, "_")}`;
+    window.addEventListener("afterprint", restore, { once: true });
+    window.print();
   };
 
   if (typeof document === "undefined") return null;
@@ -51,6 +67,9 @@ export function OrderInvoiceModal({
         <motion.div
           id="order-invoice-portal"
           key="invoice-modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="invoice-title"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -90,7 +109,7 @@ export function OrderInvoiceModal({
                 finalTotal={finalTotal}
               />
 
-              {/* شرایط و ضوابط رسمی */}
+              {/* شرایط و ضوابط */}
               <InvoiceTerms order={order} />
 
               {/* 5. Signatures and Seals */}

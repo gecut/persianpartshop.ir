@@ -22,9 +22,9 @@ export function InvoiceActionBar({ formattedInvoiceNumber, onClose, onPrint }: I
         </Button>
         <div className="hidden sm:flex flex-col">
           <span className="text-xs font-extrabold text-foreground">
-            پیش‌فاکتور رسمی سفارش
+            پیش‌فاکتور سفارش
           </span>
-          <span className="text-[11px] text-muted dir-ltr ">
+          <span className="text-[11px] text-muted">
             {formattedInvoiceNumber}
           </span>
         </div>

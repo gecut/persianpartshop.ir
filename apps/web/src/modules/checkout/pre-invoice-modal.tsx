@@ -123,7 +123,6 @@ export function PreInvoiceModal({
             : Number(item.product.id),
           requestedArea: item.requestedArea,
         })),
-        notes: "ثبت سفارش از لیست محصولات",
         idempotencyKey: idempotencyKeyRef.current,
       });
       if (res?.id) {

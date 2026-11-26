@@ -172,6 +172,8 @@ export const CustomerOrderDocumentSchema = z.object({
   timeline: z.array(z.object({ timestamp: z.string().nullable().optional(), status: z.string().nullable().optional() })).nullable().optional(),
 })
 
+export type CustomerOrderDocument = z.infer<typeof CustomerOrderDocumentSchema>
+
 export const SubmitOrderInputSchema = z.object({
   warehouseId: z.number().int().positive(),
   items: z.array(CartItemInputSchema).min(1, 'سبد خرید جهت ثبت سفارش الزامی است').max(100),
