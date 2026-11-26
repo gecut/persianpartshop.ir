@@ -12,7 +12,6 @@ const product: Product = {
   createdAt: '2026-01-01',
   updatedAt: '2026-01-01',
   basePricePerSqm: 1234567,
-  scanCode: 'INTERNAL-SECRET',
   inventorySqm: 98765,
   stockCartons: 98765,
   productType: 'tile',

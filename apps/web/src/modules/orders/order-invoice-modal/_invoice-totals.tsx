@@ -9,6 +9,8 @@ interface InvoiceTotalsProps {
 }
 
 export function InvoiceTotals({ subtotal, discountAmount, taxAmount, finalTotal }: InvoiceTotalsProps) {
+  const rounded = Math.round(finalTotal)
+
   return (
     <div className="w-full flex flex-col gap-2 sm:gap-3 mb-4 sm:mb-5">
       <div className="w-full bg-default-100 rounded-xl sm:rounded-2xl text-xs overflow-hidden print:text-[9px] print:rounded-xl">
@@ -42,7 +44,7 @@ export function InvoiceTotals({ subtotal, discountAmount, taxAmount, finalTotal 
           </div>
 
           <p className="text-[11px] text-muted print:text-[8.5px]">
-            به حروف: {tomanToPersianWords(Math.round(finalTotal))}
+            به حروف: {Number.isSafeInteger(rounded) && rounded >= 0 ? tomanToPersianWords(rounded) : '—'}
           </p>
         </div>
       </div>

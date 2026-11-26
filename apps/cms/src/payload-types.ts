@@ -70,6 +70,7 @@ export interface Config {
   collections: {
     products: Product;
     'product-families': ProductFamily;
+    'qr-codes': QrCode;
     categories: Category;
     dimensions: Dimension;
     brands: Brand;
@@ -100,6 +101,7 @@ export interface Config {
   collectionsSelect: {
     products: ProductsSelect<false> | ProductsSelect<true>;
     'product-families': ProductFamiliesSelect<false> | ProductFamiliesSelect<true>;
+    'qr-codes': QrCodesSelect<false> | QrCodesSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     dimensions: DimensionsSelect<false> | DimensionsSelect<true>;
     brands: BrandsSelect<false> | BrandsSelect<true>;
@@ -277,10 +279,6 @@ export interface Product {
    * هنگام ایجاد از کد کالا ساخته می‌شود؛ تغییر آن نشانی محصول را تغییر می‌دهد.
    */
   slug: string;
-  /**
-   * کد یکتای محصول برای ساخت QR و شناسایی هنگام اسکن.
-   */
-  scanCode?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -350,6 +348,15 @@ export interface Media {
    * توضیح کوتاه تصویر جهت سئو و دسترس‌پذیری.
    */
   alt: string;
+  blurCSS?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -361,7 +368,6 @@ export interface Media {
   height?: number | null;
   focalX?: number | null;
   focalY?: number | null;
-  blurCSS?: unknown;
   sizes?: {
     galleryThumb?: {
       url?: string | null;
@@ -448,6 +454,29 @@ export interface Tag {
    * شناسه انگلیسی یکتا در آدرس اینترنتی.
    */
   slug: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "qr-codes".
+ */
+export interface QrCode {
+  id: number;
+  /**
+   * توکن به‌صورت خودکار ساخته می‌شود و تغییر نمی‌کند.
+   */
+  token: string;
+  /**
+   * خالی بگذارید تا کد فعلاً بدون محصول بماند. هر زمان می‌توانید محصول را عوض کنید.
+   */
+  product?: (number | null) | Product;
+  store?: string | null;
+  note?: string | null;
+  /**
+   * با غیرفعال‌کردن، اسکن این کد برای مشتری «کد فعال نیست» نشان می‌دهد.
+   */
+  isActive?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1247,6 +1276,10 @@ export interface PayloadLockedDocument {
         value: number | ProductFamily;
       } | null)
     | ({
+        relationTo: 'qr-codes';
+        value: number | QrCode;
+      } | null)
+    | ({
         relationTo: 'categories';
         value: number | Category;
       } | null)
@@ -1400,7 +1433,6 @@ export interface ProductsSelect<T extends boolean = true> {
       };
   richDescription?: T;
   slug?: T;
-  scanCode?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1411,6 +1443,19 @@ export interface ProductsSelect<T extends boolean = true> {
 export interface ProductFamiliesSelect<T extends boolean = true> {
   name?: T;
   products?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "qr-codes_select".
+ */
+export interface QrCodesSelect<T extends boolean = true> {
+  token?: T;
+  product?: T;
+  store?: T;
+  note?: T;
+  isActive?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1669,6 +1714,7 @@ export interface SupplyRequestsSelect<T extends boolean = true> {
  */
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
+  blurCSS?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;

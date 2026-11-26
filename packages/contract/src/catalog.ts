@@ -694,7 +694,7 @@ export const tagContract = {
 }
 
 export const QR_TOKEN_PATTERN = /^[A-HJKMNP-Z2-9]{8}$/
-export const QrTokenSchema = z.string().trim().toUpperCase().regex(QR_TOKEN_PATTERN)
+export const QrTokenSchema = z.string().max(64).trim().toUpperCase().regex(QR_TOKEN_PATTERN)
 
 export const catalogContract = {
   syncPage: oc.input(z.object({ cursor: z.string().max(2048).optional(), limit: z.number().int().min(1).max(100).default(24) }))

@@ -30,6 +30,7 @@ const referenceActions: Record<string, string> = {
   'products.dimension': 'ابتدا ابعاد را در فرم محصول تغییر دهید.',
   'products.tags': 'ابتدا برچسب را از فرم محصول بردارید.',
   'products.family': 'ابتدا طرح را از فرم کالاهای عضو بردارید یا تغییر دهید.',
+  'qr-codes.product': 'ابتدا کدهای QR متصل به این محصول را به محصول دیگری وصل کنید یا غیرفعال کنید.',
 }
 
 export const protectReferencedDocument: CollectionBeforeDeleteHook = async ({ id, collection, req }) => {

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react"
+import { useEffect, useLayoutEffect, useRef } from "react"
 import { formatPersianDateTime } from '@/lib/utils/date'
 import { formatTrackingNumber } from '@/lib/utils/tracking-number'
 import { createPortal } from "react-dom"
@@ -27,7 +27,9 @@ export function OrderInvoiceModal({
 }: OrderInvoiceModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
+  useLayoutEffect(() => {
+    onCloseRef.current = onClose;
+  });
 
   const hasOrder = Boolean(order);
 

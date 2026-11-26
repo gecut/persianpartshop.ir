@@ -162,4 +162,5 @@ test('QrTokenSchema trims, uppercases and rejects ambiguous symbols', () => {
   assert.equal(QrTokenSchema.parse(' abcd2345 '), 'ABCD2345')
   assert.equal(QrTokenSchema.safeParse('ABCD2340').success, false) // contains 0
   assert.equal(QrTokenSchema.safeParse('ABCDEFGHI').success, false) // 9 chars
+  assert.equal(QrTokenSchema.safeParse('A'.repeat(65)).success, false) // > 64 chars
 })

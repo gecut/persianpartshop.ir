@@ -128,7 +128,7 @@ export async function renderLabel(url: string): Promise<{ png: Buffer; geometry:
   const w = n + 2 * (innerPad + LABEL.sideGap)
   const mmPerModule = LABEL.widthMm / w
   const h = LABEL.heightMm / mmPerModule
-  const caption = captionBlock(LABEL.captionWidth, w / 2)
+  const caption = captionBlock(n, w / 2)
   const verticalGap = (h - (2 * innerPad + n + caption.height)) / 3
   if (verticalGap < LABEL.sideGap) throw new RangeError('Label content does not fit 60 x 80 mm')
   const qx = innerPad + LABEL.sideGap

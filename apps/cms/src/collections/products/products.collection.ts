@@ -1,7 +1,7 @@
 import type { CollectionConfig } from "payload";
 import { PRODUCT_GRADE_OPTIONS } from "@persianpart/contract";
 import { syncSlugAndDimensions } from "./_sync-slug-and-dimensions.before-validate";
-import { getAdminUser, isAdminAuthenticated, isCatalogManager } from "../../access/roles";
+import { isAdminAuthenticated, isCatalogManager } from "../../access/roles";
 import { logAction } from "../audit-logs/log-action";
 import { familyChange } from "./_family-change";
 import {
@@ -267,14 +267,6 @@ export const Products: CollectionConfig = {
             {
               name: "slug", type: "text", required: true, unique: true, label: "شناسه نشانی محصول",
               admin: { description: "هنگام ایجاد از کد کالا ساخته می‌شود؛ تغییر آن نشانی محصول را تغییر می‌دهد." },
-            },
-            {
-              name: "scanCode", type: "text", unique: true, maxLength: 128,
-              access: { read: ({ req }) => Boolean(getAdminUser(req.user)) },
-              label: "کد شناسایی اسکن",
-              admin: { description: "کد یکتای محصول برای ساخت QR و شناسایی هنگام اسکن." },
-              hooks: { beforeValidate: [({ value }) => typeof value === "string" ? value.trim().toUpperCase() || null : value] },
-              validate: (value: string | null | undefined) => !value || (value.length <= 128 && /^[A-Z0-9-]+$/.test(value)) || "حداکثر ۱۲۸ حرف لاتین، رقم یا خط تیره مجاز است.",
             },
           ],
         },

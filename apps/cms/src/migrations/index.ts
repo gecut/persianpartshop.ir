@@ -17,6 +17,7 @@ import * as productImageWatermark from './20261111_120000_product_image_watermar
 import * as productGrades from './20261112_120000_product_grades';
 import * as productStockOwnership from './20261114_120000_product_stock_ownership';
 import * as customerOtpOwnership from './20261114_130000_customer_otp_ownership';
+import * as qrCodes from './20261125_120000_qr_codes';
 
 export const migrations = [
   {
@@ -46,4 +47,5 @@ export const migrations = [
   { up: mcpProductFamilies.up, down: mcpProductFamilies.down, name: '20261121_140000_mcp_product_families' },
   { up: mediaBlurCss.up, down: mediaBlurCss.down, name: '20261124_120000_media_blur_css' },
   { up: mediaBlurCssColumnName.up, down: mediaBlurCssColumnName.down, name: '20261124_130000_media_blur_css_column_name' },
+  { up: qrCodes.up, down: qrCodes.down, name: '20261125_120000_qr_codes' },
 ];
