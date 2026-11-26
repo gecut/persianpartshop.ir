@@ -11,7 +11,7 @@ export const QrCodes: CollectionConfig = {
     useAsTitle: 'token',
     group: 'محصولات و کاتالوگ',
     defaultColumns: ['token', 'product', 'store', 'isActive'],
-    listSearchableFields: ['token', 'store', 'note'],
+    listSearchableFields: ['token', 'store', 'note', 'product.name'],
     components: {
       beforeListTable: ['/collections/qr-codes/components/qr-export#QrExport'],
     },

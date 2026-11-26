@@ -16,6 +16,7 @@ import {
   hasEmptyCriteria,
 } from './catalog-policy'
 import { mapPublicProduct, publicConfig, toFamilyOption } from './catalog-mapper'
+import { resolveQr } from './catalog-qr'
 import { catalogQuerySQL } from './catalog-query-sql'
 import { relationId } from '../../lib/relation-id'
 import {
@@ -239,6 +240,30 @@ export function createCatalogService(req: PayloadRequest) {
         loadFamilyOptions(),
       ])
       return { product: products[0], config: publicSettings, familyOptions }
+    },
+    qr: async (input: CatalogInput<'qr'>) => {
+      const { settings } = await loadSettings()
+      return resolveQr(
+        {
+          findByToken: async (token) => {
+            const result = await req.payload.find({
+              collection: 'qr-codes',
+              where: { token: { equals: token } },
+              limit: 1,
+              depth: 0,
+              req,
+              overrideAccess: false,
+            })
+            return result.docs[0] ?? null
+          },
+          isPublished: async (productId) => {
+            if (settings.paused) return false
+            const data = await query({ policy: compilePolicy(settings), mode: 'browse', productId, limit: 1 })
+            return data.rows.length > 0
+          },
+        },
+        input.token,
+      )
     },
     preview: async (settings: CatalogSettings, productId?: number) => {
       const result = await query({

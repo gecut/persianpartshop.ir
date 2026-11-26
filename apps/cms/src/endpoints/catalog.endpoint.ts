@@ -44,6 +44,14 @@ export const catalogEndpoint: Endpoint = {
             { headers: { 'Cache-Control': 'private, no-store' } },
           )
         }
+        case 'qr': {
+          const input = catalogOperations.qr.input.safeParse(body)
+          if (!input.success) throw new APIError('درخواست معتبر نیست.', 400)
+          return Response.json(
+            catalogOperations.qr.output.parse(await service.qr(input.data)),
+            { headers: { 'Cache-Control': 'private, no-store' } },
+          )
+        }
         default:
           throw new APIError('مسیر موجود نیست.', 404)
       }
