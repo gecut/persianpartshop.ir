@@ -17,8 +17,12 @@
 .secondary { color: var(--theme-text); background: var(--theme-elevation-0); border-color: var(--theme-elevation-300); }
 .primary:hover:not(:disabled), .secondary:hover:not(:disabled) { opacity: .8; }
 .primary:disabled, .secondary:disabled { opacity: .45; cursor: not-allowed; }
-.primary:focus-visible, .secondary:focus-visible, .field select:focus-visible, .manual summary:focus-visible, .manual textarea:focus-visible, .export summary:focus-visible, .export input:focus-visible { outline: 2px solid var(--theme-elevation-800); outline-offset: 2px; }
+.primary:focus-visible, .secondary:focus-visible, .field select:focus-visible, .manual summary:focus-visible, .manual textarea:focus-visible, .export summary:focus-visible, .export input:focus-visible, .checkboxLabel input:focus-visible { outline: 2px solid var(--theme-elevation-800); outline-offset: 2px; }
 .hint { margin: -12px 0 0; color: var(--theme-elevation-600); font-size: .8rem; line-height: 1.9; }
+.checkboxField { display: grid; gap: 4px; font-size: .875rem; }
+.checkboxLabel { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; cursor: pointer; width: fit-content; }
+.checkboxLabel input { inline-size: 16px; block-size: 16px; accent-color: var(--theme-elevation-800); cursor: pointer; }
+.checkboxHint { margin: 0; padding-inline-start: 26px; color: var(--theme-elevation-600); font-size: .8rem; line-height: 1.8; }
 .manual, .export { color: var(--theme-elevation-700); font-size: .85rem; }
 .manual summary, .export summary { width: fit-content; cursor: pointer; }
 .manual textarea { display: block; margin-block-start: 14px; resize: vertical; }

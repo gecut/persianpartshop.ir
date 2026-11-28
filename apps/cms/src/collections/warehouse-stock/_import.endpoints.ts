@@ -4,7 +4,8 @@ import { initTransaction, commitTransaction, killTransaction, type Endpoint } fr
 import { sql } from '@payloadcms/db-postgres'
 import { StockImportPreviewInputSchema, StockImportApplyInputSchema, StockImportSnapshotSchema, type StockImportPreview, type StockImportRow } from '@persianpart/contract'
 import { manageWarehouses } from '../warehouses/warehouses.collection'
-import { getTransactionDb } from '../../lib/transaction'
+import { getReadDb, getTransactionDb } from '../../lib/transaction'
+import { computeMissingRows } from './_missing-rows'
 import { replaceWarehouseStock } from './_stock-operations'
 import { parseImportCsv } from './_import-csv'
 
@@ -28,6 +29,9 @@ export async function getStockImportPreview(req: PayloadRequest, inputData: unkn
     if (!warehouse.isActive || warehouse.stockMode !== 'exact') throw new Error('انبار قطعی فعال نیست.')
   }
   const parsed = parseImportCsv(input.csv, input.mode)
+  const fileSkus = new Set<string>()
+  for (const row of parsed.rows) if (row.sku) fileSkus.add(row.sku)
+  for (const err of parsed.errors) if (err.sku) fileSkus.add(err.sku)
   const products = parsed.rows.length ? await req.payload.find({ collection: 'products', where: { sku: { in: parsed.rows.map(row => row.sku) } }, pagination: false, depth: 0, req, overrideAccess: false }) : { docs: [] }
   const bySku = new Map(products.docs.map(product => [product.sku, product]))
   const balances = input.mode !== 'price' && products.docs.length ? await req.payload.find({ collection: 'warehouse-stock', select: { product: true, inventorySqm: true, revision: true }, where: { and: [{ warehouse: { equals: input.warehouseId } }, { product: { in: products.docs.map(doc => doc.id) } }] }, pagination: false, depth: 0, req, overrideAccess: false }) : { docs: [] }
@@ -39,14 +43,57 @@ export async function getStockImportPreview(req: PayloadRequest, inputData: unkn
     const balance = byProduct.get(product.id)
     rows.push({ ...record, productId: product.id, productUpdatedAt: product.updatedAt, name: product.name, revision: balance?.revision ?? null, previousInventory: balance?.inventorySqm ?? null, previousPrice: product.basePricePerSqm ?? null })
   }
+  if (input.zeroMissing && input.mode !== 'price') {
+    const db = await getReadDb(req)
+    const candidates = await db.execute(sql`
+      SELECT ws.product_id, ws.inventory_sqm, ws.revision, p.sku, p.name, p.updated_at
+      FROM warehouse_stock ws JOIN products p ON p.id = ws.product_id
+      WHERE ws.warehouse_id = ${input.warehouseId} AND ws.inventory_sqm > 0
+    `)
+    const missing = computeMissingRows({
+      fileSkus,
+      balances: candidates.rows.map(row => ({
+        productId: Number(row.product_id),
+        sku: String(row.sku),
+        name: String(row.name),
+        productUpdatedAt: new Date(String(row.updated_at)).toISOString(),
+        inventorySqm: Number(row.inventory_sqm),
+        revision: Number(row.revision),
+      })),
+    })
+    for (const item of missing) {
+      rows.push({
+        rowNumber: 0,
+        sku: item.sku,
+        name: item.name,
+        productId: item.productId,
+        productUpdatedAt: item.productUpdatedAt,
+        inventorySqm: 0,
+        previousInventory: item.inventorySqm,
+        revision: item.revision,
+        previousPrice: null,
+        missingFromFile: true,
+      })
+    }
+  }
+  if (rows.length > 2000) throw new Error('تعداد ردیف‌های قابل ثبت بیش از ۲۰۰۰ است؛ فایل را کوچک‌تر کنید.')
   parsed.errors.sort((a, b) => a.rowNumber - b.rowNumber)
   let token: string | null = null
   if (rows.length) {
     const snapshot = StockImportSnapshotSchema.parse({ mode: input.mode, warehouseId: input.mode === 'price' ? undefined : input.warehouseId, actorId: req.user?.id, expiresAt: Date.now() + 15 * 60_000, rows })
     const body = Buffer.from(JSON.stringify(snapshot)).toString('base64url')
     token = `${body}.${sign(req, body)}`
+    if (token.length > 1_000_000) throw new Error('حجم پیش‌نمایش بیش از حد مجاز است؛ فایل را به چند بخش تقسیم کنید.')
   }
-  return { rows, errors: parsed.errors, total: parsed.total, token, priceChanges: rows.filter(row => row.basePricePerSqm !== undefined && row.basePricePerSqm !== row.previousPrice).length, stockChanges: rows.filter(row => row.inventorySqm !== undefined && row.inventorySqm !== row.previousInventory).length }
+  return {
+    rows,
+    errors: parsed.errors,
+    total: parsed.total,
+    token,
+    priceChanges: rows.filter(row => row.basePricePerSqm !== undefined && row.basePricePerSqm !== row.previousPrice).length,
+    stockChanges: rows.filter(row => row.inventorySqm !== undefined && row.inventorySqm !== row.previousInventory).length,
+    missingCount: rows.filter(row => row.missingFromFile).length,
+  }
 }
 
 export async function applyStockImport(req: PayloadRequest, readInput: () => unknown | Promise<unknown>) {
