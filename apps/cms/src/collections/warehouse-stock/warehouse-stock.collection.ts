@@ -3,6 +3,7 @@ import { getSalesFactor } from '../products/_inventory-math'
 import type { CollectionConfig } from 'payload'
 import { stockImportEndpoints } from './_import.endpoints'
 import { productStockEndpoints } from './_product-stock.endpoints'
+import { boardEndpoints } from './_board.endpoints'
 import { manageWarehouses, readWarehouseStock } from '../warehouses/warehouses.collection'
 import { sql } from '@payloadcms/db-postgres'
 import { getTransactionDb } from '../../lib/transaction'
@@ -13,9 +14,9 @@ export const WarehouseStock: CollectionConfig = {
   admin: {
     defaultColumns: ['product', 'warehouse', 'inventorySqm', 'stockCartons', 'isActive', 'lastReportedAt'],
     group: 'انبار و موجودی',
-    components: { beforeListTable: ['/collections/warehouse-stock/components/stock-import#StockImport'] },
+    components: { beforeListTable: ['/collections/warehouse-stock/components/stock-board/stock-board#StockBoard'] },
   },
-  endpoints: [...stockImportEndpoints, ...productStockEndpoints],
+  endpoints: [...stockImportEndpoints, ...productStockEndpoints, ...boardEndpoints],
   access: { read: readWarehouseStock, create: manageWarehouses, update: manageWarehouses, delete: () => false },
   indexes: [{ fields: ['warehouse', 'product'], unique: true }],
   fields: [

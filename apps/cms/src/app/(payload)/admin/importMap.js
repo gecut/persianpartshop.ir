@@ -25,7 +25,7 @@ import { BoldFeatureClient as BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864
 import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { QrPreview as QrPreview_724aee8eb58b4ba509948b9be4705487 } from '../../../collections/qr-codes/components/qr-preview'
 import { QrExport as QrExport_894fd99b3a559808875307b5e846c1b2 } from '../../../collections/qr-codes/components/qr-export'
-import { StockImport as StockImport_286451a0d08d0a9f8ff3a6e7382a1f64 } from '../../../collections/warehouse-stock/components/stock-import'
+import { StockBoard as StockBoard_f7ad402b8f315d72c0c3252ba7c7439e } from '../../../collections/warehouse-stock/components/stock-board/stock-board'
 import { CatalogSettingsField as CatalogSettingsField_925b96ddbb5637cff88c867662b57194 } from '../../../globals/components/catalog-settings-field'
 import { CatalogPriceConfirmation as CatalogPriceConfirmation_925b96ddbb5637cff88c867662b57194 } from '../../../globals/components/catalog-settings-field'
 import { Icon as Icon_57ef2d197ad87913c2eec929f08d82cf } from '../../../components/admin/admin-icon'
@@ -63,7 +63,7 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#ItalicFeatureClient": ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "/collections/qr-codes/components/qr-preview#QrPreview": QrPreview_724aee8eb58b4ba509948b9be4705487,
   "/collections/qr-codes/components/qr-export#QrExport": QrExport_894fd99b3a559808875307b5e846c1b2,
-  "/collections/warehouse-stock/components/stock-import#StockImport": StockImport_286451a0d08d0a9f8ff3a6e7382a1f64,
+  "/collections/warehouse-stock/components/stock-board/stock-board#StockBoard": StockBoard_f7ad402b8f315d72c0c3252ba7c7439e,
   "/globals/components/catalog-settings-field#CatalogSettingsField": CatalogSettingsField_925b96ddbb5637cff88c867662b57194,
   "/globals/components/catalog-settings-field#CatalogPriceConfirmation": CatalogPriceConfirmation_925b96ddbb5637cff88c867662b57194,
   "/components/admin/admin-icon#Icon": Icon_57ef2d197ad87913c2eec929f08d82cf,
