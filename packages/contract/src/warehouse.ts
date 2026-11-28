@@ -28,23 +28,39 @@ export const warehouseContract = {
 
 export const StockImportModeSchema = z.enum(['stock', 'price', 'kimia'])
 export const StockImportRowSchema = z.object({
-  rowNumber: z.number().int().positive(), productUpdatedAt: z.string().datetime(), productId: z.number().int().positive(), sku: z.string().min(1), name: z.string(),
+  rowNumber: z.number().int().nonnegative(), productUpdatedAt: z.string().datetime(), productId: z.number().int().positive(), sku: z.string().min(1), name: z.string(),
   inventorySqm: z.number().finite().nonnegative().max(1_000_000_000).refine(value => Math.abs(value * 100 - Math.round(value * 100)) < 1e-7).optional(),
   previousInventory: z.number().nullable(), revision: z.number().int().nonnegative().nullable(),
   basePricePerSqm: z.number().int().nonnegative().safe().optional(), previousPrice: z.number().nonnegative().nullable(),
+  missingFromFile: z.literal(true).optional(),
 })
-export const StockImportPreviewInputSchema = z.object({ mode: StockImportModeSchema.default('stock'), warehouseId: z.number().int().positive().optional(), csv: z.string().min(1).max(1_000_000) }).refine(value => value.mode === 'price' || value.warehouseId !== undefined)
+export const StockImportPreviewInputSchema = z.object({
+  mode: StockImportModeSchema.default('stock'), warehouseId: z.number().int().positive().optional(), csv: z.string().min(1).max(1_000_000),
+  zeroMissing: z.boolean().default(false),
+}).refine(value => (value.mode === 'price' ? !value.zeroMissing : value.warehouseId !== undefined))
 export const StockImportSnapshotSchema = z.object({
   mode: StockImportModeSchema, warehouseId: z.number().int().positive().optional(), actorId: z.number().int().positive(), expiresAt: z.number(),
-  rows: z.array(StockImportRowSchema).min(1).max(1000),
+  rows: z.array(StockImportRowSchema).min(1).max(2000),
 }).superRefine((value, ctx) => {
   if (value.mode !== 'price' && !value.warehouseId) ctx.addIssue({ code: 'custom', message: 'انبار الزامی است.' })
   for (const row of value.rows) {
     if (value.mode !== 'price' && row.inventorySqm === undefined) ctx.addIssue({ code: 'custom', message: 'موجودی الزامی است.' })
-    if (value.mode !== 'stock' && row.basePricePerSqm === undefined) ctx.addIssue({ code: 'custom', message: 'قیمت الزامی است.' })
+    if (value.mode !== 'stock' && !row.missingFromFile && row.basePricePerSqm === undefined) ctx.addIssue({ code: 'custom', message: 'قیمت الزامی است.' })
   }
 })
 export const StockImportApplyInputSchema = z.object({ token: z.string().min(1).max(1_000_000) })
 export type StockImportRow = z.infer<typeof StockImportRowSchema>
 export type StockImportMode = z.infer<typeof StockImportModeSchema>
-export type StockImportPreview = { token: string | null; rows: StockImportRow[]; errors: { rowNumber: number; sku: string; message: string }[]; total: number; priceChanges: number; stockChanges: number }
+export type StockImportPreview = { token: string | null; rows: StockImportRow[]; errors: { rowNumber: number; sku: string; message: string }[]; total: number; priceChanges: number; stockChanges: number; missingCount: number }
+
+export const StockBoardFilterSchema = z.enum(['all', 'in_stock', 'out_of_stock', 'inquiry', 'not_inquiry'])
+export const StockInquiryUpdateInputSchema = z.object({
+  warehouseId: z.number().int().positive().safe(),
+  changes: z.array(z.object({ productId: z.number().int().positive().safe(), enabled: z.boolean() }).strict()).min(1).max(500),
+}).strict().refine(v => new Set(v.changes.map(c => c.productId)).size === v.changes.length)
+export type StockBoardFilter = z.infer<typeof StockBoardFilterSchema>
+export type StockBoardCell = { amount: number | null; revision: number; isActive: boolean; lastReportedAt: string | null }
+export type StockBoardRow = { productId: number; sku: string; name: string; productType: 'tile' | 'other'; unit: string | null; salesFactor: number | null; basePricePerSqm: number | null; isActive: boolean; cells: Record<string, StockBoardCell | null> }
+export type StockBoardWarehouse = { id: number; code: string; name: string; stockMode: 'exact' | 'inquiry' }
+export type StockBoardResponse = { warehouses: StockBoardWarehouse[]; rows: StockBoardRow[]; page: number; limit: number; totalDocs: number; totalPages: number }
+export type StockInquiryUpdateResult = { enabled: number; disabled: number }
