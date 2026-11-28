@@ -105,7 +105,7 @@ Stock mode is fixed once history exists; to change it, create a new warehouse an
 
 ## R12. Price and stock import (Kimia)
 
-**Rule.** Price CSV updates global product price; stock CSV picks one warehouse per file and sets sellable primary-unit balances after reservations. Rials convert to Tomans. Preview is signed (actor, expiry, warehouse, rows, balance revisions, product timestamps); any stale row rejects the entire apply transaction. A completed import has no automatic undo.
+**Rule.** Price CSV updates global product price; stock CSV picks one warehouse per file and sets sellable primary-unit balances after reservations. Rials convert to Tomans. Preview is signed (actor, expiry, warehouse, rows, balance revisions, product timestamps); any stale row rejects the entire apply transaction. With «صفر کردن کالاهای خارج از فایل» (`zeroMissing`, default off), absent positive balances in the chosen exact warehouse become 0 in the same transaction. A completed import has no automatic undo.
 
 **Why.** The accountant exports a file from Kimia each day after all orders are closed, at the end of office hours, and hands it to this system to refresh stock and prices. The CSV is one input template; others (a future Kimia API, another accounting package) may be added. See [operations](../operations/runbook.md).
 

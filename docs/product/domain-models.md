@@ -62,7 +62,7 @@ erDiagram
 
 ## Warehouses and sellable stock
 
-Warehouses have an `exact` or `inquiry` stock mode. Existing warehouses migrate to `exact`; an inquiry warehouse has active product relationships in `supply-sources`, rather than a numeric balance. A supply request snapshots one customer, product, inquiry warehouse, quantity, packaging and estimated price. Tile products may have an optional cartons-per-pallet factor; new order items snapshot it for historical display.
+Warehouses have an `exact` or `inquiry` stock mode. Existing warehouses migrate to `exact`; inquirability is an active `warehouse_stock` row with a `null` amount in an `inquiry` warehouse, rather than a numeric balance (the `supply-sources` collection file is unregistered legacy, table `supply_sources_legacy`). A supply request snapshots one customer, product, inquiry warehouse, quantity, packaging and estimated price. Tile products may have an optional cartons-per-pallet factor; new order items snapshot it for historical display.
 
 `warehouses`: unique immutable `code`, `name`, `isActive`; deletion forbidden. `warehouse-stock`: unique `(warehouse, product)`, `inventorySqm` (nonnegative, at most two decimals), `revision`, timestamps; virtual `stockCartons` is derived. The historical `inventorySqm` name denotes the product's primary unit. Direct update/delete is forbidden; controlled reservation/restore/import changes it. Missing balance means zero.
 
