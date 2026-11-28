@@ -10,7 +10,8 @@ export function parseImportCsv(csv: string, mode: StockImportMode): { rows: CsvR
     const headers = records.shift()
     const expected = mode === 'stock' ? ['inventorySqm', 'sku'] : ['basePricePerSqm', 'sku']
     if (!headers || headers.length !== 2 || [...headers].sort().join(',') !== expected.sort().join(',')) throw new Error(`ستون‌های فایل باید دقیقاً sku و ${expected.find(value => value !== 'sku')} باشند.`)
-    if (headers[0] !== 'sku') for (const record of records) record.reverse()
+    // Swap only the two declared columns so a malformed row keeps its SKU in column 0 (zeroMissing relies on it).
+    if (headers[0] !== 'sku') for (const record of records) if (record.length >= 2) [record[0], record[1]] = [record[1]!, record[0]!]
   }
   if (!records.length || records.length > 1000) throw new Error('فایل باید بین یک تا هزار ردیف داشته باشد.')
   const counts = new Map<string, number>()

@@ -26,3 +26,9 @@ test('stock and price CSV headers, quoted identifiers and limits', () => {
   assert.throws(() => parseImportCsv('bad,header\nA,1', 'stock'))
   assert.throws(() => parseImportCsv(`sku,inventorySqm\n${Array.from({length: 1001}, (_, i) => `P${i},1`).join('\n')}`, 'stock'))
 })
+
+test('reversed stock header keeps the SKU of a malformed row', () => {
+  const result = parseImportCsv('inventorySqm,sku\n5,SKU-A,extra\n2,SKU-B', 'stock')
+  assert.deepEqual(result.errors.map(e => e.sku), ['SKU-A'])
+  assert.deepEqual(result.rows, [{ rowNumber: 3, sku: 'SKU-B', inventorySqm: 2 }])
+})
